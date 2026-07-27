@@ -1,0 +1,186 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using LentSoft.Web.Models.Entities;
+using LentSoft.Web.Services;
+
+namespace LentSoft.Web.Controllers;
+
+[Authorize(Roles = "admin,ventas")]
+public class InvoiceController : Controller
+{
+    private readonly IInvoiceService _invoiceService;
+    private readonly IPdfInvoiceService _pdfInvoiceService;
+
+    public InvoiceController(IInvoiceService invoiceService, IPdfInvoiceService pdfInvoiceService)
+    {
+        _invoiceService = invoiceService;
+        _pdfInvoiceService = pdfInvoiceService;
+    }
+
+    private IActionResult RedirectToDashboard()
+    {
+        var referer = Request.Headers["Referer"].ToString();
+        if (!string.IsNullOrEmpty(referer) && referer.Contains("/Ventas", StringComparison.OrdinalIgnoreCase))
+        {
+            return RedirectToAction("Index", "Ventas", new { section = "facturas" });
+        }
+
+        if (User.IsInRole("ventas") && !User.IsInRole("admin"))
+        {
+            return RedirectToAction("Index", "Ventas", new { section = "facturas" });
+        }
+
+        return RedirectToAction("Admin", "Dashboard", new { section = "facturas" });
+    }
+
+    [HttpGet]
+    public IActionResult Index(string? searchTerm, int page = 1, int pageSize = 5)
+    {
+        var referer = Request.Headers["Referer"].ToString();
+        if (!string.IsNullOrEmpty(referer) && referer.Contains("/Ventas", StringComparison.OrdinalIgnoreCase))
+        {
+            return RedirectToAction("Index", "Ventas", new { section = "facturas", searchTerm, page, pageSize });
+        }
+
+        if (User.IsInRole("ventas") && !User.IsInRole("admin"))
+        {
+            return RedirectToAction("Index", "Ventas", new { section = "facturas", searchTerm, page, pageSize });
+        }
+
+        return RedirectToAction("Admin", "Dashboard", new { section = "facturas", searchTerm, page, pageSize });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetJson(int id)
+    {
+        var invoice = await _invoiceService.GetByIdAsync(id);
+        if (invoice == null) return NotFound();
+
+        return Json(new
+        {
+            invoice.Id,
+            invoice.NumeroFactura,
+            invoice.OrderId,
+            invoice.Subtotal,
+            invoice.Impuestos,
+            invoice.Total,
+            invoice.Estado,
+            invoice.FechaEmision,
+            invoice.FechaPago,
+            invoice.MetodoPago,
+            ClienteNombre = invoice.Order?.User?.NombreCompleto ?? "Cliente Genérico"
+        });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(Invoice invoice)
+    {
+        if (invoice.OrderId <= 0)
+        {
+            TempData["ErrorMessage"] = "Debe seleccionar un pedido válido para la factura.";
+            return RedirectToDashboard();
+        }
+
+        try
+        {
+            await _invoiceService.CreateAsync(invoice);
+            TempData["SuccessMessage"] = "Factura creada exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al crear la factura: {ex.Message}";
+        }
+
+        return RedirectToDashboard();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(Invoice invoice)
+    {
+        if (invoice.Id <= 0)
+        {
+            TempData["ErrorMessage"] = "Factura no válida.";
+            return RedirectToDashboard();
+        }
+
+        try
+        {
+            var updated = await _invoiceService.UpdateAsync(invoice);
+            if (updated != null)
+            {
+                TempData["SuccessMessage"] = "Factura actualizada exitosamente.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "No se encontró la factura a editar.";
+            }
+        }
+        catch (Exception ex)
+        {
+            var detail = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+            TempData["ErrorMessage"] = $"Error al actualizar la factura: {detail}";
+        }
+
+        return RedirectToDashboard();
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Delete(int id)
+    {
+        try
+        {
+            var result = await _invoiceService.DeleteAsync(id);
+            if (result)
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = true, message = "Factura eliminada exitosamente." });
+                }
+                TempData["SuccessMessage"] = "Factura eliminada exitosamente.";
+            }
+            else
+            {
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = "No se encontró la factura." });
+                }
+                TempData["ErrorMessage"] = "No se encontró la factura.";
+            }
+        }
+        catch (Exception ex)
+        {
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
+            TempData["ErrorMessage"] = $"Error al eliminar la factura: {ex.Message}";
+        }
+
+        return RedirectToDashboard();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> DownloadPdf(int id)
+    {
+        var invoice = await _invoiceService.GetByIdAsync(id);
+        if (invoice == null)
+        {
+            TempData["ErrorMessage"] = "Factura no encontrada.";
+            return RedirectToDashboard();
+        }
+
+        try
+        {
+            var pdfBytes = _pdfInvoiceService.GenerateInvoicePdf(invoice);
+            var filename = $"Factura-{invoice.NumeroFactura}.pdf";
+            return File(pdfBytes, "application/pdf", filename);
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al generar el PDF: {ex.Message}";
+            return RedirectToDashboard();
+        }
+    }
+}
