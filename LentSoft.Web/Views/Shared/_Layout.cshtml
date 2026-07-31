@@ -23,6 +23,9 @@
     <partial name="_Footer" />
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/AlertifyJS/1.13.1/alertify.min.js"></script>
+    <script>
+        window.isAuthenticated = @(User.Identity?.IsAuthenticated == true ? "true" : "false");
+    </script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {

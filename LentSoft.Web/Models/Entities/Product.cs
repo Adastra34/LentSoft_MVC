@@ -23,12 +23,9 @@ public class Product : IValidatableObject
     [Column(TypeName = "decimal(10,2)")]
     public decimal? PrecioDescuento { get; set; }
 
-    /// <summary>FK a la entidad Categoria (Gafas, Lentes, Accesorios)</summary>
     [Required(ErrorMessage = "La categoría es obligatoria")]
-    public int CategoriaId { get; set; }
-
-    [ForeignKey(nameof(CategoriaId))]
-    public Categoria? Categoria { get; set; }
+    [StringLength(50)]
+    public string Categoria { get; set; } = string.Empty;
 
     [StringLength(50)]
     public string? Marca { get; set; }
@@ -50,6 +47,24 @@ public class Product : IValidatableObject
     public int ReviewCount { get; set; } = 12;
 
     public bool EsDestacado { get; set; } = false;
+
+    [StringLength(100)]
+    public string? Material { get; set; }
+
+    [StringLength(100)]
+    public string? Color { get; set; }
+
+    [StringLength(100)]
+    public string? Proteccion { get; set; }
+
+    [StringLength(100)]
+    public string? Estilo { get; set; }
+
+    [StringLength(100)]
+    public string? Tamanio { get; set; }
+
+    [StringLength(255)]
+    public string? ImagenOverlayUrl { get; set; }
 
     // Navigation properties
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();

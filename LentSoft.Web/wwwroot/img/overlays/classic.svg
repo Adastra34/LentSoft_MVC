@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 60" width="200" height="60">
+  <!-- Left frame & lens (classic tortoise shell style transparent) -->
+  <rect x="15" y="12" width="75" height="38" rx="14" ry="14" fill="rgba(100, 50, 10, 0.12)" stroke="#5c3a21" stroke-width="5"/>
+  <!-- Right frame & lens -->
+  <rect x="110" y="12" width="75" height="38" rx="14" ry="14" fill="rgba(100, 50, 10, 0.12)" stroke="#5c3a21" stroke-width="5"/>
+  <!-- Bridge -->
+  <path d="M 90,20 C 95,16 105,16 110,20" fill="none" stroke="#5c3a21" stroke-width="5"/>
+  <!-- Silver detail studs on top outer corners -->
+  <ellipse cx="23" cy="18" rx="3.5" ry="1.8" fill="#cbd5e0"/>
+  <ellipse cx="177" cy="18" rx="3.5" ry="1.8" fill="#cbd5e0"/>
+</svg>

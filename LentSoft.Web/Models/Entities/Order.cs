@@ -27,6 +27,9 @@ public class Order : IValidatableObject
 
     public DateTime? FechaEntrega { get; set; }
 
+    [StringLength(100)]
+    public string? MetodoPagoSimulado { get; set; }
+
     // Navigation properties
     [ForeignKey(nameof(UserId))]
     public User User { get; set; } = null!;
@@ -36,11 +39,11 @@ public class Order : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        var validEstados = new[] { "pendiente", "procesando", "enviado", "entregado", "cancelado" };
+        var validEstados = new[] { "pendiente", "procesando", "enviado", "entregado", "cancelado", "pagado" };
         if (!validEstados.Contains(Estado))
         {
             yield return new ValidationResult(
-                "El estado debe ser: pendiente, procesando, enviado, entregado o cancelado",
+                "El estado debe ser: pendiente, procesando, enviado, entregado, cancelado o pagado",
                 new[] { nameof(Estado) });
         }
     }

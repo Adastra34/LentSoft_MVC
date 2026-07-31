@@ -19,9 +19,8 @@ public class DashboardAdminViewModel
 
     // ── Inventario ──
     public List<Product> Productos { get; set; } = new();
-    public List<Categoria> Categorias { get; set; } = new();
-    public List<Proveedor> Proveedores { get; set; } = new();
-    public List<MovimientoInventario> HistorialMovimientos { get; set; } = new();
+    public List<ProveedorMock> Proveedores { get; set; } = new();
+    public List<MovimientoInventarioMock> HistorialMovimientos { get; set; } = new();
 
     // ── Ventas ──
     public List<Order> Ventas { get; set; } = new();
@@ -68,4 +67,27 @@ public class DashboardAdminViewModel
     {
         return actual >= anterior ? "var(--success)" : "var(--error)";
     }
+}
+
+/// <summary>Mock: Proveedor (no tiene tabla en DB)</summary>
+public class ProveedorMock
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; } = string.Empty;
+    public string Contacto { get; set; } = string.Empty;
+    public string Telefono { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string Categoria { get; set; } = string.Empty;
+    public string Estado { get; set; } = "activo";
+}
+
+/// <summary>Mock: Movimiento de inventario (no tiene tabla en DB)</summary>
+public class MovimientoInventarioMock
+{
+    public int Id { get; set; }
+    public string Producto { get; set; } = string.Empty;
+    public string Tipo { get; set; } = string.Empty; // "entrada" / "salida"
+    public int Cantidad { get; set; }
+    public DateTime Fecha { get; set; }
+    public string Responsable { get; set; } = string.Empty;
 }

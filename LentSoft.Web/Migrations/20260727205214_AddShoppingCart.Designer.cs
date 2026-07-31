@@ -4,6 +4,7 @@ using LentSoft.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LentSoft.Web.Migrations
 {
     [DbContext(typeof(LentSoftDbContext))]
-    partial class LentSoftDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260727205214_AddShoppingCart")]
+    partial class AddShoppingCart
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -493,10 +496,6 @@ namespace LentSoft.Web.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<string>("ImagenOverlayUrl")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
                     b.Property<string>("ImagenUrl")
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
@@ -566,7 +565,6 @@ namespace LentSoft.Web.Migrations
                             EsDestacado = true,
                             Estilo = "Aviador",
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ImagenOverlayUrl = "/img/overlays/rayban_aviator.svg",
                             ImagenUrl = "https://images.unsplash.com/photo-1572635196237-14b3f281503f",
                             Marca = "Ray-Ban",
                             Material = "Metal",
@@ -604,7 +602,6 @@ namespace LentSoft.Web.Migrations
                             EsDestacado = true,
                             Estilo = "Deportivo",
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ImagenOverlayUrl = "/img/overlays/oakley_sport.svg",
                             Marca = "Oakley",
                             Material = "O-Matter (Plástico)",
                             Nombre = "Montura Oakley Sport",
@@ -625,7 +622,6 @@ namespace LentSoft.Web.Migrations
                             EsDestacado = true,
                             Estilo = "Wayfarer",
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ImagenOverlayUrl = "/img/overlays/classic.svg",
                             Marca = "LentSoft",
                             Material = "Acetato",
                             Nombre = "Lentes Graduados Classic",

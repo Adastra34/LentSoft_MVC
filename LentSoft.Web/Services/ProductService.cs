@@ -5,7 +5,7 @@ using LentSoft.Web.Models.Entities;
 namespace LentSoft.Web.Services;
 
 /// <summary>
-/// Product service — con soporte de CategoriaId FK
+/// Product service — migrated from Controllers/ProductController.js
 /// </summary>
 public class ProductService : IProductService
 {
@@ -19,7 +19,6 @@ public class ProductService : IProductService
     public async Task<List<Product>> GetAllAsync()
     {
         return await _context.Products
-            .Include(p => p.Categoria)
             .OrderBy(p => p.Nombre)
             .ToListAsync();
     }
@@ -27,7 +26,6 @@ public class ProductService : IProductService
     public async Task<List<Product>> GetActiveAsync()
     {
         return await _context.Products
-            .Include(p => p.Categoria)
             .Where(p => p.Activo)
             .OrderBy(p => p.Nombre)
             .ToListAsync();
@@ -35,24 +33,20 @@ public class ProductService : IProductService
 
     public async Task<Product?> GetByIdAsync(int id)
     {
-        return await _context.Products
-            .Include(p => p.Categoria)
-            .FirstOrDefaultAsync(p => p.Id == id);
+        return await _context.Products.FindAsync(id);
     }
 
     /// <summary>
-    /// Filtra productos por nombre de categoría, marca y rango de precio.
+    /// Filter products by category, brand, and price range.
+    /// Migrated from the filter dropdowns in tienda.html
     /// </summary>
     public async Task<List<Product>> FilterAsync(string? categoria, string? marca, string? rangoPrecio)
     {
-        var query = _context.Products
-            .Include(p => p.Categoria)
-            .Where(p => p.Activo)
-            .AsQueryable();
+        var query = _context.Products.Where(p => p.Activo).AsQueryable();
 
         if (!string.IsNullOrEmpty(categoria))
         {
-            query = query.Where(p => p.Categoria != null && p.Categoria.Nombre == categoria);
+            query = query.Where(p => p.Categoria == categoria);
         }
 
         if (!string.IsNullOrEmpty(marca))
@@ -76,9 +70,11 @@ public class ProductService : IProductService
 
     public async Task<List<string>> GetCategoriasAsync()
     {
-        return await _context.Categorias
-            .OrderBy(c => c.Nombre)
-            .Select(c => c.Nombre)
+        return await _context.Products
+            .Where(p => p.Activo)
+            .Select(p => p.Categoria)
+            .Distinct()
+            .OrderBy(c => c)
             .ToListAsync();
     }
 
@@ -109,13 +105,10 @@ public class ProductService : IProductService
         product.Descripcion = updated.Descripcion;
         product.Precio = updated.Precio;
         product.PrecioDescuento = updated.PrecioDescuento;
-        product.CategoriaId = updated.CategoriaId;
+        product.Categoria = updated.Categoria;
         product.Marca = updated.Marca;
         product.Stock = updated.Stock;
-        if (!string.IsNullOrWhiteSpace(updated.ImagenUrl))
-        {
-            product.ImagenUrl = updated.ImagenUrl;
-        }
+        product.ImagenUrl = updated.ImagenUrl;
         product.Activo = updated.Activo;
 
         await _context.SaveChangesAsync();
@@ -134,8 +127,8 @@ public class ProductService : IProductService
 
     public async Task<List<Product>> GetBestSellersAsync(int count = 3)
     {
+        // Return the first N active products ordered by stock (most popular proxy)
         return await _context.Products
-            .Include(p => p.Categoria)
             .Where(p => p.Activo)
             .OrderByDescending(p => p.Stock)
             .Take(count)
@@ -145,9 +138,16 @@ public class ProductService : IProductService
     public async Task<List<Product>> GetFeaturedAsync()
     {
         return await _context.Products
-            .Include(p => p.Categoria)
             .Where(p => p.Activo && p.EsDestacado)
             .OrderByDescending(p => p.Rating)
+            .ToListAsync();
+    }
+
+    public async Task<List<Product>> GetGafasAsync()
+    {
+        return await _context.Products
+            .Where(p => p.Activo && (p.Categoria == "lentes-sol" || p.Categoria == "monturas" || p.Categoria == "lentes-graduados"))
+            .OrderBy(p => p.Nombre)
             .ToListAsync();
     }
 }

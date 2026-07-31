@@ -15,4 +15,5 @@ public interface IProductService
     Task<bool> DeleteAsync(int id);
     Task<List<Product>> GetBestSellersAsync(int count = 3);
     Task<List<Product>> GetFeaturedAsync();
+    Task<List<Product>> GetGafasAsync();
 }
