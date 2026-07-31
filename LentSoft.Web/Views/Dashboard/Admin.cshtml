@@ -207,7 +207,17 @@
                                         <td style="padding: 0.75rem;">
                                             <div style="display: flex; gap: 0.5rem; align-items: center;">
                                                 <button type="button"
-                                                        onclick="openEditProductModal(@prod.Id, '@Html.Raw(prod.Nombre.Replace("'","\\'"))', @prod.CategoriaId, '@prod.Marca', @prod.Precio, @(prod.PrecioDescuento.HasValue ? prod.PrecioDescuento.Value.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) : "null"), @prod.Stock, '@(prod.ImagenUrl ?? "")', @prod.Activo.ToString().ToLower(), '@(prod.Descripcion ?? "")')"
+                                                        data-id="@prod.Id"
+                                                        data-nombre="@prod.Nombre"
+                                                        data-categoria-id="@prod.CategoriaId"
+                                                        data-marca="@(prod.Marca ?? "")"
+                                                        data-precio="@prod.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                                        data-precio-descuento="@(prod.PrecioDescuento.HasValue ? prod.PrecioDescuento.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) : "")"
+                                                        data-stock="@prod.Stock"
+                                                        data-imagen-url="@(prod.ImagenUrl ?? "")"
+                                                        data-activo="@prod.Activo.ToString().ToLower()"
+                                                        data-descripcion="@(prod.Descripcion ?? "")"
+                                                        onclick="openEditProductModalFromBtn(this)"
                                                         style="background: transparent; color: #2563eb; border: 1px solid #2563eb; padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
                                                         onmouseover="this.style.backgroundColor='#2563eb'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#2563eb';">
                                                     ✏️ Editar
@@ -279,7 +289,14 @@
                                         <td style="padding: 0.75rem;">
                                             <div style="display: flex; gap: 0.5rem;">
                                                 <button type="button"
-                                                        onclick="openEditProveedorModal(@prov.Id, '@Html.Raw(prov.Nombre.Replace("'","\\'"))', '@(prov.Contacto ?? "")', '@(prov.Telefono ?? "")', '@(prov.Email ?? "")', '@(prov.TipoProducto ?? "")', '@prov.Estado')"
+                                                        data-id="@prov.Id"
+                                                        data-nombre="@prov.Nombre"
+                                                        data-contacto="@(prov.Contacto ?? "")"
+                                                        data-telefono="@(prov.Telefono ?? "")"
+                                                        data-email="@(prov.Email ?? "")"
+                                                        data-tipo-producto="@(prov.TipoProducto ?? "")"
+                                                        data-estado="@prov.Estado"
+                                                        onclick="openEditProveedorModalFromBtn(this)"
                                                         style="background: transparent; color: #2563eb; border: 1px solid #2563eb; padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
                                                     ✏️ Editar
                                                 </button>
@@ -839,6 +856,97 @@
     </div>
 </div>
 
+<!-- Modal para Editar Producto -->
+<div id="modal-edit-producto" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+    <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="color: var(--purple-900); margin: 0;">Editar Producto</h2>
+            <button type="button" onclick="document.getElementById('modal-edit-producto').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form asp-controller="Product" asp-action="Edit" method="post" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:1rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editProductId" name="Id" />
+
+            <div class="form-group">
+                <label class="form-label">Nombre del Producto</label>
+                <input id="editProductNombre" name="Nombre" type="text" class="form-input" required />
+            </div>
+            
+            <div class="row">
+                <div class="col col-6">
+                    <div class="form-group">
+                        <label class="form-label">Precio Regular</label>
+                        <input id="editProductPrecio" name="Precio" type="number" step="0.01" class="form-input" required />
+                    </div>
+                </div>
+                <div class="col col-6">
+                    <div class="form-group">
+                        <label class="form-label">Precio Descuento (Opcional)</label>
+                        <input id="editProductPrecioDescuento" name="PrecioDescuento" type="number" step="0.01" class="form-input" />
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col col-6">
+                    <div class="form-group">
+                        <label class="form-label">Categoría</label>
+                        <select id="editProductCategoriaId" name="CategoriaId" class="form-input" required>
+                            <option value="">-- Seleccionar Categoría --</option>
+                            @foreach (var cat in Model.Categorias)
+                            {
+                                <option value="@cat.Id">@cat.Nombre</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="col col-6">
+                    <div class="form-group">
+                        <label class="form-label">Marca</label>
+                        <input id="editProductMarca" name="Marca" type="text" class="form-input" placeholder="Ej: Ray-Ban" />
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col col-6">
+                    <div class="form-group">
+                        <label class="form-label">Stock</label>
+                        <input id="editProductStock" name="Stock" type="number" class="form-input" required />
+                    </div>
+                </div>
+                <div class="col col-6">
+                    <div class="form-group" style="display:flex; align-items:center; height:100%; padding-top:2rem;">
+                        <input id="editProductActivo" name="Activo" type="checkbox" value="true" style="margin-right:0.5rem;" />
+                        <label class="form-label" style="margin:0;">Activo</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">URL de la Imagen (Opcional)</label>
+                <input id="editProductImagenUrl" name="ImagenUrl" type="url" class="form-input" placeholder="https://..." />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Cambiar Archivo de Imagen (Opcional)</label>
+                <input name="imagenFile" type="file" accept="image/*" class="form-input" />
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Descripción</label>
+                <textarea id="editProductDescripcion" name="Descripcion" class="form-input" rows="3"></textarea>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-edit-producto').style.display='none'" class="btn btn-outline" style="flex: 1;">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- Modal para Nuevo Proveedor -->
 <div id="modal-proveedor" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
     <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white;">
@@ -905,6 +1013,79 @@
             <div style="display: flex; gap: 1rem; margin-top: 1rem;">
                 <button type="button" onclick="document.getElementById('modal-proveedor').style.display='none'" class="btn btn-outline" style="flex: 1;">Cancelar</button>
                 <button type="submit" class="btn btn-primary" style="flex: 1;">Guardar Proveedor</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Editar Proveedor -->
+<div id="modal-edit-proveedor" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+    <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="color: var(--purple-900); margin: 0;">Editar Proveedor</h2>
+            <button type="button" onclick="document.getElementById('modal-edit-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form asp-controller="Proveedor" asp-action="Edit" method="post" enctype="multipart/form-data" style="display:flex; flex-direction:column; gap:1rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editProveedorId" name="Id" />
+
+            <div class="form-group">
+                <label class="form-label">Nombre de la Empresa / Proveedor</label>
+                <input id="editProveedorNombre" name="Nombre" type="text" class="form-input" required />
+            </div>
+
+            <div class="row">
+                <div class="col col-6">
+                    <div class="form-group">
+                        <label class="form-label">Persona de Contacto</label>
+                        <input id="editProveedorContacto" name="Contacto" type="text" class="form-input" />
+                    </div>
+                </div>
+                <div class="col col-6">
+                    <div class="form-group">
+                        <label class="form-label">Teléfono</label>
+                        <input id="editProveedorTelefono" name="Telefono" type="text" class="form-input" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col col-6">
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input id="editProveedorEmail" name="Email" type="email" class="form-input" />
+                    </div>
+                </div>
+                <div class="col col-6">
+                    <div class="form-group">
+                        <label class="form-label">Tipo de Producto</label>
+                        <input id="editProveedorTipoProducto" name="TipoProducto" type="text" class="form-input" placeholder="Ej: Monturas, Lentes" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col col-6">
+                    <div class="form-group">
+                        <label class="form-label">Estado</label>
+                        <select id="editProveedorEstado" name="Estado" class="form-input">
+                            <option value="activo">Activo</option>
+                            <option value="inactivo">Inactivo</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="col col-6">
+                    <div class="form-group">
+                        <label class="form-label">Cambiar Logo (Opcional)</label>
+                        <input name="logoFile" type="file" accept="image/*" class="form-input" />
+                    </div>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-edit-proveedor').style.display='none'" class="btn btn-outline" style="flex: 1;">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Guardar Cambios</button>
             </div>
         </form>
     </div>
@@ -1185,6 +1366,56 @@
 
         document.body.appendChild(form);
         form.submit();
+    }
+
+    function openEditProductModalFromBtn(btn) {
+        document.getElementById('editProductId').value = btn.getAttribute('data-id');
+        document.getElementById('editProductNombre').value = btn.getAttribute('data-nombre') || '';
+        document.getElementById('editProductCategoriaId').value = btn.getAttribute('data-categoria-id') || '';
+        document.getElementById('editProductMarca').value = btn.getAttribute('data-marca') || '';
+        document.getElementById('editProductPrecio').value = btn.getAttribute('data-precio') || '0';
+        document.getElementById('editProductPrecioDescuento').value = btn.getAttribute('data-precio-descuento') || '';
+        document.getElementById('editProductStock').value = btn.getAttribute('data-stock') || '0';
+        document.getElementById('editProductActivo').checked = btn.getAttribute('data-activo') === 'true';
+        document.getElementById('editProductImagenUrl').value = btn.getAttribute('data-imagen-url') || '';
+        document.getElementById('editProductDescripcion').value = btn.getAttribute('data-descripcion') || '';
+        document.getElementById('modal-edit-producto').style.display = 'flex';
+    }
+
+    function openEditProductModal(id, nombre, categoriaId, marca, precio, precioDescuento, stock, imagenUrl, activo, descripcion) {
+        document.getElementById('editProductId').value = id;
+        document.getElementById('editProductNombre').value = nombre || '';
+        document.getElementById('editProductCategoriaId').value = categoriaId || '';
+        document.getElementById('editProductMarca').value = marca || '';
+        document.getElementById('editProductPrecio').value = precio || 0;
+        document.getElementById('editProductPrecioDescuento').value = (precioDescuento !== null && precioDescuento !== undefined && precioDescuento !== 'null') ? precioDescuento : '';
+        document.getElementById('editProductStock').value = stock || 0;
+        document.getElementById('editProductActivo').checked = (activo === true || activo === 'true');
+        document.getElementById('editProductImagenUrl').value = imagenUrl || '';
+        document.getElementById('editProductDescripcion').value = descripcion || '';
+        document.getElementById('modal-edit-producto').style.display = 'flex';
+    }
+
+    function openEditProveedorModalFromBtn(btn) {
+        document.getElementById('editProveedorId').value = btn.getAttribute('data-id');
+        document.getElementById('editProveedorNombre').value = btn.getAttribute('data-nombre') || '';
+        document.getElementById('editProveedorContacto').value = btn.getAttribute('data-contacto') || '';
+        document.getElementById('editProveedorTelefono').value = btn.getAttribute('data-telefono') || '';
+        document.getElementById('editProveedorEmail').value = btn.getAttribute('data-email') || '';
+        document.getElementById('editProveedorTipoProducto').value = btn.getAttribute('data-tipo-producto') || '';
+        document.getElementById('editProveedorEstado').value = (btn.getAttribute('data-estado') || 'activo').toLowerCase();
+        document.getElementById('modal-edit-proveedor').style.display = 'flex';
+    }
+
+    function openEditProveedorModal(id, nombre, contacto, telefono, email, tipoProducto, estado) {
+        document.getElementById('editProveedorId').value = id;
+        document.getElementById('editProveedorNombre').value = nombre || '';
+        document.getElementById('editProveedorContacto').value = contacto || '';
+        document.getElementById('editProveedorTelefono').value = telefono || '';
+        document.getElementById('editProveedorEmail').value = email || '';
+        document.getElementById('editProveedorTipoProducto').value = tipoProducto || '';
+        document.getElementById('editProveedorEstado').value = (estado || 'activo').toLowerCase();
+        document.getElementById('modal-edit-proveedor').style.display = 'flex';
     }
 
     function filterClientSideFacturas(filterVal) {

@@ -112,7 +112,10 @@ public class ProductService : IProductService
         product.CategoriaId = updated.CategoriaId;
         product.Marca = updated.Marca;
         product.Stock = updated.Stock;
-        product.ImagenUrl = updated.ImagenUrl;
+        if (!string.IsNullOrWhiteSpace(updated.ImagenUrl))
+        {
+            product.ImagenUrl = updated.ImagenUrl;
+        }
         product.Activo = updated.Activo;
 
         await _context.SaveChangesAsync();
