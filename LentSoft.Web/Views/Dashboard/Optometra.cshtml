@@ -1,0 +1,679 @@
+@model DashboardOptometraViewModel
+@{
+    ViewData["Title"] = "Módulo Optómetra - LentSoft";
+    var allAppointmentsJson = System.Text.Json.JsonSerializer.Serialize(Model.Citas.Select(c => new {
+        id = c.Id,
+        paciente = c.User?.Nombre ?? "Paciente",
+        servicio = c.Servicio,
+        fechaHora = c.FechaHora.ToLocalTime().ToString("yyyy-MM-ddTHH:mm:ss"),
+        fechaStr = c.FechaHora.ToLocalTime().ToString("yyyy-MM-dd"),
+        horaStr = c.FechaHora.ToLocalTime().ToString("HH:mm"),
+        estado = c.Estado
+    }));
+    var proximasConsultas = Model.Citas
+        .Where(c => !c.Estado.Equals("Atendida", StringComparison.OrdinalIgnoreCase) 
+                 && !c.Estado.Equals("atendida", StringComparison.OrdinalIgnoreCase)
+                 && !c.Estado.Equals("Cancelada", StringComparison.OrdinalIgnoreCase)
+                 && !c.Estado.Equals("cancelada", StringComparison.OrdinalIgnoreCase)
+                 && !c.Estado.Equals("completada", StringComparison.OrdinalIgnoreCase))
+        .Take(5)
+        .ToList();
+    if (!proximasConsultas.Any())
+    {
+        proximasConsultas = Model.Citas
+            .Where(c => !c.Estado.Equals("Cancelada", StringComparison.OrdinalIgnoreCase) && !c.Estado.Equals("cancelada", StringComparison.OrdinalIgnoreCase))
+            .Take(5)
+            .ToList();
+    }
+}
+
+<div style="display: flex; min-height: 90vh; background-color: var(--purple-50);">
+    <!-- Sidebar Navigation -->
+    <aside style="width: 260px; background-color: var(--purple-900); color: white; padding: 1.5rem 1rem; flex-shrink: 0; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div style="padding: 0 0.5rem 1.5rem 0.5rem; border-bottom: 1px solid var(--purple-700); margin-bottom: 1.5rem;">
+                <h2 style="color: white; font-size: 1.4rem; margin: 0; font-family: var(--font-primary, sans-serif); font-weight: 700;">LentSoft</h2>
+                <p style="color: var(--purple-200); font-size: 0.85rem; margin: 0.25rem 0 0 0;">Módulo Optómetra</p>
+            </div>
+
+            <nav style="display: flex; flex-direction: column; gap: 0.4rem;">
+                <a href="?section=dashboard" class="nav-item @(Model.ActiveSection == "dashboard" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "dashboard" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "dashboard" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                    📊 Dashboard
+                </a>
+                <a href="?section=pacientes" class="nav-item @(Model.ActiveSection == "pacientes" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "pacientes" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "pacientes" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                    👥 Pacientes
+                </a>
+                <a href="?section=citas" class="nav-item @(Model.ActiveSection == "citas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "citas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "citas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                    📅 Citas
+                </a>
+                <a href="?section=historial" class="nav-item @(Model.ActiveSection == "historial" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "historial" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "historial" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                    📋 Historial Médico
+                </a>
+                <a href="?section=examenes" class="nav-item @(Model.ActiveSection == "examenes" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "examenes" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "examenes" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                    👁️ Examen Visual
+                </a>
+                <a href="?section=formulas" class="nav-item @(Model.ActiveSection == "formulas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "formulas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "formulas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                    👓 Fórmulas Ópticas
+                </a>
+                <a href="?section=perfil" class="nav-item @(Model.ActiveSection == "perfil" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "perfil" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "perfil" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                    ⚙️ Perfil
+                </a>
+            </nav>
+        </div>
+
+        <!-- Sidebar footer: Optometrista Autenticado -->
+        <div style="border-top: 1px solid var(--purple-700); padding-top: 1rem; margin-top: 1.5rem; display: flex; align-items: center; gap: 0.75rem;">
+            <div style="width: 42px; height: 42px; border-radius: 50%; background-color: var(--purple-600); color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; flex-shrink: 0;">
+                @(Model.UsuarioActual?.Nombre?.FirstOrDefault() ?? 'O')
+            </div>
+            <div style="overflow: hidden;">
+                <p style="color: white; font-weight: 600; font-size: 0.875rem; margin: 0; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                    @(Model.UsuarioActual?.Nombre ?? "Optómetra General")
+                </p>
+                <p style="color: var(--purple-300); font-size: 0.75rem; margin: 0; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                    Especialista Optómetra
+                </p>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main style="flex: 1; padding: 2rem; overflow-y: auto;">
+
+        <!-- DASHBOARD RESUMEN -->
+        @if (Model.ActiveSection == "dashboard")
+        {
+            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Resumen de Optometría</h1>
+
+            <!-- TAREA 2: 6 TARJETAS DE ESTADÍSTICAS -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                <!-- 1. Pacientes (Azul) -->
+                <div class="card" style="padding: 1.25rem; border-left: 4px solid #3b82f6; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Pacientes</span>
+                        <span style="font-size: 1.25rem; color: #3b82f6;">👥</span>
+                    </div>
+                    <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.TotalPacientes</h3>
+                </div>
+
+                <!-- 2. Citas hoy (Morado) -->
+                <div class="card" style="padding: 1.25rem; border-left: 4px solid #8b5cf6; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Citas hoy</span>
+                        <span style="font-size: 1.25rem; color: #8b5cf6;">📅</span>
+                    </div>
+                    <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.CitasHoy</h3>
+                </div>
+
+                <!-- 3. Pendientes (Amarillo) -->
+                <div class="card" style="padding: 1.25rem; border-left: 4px solid #f59e0b; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Pendientes</span>
+                        <span style="font-size: 1.25rem; color: #f59e0b;">⏳</span>
+                    </div>
+                    <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.CitasPendientes</h3>
+                </div>
+
+                <!-- 4. Exámenes (Verde) -->
+                <div class="card" style="padding: 1.25rem; border-left: 4px solid #10b981; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Exámenes</span>
+                        <span style="font-size: 1.25rem; color: #10b981;">👁️</span>
+                    </div>
+                    <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.TotalExamenes</h3>
+                </div>
+
+                <!-- 5. Fórmulas (Rosado) -->
+                <div class="card" style="padding: 1.25rem; border-left: 4px solid #ec4899; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Fórmulas</span>
+                        <span style="font-size: 1.25rem; color: #ec4899;">👓</span>
+                    </div>
+                    <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.TotalFormulas</h3>
+                </div>
+
+                <!-- 6. Próxima cita (Índigo) -->
+                <div class="card" style="padding: 1.25rem; border-left: 4px solid #6366f1; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Próxima cita</span>
+                        <span style="font-size: 1.25rem; color: #6366f1;">📆</span>
+                    </div>
+                    <h3 style="font-size: 1.5rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.ProximaCitaFecha</h3>
+                </div>
+            </div>
+
+            <!-- TAREA 3 & TAREA 4: CALENDARIO MENSUAL + AGENDA DE HOY -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                
+                <!-- TAREA 3: CALENDARIO MENSUAL INTERACTIVO -->
+                <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 id="calendarTitle" style="color: var(--purple-900); font-size: 1.1rem; margin: 0; font-family: var(--font-primary, sans-serif); font-weight: 700;">Calendario</h2>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="button" onclick="prevMonth()" style="background: var(--purple-100); border: none; border-radius: 0.375rem; padding: 0.3rem 0.6rem; color: var(--purple-800); cursor: pointer; font-weight: bold;">&lt;</button>
+                            <button type="button" onclick="nextMonth()" style="background: var(--purple-100); border: none; border-radius: 0.375rem; padding: 0.3rem 0.6rem; color: var(--purple-800); cursor: pointer; font-weight: bold;">&gt;</button>
+                        </div>
+                    </div>
+
+                    <!-- Days Header -->
+                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: 600; font-size: 0.75rem; color: var(--gray-500); margin-bottom: 0.5rem;">
+                        <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
+                    </div>
+
+                    <!-- Calendar Grid -->
+                    <div id="calendarGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.25rem; text-align: center;">
+                        <!-- Generated via JS -->
+                    </div>
+                </div>
+
+                <!-- TAREA 4: PANEL AGENDA DE HOY -->
+                <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--purple-100); padding-bottom: 0.75rem;">
+                        <h2 style="color: var(--purple-900); font-size: 1.1rem; margin: 0; font-family: var(--font-primary, sans-serif); font-weight: 700;">Agenda de hoy</h2>
+                        <span id="agendaDateBadge" style="font-size: 0.75rem; background-color: var(--purple-100); color: var(--purple-800); padding: 0.2rem 0.5rem; border-radius: 9999px; font-weight: 600;">Hoy</span>
+                    </div>
+
+                    <div id="agendaList" style="flex: 1; display: flex; flex-direction: column; gap: 0.75rem;">
+                        <!-- Generated via JS based on selected calendar date -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- TAREA 5: ACCESOS RÁPIDOS (5 BOTONES) -->
+            <div class="card" style="padding: 1.5rem; background: white; margin-bottom: 2rem; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                <h2 style="color: var(--purple-800); font-size: 1.1rem; margin-bottom: 1rem; font-family: var(--font-primary, sans-serif); font-weight: 700;">Accesos Rápidos</h2>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <a href="?section=pacientes" class="btn" style="background-color: var(--purple-600); color: white; font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: 0.375rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500;">
+                        👤 Registrar paciente
+                    </a>
+                    <a href="?section=citas" class="btn" style="background-color: white; color: var(--purple-700); border: 1px solid var(--purple-300); font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: 0.375rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500;">
+                        📅 Registrar cita
+                    </a>
+                    <a href="?section=historial" class="btn" style="background-color: white; color: var(--purple-700); border: 1px solid var(--purple-300); font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: 0.375rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500;">
+                        📋 Consultar historial
+                    </a>
+                    <a href="?section=examenes" class="btn" style="background-color: white; color: var(--purple-700); border: 1px solid var(--purple-300); font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: 0.375rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500;">
+                        👁️ Registrar examen visual
+                    </a>
+                    <a href="?section=formulas" class="btn" style="background-color: white; color: var(--purple-700); border: 1px solid var(--purple-300); font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: 0.375rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500;">
+                        👓 Crear fórmula óptica
+                    </a>
+                </div>
+            </div>
+
+            <!-- TAREA 6: PRÓXIMAS CONSULTAS -->
+            <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2 style="color: var(--purple-800); font-size: 1.2rem; margin: 0; font-family: var(--font-primary, sans-serif); font-weight: 700;">Próximas consultas</h2>
+                    <a href="?section=citas" style="color: var(--purple-600); font-weight: 600; font-size: 0.875rem; text-decoration: none;">Ver todas →</a>
+                </div>
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600); font-size: 0.85rem;">
+                                <th style="padding: 0.75rem;">Cita</th>
+                                <th style="padding: 0.75rem;">Paciente</th>
+                                <th style="padding: 0.75rem;">Tipo</th>
+                                <th style="padding: 0.75rem;">Fecha</th>
+                                <th style="padding: 0.75rem;">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!proximasConsultas.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" style="padding: 1.5rem; text-align: center; color: var(--gray-500);">No hay próximas consultas registradas.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var c in proximasConsultas)
+                                {
+                                    <tr style="border-bottom: 1px solid var(--purple-100);">
+                                        <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">#CIT-@c.Id</td>
+                                        <td style="padding: 0.75rem; font-weight: 500;">@(c.User?.Nombre ?? "Paciente")</td>
+                                        <td style="padding: 0.75rem;">@c.Servicio</td>
+                                        <td style="padding: 0.75rem; color: var(--gray-600);">@c.FechaHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td style="padding: 0.75rem;">
+                                            @{
+                                                var st = c.Estado?.ToLower() ?? "pendiente";
+                                                var bg = st == "confirmada" ? "var(--purple-100)" : st == "pendiente" ? "#FEF3C7" : st == "completada" ? "#D1FAE5" : "var(--gray-100)";
+                                                var fg = st == "confirmada" ? "var(--purple-800)" : st == "pendiente" ? "#92400E" : st == "completada" ? "#065F46" : "var(--gray-700)";
+                                            }
+                                            <span style="background-color: @bg; color: @fg; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize;">
+                                                @c.Estado
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <!-- PACIENTES -->
+        @if (Model.ActiveSection == "pacientes")
+        {
+            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Directorio de Pacientes</h1>
+
+            <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                <div style="margin-bottom: 1rem;">
+                    <input type="text" id="searchPacientes" placeholder="Buscar paciente..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchPacientes', 'tablePacientes')" />
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="tablePacientes" style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
+                                <th style="padding: 0.75rem;">ID</th>
+                                <th style="padding: 0.75rem;">Nombre</th>
+                                <th style="padding: 0.75rem;">Email</th>
+                                <th style="padding: 0.75rem;">Teléfono</th>
+                                <th style="padding: 0.75rem;">Fecha Registro</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.Pacientes)
+                            {
+                                <tr style="border-bottom: 1px solid var(--purple-100);">
+                                    <td style="padding: 0.75rem; color: var(--gray-500);">#PAC-@p.Id</td>
+                                    <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@p.Nombre</td>
+                                    <td style="padding: 0.75rem;">@p.Email</td>
+                                    <td style="padding: 0.75rem;">@(p.Telefono ?? "N/A")</td>
+                                    <td style="padding: 0.75rem; color: var(--gray-600);">@p.FechaRegistro.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <!-- CITAS CON VISTA CALENDARIO -->
+        @if (Model.ActiveSection == "citas")
+        {
+            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Agenda de Citas</h1>
+
+            <!-- Vista Resumen Calendario Próxima Semana -->
+            <div class="card" style="padding: 1.5rem; background: white; margin-bottom: 1.5rem; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                <h2 style="color: var(--purple-800); font-size: 1.1rem; margin-bottom: 1rem; font-family: var(--font-primary, sans-serif);">Citas Programadas por Día</h2>
+                <div style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem;">
+                    @for (int i = 0; i < 7; i++)
+                    {
+                        var dia = DateTime.UtcNow.Date.AddDays(i);
+                        var citasDia = Model.Citas.Where(c => c.FechaHora.Date == dia).ToList();
+                        <div style="min-width: 120px; padding: 0.75rem; border: 1px solid var(--purple-200); border-radius: 0.5rem; background-color: @(i == 0 ? "var(--purple-50)" : "white"); text-align: center;">
+                            <p style="font-size: 0.8rem; color: var(--gray-500); margin-bottom: 0.25rem; font-weight: 600;">@dia.ToString("ddd dd/MM")</p>
+                            <span style="font-size: 1.25rem; font-weight: 700; color: var(--purple-700);">@citasDia.Count</span>
+                            <p style="font-size: 0.75rem; color: var(--gray-600); margin: 0;">citas</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Tabla de Citas -->
+            <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                <div style="margin-bottom: 1rem;">
+                    <input type="text" id="searchCitasOpto" placeholder="Buscar por paciente o servicio..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchCitasOpto', 'tableCitasOpto')" />
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="tableCitasOpto" style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
+                                <th style="padding: 0.75rem;">Paciente</th>
+                                <th style="padding: 0.75rem;">Servicio</th>
+                                <th style="padding: 0.75rem;">Fecha y Hora</th>
+                                <th style="padding: 0.75rem;">Estado</th>
+                                <th style="padding: 0.75rem;">Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.Citas)
+                            {
+                                <tr style="border-bottom: 1px solid var(--purple-100);">
+                                    <td style="padding: 0.75rem; font-weight: 500;">@(c.User?.Nombre ?? "Paciente")</td>
+                                    <td style="padding: 0.75rem;">@c.Servicio</td>
+                                    <td style="padding: 0.75rem; color: var(--gray-600);">@c.FechaHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td style="padding: 0.75rem;">
+                                        <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
+                                            @c.Estado
+                                        </span>
+                                    </td>
+                                    <td style="padding: 0.75rem;">
+                                        <form asp-controller="Optometra" asp-action="UpdateAppointmentStatus" method="post" style="display:inline;">
+                                            <input type="hidden" name="id" value="@c.Id" />
+                                            <select name="estado" style="padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.8rem;" onchange="this.form.submit()">
+                                                <option value="pendiente" selected="@(c.Estado == "pendiente")">Pendiente</option>
+                                                <option value="confirmada" selected="@(c.Estado == "confirmada")">Confirmada</option>
+                                                <option value="completada" selected="@(c.Estado == "completada")">Completada</option>
+                                                <option value="cancelada" selected="@(c.Estado == "cancelada")">Cancelada</option>
+                                            </select>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <!-- HISTORIAL MÉDICO -->
+        @if (Model.ActiveSection == "historial")
+        {
+            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Historial Médico</h1>
+
+            <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
+                                <th style="padding: 0.75rem;">ID</th>
+                                <th style="padding: 0.75rem;">Paciente</th>
+                                <th style="padding: 0.75rem;">Fecha</th>
+                                <th style="padding: 0.75rem;">Diagnóstico</th>
+                                <th style="padding: 0.75rem;">Tratamiento</th>
+                                <th style="padding: 0.75rem;">Optómetra</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var h in Model.HistorialClinico)
+                            {
+                                <tr style="border-bottom: 1px solid var(--purple-100);">
+                                    <td style="padding: 0.75rem; color: var(--gray-500);">#HC-@h.Id</td>
+                                    <td style="padding: 0.75rem; font-weight: 500;">@h.Paciente</td>
+                                    <td style="padding: 0.75rem; color: var(--gray-600);">@h.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                    <td style="padding: 0.75rem;">@h.Diagnostico</td>
+                                    <td style="padding: 0.75rem;">@h.Tratamiento</td>
+                                    <td style="padding: 0.75rem;">@h.Optometra</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <!-- EXAMEN VISUAL -->
+        @if (Model.ActiveSection == "examenes")
+        {
+            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Examen Visual</h1>
+
+            <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
+                                <th style="padding: 0.75rem;">Paciente</th>
+                                <th style="padding: 0.75rem;">Fecha</th>
+                                <th style="padding: 0.75rem;">Tipo de Examen</th>
+                                <th style="padding: 0.75rem;">Ojo Derecho (OD)</th>
+                                <th style="padding: 0.75rem;">Ojo Izquierdo (OI)</th>
+                                <th style="padding: 0.75rem;">Resultado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ex in Model.ExamenesVisuales)
+                            {
+                                <tr style="border-bottom: 1px solid var(--purple-100);">
+                                    <td style="padding: 0.75rem; font-weight: 500;">@ex.Paciente</td>
+                                    <td style="padding: 0.75rem; color: var(--gray-600);">@ex.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                    <td style="padding: 0.75rem;">@ex.TipoExamen</td>
+                                    <td style="padding: 0.75rem;">@ex.OjoDerecho</td>
+                                    <td style="padding: 0.75rem;">@ex.OjoIzquierdo</td>
+                                    <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-800);">@ex.Resultado</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <!-- FÓRMULAS ÓPTICAS -->
+        @if (Model.ActiveSection == "formulas")
+        {
+            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Fórmulas Ópticas</h1>
+
+            <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
+                                <th style="padding: 0.75rem;">Paciente</th>
+                                <th style="padding: 0.75rem;">Fecha</th>
+                                <th style="padding: 0.75rem;">Esfera OD / OI</th>
+                                <th style="padding: 0.75rem;">Cilindro OD / OI</th>
+                                <th style="padding: 0.75rem;">Eje OD / OI</th>
+                                <th style="padding: 0.75rem;">Observaciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var f in Model.FormulasOpticas)
+                            {
+                                <tr style="border-bottom: 1px solid var(--purple-100);">
+                                    <td style="padding: 0.75rem; font-weight: 500;">@f.Paciente</td>
+                                    <td style="padding: 0.75rem; color: var(--gray-600);">@f.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                    <td style="padding: 0.75rem;">OD: @f.EsferaOD / OI: @f.EsferaOI</td>
+                                    <td style="padding: 0.75rem;">OD: @f.CilindroOD / OI: @f.CilindroOI</td>
+                                    <td style="padding: 0.75rem;">OD: @f.EjeOD / OI: @f.EjeOI</td>
+                                    <td style="padding: 0.75rem; font-size: 0.85rem; color: var(--gray-600);">@f.Observaciones</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <!-- PERFIL -->
+        @if (Model.ActiveSection == "perfil")
+        {
+            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Perfil Profesional</h1>
+
+            <div class="card" style="padding: 2rem; background: white; max-width: 600px; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem;">
+                    <div style="width: 70px; height: 70px; border-radius: 50%; background-color: var(--purple-600); color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold;">
+                        @(Model.UsuarioActual?.Nombre?.FirstOrDefault() ?? 'O')
+                    </div>
+                    <div>
+                        <h2 style="margin: 0; color: var(--purple-900); font-size: 1.5rem; font-family: var(--font-primary, sans-serif);">@Model.UsuarioActual?.Nombre</h2>
+                        <p style="margin: 0; color: var(--purple-600); font-weight: 600;">Especialista Optómetra</p>
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 1rem; border-top: 1px solid var(--purple-100); padding-top: 1.5rem;">
+                    <div>
+                        <label style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600;">CORREO ELECTRÓNICO</label>
+                        <p style="margin: 0; font-weight: 500;">@Model.UsuarioActual?.Email</p>
+                    </div>
+                    <div>
+                        <label style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600;">TELÉFONO</label>
+                        <p style="margin: 0; font-weight: 500;">@(Model.UsuarioActual?.Telefono ?? "No registrado")</p>
+                    </div>
+                    <div>
+                        <label style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600;">ROL DE ACCESO</label>
+                        <p style="margin: 0; text-transform: capitalize; font-weight: 600; color: var(--purple-700);">@Model.UsuarioActual?.Role</p>
+                    </div>
+                </div>
+            </div>
+        }
+
+    </main>
+</div>
+
+<!-- JAVASCRIPT LÓGICA DE FILTRADO Y CALENDARIO INTERACTIVO -->
+<script>
+    const appointmentsData = @Html.Raw(allAppointmentsJson);
+    const monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+
+    let currentDate = new Date();
+    let selectedDateStr = new Date().toISOString().split('T')[0];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderCalendar();
+        renderAgenda(selectedDateStr);
+    });
+
+    function renderCalendar() {
+        const titleEl = document.getElementById('calendarTitle');
+        const gridEl = document.getElementById('calendarGrid');
+        if (!gridEl) return;
+
+        gridEl.innerHTML = '';
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+
+        titleEl.textContent = `${monthNames[month]} ${year}`;
+
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        // Filler empty cells before 1st day of month
+        for (let i = 0; i < firstDay; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.style.height = '36px';
+            gridEl.appendChild(emptyCell);
+        }
+
+        // Days of month
+        for (let day = 1; day <= daysInMonth; day++) {
+            const dayCell = document.createElement('div');
+            const formattedMonth = String(month + 1).padStart(2, '0');
+            const formattedDay = String(day).padStart(2, '0');
+            const dateStr = `${year}-${formattedMonth}-${formattedDay}`;
+
+            const hasAppt = appointmentsData.some(a => a.fechaStr === dateStr);
+            const isSelected = selectedDateStr === dateStr;
+
+            dayCell.style.height = '36px';
+            dayCell.style.display = 'flex';
+            dayCell.style.flexDirection = 'column';
+            dayCell.style.alignItems = 'center';
+            dayCell.style.justifyContent = 'center';
+            dayCell.style.borderRadius = '0.375rem';
+            dayCell.style.cursor = 'pointer';
+            dayCell.style.fontSize = '0.85rem';
+            dayCell.style.position = 'relative';
+            dayCell.style.fontWeight = isSelected ? '700' : '400';
+
+            if (isSelected) {
+                dayCell.style.backgroundColor = 'var(--purple-700)';
+                dayCell.style.color = 'white';
+            } else if (hasAppt) {
+                dayCell.style.backgroundColor = 'var(--purple-100)';
+                dayCell.style.color = 'var(--purple-900)';
+            } else {
+                dayCell.style.backgroundColor = 'transparent';
+                dayCell.style.color = 'var(--gray-800)';
+            }
+
+            dayCell.innerHTML = `<span>${day}</span>`;
+
+            if (hasAppt) {
+                const dot = document.createElement('span');
+                dot.style.width = '5px';
+                dot.style.height = '5px';
+                dot.style.borderRadius = '50%';
+                dot.style.backgroundColor = isSelected ? '#FDE047' : 'var(--purple-600)';
+                dot.style.marginTop = '2px';
+                dayCell.appendChild(dot);
+            }
+
+            dayCell.onclick = () => {
+                selectedDateStr = dateStr;
+                renderCalendar();
+                renderAgenda(dateStr);
+            };
+
+            gridEl.appendChild(dayCell);
+        }
+    }
+
+    function prevMonth() {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        renderCalendar();
+    }
+
+    function nextMonth() {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        renderCalendar();
+    }
+
+    function renderAgenda(dateStr) {
+        const agendaList = document.getElementById('agendaList');
+        const badge = document.getElementById('agendaDateBadge');
+        if (!agendaList) return;
+
+        agendaList.innerHTML = '';
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        if (badge) {
+            if (dateStr === todayStr) {
+                badge.textContent = 'Hoy';
+            } else {
+                const parts = dateStr.split('-');
+                badge.textContent = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+        }
+
+        const dayAppts = appointmentsData.filter(a => a.fechaStr === dateStr);
+
+        if (dayAppts.length === 0) {
+            agendaList.innerHTML = `
+                <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 2rem 0; color: var(--gray-500); font-size: 0.9rem; text-align: center;">
+                    Sin citas para hoy
+                </div>
+            `;
+            return;
+        }
+
+        dayAppts.forEach(app => {
+            const item = document.createElement('div');
+            item.style.padding = '0.75rem 1rem';
+            item.style.border = '1px solid var(--purple-100)';
+            item.style.borderRadius = '0.5rem';
+            item.style.display = 'flex';
+            item.style.justifyContent = 'space-between';
+            item.style.alignItems = 'center';
+            item.style.backgroundColor = 'var(--purple-50)';
+
+            const statusClass = app.estado.toLowerCase();
+            const bgBadge = statusClass === 'confirmada' ? 'var(--purple-200)' : statusClass === 'pendiente' ? '#FEF3C7' : '#D1FAE5';
+            const fgBadge = statusClass === 'confirmada' ? 'var(--purple-800)' : statusClass === 'pendiente' ? '#92400E' : '#065F46';
+
+            item.innerHTML = `
+                <div>
+                    <h4 style="margin: 0; font-size: 0.9rem; color: var(--purple-900); font-weight: 600;">${app.paciente}</h4>
+                    <p style="margin: 0.2rem 0 0 0; font-size: 0.78rem; color: var(--gray-500);">${app.servicio} — <strong style="color: var(--purple-700);">${app.horaStr} hs</strong></p>
+                </div>
+                <span style="background-color: ${bgBadge}; color: ${fgBadge}; padding: 0.2rem 0.5rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 600; text-transform: capitalize;">
+                    ${app.estado}
+                </span>
+            `;
+            agendaList.appendChild(item);
+        });
+    }
+
+    function filterTable(inputId, tableId) {
+        const input = document.getElementById(inputId);
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById(tableId);
+        if (!table) return;
+        const trs = table.getElementsByTagName('tr');
+
+        for (let i = 1; i < trs.length; i++) {
+            let show = false;
+            const tds = trs[i].getElementsByTagName('td');
+            for (let j = 0; j < tds.length; j++) {
+                if (tds[j] && tds[j].textContent.toLowerCase().includes(filter)) {
+                    show = true;
+                    break;
+                }
+            }
+            trs[i].style.display = show ? '' : 'none';
+        }
+    }
+</script>

@@ -1,0 +1,231 @@
+@model DashboardUsuarioViewModel
+@{
+    ViewData["Title"] = "Mi Cuenta";
+}
+
+<main style="padding: 2rem 0; min-height: 70vh; background-color: var(--purple-50);">
+    <div class="container">
+        <h1 style="color: var(--purple-900); margin-bottom: 2rem;">Hola, @Model.Usuario.Nombre</h1>
+
+        <div class="row">
+            <!-- Sidebar Navigation -->
+            <div class="col col-3">
+                <div class="card" style="padding: 0; overflow: hidden;">
+                    <ul style="list-style: none; padding: 0; margin: 0;">
+                        <li>
+                            <a href="?section=perfil" class="@(Model.ActiveSection == "perfil" ? "active" : "")" style="display: block; padding: 1rem 1.5rem; text-decoration: none; color: @(Model.ActiveSection == "perfil" ? "white" : "var(--gray-700)"); background-color: @(Model.ActiveSection == "perfil" ? "var(--purple-600)" : "transparent"); border-bottom: 1px solid var(--purple-100); transition: all 0.2s;">
+                                👤 Mi Perfil
+                            </a>
+                        </li>
+                        <li>
+                            <a href="?section=pedidos" class="@(Model.ActiveSection == "pedidos" ? "active" : "")" style="display: block; padding: 1rem 1.5rem; text-decoration: none; color: @(Model.ActiveSection == "pedidos" ? "white" : "var(--gray-700)"); background-color: @(Model.ActiveSection == "pedidos" ? "var(--purple-600)" : "transparent"); border-bottom: 1px solid var(--purple-100); transition: all 0.2s;">
+                                📦 Mis Pedidos
+                            </a>
+                        </li>
+                        <li>
+                            <a href="?section=citas" class="@(Model.ActiveSection == "citas" ? "active" : "")" style="display: block; padding: 1rem 1.5rem; text-decoration: none; color: @(Model.ActiveSection == "citas" ? "white" : "var(--gray-700)"); background-color: @(Model.ActiveSection == "citas" ? "var(--purple-600)" : "transparent"); border-bottom: 1px solid var(--purple-100); transition: all 0.2s;">
+                                🗓️ Mis Citas
+                            </a>
+                        </li>
+                        <li>
+                            <a href="?section=favoritos" class="@(Model.ActiveSection == "favoritos" ? "active" : "")" style="display: block; padding: 1rem 1.5rem; text-decoration: none; color: @(Model.ActiveSection == "favoritos" ? "white" : "var(--gray-700)"); background-color: @(Model.ActiveSection == "favoritos" ? "var(--purple-600)" : "transparent"); border-bottom: 1px solid var(--purple-100); transition: all 0.2s;">
+                                ❤️ Mis Favoritos
+                            </a>
+                        </li>
+                        <li>
+                            <a href="?section=configuracion" class="@(Model.ActiveSection == "configuracion" ? "active" : "")" style="display: block; padding: 1rem 1.5rem; text-decoration: none; color: @(Model.ActiveSection == "configuracion" ? "white" : "var(--gray-700)"); background-color: @(Model.ActiveSection == "configuracion" ? "var(--purple-600)" : "transparent"); transition: all 0.2s;">
+                                ⚙️ Configuración
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Main Content Area -->
+            <div class="col col-9">
+                <div class="card" style="padding: 2rem; min-height: 400px;">
+                    
+                    @if (Model.ActiveSection == "perfil")
+                    {
+                        <div id="section-perfil">
+                            <h2 style="color: var(--purple-800); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem;">
+                                Información Personal
+                            </h2>
+                            <form asp-controller="Dashboard" asp-action="UpdateProfile" method="post" style="max-width: 500px;">
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label class="form-label">Nombre Completo</label>
+                                    <input name="Nombre" type="text" class="form-input" value="@Model.Usuario.Nombre" required />
+                                </div>
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label class="form-label">Correo Electrónico (Solo Lectura)</label>
+                                    <input type="email" class="form-input" value="@Model.Usuario.Email" readonly style="background-color: var(--gray-100); color: var(--gray-500);" />
+                                </div>
+                                <div class="form-group" style="margin-bottom: 1.5rem;">
+                                    <label class="form-label">Teléfono</label>
+                                    <input name="Telefono" type="tel" class="form-input" value="@Model.Usuario.Telefono" />
+                                </div>
+                                <button type="submit" class="btn btn-primary">Actualizar Perfil</button>
+                            </form>
+                        </div>
+                    }
+
+                    @if (Model.ActiveSection == "pedidos")
+                    {
+                        <div id="section-pedidos">
+                            <h2 style="color: var(--purple-800); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem;">
+                                Historial de Pedidos
+                            </h2>
+                            @if (Model.Pedidos.Count == 0)
+                            {
+                                <p style="color: var(--gray-600);">Aún no has realizado ningún pedido.</p>
+                                <a asp-controller="Product" asp-action="Tienda" class="btn btn-primary mt-3" style="display: inline-block; margin-top: 1rem;">Ir a la Tienda</a>
+                            }
+                            else
+                            {
+                                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                    @foreach(var pedido in Model.Pedidos)
+                                    {
+                                        <div style="border: 1px solid var(--purple-200); border-radius: 0.5rem; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; background-color: white;">
+                                            <div>
+                                                <h4 style="color: var(--purple-900); margin: 0 0 0.5rem 0;">Pedido #ORD-@pedido.Id.ToString("D4")</h4>
+                                                <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0;">Realizado el: @pedido.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy")</p>
+                                                <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0;">Total: <strong style="color: var(--purple-700);">@pedido.Total.ToString("C")</strong></p>
+                                            </div>
+                                            <div style="text-align: right;">
+                                                @{
+                                                    var statusColor = pedido.Estado switch {
+                                                        "pendiente" => "var(--warning)",
+                                                        "procesando" => "var(--primary)",
+                                                        "enviado" => "var(--purple-400)",
+                                                        "entregado" => "var(--success)",
+                                                        "cancelado" => "var(--error)",
+                                                        _ => "var(--gray-500)"
+                                                    };
+                                                }
+                                                <span style="background-color: @statusColor; color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; display: inline-block; margin-bottom: 0.5rem; text-transform: capitalize;">
+                                                    @pedido.Estado
+                                                </span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    @if (Model.ActiveSection == "citas")
+                    {
+                        <div id="section-citas">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem;">
+                                <h2 style="color: var(--purple-800); margin: 0;">Mis Citas Optométricas</h2>
+                                <button class="btn btn-outline" onclick="alert('Funcionalidad de agendar cita en desarrollo')">Agendar Nueva Cita</button>
+                            </div>
+                            
+                            @if (Model.Citas.Count == 0)
+                            {
+                                <p style="color: var(--gray-600);">No tienes citas programadas.</p>
+                            }
+                            else
+                            {
+                                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                    @foreach(var cita in Model.Citas.OrderByDescending(c => c.FechaHora))
+                                    {
+                                        <div style="border: 1px solid var(--purple-200); border-radius: 0.5rem; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; background-color: white;">
+                                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                                <div style="background-color: var(--purple-100); width: 60px; height: 60px; border-radius: 0.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+                                                    <span style="font-size: 1.25rem; font-weight: 700; color: var(--purple-800);">@cita.FechaHora.ToString("dd")</span>
+                                                    <span style="font-size: 0.75rem; color: var(--purple-600); text-transform: uppercase;">@cita.FechaHora.ToString("MMM")</span>
+                                                </div>
+                                                <div>
+                                                    <h4 style="color: var(--purple-900); margin: 0 0 0.25rem 0;">@cita.Servicio</h4>
+                                                    <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0;">Hora: @cita.FechaHora.ToString("HH:mm") hrs</p>
+                                                </div>
+                                            </div>
+                                            <div>
+                                                @{
+                                                    var statusColor = cita.Estado switch {
+                                                        "pendiente" => "var(--warning)",
+                                                        "confirmada" => "var(--primary)",
+                                                        "completada" => "var(--success)",
+                                                        "cancelada" => "var(--error)",
+                                                        _ => "var(--gray-500)"
+                                                    };
+                                                }
+                                                <span style="background-color: @statusColor; color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; text-transform: capitalize;">
+                                                    @cita.Estado
+                                                </span>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    @if (Model.ActiveSection == "configuracion")
+                    {
+                        <div id="section-configuracion">
+                            <h2 style="color: var(--purple-800); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem;">
+                                Configuración de Seguridad
+                            </h2>
+                            <form asp-controller="Dashboard" asp-action="ChangePassword" method="post" style="max-width: 500px;">
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label class="form-label">Contraseña Actual</label>
+                                    <input name="CurrentPassword" type="password" class="form-input" required />
+                                </div>
+                                <div class="form-group" style="margin-bottom: 1rem;">
+                                    <label class="form-label">Nueva Contraseña</label>
+                                    <input name="NewPassword" type="password" class="form-input" required minlength="8" />
+                                </div>
+                                <div class="form-group" style="margin-bottom: 1.5rem;">
+                                    <label class="form-label">Confirmar Nueva Contraseña</label>
+                                    <input name="ConfirmNewPassword" type="password" class="form-input" required />
+                                </div>
+                                <button type="submit" class="btn btn-outline" style="color: var(--error); border-color: var(--error);">
+                                    Cambiar Contraseña
+                                </button>
+                            </form>
+                        </div>
+                    }
+
+                    @if (Model.ActiveSection == "favoritos")
+                    {
+                        <div id="section-favoritos">
+                            <h2 style="color: var(--purple-800); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem;">
+                                ❤️ Mis Favoritos
+                            </h2>
+                            @if (Model.Favoritos.Count == 0)
+                            {
+                                <p style="color: var(--gray-600);">Aún no tienes productos favoritos.</p>
+                                <a asp-controller="Product" asp-action="Tienda" class="btn btn-primary" style="display: inline-block; margin-top: 1rem;">Explorar la Tienda</a>
+                            }
+                            else
+                            {
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                                    @foreach (var product in Model.Favoritos)
+                                    {
+                                        <div style="border: 1px solid var(--purple-200); border-radius: 0.75rem; overflow: hidden; background: white;">
+                                            @if (product.ImagenUrl != null)
+                                            {
+                                                <div style="height: 140px; background-image: url('@product.ImagenUrl'); background-size: cover; background-position: center;"></div>
+                                            }
+                                            else
+                                            {
+                                                <div style="height: 140px; background: linear-gradient(135deg, var(--purple-100), var(--purple-200)); display: flex; align-items: center; justify-content: center;"><span style="font-size: 2rem;">👓</span></div>
+                                            }
+                                            <div style="padding: 1rem;">
+                                                <h4 style="color: var(--purple-900); font-size: 0.95rem; margin: 0 0 0.25rem 0;">@product.Nombre</h4>
+                                                <p style="color: var(--purple-700); font-weight: 700; margin: 0;">@product.GetFinalPrice().ToString("C")</p>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+
+                </div>
+            </div>
+        </div>
+    </div>
+</main>

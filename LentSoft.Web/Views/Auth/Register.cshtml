@@ -1,0 +1,158 @@
+@model RegisterViewModel
+@{
+    ViewData["Title"] = "Registro de Cuenta";
+}
+
+<main style="min-height: calc(100vh - 140px); background: linear-gradient(135deg, var(--purple-50), var(--purple-100)); display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem;">
+    <div style="width: 100%; max-width: 650px; background: white; border-radius: 1.25rem; box-shadow: var(--shadow-xl); overflow: hidden;">
+        
+        <!-- Header con fondo degradado morado -->
+        <div style="background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white; padding: 2rem; text-align: center; position: relative;">
+            <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(255, 255, 255, 0.2); display: flex; align-items: center; justify-content: center; margin: 0 auto 0.75rem auto; font-size: 1.5rem;">
+                👤⁺
+            </div>
+            <h1 style="color: white; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.25rem; font-family: var(--font-primary);">Crear cuenta</h1>
+            <p style="color: var(--purple-100); font-size: 0.875rem; margin: 0;">Únete a LentSoft y accede a todos los beneficios</p>
+        </div>
+
+        <!-- Form Body -->
+        <div style="padding: 2rem 2.5rem; background: white;">
+            <form asp-controller="Auth" asp-action="Register" method="post" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <div asp-validation-summary="ModelOnly" class="alert alert-error" style="font-size: 0.85rem;"></div>
+
+                <!-- SECCIÓN 1: DOCUMENTO DE IDENTIDAD -->
+                <div>
+                    <h6 style="color: var(--purple-700); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.75rem; font-family: var(--font-primary);">
+                        DOCUMENTO DE IDENTIDAD
+                    </h6>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" style="font-size: 0.85rem;">Tipo de documento <span style="color: var(--error);">*</span></label>
+                            <select asp-for="TipoDocumento" class="form-select" style="border-radius: 0.5rem; padding: 0.6rem 0.85rem; border: 1.5px solid var(--border);">
+                                <option value="CC">Cédula de ciudadanía (CC)</option>
+                                <option value="CE">Cédula de extranjería (CE)</option>
+                                <option value="TI">Tarjeta de identidad (TI)</option>
+                                <option value="Pasaporte">Pasaporte</option>
+                            </select>
+                            <span asp-validation-for="TipoDocumento" style="color: var(--error); font-size: 0.75rem;"></span>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" style="font-size: 0.85rem;">Número de documento <span style="color: var(--error);">*</span></label>
+                            <input asp-for="NumeroDocumento" placeholder="Ej: 1023456789" class="form-input" style="border-radius: 0.5rem; padding: 0.6rem 0.85rem; border: 1.5px solid var(--border);" />
+                            <span asp-validation-for="NumeroDocumento" style="color: var(--error); font-size: 0.75rem;"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 2: DATOS PERSONALES -->
+                <div>
+                    <h6 style="color: var(--purple-700); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.75rem; font-family: var(--font-primary);">
+                        DATOS PERSONALES
+                    </h6>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" style="font-size: 0.85rem;">Nombre <span style="color: var(--error);">*</span></label>
+                            <input asp-for="Nombre" placeholder="Ej: María" class="form-input" style="border-radius: 0.5rem; padding: 0.6rem 0.85rem; border: 1.5px solid var(--border);" />
+                            <span asp-validation-for="Nombre" style="color: var(--error); font-size: 0.75rem;"></span>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" style="font-size: 0.85rem;">Apellido <span style="color: var(--error);">*</span></label>
+                            <input asp-for="Apellido" placeholder="Ej: González" class="form-input" style="border-radius: 0.5rem; padding: 0.6rem 0.85rem; border: 1.5px solid var(--border);" />
+                            <span asp-validation-for="Apellido" style="color: var(--error); font-size: 0.75rem;"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 3: INFORMACIÓN DE CONTACTO -->
+                <div>
+                    <h6 style="color: var(--purple-700); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.75rem; font-family: var(--font-primary);">
+                        INFORMACIÓN DE CONTACTO
+                    </h6>
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" style="font-size: 0.85rem;">Número de teléfono <span style="color: var(--error);">*</span></label>
+                            <input asp-for="Telefono" placeholder="Ej: +57 300 000 0000" class="form-input" style="border-radius: 0.5rem; padding: 0.6rem 0.85rem; border: 1.5px solid var(--border);" />
+                            <span asp-validation-for="Telefono" style="color: var(--error); font-size: 0.75rem;"></span>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" style="font-size: 0.85rem;">Correo electrónico <span style="color: var(--error);">*</span></label>
+                            <input asp-for="Email" placeholder="Ej: maria@correo.com" class="form-input" style="border-radius: 0.5rem; padding: 0.6rem 0.85rem; border: 1.5px solid var(--border);" />
+                            <span asp-validation-for="Email" style="color: var(--error); font-size: 0.75rem;"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SECCIÓN 4: CONTRASEÑA -->
+                <div>
+                    <h6 style="color: var(--purple-700); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.75rem; font-family: var(--font-primary);">
+                        CONTRASEÑA
+                    </h6>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" style="font-size: 0.85rem;">Contraseña <span style="color: var(--error);">*</span></label>
+                            <div style="position: relative;">
+                                <input asp-for="Password" placeholder="Mínimo 8 caracteres" class="form-input" style="border-radius: 0.5rem; padding: 0.6rem 2.5rem 0.6rem 0.85rem; border: 1.5px solid var(--border);" id="regPassword" />
+                                <button type="button" id="toggleRegPassword" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--gray-500); font-size: 1rem;" title="Mostrar/Ocultar contraseña">
+                                    👁️
+                                </button>
+                            </div>
+                            <span asp-validation-for="Password" style="color: var(--error); font-size: 0.75rem;"></span>
+                        </div>
+                        <div class="form-group" style="margin-bottom: 0;">
+                            <label class="form-label" style="font-size: 0.85rem;">Confirmar contraseña <span style="color: var(--error);">*</span></label>
+                            <div style="position: relative;">
+                                <input asp-for="ConfirmPassword" placeholder="Repite tu contraseña" class="form-input" style="border-radius: 0.5rem; padding: 0.6rem 2.5rem 0.6rem 0.85rem; border: 1.5px solid var(--border);" id="regConfirmPassword" />
+                                <button type="button" id="toggleRegConfirmPassword" style="position: absolute; right: 0.75rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--gray-500); font-size: 1rem;" title="Mostrar/Ocultar contraseña">
+                                    👁️
+                                </button>
+                            </div>
+                            <span asp-validation-for="ConfirmPassword" style="color: var(--error); font-size: 0.75rem;"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Text & Submit Button -->
+                <div>
+                    <p style="color: var(--text-muted); font-size: 0.75rem; margin-bottom: 1rem;">* Campos obligatorios</p>
+
+                    <button type="submit" class="btn" style="width: 100%; background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white; border-radius: 9999px; padding: 0.85rem; font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.5rem; border: none; box-shadow: var(--shadow-md); transition: opacity 0.2s;">
+                        👤 Crear cuenta
+                    </button>
+                </div>
+
+                <!-- Link a Login -->
+                <div style="text-align: center;">
+                    <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0;">
+                        ¿Ya tienes cuenta?
+                        <a asp-controller="Auth" asp-action="Login" style="color: var(--purple-700); font-weight: 600; text-decoration: underline; text-underline-offset: 3px;">
+                            Iniciar sesión
+                        </a>
+                    </p>
+                </div>
+            </form>
+        </div>
+
+    </div>
+</main>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            function setupToggle(inputId, toggleId) {
+                const input = document.getElementById(inputId);
+                const toggle = document.getElementById(toggleId);
+                if (input && toggle) {
+                    toggle.addEventListener('click', function () {
+                        const isPassword = input.type === 'password';
+                        input.type = isPassword ? 'text' : 'password';
+                        toggle.textContent = isPassword ? '🙈' : '👁️';
+                    });
+                }
+            }
+
+            setupToggle('regPassword', 'toggleRegPassword');
+            setupToggle('regConfirmPassword', 'toggleRegConfirmPassword');
+        });
+    </script>
+}
