@@ -253,11 +253,12 @@ public class AuthController : Controller
         }
 
         // Validate passwords
-        if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 6)
+        var isStrongPassword = System.Text.RegularExpressions.Regex.IsMatch(newPassword ?? "", @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$");
+        if (!isStrongPassword)
         {
             ViewBag.TokenValid = true;
             ViewBag.Token = token;
-            ViewBag.ErrorMessage = "La contraseña debe tener al menos 6 caracteres.";
+            ViewBag.ErrorMessage = "La contraseña debe tener al menos 8 caracteres e incluir mayúsculas, minúsculas, números y un carácter especial.";
             return View();
         }
 

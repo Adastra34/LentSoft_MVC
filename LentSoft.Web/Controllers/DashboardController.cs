@@ -191,7 +191,8 @@ public class DashboardController : Controller
     {
         if (!ModelState.IsValid)
         {
-            TempData["ErrorMessage"] = "Datos no válidos.";
+            var errors = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
+            TempData["ErrorMessage"] = string.IsNullOrWhiteSpace(errors) ? "Datos no válidos." : errors;
             return RedirectToAction("Usuario", new { section = "configuracion" });
         }
 
