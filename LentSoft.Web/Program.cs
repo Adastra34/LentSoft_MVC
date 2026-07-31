@@ -18,6 +18,7 @@ builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IPdfInvoiceService, PdfInvoiceService>();
 builder.Services.AddSingleton<IPasswordResetTokenService, PasswordResetTokenService>();

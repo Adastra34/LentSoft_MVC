@@ -30,10 +30,8 @@ public class HomeController : Controller
             .OrderBy(p => p.Nombre)
             .ToListAsync();
 
-        // Categoría 2 = "Lentes" (antes era "lentes-contacto" string)
         var lentesContacto = await _context.Products
-            .Include(p => p.Categoria)
-            .Where(p => p.Activo && p.CategoriaId == 2)
+            .Where(p => p.Activo && p.Categoria == "lentes-contacto")
             .OrderBy(p => p.Nombre)
             .ToListAsync();
 

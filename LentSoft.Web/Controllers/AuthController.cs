@@ -31,12 +31,13 @@ public class AuthController : Controller
     /// Show login form — migrated from Views/login.html
     /// </summary>
     [HttpGet]
-    public IActionResult Login()
+    public IActionResult Login(string? returnUrl = null)
     {
         if (User.Identity?.IsAuthenticated == true)
         {
             return RedirectBasedOnRole();
         }
+        ViewBag.ReturnUrl = returnUrl;
         return View();
     }
 
@@ -45,16 +46,20 @@ public class AuthController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login(LoginViewModel model)
+    public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
     {
         if (!ModelState.IsValid)
+        {
+            ViewBag.ReturnUrl = returnUrl;
             return View(model);
+        }
 
         var user = await _authService.LoginAsync(model.Email, model.Password);
 
         if (user == null)
         {
             ModelState.AddModelError(string.Empty, "Credenciales inválidas. Intenta nuevamente.");
+            ViewBag.ReturnUrl = returnUrl;
             return View(model);
         }
 
@@ -78,6 +83,11 @@ public class AuthController : Controller
                 IsPersistent = true,
                 ExpiresUtc = DateTimeOffset.UtcNow.AddHours(24)
             });
+
+        if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
+        {
+            return Redirect(returnUrl);
+        }
 
         return RedirectBasedOnRole(user.Role);
     }

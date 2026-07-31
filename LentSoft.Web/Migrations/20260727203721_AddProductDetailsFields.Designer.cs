@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LentSoft.Web.Migrations
 {
     [DbContext(typeof(LentSoftDbContext))]
-    [Migration("20260729175700_SincronizarModelo")]
-    partial class SincronizarModelo
+    [Migration("20260727203721_AddProductDetailsFields")]
+    partial class AddProductDetailsFields
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -88,44 +88,6 @@ namespace LentSoft.Web.Migrations
                             FechaHora = new DateTime(2026, 6, 2, 14, 30, 0, 0, DateTimeKind.Utc),
                             Servicio = "Ajuste de lentes",
                             UserId = 2
-                        });
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.Categoria", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Nombre")
-                        .IsUnique();
-
-                    b.ToTable("Categorias");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Nombre = "Gafas"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Nombre = "Lentes"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Nombre = "Accesorios"
                         });
                 });
 
@@ -325,94 +287,6 @@ namespace LentSoft.Web.Migrations
                     b.ToTable("Invoices");
                 });
 
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.MovimientoInventario", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Cantidad")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Fecha")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<string>("Producto")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Responsable")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Tipo")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Fecha")
-                        .IsDescending();
-
-                    b.HasIndex("Tipo");
-
-                    b.ToTable("MovimientosInventario");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Cantidad = 20,
-                            Fecha = new DateTime(2026, 7, 25, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Producto = "Lentes Ray-Ban Aviator",
-                            Responsable = "Ana Martínez",
-                            Tipo = "entrada"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Cantidad = 5,
-                            Fecha = new DateTime(2026, 7, 26, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Producto = "Lentes de Contacto Acuvue",
-                            Responsable = "Juan Pérez",
-                            Tipo = "salida"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Cantidad = 10,
-                            Fecha = new DateTime(2026, 7, 24, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Producto = "Montura Oakley Sport",
-                            Responsable = "Ana Martínez",
-                            Tipo = "entrada"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Cantidad = 15,
-                            Fecha = new DateTime(2026, 7, 26, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Producto = "Estuche Premium",
-                            Responsable = "Juan Pérez",
-                            Tipo = "salida"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Cantidad = 50,
-                            Fecha = new DateTime(2026, 7, 22, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Producto = "Líquido Limpiador",
-                            Responsable = "Ana Martínez",
-                            Tipo = "entrada"
-                        });
-                });
-
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Order", b =>
                 {
                     b.Property<int>("Id")
@@ -538,8 +412,14 @@ namespace LentSoft.Web.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(true);
 
-                    b.Property<int>("CategoriaId")
-                        .HasColumnType("int");
+                    b.Property<string>("Categoria")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Color")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("Descripcion")
                         .HasMaxLength(1000)
@@ -549,6 +429,10 @@ namespace LentSoft.Web.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
+
+                    b.Property<string>("Estilo")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<DateTime>("FechaCreacion")
                         .ValueGeneratedOnAdd()
@@ -563,6 +447,10 @@ namespace LentSoft.Web.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<string>("Material")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("Nombre")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -573,6 +461,10 @@ namespace LentSoft.Web.Migrations
 
                     b.Property<decimal?>("PrecioDescuento")
                         .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("Proteccion")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("Rating")
                         .ValueGeneratedOnAdd()
@@ -589,11 +481,15 @@ namespace LentSoft.Web.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(0);
 
+                    b.Property<string>("Tamanio")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("Activo");
 
-                    b.HasIndex("CategoriaId");
+                    b.HasIndex("Categoria");
 
                     b.HasIndex("EsDestacado");
 
@@ -606,23 +502,28 @@ namespace LentSoft.Web.Migrations
                         {
                             Id = 1,
                             Activo = true,
-                            CategoriaId = 1,
+                            Categoria = "lentes-sol",
+                            Color = "Negro / Verde G-15",
                             Descripcion = "Lentes de sol clásicos estilo aviador",
                             EsDestacado = true,
+                            Estilo = "Aviador",
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             ImagenUrl = "https://images.unsplash.com/photo-1572635196237-14b3f281503f",
                             Marca = "Ray-Ban",
+                            Material = "Metal",
                             Nombre = "Lentes Ray-Ban Aviator",
                             Precio = 2500.00m,
+                            Proteccion = "UV400",
                             Rating = 4.9m,
                             ReviewCount = 28,
-                            Stock = 50
+                            Stock = 50,
+                            Tamanio = "58-14-135"
                         },
                         new
                         {
                             Id = 2,
                             Activo = true,
-                            CategoriaId = 2,
+                            Categoria = "lentes-contacto",
                             Descripcion = "Lentes de contacto mensuales",
                             EsDestacado = true,
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -638,37 +539,47 @@ namespace LentSoft.Web.Migrations
                         {
                             Id = 3,
                             Activo = true,
-                            CategoriaId = 1,
+                            Categoria = "monturas",
+                            Color = "Negro Mate",
                             Descripcion = "Montura deportiva ultraligera",
                             EsDestacado = true,
+                            Estilo = "Deportivo",
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Marca = "Oakley",
+                            Material = "O-Matter (Plástico)",
                             Nombre = "Montura Oakley Sport",
                             Precio = 1800.00m,
+                            Proteccion = "Filtro UV",
                             Rating = 4.8m,
                             ReviewCount = 15,
-                            Stock = 30
+                            Stock = 30,
+                            Tamanio = "55-18-140"
                         },
                         new
                         {
                             Id = 4,
                             Activo = true,
-                            CategoriaId = 2,
+                            Categoria = "lentes-graduados",
+                            Color = "Carey",
                             Descripcion = "Lentes graduados con diseño clásico",
                             EsDestacado = true,
+                            Estilo = "Wayfarer",
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Marca = "LentSoft",
+                            Material = "Acetato",
                             Nombre = "Lentes Graduados Classic",
                             Precio = 1200.00m,
+                            Proteccion = "Antirreflejo / Luz Azul",
                             Rating = 4.6m,
                             ReviewCount = 19,
-                            Stock = 40
+                            Stock = 40,
+                            Tamanio = "52-19-145"
                         },
                         new
                         {
                             Id = 5,
                             Activo = true,
-                            CategoriaId = 3,
+                            Categoria = "accesorios",
                             Descripcion = "Estuche rígido para lentes",
                             EsDestacado = false,
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -684,7 +595,7 @@ namespace LentSoft.Web.Migrations
                         {
                             Id = 6,
                             Activo = true,
-                            CategoriaId = 3,
+                            Categoria = "accesorios",
                             Descripcion = "Solución limpiadora para lentes 360ml",
                             EsDestacado = false,
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -694,115 +605,6 @@ namespace LentSoft.Web.Migrations
                             Rating = 4.9m,
                             ReviewCount = 33,
                             Stock = 150
-                        });
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.Proveedor", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Contacto")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Email")
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("activo");
-
-                    b.Property<DateTime>("FechaRegistro")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<string>("LogoUrl")
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.Property<string>("Telefono")
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("TipoProducto")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Nombre");
-
-                    b.ToTable("Proveedores");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Contacto = "Carlos Ruiz",
-                            Email = "ventas@opticaglobal.com",
-                            Estado = "activo",
-                            FechaRegistro = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nombre = "Óptica Global S.A.",
-                            Telefono = "555-1001",
-                            TipoProducto = "Monturas"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Contacto = "Ana López",
-                            Email = "contacto@lenstech.co",
-                            Estado = "activo",
-                            FechaRegistro = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nombre = "LensTech Colombia",
-                            Telefono = "555-1002",
-                            TipoProducto = "Lentes de contacto"
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Contacto = "Pedro Gómez",
-                            Email = "info@distvisual.com",
-                            Estado = "activo",
-                            FechaRegistro = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nombre = "Distribuidora Visual",
-                            Telefono = "555-1003",
-                            TipoProducto = "Accesorios"
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Contacto = "María Fernández",
-                            Email = "dist@rayban.co",
-                            Estado = "activo",
-                            FechaRegistro = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nombre = "Ray-Ban Distribuidor",
-                            Telefono = "555-1004",
-                            TipoProducto = "Lentes de sol"
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Contacto = "José Martínez",
-                            Email = "partner@oakley.co",
-                            Estado = "inactivo",
-                            FechaRegistro = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nombre = "Oakley Partner",
-                            Telefono = "555-1005",
-                            TipoProducto = "Monturas deportivas"
                         });
                 });
 
@@ -1000,22 +802,6 @@ namespace LentSoft.Web.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("Product");
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.Product", b =>
-                {
-                    b.HasOne("LentSoft.Web.Models.Entities.Categoria", "Categoria")
-                        .WithMany("Products")
-                        .HasForeignKey("CategoriaId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Categoria");
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.Categoria", b =>
-                {
-                    b.Navigation("Products");
                 });
 
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Order", b =>

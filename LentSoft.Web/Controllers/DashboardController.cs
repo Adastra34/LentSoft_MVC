@@ -76,12 +76,7 @@ public class DashboardController : Controller
             .Take(10)
             .ToListAsync();
 
-        var productos = await _context.Products
-            .Include(p => p.Categoria)
-            .OrderBy(p => p.Nombre)
-            .ToListAsync();
-
-        var categorias = await _context.Categorias.OrderBy(c => c.Nombre).ToListAsync();
+        var productos = await _context.Products.OrderBy(p => p.Nombre).ToListAsync();
         var clientes = await _context.Users.Where(u => u.Role == "usuario").OrderBy(u => u.Nombre).ToListAsync();
         var trabajadores = await _context.Employees.OrderBy(e => e.Nombre).ToListAsync();
 
@@ -99,16 +94,6 @@ public class DashboardController : Controller
         var (facturasList, facturasTotalCount) = await _invoiceService.GetAllAsync(searchTerm, page, pageSize);
         var pedidosDisponibles = await _invoiceService.GetOrdersAvailableForInvoicingAsync();
 
-        // ── Proveedores desde BD ──
-        var proveedores = await _context.Proveedores
-            .OrderBy(p => p.Nombre)
-            .ToListAsync();
-
-        // ── Historial de Movimientos desde BD ──
-        var historialMovimientos = await _context.MovimientosInventario
-            .OrderByDescending(m => m.Fecha)
-            .ToListAsync();
-
         var viewModel = new DashboardAdminViewModel
         {
             // Stats
@@ -124,7 +109,6 @@ public class DashboardController : Controller
             // Secciones
             PedidosRecientes = pedidosRecientes,
             Productos = productos,
-            Categorias = categorias,
             Ventas = ventas,
             Citas = citas,
             Clientes = clientes,
@@ -136,9 +120,9 @@ public class DashboardController : Controller
             FacturasTotalCount = facturasTotalCount,
             PedidosDisponibles = pedidosDisponibles,
 
-            // Datos reales de BD
-            Proveedores = proveedores,
-            HistorialMovimientos = historialMovimientos,
+            // Mock proveedores
+            Proveedores = GetMockProveedores(),
+            HistorialMovimientos = GetMockMovimientos(),
 
             // Navigation
             ActiveSection = section,
@@ -179,7 +163,7 @@ public class DashboardController : Controller
     }
 
     /// <summary>
-    /// Update user profile
+    /// Update user profile — migrated from dashboard-usuario.html profile form
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -199,7 +183,7 @@ public class DashboardController : Controller
     }
 
     /// <summary>
-    /// Change password
+    /// Change password — migrated from dashboard-usuario.html config section
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -276,4 +260,23 @@ public class DashboardController : Controller
         }
         return RedirectToAction("Admin", new { section = "citas" });
     }
+
+    // ── Mock data ──
+    private static List<ProveedorMock> GetMockProveedores() => new()
+    {
+        new() { Id = 1, Nombre = "Óptica Global S.A.", Contacto = "Carlos Ruiz", Telefono = "555-1001", Email = "ventas@opticaglobal.com", Categoria = "Monturas", Estado = "activo" },
+        new() { Id = 2, Nombre = "LensTech Colombia", Contacto = "Ana López", Telefono = "555-1002", Email = "contacto@lenstech.co", Categoria = "Lentes de contacto", Estado = "activo" },
+        new() { Id = 3, Nombre = "Distribuidora Visual", Contacto = "Pedro Gómez", Telefono = "555-1003", Email = "info@distvisual.com", Categoria = "Accesorios", Estado = "activo" },
+        new() { Id = 4, Nombre = "Ray-Ban Distribuidor", Contacto = "María Fernández", Telefono = "555-1004", Email = "dist@rayban.co", Categoria = "Lentes de sol", Estado = "activo" },
+        new() { Id = 5, Nombre = "Oakley Partner", Contacto = "José Martínez", Telefono = "555-1005", Email = "partner@oakley.co", Categoria = "Monturas deportivas", Estado = "inactivo" }
+    };
+
+    private static List<MovimientoInventarioMock> GetMockMovimientos() => new()
+    {
+        new() { Id = 1, Producto = "Lentes Ray-Ban Aviator", Tipo = "entrada", Cantidad = 20, Fecha = DateTime.UtcNow.AddDays(-2), Responsable = "Ana Martínez" },
+        new() { Id = 2, Producto = "Lentes de Contacto Acuvue", Tipo = "salida", Cantidad = 5, Fecha = DateTime.UtcNow.AddDays(-1), Responsable = "Juan Pérez" },
+        new() { Id = 3, Producto = "Montura Oakley Sport", Tipo = "entrada", Cantidad = 10, Fecha = DateTime.UtcNow.AddDays(-3), Responsable = "Ana Martínez" },
+        new() { Id = 4, Producto = "Estuche Premium", Tipo = "salida", Cantidad = 15, Fecha = DateTime.UtcNow.AddDays(-1), Responsable = "Juan Pérez" },
+        new() { Id = 5, Producto = "Líquido Limpiador", Tipo = "entrada", Cantidad = 50, Fecha = DateTime.UtcNow.AddDays(-5), Responsable = "Ana Martínez" }
+    };
 }
