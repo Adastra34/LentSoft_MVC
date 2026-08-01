@@ -20,6 +20,9 @@ public class LentSoftDbContext : DbContext
     public DbSet<Favorite> Favorites => Set<Favorite>();
     public DbSet<Cart> Carts => Set<Cart>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
+    public DbSet<HistorialClinico> HistorialesClinicos => Set<HistorialClinico>();
+    public DbSet<ExamenVisual> ExamenesVisuales => Set<ExamenVisual>();
+    public DbSet<FormulaOptica> FormulasOpticas => Set<FormulaOptica>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -168,6 +171,60 @@ public class LentSoftDbContext : DbContext
                   .WithMany(u => u.Appointments)
                   .HasForeignKey(e => e.UserId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── HistorialesClinicos ──
+        modelBuilder.Entity<HistorialClinico>(entity =>
+        {
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.OptometraId);
+            entity.Property(e => e.FechaCreacion).HasDefaultValueSql("GETUTCDATE()");
+
+            entity.HasOne(e => e.User)
+                  .WithMany()
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.Optometra)
+                  .WithMany()
+                  .HasForeignKey(e => e.OptometraId)
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // ── ExamenesVisuales ──
+        modelBuilder.Entity<ExamenVisual>(entity =>
+        {
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.OptometraId);
+            entity.Property(e => e.FechaCreacion).HasDefaultValueSql("GETUTCDATE()");
+
+            entity.HasOne(e => e.User)
+                  .WithMany()
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.Optometra)
+                  .WithMany()
+                  .HasForeignKey(e => e.OptometraId)
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // ── FormulasOpticas ──
+        modelBuilder.Entity<FormulaOptica>(entity =>
+        {
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.OptometraId);
+            entity.Property(e => e.FechaCreacion).HasDefaultValueSql("GETUTCDATE()");
+
+            entity.HasOne(e => e.User)
+                  .WithMany()
+                  .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.Optometra)
+                  .WithMany()
+                  .HasForeignKey(e => e.OptometraId)
+                  .OnDelete(DeleteBehavior.NoAction);
         });
 
         // ── Seed Data (from database_schema.sql) ──

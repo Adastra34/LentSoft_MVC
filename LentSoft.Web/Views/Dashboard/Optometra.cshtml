@@ -1,5 +1,6 @@
 @model DashboardOptometraViewModel
 @{
+    Layout = "_LayoutDashboard";
     ViewData["Title"] = "Módulo Optómetra - LentSoft";
     var allAppointmentsJson = System.Text.Json.JsonSerializer.Serialize(Model.Citas.Select(c => new {
         id = c.Id,
@@ -79,6 +80,32 @@
 
     <!-- Main Content Area -->
     <main style="flex: 1; padding: 2rem; overflow-y: auto;">
+
+        <!-- Barra Superior con Botón de Cerrar Sesión -->
+        <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--purple-100); padding-bottom: 1rem;">
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <span style="font-size: 0.9rem; color: var(--gray-600); font-weight: 500;">Hola, @(Model.UsuarioActual?.NombreCompleto ?? "Optómetra")</span>
+                <form asp-controller="Auth" asp-action="Logout" method="post" style="margin: 0;">
+                    <button type="submit" class="btn" style="background-color: white; border: 1px solid var(--purple-300); color: var(--purple-700); padding: 0.4rem 0.8rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.25rem; transition: all 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-50)';" onmouseout="this.style.backgroundColor='white';">
+                        🚪 Cerrar Sesión
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Alertas de Éxito / Error -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div style="background-color: #D1FAE5; color: #065F46; padding: 0.75rem 1rem; border-radius: 0.375rem; margin-bottom: 1.5rem; font-weight: 500; border: 1px solid #A7F3D0;">
+                ✅ @TempData["SuccessMessage"]
+            </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div style="background-color: #FEE2E2; color: #991B1B; padding: 0.75rem 1rem; border-radius: 0.375rem; margin-bottom: 1.5rem; font-weight: 500; border: 1px solid #FCA5A5;">
+                ❌ @TempData["ErrorMessage"]
+            </div>
+        }
 
         <!-- DASHBOARD RESUMEN -->
         @if (Model.ActiveSection == "dashboard")
@@ -268,10 +295,11 @@
                         <thead>
                             <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
                                 <th style="padding: 0.75rem;">ID</th>
-                                <th style="padding: 0.75rem;">Nombre</th>
+                                <th style="padding: 0.75rem;">Nombre Completo</th>
                                 <th style="padding: 0.75rem;">Email</th>
                                 <th style="padding: 0.75rem;">Teléfono</th>
                                 <th style="padding: 0.75rem;">Fecha Registro</th>
+                                <th style="padding: 0.75rem;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -279,14 +307,64 @@
                             {
                                 <tr style="border-bottom: 1px solid var(--purple-100);">
                                     <td style="padding: 0.75rem; color: var(--gray-500);">#PAC-@p.Id</td>
-                                    <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@p.Nombre</td>
+                                    <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@p.NombreCompleto</td>
                                     <td style="padding: 0.75rem;">@p.Email</td>
                                     <td style="padding: 0.75rem;">@(p.Telefono ?? "N/A")</td>
                                     <td style="padding: 0.75rem; color: var(--gray-600);">@p.FechaRegistro.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                    <td style="padding: 0.75rem;">
+                                        <button onclick="abrirModalEditarPaciente(this)" 
+                                                data-id="@p.Id" 
+                                                data-nombre="@p.Nombre" 
+                                                data-apellido="@p.Apellido" 
+                                                data-email="@p.Email" 
+                                                data-telefono="@(p.Telefono ?? "")" 
+                                                class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;">
+                                            ✏️ Editar
+                                        </button>
+                                    </td>
                                 </tr>
                             }
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- Modal para Editar Paciente -->
+            <div id="modal-editar-paciente" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 500px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Editar Datos del Paciente</h2>
+                        <button onclick="document.getElementById('modal-editar-paciente').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <form asp-controller="Optometra" asp-action="EditPaciente" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+                        <input type="hidden" name="id" id="edit-paciente-id" />
+                        
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Nombre</label>
+                            <input name="nombre" id="edit-paciente-nombre" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Apellido</label>
+                            <input name="apellido" id="edit-paciente-apellido" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Email</label>
+                            <input name="email" id="edit-paciente-email" type="email" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Teléfono</label>
+                            <input name="telefono" id="edit-paciente-telefono" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" />
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="button" onclick="document.getElementById('modal-editar-paciente').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
+                            <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar Cambios</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         }
@@ -294,7 +372,12 @@
         <!-- CITAS CON VISTA CALENDARIO -->
         @if (Model.ActiveSection == "citas")
         {
-            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Agenda de Citas</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Agenda de Citas</h1>
+                <button onclick="document.getElementById('modal-nueva-cita').style.display='flex'" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.6rem 1rem; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                    📅 + Nueva Cita
+                </button>
+            </div>
 
             <!-- Vista Resumen Calendario Próxima Semana -->
             <div class="card" style="padding: 1.5rem; background: white; margin-bottom: 1.5rem; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
@@ -326,14 +409,14 @@
                                 <th style="padding: 0.75rem;">Servicio</th>
                                 <th style="padding: 0.75rem;">Fecha y Hora</th>
                                 <th style="padding: 0.75rem;">Estado</th>
-                                <th style="padding: 0.75rem;">Acción</th>
+                                <th style="padding: 0.75rem;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach (var c in Model.Citas)
                             {
                                 <tr style="border-bottom: 1px solid var(--purple-100);">
-                                    <td style="padding: 0.75rem; font-weight: 500;">@(c.User?.Nombre ?? "Paciente")</td>
+                                    <td style="padding: 0.75rem; font-weight: 500;">@(c.User?.NombreCompleto ?? "Paciente")</td>
                                     <td style="padding: 0.75rem;">@c.Servicio</td>
                                     <td style="padding: 0.75rem; color: var(--gray-600);">@c.FechaHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                     <td style="padding: 0.75rem;">
@@ -341,7 +424,7 @@
                                             @c.Estado
                                         </span>
                                     </td>
-                                    <td style="padding: 0.75rem;">
+                                    <td style="padding: 0.75rem; display: flex; gap: 0.5rem; align-items: center;">
                                         <form asp-controller="Optometra" asp-action="UpdateAppointmentStatus" method="post" style="display:inline;">
                                             <input type="hidden" name="id" value="@c.Id" />
                                             <select name="estado" style="padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.8rem;" onchange="this.form.submit()">
@@ -351,6 +434,10 @@
                                                 <option value="cancelada" selected="@(c.Estado == "cancelada")">Cancelada</option>
                                             </select>
                                         </form>
+                                        <form asp-controller="Optometra" asp-action="DeleteAppointment" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar esta cita?')">
+                                            <input type="hidden" name="id" value="@c.Id" />
+                                            <button type="submit" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar cita">🗑️</button>
+                                        </form>
                                     </td>
                                 </tr>
                             }
@@ -358,12 +445,64 @@
                     </table>
                 </div>
             </div>
+
+            <!-- Modal para Nueva Cita -->
+            <div id="modal-nueva-cita" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 500px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Programar Nueva Cita</h2>
+                        <button onclick="document.getElementById('modal-nueva-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <form asp-controller="Optometra" asp-action="CreateAppointment" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Seleccionar Paciente</label>
+                            <select name="UserId" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                @foreach (var cli in Model.Pacientes)
+                                {
+                                    <option value="@cli.Id">@cli.NombreCompleto (@cli.Email)</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Servicio</label>
+                            <select name="Servicio" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                <option value="Examen de vista">Examen de vista</option>
+                                <option value="Ajuste de lentes">Ajuste de lentes</option>
+                                <option value="Consulta por lentes de contacto">Consulta por lentes de contacto</option>
+                                <option value="Control optometría">Control optometría</option>
+                            </select>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha y Hora</label>
+                            <input name="FechaHora" type="datetime-local" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Notas Adicionales</label>
+                            <textarea name="Notas" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="button" onclick="document.getElementById('modal-nueva-cita').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
+                            <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Crear Cita</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         }
 
         <!-- HISTORIAL MÉDICO -->
         @if (Model.ActiveSection == "historial")
         {
-            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Historial Médico</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Historial Médico</h1>
+                <button onclick="document.getElementById('modal-nuevo-historial').style.display='flex'" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.6rem 1rem; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                    📋 + Nuevo Registro
+                </button>
+            </div>
 
             <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
                 <div style="overflow-x: auto;">
@@ -376,22 +515,133 @@
                                 <th style="padding: 0.75rem;">Diagnóstico</th>
                                 <th style="padding: 0.75rem;">Tratamiento</th>
                                 <th style="padding: 0.75rem;">Optómetra</th>
+                                <th style="padding: 0.75rem;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var h in Model.HistorialClinico)
+                            @if (!Model.HistorialClinico.Any())
                             {
-                                <tr style="border-bottom: 1px solid var(--purple-100);">
-                                    <td style="padding: 0.75rem; color: var(--gray-500);">#HC-@h.Id</td>
-                                    <td style="padding: 0.75rem; font-weight: 500;">@h.Paciente</td>
-                                    <td style="padding: 0.75rem; color: var(--gray-600);">@h.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
-                                    <td style="padding: 0.75rem;">@h.Diagnostico</td>
-                                    <td style="padding: 0.75rem;">@h.Tratamiento</td>
-                                    <td style="padding: 0.75rem;">@h.Optometra</td>
+                                <tr>
+                                    <td colspan="7" style="padding: 1.5rem; text-align: center; color: var(--gray-500);">No hay registros de historial clínico.</td>
                                 </tr>
+                            }
+                            else
+                            {
+                                @foreach (var h in Model.HistorialClinico)
+                                {
+                                    <tr style="border-bottom: 1px solid var(--purple-100);">
+                                        <td style="padding: 0.75rem; color: var(--gray-500);">#HC-@h.Id</td>
+                                        <td style="padding: 0.75rem; font-weight: 500;">@(h.User?.NombreCompleto ?? "N/A")</td>
+                                        <td style="padding: 0.75rem; color: var(--gray-600);">@h.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                        <td style="padding: 0.75rem;">@h.Diagnostico</td>
+                                        <td style="padding: 0.75rem;">@h.Tratamiento</td>
+                                        <td style="padding: 0.75rem;">@(h.Optometra?.NombreCompleto ?? "Optómetra")</td>
+                                        <td style="padding: 0.75rem; display: flex; gap: 0.5rem; align-items: center;">
+                                            <button onclick="abrirModalEditarHistorial(this)" 
+                                                    data-id="@h.Id" 
+                                                    data-userid="@h.UserId" 
+                                                    data-fecha="@h.Fecha.ToString("yyyy-MM-dd")" 
+                                                    data-diagnostico="@h.Diagnostico" 
+                                                    data-tratamiento="@h.Tratamiento" 
+                                                    class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;">
+                                                ✏️
+                                            </button>
+                                            <form asp-controller="Optometra" asp-action="DeleteHistorial" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar este registro?')">
+                                                <input type="hidden" name="id" value="@h.Id" />
+                                                <button type="submit" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar registro">🗑️</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
                             }
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- Modal para Nuevo Historial -->
+            <div id="modal-nuevo-historial" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 500px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Crear Registro de Historial</h2>
+                        <button onclick="document.getElementById('modal-nuevo-historial').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <form asp-controller="Optometra" asp-action="CreateHistorial" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
+                            <select name="UserId" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                @foreach (var cli in Model.Pacientes)
+                                {
+                                    <option value="@cli.Id">@cli.NombreCompleto</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha de Consulta</label>
+                            <input name="Fecha" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Diagnóstico</label>
+                            <textarea name="Diagnostico" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="3" required></textarea>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Tratamiento</label>
+                            <textarea name="Tratamiento" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="3" required></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="button" onclick="document.getElementById('modal-nuevo-historial').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
+                            <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal para Editar Historial -->
+            <div id="modal-editar-historial" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 500px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Editar Registro de Historial</h2>
+                        <button onclick="document.getElementById('modal-editar-historial').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <form asp-controller="Optometra" asp-action="EditHistorial" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+                        <input type="hidden" name="Id" id="edit-historial-id" />
+                        
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
+                            <select name="UserId" id="edit-historial-userid" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                @foreach (var cli in Model.Pacientes)
+                                {
+                                    <option value="@cli.Id">@cli.NombreCompleto</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha de Consulta</label>
+                            <input name="Fecha" id="edit-historial-fecha" type="date" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Diagnóstico</label>
+                            <textarea name="Diagnostico" id="edit-historial-diagnostico" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="3" required></textarea>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Tratamiento</label>
+                            <textarea name="Tratamiento" id="edit-historial-tratamiento" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="3" required></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="button" onclick="document.getElementById('modal-editar-historial').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
+                            <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar Cambios</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         }
@@ -399,7 +649,12 @@
         <!-- EXAMEN VISUAL -->
         @if (Model.ActiveSection == "examenes")
         {
-            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Examen Visual</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Examen Visual</h1>
+                <button onclick="document.getElementById('modal-nuevo-examen').style.display='flex'" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.6rem 1rem; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                    👁️ + Registrar Examen
+                </button>
+            </div>
 
             <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
                 <div style="overflow-x: auto;">
@@ -412,22 +667,157 @@
                                 <th style="padding: 0.75rem;">Ojo Derecho (OD)</th>
                                 <th style="padding: 0.75rem;">Ojo Izquierdo (OI)</th>
                                 <th style="padding: 0.75rem;">Resultado</th>
+                                <th style="padding: 0.75rem;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var ex in Model.ExamenesVisuales)
+                            @if (!Model.ExamenesVisuales.Any())
                             {
-                                <tr style="border-bottom: 1px solid var(--purple-100);">
-                                    <td style="padding: 0.75rem; font-weight: 500;">@ex.Paciente</td>
-                                    <td style="padding: 0.75rem; color: var(--gray-600);">@ex.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
-                                    <td style="padding: 0.75rem;">@ex.TipoExamen</td>
-                                    <td style="padding: 0.75rem;">@ex.OjoDerecho</td>
-                                    <td style="padding: 0.75rem;">@ex.OjoIzquierdo</td>
-                                    <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-800);">@ex.Resultado</td>
+                                <tr>
+                                    <td colspan="7" style="padding: 1.5rem; text-align: center; color: var(--gray-500);">No hay exámenes registrados.</td>
                                 </tr>
+                            }
+                            else
+                            {
+                                @foreach (var ex in Model.ExamenesVisuales)
+                                {
+                                    <tr style="border-bottom: 1px solid var(--purple-100);">
+                                        <td style="padding: 0.75rem; font-weight: 500;">@(ex.User?.NombreCompleto ?? "N/A")</td>
+                                        <td style="padding: 0.75rem; color: var(--gray-600);">@ex.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                        <td style="padding: 0.75rem;">@ex.TipoExamen</td>
+                                        <td style="padding: 0.75rem;">@ex.OjoDerecho</td>
+                                        <td style="padding: 0.75rem;">@ex.OjoIzquierdo</td>
+                                        <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-800);">@ex.Resultado</td>
+                                        <td style="padding: 0.75rem; display: flex; gap: 0.5rem; align-items: center;">
+                                            <button onclick="abrirModalEditarExamen(this)"
+                                                    data-id="@ex.Id"
+                                                    data-userid="@ex.UserId"
+                                                    data-fecha="@ex.Fecha.ToString("yyyy-MM-dd")"
+                                                    data-tipoexamen="@ex.TipoExamen"
+                                                    data-ojoderecho="@ex.OjoDerecho"
+                                                    data-ojoizquierdo="@ex.OjoIzquierdo"
+                                                    data-resultado="@ex.Resultado"
+                                                    class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;">
+                                                ✏️
+                                            </button>
+                                            <form asp-controller="Optometra" asp-action="DeleteExamen" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar este examen?')">
+                                                <input type="hidden" name="id" value="@ex.Id" />
+                                                <button type="submit" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar examen">🗑️</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
                             }
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- Modal para Nuevo Examen -->
+            <div id="modal-nuevo-examen" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 500px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Registrar Examen Visual</h2>
+                        <button onclick="document.getElementById('modal-nuevo-examen').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <form asp-controller="Optometra" asp-action="CreateExamen" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
+                            <select name="UserId" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                @foreach (var cli in Model.Pacientes)
+                                {
+                                    <option value="@cli.Id">@cli.NombreCompleto</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha del Examen</label>
+                            <input name="Fecha" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Tipo de Examen</label>
+                            <input name="TipoExamen" placeholder="Ej: Agudeza Visual, Tonometría" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Ojo Derecho (OD)</label>
+                                <input name="OjoDerecho" placeholder="Ej: 20/20, 14 mmHg" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Ojo Izquierdo (OI)</label>
+                                <input name="OjoIzquierdo" placeholder="Ej: 20/25, 15 mmHg" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Resultado / Diagnóstico</label>
+                            <textarea name="Resultado" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="3" required></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="button" onclick="document.getElementById('modal-nuevo-examen').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
+                            <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal para Editar Examen -->
+            <div id="modal-editar-examen" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 500px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Editar Examen Visual</h2>
+                        <button onclick="document.getElementById('modal-editar-examen').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <form asp-controller="Optometra" asp-action="EditExamen" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+                        <input type="hidden" name="Id" id="edit-examen-id" />
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
+                            <select name="UserId" id="edit-examen-userid" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                @foreach (var cli in Model.Pacientes)
+                                {
+                                    <option value="@cli.Id">@cli.NombreCompleto</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha del Examen</label>
+                            <input name="Fecha" id="edit-examen-fecha" type="date" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Tipo de Examen</label>
+                            <input name="TipoExamen" id="edit-examen-tipoexamen" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Ojo Derecho (OD)</label>
+                                <input name="OjoDerecho" id="edit-examen-ojoderecho" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Ojo Izquierdo (OI)</label>
+                                <input name="OjoIzquierdo" id="edit-examen-ojoizquierdo" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Resultado / Diagnóstico</label>
+                            <textarea name="Resultado" id="edit-examen-resultado" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="3" required></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="button" onclick="document.getElementById('modal-editar-examen').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
+                            <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar Cambios</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         }
@@ -435,7 +825,12 @@
         <!-- FÓRMULAS ÓPTICAS -->
         @if (Model.ActiveSection == "formulas")
         {
-            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Fórmulas Ópticas</h1>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Fórmulas Ópticas</h1>
+                <button onclick="document.getElementById('modal-nueva-formula').style.display='flex'" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.6rem 1rem; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                    👓 + Nueva Fórmula
+                </button>
+            </div>
 
             <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
                 <div style="overflow-x: auto;">
@@ -448,22 +843,192 @@
                                 <th style="padding: 0.75rem;">Cilindro OD / OI</th>
                                 <th style="padding: 0.75rem;">Eje OD / OI</th>
                                 <th style="padding: 0.75rem;">Observaciones</th>
+                                <th style="padding: 0.75rem;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var f in Model.FormulasOpticas)
+                            @if (!Model.FormulasOpticas.Any())
                             {
-                                <tr style="border-bottom: 1px solid var(--purple-100);">
-                                    <td style="padding: 0.75rem; font-weight: 500;">@f.Paciente</td>
-                                    <td style="padding: 0.75rem; color: var(--gray-600);">@f.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
-                                    <td style="padding: 0.75rem;">OD: @f.EsferaOD / OI: @f.EsferaOI</td>
-                                    <td style="padding: 0.75rem;">OD: @f.CilindroOD / OI: @f.CilindroOI</td>
-                                    <td style="padding: 0.75rem;">OD: @f.EjeOD / OI: @f.EjeOI</td>
-                                    <td style="padding: 0.75rem; font-size: 0.85rem; color: var(--gray-600);">@f.Observaciones</td>
+                                <tr>
+                                    <td colspan="7" style="padding: 1.5rem; text-align: center; color: var(--gray-500);">No hay fórmulas ópticas registradas.</td>
                                 </tr>
+                            }
+                            else
+                            {
+                                @foreach (var f in Model.FormulasOpticas)
+                                {
+                                    <tr style="border-bottom: 1px solid var(--purple-100);">
+                                        <td style="padding: 0.75rem; font-weight: 500;">@(f.User?.NombreCompleto ?? "N/A")</td>
+                                        <td style="padding: 0.75rem; color: var(--gray-600);">@f.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                        <td style="padding: 0.75rem;">OD: @f.EsferaOD / OI: @f.EsferaOI</td>
+                                        <td style="padding: 0.75rem;">OD: @f.CilindroOD / OI: @f.CilindroOI</td>
+                                        <td style="padding: 0.75rem;">OD: @f.EjeOD / OI: @f.EjeOI</td>
+                                        <td style="padding: 0.75rem; font-size: 0.85rem; color: var(--gray-600);">@f.Observaciones</td>
+                                        <td style="padding: 0.75rem; display: flex; gap: 0.5rem; align-items: center;">
+                                            <button onclick="abrirModalEditarFormula(this)"
+                                                    data-id="@f.Id"
+                                                    data-userid="@f.UserId"
+                                                    data-fecha="@f.Fecha.ToString("yyyy-MM-dd")"
+                                                    data-esferaod="@f.EsferaOD"
+                                                    data-cilindrood="@f.CilindroOD"
+                                                    data-ejeod="@f.EjeOD"
+                                                    data-esferaoi="@f.EsferaOI"
+                                                    data-cilindrooi="@f.CilindroOI"
+                                                    data-ejeoi="@f.EjeOI"
+                                                    data-observaciones="@f.Observaciones"
+                                                    class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;">
+                                                ✏️
+                                            </button>
+                                            <form asp-controller="Optometra" asp-action="DeleteFormula" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar esta fórmula?')">
+                                                <input type="hidden" name="id" value="@f.Id" />
+                                                <button type="submit" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar fórmula">🗑️</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
                             }
                         </tbody>
                     </table>
+                </div>
+            </div>
+
+            <!-- Modal para Nueva Formula -->
+            <div id="modal-nueva-formula" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 550px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Crear Fórmula Óptica</h2>
+                        <button onclick="document.getElementById('modal-nueva-formula').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <form asp-controller="Optometra" asp-action="CreateFormula" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
+                            <select name="UserId" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                @foreach (var cli in Model.Pacientes)
+                                {
+                                    <option value="@cli.Id">@cli.NombreCompleto</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha de Emisión</label>
+                            <input name="Fecha" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                        </div>
+
+                        <h3 style="margin: 0; font-size: 0.95rem; color: var(--purple-800); border-bottom: 1px solid var(--purple-100); padding-bottom: 0.25rem;">Ojo Derecho (OD)</h3>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Esfera</label>
+                                <input name="EsferaOD" placeholder="Ej: -1.25" type="text" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Cilindro</label>
+                                <input name="CilindroOD" placeholder="Ej: -0.50" type="text" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Eje</label>
+                                <input name="EjeOD" placeholder="Ej: 180" type="text" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <h3 style="margin: 0.5rem 0 0 0; font-size: 0.95rem; color: var(--purple-800); border-bottom: 1px solid var(--purple-100); padding-bottom: 0.25rem;">Ojo Izquierdo (OI)</h3>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Esfera</label>
+                                <input name="EsferaOI" placeholder="Ej: -1.50" type="text" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Cilindro</label>
+                                <input name="CilindroOI" placeholder="Ej: -0.75" type="text" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Eje</label>
+                                <input name="EjeOI" placeholder="Ej: 175" type="text" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Observaciones / Recomendaciones</label>
+                            <textarea name="Observaciones" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="button" onclick="document.getElementById('modal-nueva-formula').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
+                            <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal para Editar Formula -->
+            <div id="modal-editar-formula" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 550px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Editar Fórmula Óptica</h2>
+                        <button onclick="document.getElementById('modal-editar-formula').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <form asp-controller="Optometra" asp-action="EditFormula" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+                        <input type="hidden" name="Id" id="edit-formula-id" />
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
+                            <select name="UserId" id="edit-formula-userid" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                @foreach (var cli in Model.Pacientes)
+                                {
+                                    <option value="@cli.Id">@cli.NombreCompleto</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha de Emisión</label>
+                            <input name="Fecha" id="edit-formula-fecha" type="date" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                        </div>
+
+                        <h3 style="margin: 0; font-size: 0.95rem; color: var(--purple-800); border-bottom: 1px solid var(--purple-100); padding-bottom: 0.25rem;">Ojo Derecho (OD)</h3>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Esfera</label>
+                                <input name="EsferaOD" id="edit-formula-esferaod" type="text" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Cilindro</label>
+                                <input name="CilindroOD" id="edit-formula-cilindrood" type="text" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Eje</label>
+                                <input name="EjeOD" id="edit-formula-ejeod" type="text" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <h3 style="margin: 0.5rem 0 0 0; font-size: 0.95rem; color: var(--purple-800); border-bottom: 1px solid var(--purple-100); padding-bottom: 0.25rem;">Ojo Izquierdo (OI)</h3>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Esfera</label>
+                                <input name="EsferaOI" id="edit-formula-esferaoi" type="text" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Cilindro</label>
+                                <input name="CilindroOI" id="edit-formula-cilindrooi" type="text" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Eje</label>
+                                <input name="EjeOI" id="edit-formula-ejeoi" type="text" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Observaciones / Recomendaciones</label>
+                            <textarea name="Observaciones" id="edit-formula-observaciones" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
+                        </div>
+
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="button" onclick="document.getElementById('modal-editar-formula').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
+                            <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar Cambios</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         }
@@ -675,5 +1240,48 @@
             }
             trs[i].style.display = show ? '' : 'none';
         }
+    }
+
+    function abrirModalEditarPaciente(btn) {
+        document.getElementById('edit-paciente-id').value = btn.getAttribute('data-id');
+        document.getElementById('edit-paciente-nombre').value = btn.getAttribute('data-nombre');
+        document.getElementById('edit-paciente-apellido').value = btn.getAttribute('data-apellido');
+        document.getElementById('edit-paciente-email').value = btn.getAttribute('data-email');
+        document.getElementById('edit-paciente-telefono').value = btn.getAttribute('data-telefono');
+        document.getElementById('modal-editar-paciente').style.display = 'flex';
+    }
+
+    function abrirModalEditarHistorial(btn) {
+        document.getElementById('edit-historial-id').value = btn.getAttribute('data-id');
+        document.getElementById('edit-historial-userid').value = btn.getAttribute('data-userid');
+        document.getElementById('edit-historial-fecha').value = btn.getAttribute('data-fecha');
+        document.getElementById('edit-historial-diagnostico').value = btn.getAttribute('data-diagnostico');
+        document.getElementById('edit-historial-tratamiento').value = btn.getAttribute('data-tratamiento');
+        document.getElementById('modal-editar-historial').style.display = 'flex';
+    }
+
+    function abrirModalEditarExamen(btn) {
+        document.getElementById('edit-examen-id').value = btn.getAttribute('data-id');
+        document.getElementById('edit-examen-userid').value = btn.getAttribute('data-userid');
+        document.getElementById('edit-examen-fecha').value = btn.getAttribute('data-fecha');
+        document.getElementById('edit-examen-tipoexamen').value = btn.getAttribute('data-tipoexamen');
+        document.getElementById('edit-examen-ojoderecho').value = btn.getAttribute('data-ojoderecho');
+        document.getElementById('edit-examen-ojoizquierdo').value = btn.getAttribute('data-ojoizquierdo');
+        document.getElementById('edit-examen-resultado').value = btn.getAttribute('data-resultado');
+        document.getElementById('modal-editar-examen').style.display = 'flex';
+    }
+
+    function abrirModalEditarFormula(btn) {
+        document.getElementById('edit-formula-id').value = btn.getAttribute('data-id');
+        document.getElementById('edit-formula-userid').value = btn.getAttribute('data-userid');
+        document.getElementById('edit-formula-fecha').value = btn.getAttribute('data-fecha');
+        document.getElementById('edit-formula-esferaod').value = btn.getAttribute('data-esferaod');
+        document.getElementById('edit-formula-cilindrood').value = btn.getAttribute('data-cilindrood');
+        document.getElementById('edit-formula-ejeod').value = btn.getAttribute('data-ejeod');
+        document.getElementById('edit-formula-esferaoi').value = btn.getAttribute('data-esferaoi');
+        document.getElementById('edit-formula-cilindrooi').value = btn.getAttribute('data-cilindrooi');
+        document.getElementById('edit-formula-ejeoi').value = btn.getAttribute('data-ejeoi');
+        document.getElementById('edit-formula-observaciones').value = btn.getAttribute('data-observaciones');
+        document.getElementById('modal-editar-formula').style.display = 'flex';
     }
 </script>
