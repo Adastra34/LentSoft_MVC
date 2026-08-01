@@ -61,23 +61,27 @@ public class InvoiceService : IInvoiceService
 
     public async Task<Invoice> CreateAsync(Invoice invoice)
     {
-        // Generar número de factura si no viene especificado
-        if (string.IsNullOrWhiteSpace(invoice.NumeroFactura))
-        {
-            var year = DateTime.UtcNow.Year;
-            var nextNum = (await _context.Invoices.CountAsync()) + 1;
-            invoice.NumeroFactura = $"FAC-{year}-{nextNum:D4}";
-        }
+        // Siempre garantizar número de factura único predeterminado (DIAN)
+        var year = DateTime.UtcNow.Year;
+        var count = (await _context.Invoices.CountAsync()) + 1;
+        var candidate = $"FAC-{year}-{count:D4}";
 
-        // Si subtotal / total es 0, intentar auto-calcular basado en el pedido
-        if ((invoice.Total == 0 || invoice.Subtotal == 0) && invoice.OrderId > 0)
+        while (await _context.Invoices.AnyAsync(i => i.NumeroFactura == candidate))
+        {
+            count++;
+            candidate = $"FAC-{year}-{count:D4}";
+        }
+        invoice.NumeroFactura = candidate;
+
+        // Auto-calcular montos (Subtotal, IVA 19%, Total) basado en el pedido si no fueron provistos
+        if (invoice.OrderId > 0)
         {
             var order = await _context.Orders.FindAsync(invoice.OrderId);
             if (order != null)
             {
-                invoice.Total = order.Total;
-                invoice.Subtotal = Math.Round(order.Total / 1.19m, 2);
-                invoice.Impuestos = order.Total - invoice.Subtotal;
+                if (invoice.Total == 0) invoice.Total = order.Total;
+                if (invoice.Subtotal == 0) invoice.Subtotal = Math.Round(invoice.Total / 1.19m, 2);
+                if (invoice.Impuestos == 0) invoice.Impuestos = invoice.Total - invoice.Subtotal;
             }
         }
 

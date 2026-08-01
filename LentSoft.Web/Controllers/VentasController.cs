@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LentSoft.Web.Data;
 using LentSoft.Web.Models.ViewModels;
+using LentSoft.Web.Services;
 
 namespace LentSoft.Web.Controllers;
 
@@ -11,13 +12,15 @@ namespace LentSoft.Web.Controllers;
 public class VentasController : Controller
 {
     private readonly LentSoftDbContext _context;
+    private readonly IInvoiceService _invoiceService;
 
-    public VentasController(LentSoftDbContext context)
+    public VentasController(LentSoftDbContext context, IInvoiceService invoiceService)
     {
         _context = context;
+        _invoiceService = invoiceService;
     }
 
-    public async Task<IActionResult> Index(string section = "general")
+    public async Task<IActionResult> Index(string section = "general", string? searchTerm = null, int page = 1, int pageSize = 5)
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var usuario = await _context.Users.FindAsync(userId);
@@ -31,13 +34,16 @@ public class VentasController : Controller
             .OrderByDescending(o => o.FechaPedido)
             .ToListAsync();
 
-        var facturas = await _context.Invoices
-            .Include(i => i.Order).ThenInclude(o => o.User)
-            .OrderByDescending(i => i.FechaEmision)
-            .ToListAsync();
+        var (facturasList, facturasTotalCount) = await _invoiceService.GetAllAsync(searchTerm, page, pageSize);
+        var pedidosDisponibles = await _invoiceService.GetOrdersAvailableForInvoicingAsync();
 
         var productos = await _context.Products
             .OrderBy(p => p.Nombre)
+            .ToListAsync();
+
+        var clientes = await _context.Users
+            .Where(u => u.Role == "usuario")
+            .OrderBy(u => u.Nombre)
             .ToListAsync();
 
         var ventasDelMes = ventas
@@ -62,8 +68,14 @@ public class VentasController : Controller
             ClientesAtendidos = clientesAtendidos,
             TicketPromedio = ticketPromedio,
             Ventas = ventas,
-            Facturas = facturas,
+            Facturas = facturasList,
+            FacturasSearchTerm = searchTerm,
+            FacturasPage = page,
+            FacturasPageSize = pageSize,
+            FacturasTotalCount = facturasTotalCount,
+            PedidosDisponibles = pedidosDisponibles,
             Productos = productos,
+            Clientes = clientes,
             UsuarioActual = usuario,
             ActiveSection = section
         };

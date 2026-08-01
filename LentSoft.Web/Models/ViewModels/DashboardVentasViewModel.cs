@@ -13,11 +13,20 @@ public class DashboardVentasViewModel
     // ── Ventas ──
     public List<Order> Ventas { get; set; } = new();
 
-    // ── Facturas ──
+    // ── Facturas (Paginadas y Filtradas) ──
     public List<Invoice> Facturas { get; set; } = new();
+    public string? FacturasSearchTerm { get; set; }
+    public int FacturasPage { get; set; } = 1;
+    public int FacturasPageSize { get; set; } = 5;
+    public int FacturasTotalCount { get; set; }
+    public int FacturasTotalPages => (int)Math.Ceiling((double)FacturasTotalCount / (FacturasPageSize > 0 ? FacturasPageSize : 5));
+    public List<Order> PedidosDisponibles { get; set; } = new();
 
     // ── Inventarios (solo lectura) ──
     public List<Product> Productos { get; set; } = new();
+
+    // ── Clientes ──
+    public List<User> Clientes { get; set; } = new();
 
     // ── Perfil ──
     public User? UsuarioActual { get; set; }

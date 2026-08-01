@@ -5,7 +5,7 @@ using LentSoft.Web.Services;
 
 namespace LentSoft.Web.Controllers;
 
-[Authorize(Roles = "admin")]
+[Authorize(Roles = "admin,ventas")]
 public class InvoiceController : Controller
 {
     private readonly IInvoiceService _invoiceService;
@@ -17,10 +17,20 @@ public class InvoiceController : Controller
         _pdfInvoiceService = pdfInvoiceService;
     }
 
+    private IActionResult RedirectToFacturas(string? searchTerm = null, int page = 1, int pageSize = 5)
+    {
+        var referer = Request.Headers["Referer"].ToString();
+        if (User.IsInRole("ventas") || (!string.IsNullOrEmpty(referer) && referer.Contains("/Ventas", StringComparison.OrdinalIgnoreCase)))
+        {
+            return RedirectToAction("Index", "Ventas", new { section = "facturas", searchTerm, page, pageSize });
+        }
+        return RedirectToAction("Admin", "Dashboard", new { section = "facturas", searchTerm, page, pageSize });
+    }
+
     [HttpGet]
     public IActionResult Index(string? searchTerm, int page = 1, int pageSize = 5)
     {
-        return RedirectToAction("Admin", "Dashboard", new { section = "facturas", searchTerm, page, pageSize });
+        return RedirectToFacturas(searchTerm, page, pageSize);
     }
 
     [HttpGet]
@@ -52,7 +62,7 @@ public class InvoiceController : Controller
         if (invoice.OrderId <= 0)
         {
             TempData["ErrorMessage"] = "Debe seleccionar un pedido válido para la factura.";
-            return RedirectToAction("Admin", "Dashboard", new { section = "facturas" });
+            return RedirectToFacturas();
         }
 
         try
@@ -65,7 +75,7 @@ public class InvoiceController : Controller
             TempData["ErrorMessage"] = $"Error al crear la factura: {ex.Message}";
         }
 
-        return RedirectToAction("Admin", "Dashboard", new { section = "facturas" });
+        return RedirectToFacturas();
     }
 
     [HttpPost]
@@ -75,7 +85,7 @@ public class InvoiceController : Controller
         if (invoice.Id <= 0)
         {
             TempData["ErrorMessage"] = "Factura no válida.";
-            return RedirectToAction("Admin", "Dashboard", new { section = "facturas" });
+            return RedirectToFacturas();
         }
 
         try
@@ -95,7 +105,7 @@ public class InvoiceController : Controller
             TempData["ErrorMessage"] = $"Error al actualizar la factura: {ex.Message}";
         }
 
-        return RedirectToAction("Admin", "Dashboard", new { section = "facturas" });
+        return RedirectToFacturas();
     }
 
     [HttpPost]
@@ -130,7 +140,7 @@ public class InvoiceController : Controller
             TempData["ErrorMessage"] = $"Error al eliminar la factura: {ex.Message}";
         }
 
-        return RedirectToAction("Admin", "Dashboard", new { section = "facturas" });
+        return RedirectToFacturas();
     }
 
     [HttpGet]
@@ -140,7 +150,7 @@ public class InvoiceController : Controller
         if (invoice == null)
         {
             TempData["ErrorMessage"] = "Factura no encontrada.";
-            return RedirectToAction("Admin", "Dashboard", new { section = "facturas" });
+            return RedirectToFacturas();
         }
 
         try
@@ -152,7 +162,7 @@ public class InvoiceController : Controller
         catch (Exception ex)
         {
             TempData["ErrorMessage"] = $"Error al generar el PDF: {ex.Message}";
-            return RedirectToAction("Admin", "Dashboard", new { section = "facturas" });
+            return RedirectToFacturas();
         }
     }
 }
