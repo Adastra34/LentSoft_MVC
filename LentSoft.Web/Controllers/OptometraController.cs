@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LentSoft.Web.Data;
 using LentSoft.Web.Models.ViewModels;
+using LentSoft.Web.Models.Entities;
 
 namespace LentSoft.Web.Controllers;
 
@@ -36,8 +37,23 @@ public class OptometraController : Controller
             .OrderBy(u => u.Nombre)
             .ToListAsync();
 
-        var mockExamenes = GetMockExamenes();
-        var mockFormulas = GetMockFormulas();
+        var historiales = await _context.HistorialesClinicos
+            .Include(h => h.User)
+            .Include(h => h.Optometra)
+            .OrderByDescending(h => h.Fecha)
+            .ToListAsync();
+
+        var examenes = await _context.ExamenesVisuales
+            .Include(e => e.User)
+            .Include(e => e.Optometra)
+            .OrderByDescending(e => e.Fecha)
+            .ToListAsync();
+
+        var formulas = await _context.FormulasOpticas
+            .Include(f => f.User)
+            .Include(f => f.Optometra)
+            .OrderByDescending(f => f.Fecha)
+            .ToListAsync();
 
         var proximaCitaObj = citas
             .Where(c => c.FechaHora >= now && !c.Estado.Equals("cancelada", StringComparison.OrdinalIgnoreCase) && !c.Estado.Equals("atendida", StringComparison.OrdinalIgnoreCase) && !c.Estado.Equals("completada", StringComparison.OrdinalIgnoreCase))
@@ -49,23 +65,23 @@ public class OptometraController : Controller
 
         string proximaCitaStr = proximaCitaObj != null
             ? proximaCitaObj.FechaHora.ToLocalTime().ToString("dd MMM", new System.Globalization.CultureInfo("es-ES"))
-            : "26 Jun";
+            : "Sin citas";
 
         var viewModel = new DashboardOptometraViewModel
         {
             TotalPacientes = pacientes.Count,
             CitasHoy = citas.Count(c => c.FechaHora.Date == hoy),
             CitasPendientes = citas.Count(c => c.Estado.Equals("pendiente", StringComparison.OrdinalIgnoreCase)),
-            ExamenesEsteMes = citas.Count(c => c.FechaHora >= inicioMes && c.Estado.Equals("completada", StringComparison.OrdinalIgnoreCase)),
-            TotalExamenes = mockExamenes.Count,
-            TotalFormulas = mockFormulas.Count,
+            ExamenesEsteMes = examenes.Count(e => e.Fecha >= inicioMes),
+            TotalExamenes = examenes.Count,
+            TotalFormulas = formulas.Count,
             ProximaCitaFecha = proximaCitaStr,
             Pacientes = pacientes,
             Citas = citas,
             UsuarioActual = usuario,
-            HistorialClinico = GetMockHistorial(),
-            ExamenesVisuales = mockExamenes,
-            FormulasOpticas = mockFormulas,
+            HistorialClinico = historiales,
+            ExamenesVisuales = examenes,
+            FormulasOpticas = formulas,
             ActiveSection = section
         };
 
@@ -86,24 +102,234 @@ public class OptometraController : Controller
         return RedirectToAction("Index", new { section = "citas" });
     }
 
-    // ── Mock data ──
-    private static List<HistorialClinicoMock> GetMockHistorial() => new()
+    // ── CRUD Historial Clínico ──
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateHistorial(HistorialClinico model)
     {
-        new() { Id = 1, Paciente = "Usuario Demo", Fecha = DateTime.UtcNow.AddDays(-30), Diagnostico = "Miopía leve OD -1.25 OI -1.50", Tratamiento = "Lentes correctivos", Optometra = "Dra. María García" },
-        new() { Id = 2, Paciente = "Usuario Demo", Fecha = DateTime.UtcNow.AddDays(-60), Diagnostico = "Astigmatismo moderado bilateral", Tratamiento = "Lentes con cilindro", Optometra = "Dra. María García" },
-        new() { Id = 3, Paciente = "Usuario Demo", Fecha = DateTime.UtcNow.AddDays(-90), Diagnostico = "Revisión de rutina - Sin cambios", Tratamiento = "Mantener fórmula actual", Optometra = "Dra. María García" }
-    };
+        if (ModelState.IsValid)
+        {
+            model.OptometraId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            model.FechaCreacion = DateTime.UtcNow;
+            model.Fecha = DateTime.SpecifyKind(model.Fecha, DateTimeKind.Utc);
+            _context.HistorialesClinicos.Add(model);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Historial clínico creado exitosamente.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Error al crear el historial clínico. Por favor verifica los datos.";
+        }
+        return RedirectToAction("Index", new { section = "historial" });
+    }
 
-    private static List<ExamenVisualMock> GetMockExamenes() => new()
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditHistorial(HistorialClinico model)
     {
-        new() { Id = 1, Paciente = "Usuario Demo", Fecha = DateTime.UtcNow.AddDays(-30), TipoExamen = "Agudeza Visual", OjoDerecho = "20/25", OjoIzquierdo = "20/30", Resultado = "Requiere corrección" },
-        new() { Id = 2, Paciente = "Usuario Demo", Fecha = DateTime.UtcNow.AddDays(-30), TipoExamen = "Refracción", OjoDerecho = "-1.25 -0.50 x 180", OjoIzquierdo = "-1.50 -0.75 x 175", Resultado = "Miopía con astigmatismo" },
-        new() { Id = 3, Paciente = "Usuario Demo", Fecha = DateTime.UtcNow.AddDays(-60), TipoExamen = "Tonometría", OjoDerecho = "14 mmHg", OjoIzquierdo = "15 mmHg", Resultado = "Normal" }
-    };
+        var existing = await _context.HistorialesClinicos.FindAsync(model.Id);
+        if (existing != null)
+        {
+            existing.UserId = model.UserId;
+            existing.Fecha = DateTime.SpecifyKind(model.Fecha, DateTimeKind.Utc);
+            existing.Diagnostico = model.Diagnostico;
+            existing.Tratamiento = model.Tratamiento;
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Historial clínico actualizado exitosamente.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "No se encontró el registro a editar.";
+        }
+        return RedirectToAction("Index", new { section = "historial" });
+    }
 
-    private static List<FormulaOpticaMock> GetMockFormulas() => new()
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteHistorial(int id)
     {
-        new() { Id = 1, Paciente = "Usuario Demo", Fecha = DateTime.UtcNow.AddDays(-30), EsferaOD = "-1.25", CilindroOD = "-0.50", EjeOD = "180°", EsferaOI = "-1.50", CilindroOI = "-0.75", EjeOI = "175°", Observaciones = "Uso permanente. Control en 6 meses." },
-        new() { Id = 2, Paciente = "Usuario Demo", Fecha = DateTime.UtcNow.AddDays(-180), EsferaOD = "-1.00", CilindroOD = "-0.25", EjeOD = "180°", EsferaOI = "-1.25", CilindroOI = "-0.50", EjeOI = "175°", Observaciones = "Fórmula anterior. Actualizada." }
-    };
+        var existing = await _context.HistorialesClinicos.FindAsync(id);
+        if (existing != null)
+        {
+            _context.HistorialesClinicos.Remove(existing);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Historial clínico eliminado exitosamente.";
+        }
+        return RedirectToAction("Index", new { section = "historial" });
+    }
+
+    // ── CRUD Examen Visual ──
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateExamen(ExamenVisual model)
+    {
+        if (ModelState.IsValid)
+        {
+            model.OptometraId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            model.FechaCreacion = DateTime.UtcNow;
+            model.Fecha = DateTime.SpecifyKind(model.Fecha, DateTimeKind.Utc);
+            _context.ExamenesVisuales.Add(model);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Examen visual registrado exitosamente.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Error al registrar el examen visual. Por favor verifica los datos.";
+        }
+        return RedirectToAction("Index", new { section = "examenes" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditExamen(ExamenVisual model)
+    {
+        var existing = await _context.ExamenesVisuales.FindAsync(model.Id);
+        if (existing != null)
+        {
+            existing.UserId = model.UserId;
+            existing.Fecha = DateTime.SpecifyKind(model.Fecha, DateTimeKind.Utc);
+            existing.TipoExamen = model.TipoExamen;
+            existing.OjoDerecho = model.OjoDerecho;
+            existing.OjoIzquierdo = model.OjoIzquierdo;
+            existing.Resultado = model.Resultado;
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Examen visual actualizado exitosamente.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "No se encontró el registro a editar.";
+        }
+        return RedirectToAction("Index", new { section = "examenes" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteExamen(int id)
+    {
+        var existing = await _context.ExamenesVisuales.FindAsync(id);
+        if (existing != null)
+        {
+            _context.ExamenesVisuales.Remove(existing);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Examen visual eliminado exitosamente.";
+        }
+        return RedirectToAction("Index", new { section = "examenes" });
+    }
+
+    // ── CRUD Fórmula Óptica ──
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateFormula(FormulaOptica model)
+    {
+        if (ModelState.IsValid)
+        {
+            model.OptometraId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            model.FechaCreacion = DateTime.UtcNow;
+            model.Fecha = DateTime.SpecifyKind(model.Fecha, DateTimeKind.Utc);
+            _context.FormulasOpticas.Add(model);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Fórmula óptica creada exitosamente.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Error al crear la fórmula óptica. Por favor verifica los datos.";
+        }
+        return RedirectToAction("Index", new { section = "formulas" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditFormula(FormulaOptica model)
+    {
+        var existing = await _context.FormulasOpticas.FindAsync(model.Id);
+        if (existing != null)
+        {
+            existing.UserId = model.UserId;
+            existing.Fecha = DateTime.SpecifyKind(model.Fecha, DateTimeKind.Utc);
+            existing.EsferaOD = model.EsferaOD;
+            existing.CilindroOD = model.CilindroOD;
+            existing.EjeOD = model.EjeOD;
+            existing.EsferaOI = model.EsferaOI;
+            existing.CilindroOI = model.CilindroOI;
+            existing.EjeOI = model.EjeOI;
+            existing.Observaciones = model.Observaciones;
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Fórmula óptica actualizada exitosamente.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "No se encontró el registro a editar.";
+        }
+        return RedirectToAction("Index", new { section = "formulas" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteFormula(int id)
+    {
+        var existing = await _context.FormulasOpticas.FindAsync(id);
+        if (existing != null)
+        {
+            _context.FormulasOpticas.Remove(existing);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Fórmula óptica eliminada exitosamente.";
+        }
+        return RedirectToAction("Index", new { section = "formulas" });
+    }
+
+    // ── CRUD Pacientes (Solo Editar Datos Básicos) ──
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditPaciente(int id, string nombre, string apellido, string email, string? telefono)
+    {
+        var paciente = await _context.Users.FindAsync(id);
+        if (paciente != null && paciente.Role == "usuario")
+        {
+            paciente.Nombre = nombre;
+            paciente.Apellido = apellido;
+            paciente.Email = email;
+            paciente.Telefono = telefono;
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Datos básicos del paciente actualizados.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Error al editar el paciente o no cuenta con los permisos.";
+        }
+        return RedirectToAction("Index", new { section = "pacientes" });
+    }
+
+    // ── Citas ──
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateAppointment(int UserId, string Servicio, DateTime FechaHora, string? Notas)
+    {
+        var appointment = new Appointment
+        {
+            UserId = UserId,
+            Servicio = Servicio,
+            FechaHora = DateTime.SpecifyKind(FechaHora, DateTimeKind.Utc),
+            Notas = Notas,
+            Estado = "pendiente",
+            FechaCreacion = DateTime.UtcNow
+        };
+        _context.Appointments.Add(appointment);
+        await _context.SaveChangesAsync();
+        TempData["SuccessMessage"] = "Cita creada exitosamente.";
+        return RedirectToAction("Index", new { section = "citas" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteAppointment(int id)
+    {
+        var cita = await _context.Appointments.FindAsync(id);
+        if (cita != null)
+        {
+            _context.Appointments.Remove(cita);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Cita eliminada exitosamente.";
+        }
+        return RedirectToAction("Index", new { section = "citas" });
+    }
 }
