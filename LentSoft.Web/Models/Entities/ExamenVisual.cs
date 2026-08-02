@@ -30,6 +30,52 @@ public class ExamenVisual
     [StringLength(1000, ErrorMessage = "El resultado no puede superar los 1000 caracteres")]
     public string Resultado { get; set; } = string.Empty;
 
+    [StringLength(100)]
+    public string? TonometriaOD { get; set; }
+
+    [StringLength(100)]
+    public string? TonometriaOI { get; set; }
+
+    [StringLength(50)]
+    public string? EsferaOD { get; set; }
+
+    [StringLength(50)]
+    public string? CilindroOD { get; set; }
+
+    [StringLength(50)]
+    public string? EjeOD { get; set; }
+
+    [StringLength(50)]
+    public string? AdicionOD { get; set; }
+
+    [StringLength(50)]
+    public string? EsferaOI { get; set; }
+
+    [StringLength(50)]
+    public string? CilindroOI { get; set; }
+
+    [StringLength(50)]
+    public string? EjeOI { get; set; }
+
+    [StringLength(50)]
+    public string? AdicionOI { get; set; }
+
+    [StringLength(1000)]
+    public string? SegmentoAnterior { get; set; }
+
+    [StringLength(1000)]
+    public string? SegmentoPosterior { get; set; }
+
+    [Required(ErrorMessage = "El diagnóstico es obligatorio")]
+    [StringLength(1000, ErrorMessage = "El diagnóstico no puede superar los 1000 caracteres")]
+    public string Diagnostico { get; set; } = string.Empty;
+
+    [StringLength(1000)]
+    public string? Tratamiento { get; set; }
+
+    [StringLength(1000)]
+    public string? Observaciones { get; set; }
+
     [Required]
     public int OptometraId { get; set; }
 

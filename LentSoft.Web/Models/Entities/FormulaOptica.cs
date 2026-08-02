@@ -41,6 +41,16 @@ public class FormulaOptica
     [StringLength(1000)]
     public string? Observaciones { get; set; }
 
+    [Required(ErrorMessage = "El tipo de lente es obligatorio")]
+    [StringLength(100)]
+    public string TipoLente { get; set; } = string.Empty;
+
+    [StringLength(50)]
+    public string? DistanciaPupilar { get; set; }
+
+    [NotMapped]
+    public string Estado => Fecha.AddMonths(12).Date >= DateTime.UtcNow.Date ? "Vigente" : "Vencida";
+
     [Required]
     public int OptometraId { get; set; }
 

@@ -67,6 +67,7 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<LentSoftDbContext>();
     db.Database.Migrate();
+    DbSeeder.Seed(db);
 }
 
 app.Run();
