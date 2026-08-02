@@ -1,111 +1,360 @@
 @model DashboardUsuarioViewModel
 @{
-    ViewData["Title"] = "Mi Cuenta";
+    ViewData["Title"] = "Mi Cuenta - Dashboard Usuario";
 }
 
-<main style="padding: 2rem 0; min-height: 70vh; background-color: var(--purple-50);">
-    <div class="container">
-        <h1 style="color: var(--purple-900); margin-bottom: 2rem;">Hola, @Model.Usuario.Nombre</h1>
+<div style="display: flex; min-height: 85vh; background-color: var(--purple-50);">
+    <!-- Sidebar Navigation (Estilo idéntico a Admin/Optometra/Ventas) -->
+    <aside style="width: 260px; background-color: var(--purple-900); color: white; padding: 1.5rem 1rem; flex-shrink: 0;">
+        <div style="padding: 0 0.5rem 1.5rem 0.5rem; border-bottom: 1px solid var(--purple-700); margin-bottom: 1.5rem;">
+            <h2 style="color: white; font-size: 1.25rem; margin: 0;">Mi Cuenta</h2>
+            <p style="color: var(--purple-200); font-size: 0.85rem; margin: 0.25rem 0 0 0;">Hola, @Model.Usuario.Nombre</p>
+        </div>
 
-        <div class="row">
-            <!-- Sidebar Navigation -->
-            <div class="col col-3">
-                <div class="card" style="padding: 0; overflow: hidden;">
-                    <ul style="list-style: none; padding: 0; margin: 0;">
-                        <li>
-                            <a href="?section=perfil" class="@(Model.ActiveSection == "perfil" ? "active" : "")" style="display: block; padding: 1rem 1.5rem; text-decoration: none; color: @(Model.ActiveSection == "perfil" ? "white" : "var(--gray-700)"); background-color: @(Model.ActiveSection == "perfil" ? "var(--purple-600)" : "transparent"); border-bottom: 1px solid var(--purple-100); transition: all 0.2s;">
-                                👤 Mi Perfil
-                            </a>
-                        </li>
-                        <li>
-                            <a href="?section=pedidos" class="@(Model.ActiveSection == "pedidos" ? "active" : "")" style="display: block; padding: 1rem 1.5rem; text-decoration: none; color: @(Model.ActiveSection == "pedidos" ? "white" : "var(--gray-700)"); background-color: @(Model.ActiveSection == "pedidos" ? "var(--purple-600)" : "transparent"); border-bottom: 1px solid var(--purple-100); transition: all 0.2s;">
-                                📦 Mis Pedidos
-                            </a>
-                        </li>
-                        <li>
-                            <a href="?section=citas" class="@(Model.ActiveSection == "citas" ? "active" : "")" style="display: block; padding: 1rem 1.5rem; text-decoration: none; color: @(Model.ActiveSection == "citas" ? "white" : "var(--gray-700)"); background-color: @(Model.ActiveSection == "citas" ? "var(--purple-600)" : "transparent"); border-bottom: 1px solid var(--purple-100); transition: all 0.2s;">
-                                🗓️ Mis Citas
-                            </a>
-                        </li>
-                        <li>
-                            <a href="?section=favoritos" class="@(Model.ActiveSection == "favoritos" ? "active" : "")" style="display: block; padding: 1rem 1.5rem; text-decoration: none; color: @(Model.ActiveSection == "favoritos" ? "white" : "var(--gray-700)"); background-color: @(Model.ActiveSection == "favoritos" ? "var(--purple-600)" : "transparent"); border-bottom: 1px solid var(--purple-100); transition: all 0.2s;">
-                                ❤️ Mis Favoritos
-                            </a>
-                        </li>
-                        <li>
-                            <a href="?section=configuracion" class="@(Model.ActiveSection == "configuracion" ? "active" : "")" style="display: block; padding: 1rem 1.5rem; text-decoration: none; color: @(Model.ActiveSection == "configuracion" ? "white" : "var(--gray-700)"); background-color: @(Model.ActiveSection == "configuracion" ? "var(--purple-600)" : "transparent"); transition: all 0.2s;">
-                                ⚙️ Configuración
-                            </a>
-                        </li>
-                    </ul>
-                </div>
+        <nav style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <a href="?section=perfil" class="nav-item @(Model.ActiveSection == "perfil" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "perfil" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "perfil" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;">
+                👤 Mi Perfil
+            </a>
+            <a href="?section=historial" class="nav-item @(Model.ActiveSection == "historial" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "historial" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "historial" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;">
+                📑 Historial Médico
+            </a>
+            <a href="?section=pedidos" class="nav-item @(Model.ActiveSection == "pedidos" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "pedidos" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "pedidos" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;">
+                📦 Mis Pedidos
+            </a>
+            <a href="?section=citas" class="nav-item @(Model.ActiveSection == "citas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "citas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "citas" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;">
+                🗓️ Mis Citas
+            </a>
+            <a href="?section=favoritos" class="nav-item @(Model.ActiveSection == "favoritos" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "favoritos" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "favoritos" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;">
+                ❤️ Mis Favoritos
+            </a>
+            <a href="?section=configuracion" class="nav-item @(Model.ActiveSection == "configuracion" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "configuracion" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "configuracion" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;">
+                ⚙️ Configuración
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main style="flex: 1; padding: 2rem; overflow-y: auto;">
+        <!-- Notificaciones de feedback -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div style="background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; padding: 0.85rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-weight: 600;">
+                ✓ @TempData["SuccessMessage"]
             </div>
-
-            <!-- Main Content Area -->
-            <div class="col col-9">
-                <div class="card" style="padding: 2rem; min-height: 400px;">
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 0.85rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-weight: 600;">
+                ⚠ @TempData["ErrorMessage"]
+            </div>
+        }
                     
+                    <!-- ── SECCIÓN 1: MI PERFIL ── -->
                     @if (Model.ActiveSection == "perfil")
                     {
                         <div id="section-perfil">
-                            <h2 style="color: var(--purple-800); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem;">
+                            <h2 style="color: var(--purple-800); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem; font-size: 1.35rem; font-weight: 700;">
                                 Información Personal
                             </h2>
                             <form asp-controller="Dashboard" asp-action="UpdateProfile" method="post" style="max-width: 500px;">
-                                <div class="form-group" style="margin-bottom: 1rem;">
-                                    <label class="form-label">Nombre Completo</label>
-                                    <input name="Nombre" type="text" class="form-input" value="@Model.Usuario.Nombre" required />
+                                @Html.AntiForgeryToken()
+                                <div class="form-group" style="margin-bottom: 1.25rem;">
+                                    <label class="form-label" style="font-weight: 600; color: var(--gray-700);">Nombre Completo</label>
+                                    <input name="Nombre" type="text" class="form-input" value="@Model.Usuario.Nombre" required style="width: 100%; padding: 0.6rem 0.85rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                                 </div>
-                                <div class="form-group" style="margin-bottom: 1rem;">
-                                    <label class="form-label">Correo Electrónico (Solo Lectura)</label>
-                                    <input type="email" class="form-input" value="@Model.Usuario.Email" readonly style="background-color: var(--gray-100); color: var(--gray-500);" />
+                                <div class="form-group" style="margin-bottom: 1.25rem;">
+                                    <label class="form-label" style="font-weight: 600; color: var(--gray-700);">Correo Electrónico (Solo Lectura)</label>
+                                    <input type="email" class="form-input" value="@Model.Usuario.Email" readonly style="width: 100%; padding: 0.6rem 0.85rem; border-radius: 0.375rem; border: 1px solid var(--gray-300); background-color: var(--gray-100); color: var(--gray-600);" />
                                 </div>
                                 <div class="form-group" style="margin-bottom: 1.5rem;">
-                                    <label class="form-label">Teléfono</label>
-                                    <input name="Telefono" type="tel" class="form-input" value="@Model.Usuario.Telefono" />
+                                    <label class="form-label" style="font-weight: 600; color: var(--gray-700);">Teléfono</label>
+                                    <input name="Telefono" type="tel" class="form-input" value="@Model.Usuario.Telefono" style="width: 100%; padding: 0.6rem 0.85rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                                 </div>
-                                <button type="submit" class="btn btn-primary">Actualizar Perfil</button>
+                                <button type="submit" class="btn btn-primary" style="background: var(--purple-600); color: white; border: none; padding: 0.65rem 1.5rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Actualizar Perfil</button>
                             </form>
                         </div>
                     }
 
+                    <!-- ── TAREA 1: HISTORIAL MÉDICO DE CITAS (Réplica exacta del diseño de referencia) ── -->
+                    @if (Model.ActiveSection == "historial")
+                    {
+                        <div id="section-historial">
+                            <h2 style="color: var(--purple-900); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem; font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
+                                📑 Historial Médico de Citas
+                            </h2>
+
+                            @if (Model.Historiales == null || Model.Historiales.Count == 0)
+                            {
+                                <div style="text-align: center; padding: 3rem 1rem; background-color: var(--purple-50); border-radius: 0.75rem; border: 1px dashed var(--purple-200);">
+                                    <span style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;">📑</span>
+                                    <p style="color: var(--gray-600); margin: 0; font-size: 1rem;">No tienes registros de historial médico o fórmulas ópticas registradas.</p>
+                                </div>
+                            }
+                            else
+                            {
+                                <div style="display: flex; flex-direction: column; gap: 1.75rem;">
+                                    @foreach (var h in Model.Historiales)
+                                    {
+                                        var formula = Model.Formulas.FirstOrDefault(f => f.Fecha.Date == h.Fecha.Date || f.UserId == h.UserId);
+                                        var fechaFormateada = h.Fecha.ToString("dd 'de' MMMM 'de' yyyy", new System.Globalization.CultureInfo("es-ES"));
+                                        
+                                        <div style="border: 1px solid var(--purple-200); border-radius: 0.85rem; padding: 1.5rem; background: white; box-shadow: 0 4px 14px rgba(124,58,237,0.06);">
+                                            
+                                            <!-- Encabezado de la tarjeta -->
+                                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                                                <div>
+                                                    <h3 style="color: var(--purple-900); font-size: 1.15rem; font-weight: 700; margin: 0 0 0.25rem 0; display: flex; align-items: center; gap: 0.5rem;">
+                                                        📅 @fechaFormateada
+                                                    </h3>
+                                                    <p style="color: var(--purple-700); font-weight: 600; margin: 0; font-size: 0.95rem;">
+                                                        @(string.IsNullOrWhiteSpace(h.ExamenesRealizados) ? "Examen de vista completo" : h.ExamenesRealizados)
+                                                    </p>
+                                                    <p style="color: var(--purple-500); font-size: 0.875rem; margin: 0.15rem 0 0 0;">
+                                                        Atendido por: @(h.Optometra != null ? "Dr(a). " + h.Optometra.Nombre : "Dr. Carlos Mendoza")
+                                                    </p>
+                                                </div>
+                                                <div>
+                                                    <span style="background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; padding: 0.35rem 0.85rem; border-radius: 9999px; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                                        ✓ Completada
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            <!-- Caja de Diagnóstico -->
+                                            <div style="background-color: #faf5ff; border: 1px solid #f3e8ff; border-radius: 0.6rem; padding: 1rem; margin-bottom: 1.25rem;">
+                                                <h4 style="color: var(--purple-900); margin: 0 0 0.35rem 0; font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 0.4rem;">
+                                                    👁️ Diagnóstico
+                                                </h4>
+                                                <p style="color: var(--purple-800); margin: 0; font-size: 0.925rem;">
+                                                    @h.Diagnostico
+                                                </p>
+                                            </div>
+
+                                            <!-- Sección Fórmula Prescrita (Si existe) -->
+                                            @if (formula != null)
+                                            {
+                                                <h4 style="color: var(--purple-900); font-size: 0.95rem; font-weight: 700; margin: 0 0 0.75rem 0;">
+                                                    Fórmula Prescrita
+                                                </h4>
+
+                                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                                                    <!-- Ojo Derecho (OD) -->
+                                                    <div style="background-color: #faf5ff; border-radius: 0.6rem; padding: 1rem; border: 1px solid var(--purple-100);">
+                                                        <h5 style="color: var(--purple-900); font-weight: 700; font-size: 0.9rem; margin: 0 0 0.6rem 0; border-bottom: 1px dashed var(--purple-200); padding-bottom: 0.25rem;">
+                                                            Ojo Derecho (OD)
+                                                        </h5>
+                                                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.35rem;">
+                                                            <span style="color: var(--purple-600);">Esfera:</span>
+                                                            <strong style="color: var(--purple-900);">@formula.EsferaOD</strong>
+                                                        </div>
+                                                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.35rem;">
+                                                            <span style="color: var(--purple-600);">Cilindro:</span>
+                                                            <strong style="color: var(--purple-900);">@formula.CilindroOD</strong>
+                                                        </div>
+                                                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
+                                                            <span style="color: var(--purple-600);">Eje:</span>
+                                                            <strong style="color: var(--purple-900);">@formula.EjeOD°</strong>
+                                                        </div>
+                                                    </div>
+
+                                                    <!-- Ojo Izquierdo (OI) -->
+                                                    <div style="background-color: #faf5ff; border-radius: 0.6rem; padding: 1rem; border: 1px solid var(--purple-100);">
+                                                        <h5 style="color: var(--purple-900); font-weight: 700; font-size: 0.9rem; margin: 0 0 0.6rem 0; border-bottom: 1px dashed var(--purple-200); padding-bottom: 0.25rem;">
+                                                            Ojo Izquierdo (OI)
+                                                        </h5>
+                                                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.35rem;">
+                                                            <span style="color: var(--purple-600);">Esfera:</span>
+                                                            <strong style="color: var(--purple-900);">@formula.EsferaOI</strong>
+                                                        </div>
+                                                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem; margin-bottom: 0.35rem;">
+                                                            <span style="color: var(--purple-600);">Cilindro:</span>
+                                                            <strong style="color: var(--purple-900);">@formula.CilindroOI</strong>
+                                                        </div>
+                                                        <div style="display: flex; justify-content: space-between; font-size: 0.875rem;">
+                                                            <span style="color: var(--purple-600);">Eje:</span>
+                                                            <strong style="color: var(--purple-900);">@formula.EjeOI°</strong>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Distancia Pupilar (DP) -->
+                                                <div style="background-color: #faf5ff; border: 1px solid var(--purple-100); border-radius: 0.5rem; padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                                                    <span style="color: var(--purple-800); font-weight: 600; font-size: 0.875rem;">Distancia Pupilar (DP):</span>
+                                                    <strong style="color: var(--purple-900); font-size: 0.9rem;">@(string.IsNullOrWhiteSpace(formula.DistanciaPupilar) ? "63mm" : formula.DistanciaPupilar)</strong>
+                                                </div>
+                                            }
+
+                                            <!-- Observaciones y Recomendaciones -->
+                                            <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 0.6rem; padding: 1rem;">
+                                                <h5 style="color: #166534; font-size: 0.9rem; font-weight: 700; margin: 0 0 0.35rem 0;">
+                                                    Observaciones y Recomendaciones
+                                                </h5>
+                                                <p style="color: #14532d; margin: 0; font-size: 0.875rem; line-height: 1.5;">
+                                                    @(string.IsNullOrWhiteSpace(h.Tratamiento) ? h.Observaciones : h.Tratamiento)
+                                                </p>
+                                            </div>
+
+                                        </div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+
+                    <!-- ── TAREA 2: MIS PEDIDOS (Seguimiento horizontal por etapas + Detalle) ── -->
                     @if (Model.ActiveSection == "pedidos")
                     {
                         <div id="section-pedidos">
-                            <h2 style="color: var(--purple-800); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem;">
+                            <h2 style="color: var(--purple-800); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem; font-size: 1.35rem; font-weight: 700;">
                                 Historial de Pedidos
                             </h2>
-                            @if (Model.Pedidos.Count == 0)
+
+                            @if (Model.Pedidos == null || Model.Pedidos.Count == 0)
                             {
-                                <p style="color: var(--gray-600);">Aún no has realizado ningún pedido.</p>
-                                <a asp-controller="Product" asp-action="Tienda" class="btn btn-primary mt-3" style="display: inline-block; margin-top: 1rem;">Ir a la Tienda</a>
+                                <div style="text-align: center; padding: 3rem 1rem; background-color: var(--purple-50); border-radius: 0.75rem;">
+                                    <p style="color: var(--gray-600); margin-bottom: 1rem;">Aún no has realizado ningún pedido.</p>
+                                    <a asp-controller="Product" asp-action="Tienda" class="btn btn-primary" style="background: var(--purple-600); color: white; text-decoration: none; padding: 0.6rem 1.25rem; border-radius: 0.375rem; display: inline-block;">Ir a la Tienda</a>
+                                </div>
                             }
                             else
                             {
-                                <div style="display: flex; flex-direction: column; gap: 1rem;">
+                                <div style="display: flex; flex-direction: column; gap: 1.5rem;">
                                     @foreach(var pedido in Model.Pedidos)
                                     {
-                                        <div style="border: 1px solid var(--purple-200); border-radius: 0.5rem; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; background-color: white;">
-                                            <div>
-                                                <h4 style="color: var(--purple-900); margin: 0 0 0.5rem 0;">Pedido #ORD-@pedido.Id.ToString("D4")</h4>
-                                                <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0;">Realizado el: @pedido.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy")</p>
-                                                <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0;">Total: <strong style="color: var(--purple-700);">@pedido.Total.ToString("C")</strong></p>
+                                        int stepIndex = pedido.Estado.ToLower() switch {
+                                            "pendiente" => 1,
+                                            "procesando" => 2,
+                                            "enviado" => 3,
+                                            "entregado" => 4,
+                                            _ => 1
+                                        };
+                                        bool isCancelado = pedido.Estado.ToLower() == "cancelado";
+
+                                        <div style="border: 1px solid var(--purple-200); border-radius: 0.75rem; padding: 1.5rem; background-color: white; box-shadow: 0 4px 12px rgba(124,58,237,0.05);">
+                                            
+                                            <!-- Fila Superior: Datos de la Orden -->
+                                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
+                                                <div>
+                                                    <h4 style="color: var(--purple-900); margin: 0 0 0.35rem 0; font-size: 1.1rem; font-weight: 700;">
+                                                        Pedido #ORD-@pedido.Id.ToString("D4")
+                                                    </h4>
+                                                    <p style="color: var(--gray-600); font-size: 0.85rem; margin: 0;">
+                                                        Realizado el: @pedido.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                                    </p>
+                                                    <p style="color: var(--gray-600); font-size: 0.85rem; margin: 0.2rem 0 0 0;">
+                                                        Total: <strong style="color: var(--purple-700); font-size: 0.95rem;">@pedido.Total.ToString("C")</strong>
+                                                    </p>
+                                                </div>
+
+                                                <div style="text-align: right;">
+                                                    @if (isCancelado)
+                                                    {
+                                                        <span style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 0.35rem 0.85rem; border-radius: 9999px; font-weight: 600; font-size: 0.85rem;">
+                                                            ✖ Cancelado
+                                                        </span>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button type="button" onclick="toggleOrderDetail(@pedido.Id)" style="background: var(--purple-100); color: var(--purple-800); border: 1px solid var(--purple-200); padding: 0.4rem 0.85rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                                                            👁️ Ver Detalle
+                                                        </button>
+                                                    }
+                                                </div>
                                             </div>
-                                            <div style="text-align: right;">
-                                                @{
-                                                    var statusColor = pedido.Estado switch {
-                                                        "pendiente" => "var(--warning)",
-                                                        "procesando" => "var(--primary)",
-                                                        "enviado" => "var(--purple-400)",
-                                                        "entregado" => "var(--success)",
-                                                        "cancelado" => "var(--error)",
-                                                        _ => "var(--gray-500)"
-                                                    };
+
+                                            <!-- Línea de Tiempo Horizontal (Seguimiento de Producto) -->
+                                            @if (!isCancelado)
+                                            {
+                                                <div style="margin-top: 1.5rem; background-color: var(--purple-50); border-radius: 0.5rem; padding: 1.25rem 1rem;">
+                                                    <h5 style="color: var(--purple-900); font-size: 0.85rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin: 0 0 1rem 0; text-align: center;">
+                                                        Seguimiento de Entrega
+                                                    </h5>
+
+                                                    <div style="display: flex; justify-content: space-between; position: relative; max-width: 550px; margin: 0 auto;">
+                                                        <!-- Línea gris de fondo -->
+                                                        <div style="position: absolute; top: 15px; left: 10%; right: 10%; height: 4px; background: #e2e8f0; z-index: 1;"></div>
+                                                        <!-- Línea morada activa -->
+                                                        @{
+                                                            int widthPercent = stepIndex switch {
+                                                                1 => 0,
+                                                                2 => 33,
+                                                                3 => 66,
+                                                                4 => 100,
+                                                                _ => 0
+                                                            };
+                                                        }
+                                                        <div style="position: absolute; top: 15px; left: 10%; width: calc(@widthPercent% * 0.8); height: 4px; background: var(--purple-600); z-index: 2; transition: width 0.4s ease;"></div>
+
+                                                        <!-- Etapa 1: Pendiente -->
+                                                        <div style="text-align: center; position: relative; z-index: 3;">
+                                                            <div style="width: 32px; height: 32px; border-radius: 50%; background: @(stepIndex >= 1 ? "var(--purple-600)" : "#e2e8f0"); color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.4rem auto; font-size: 0.85rem; font-weight: 700; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                                @(stepIndex >= 1 ? "✓" : "1")
+                                                            </div>
+                                                            <span style="font-size: 0.75rem; font-weight: 600; color: @(stepIndex >= 1 ? "var(--purple-900)" : "var(--gray-500)");">Pendiente</span>
+                                                        </div>
+
+                                                        <!-- Etapa 2: Procesando -->
+                                                        <div style="text-align: center; position: relative; z-index: 3;">
+                                                            <div style="width: 32px; height: 32px; border-radius: 50%; background: @(stepIndex >= 2 ? "var(--purple-600)" : "#e2e8f0"); color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.4rem auto; font-size: 0.85rem; font-weight: 700; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                                @(stepIndex >= 2 ? "✓" : "2")
+                                                            </div>
+                                                            <span style="font-size: 0.75rem; font-weight: 600; color: @(stepIndex >= 2 ? "var(--purple-900)" : "var(--gray-500)");">Procesando</span>
+                                                        </div>
+
+                                                        <!-- Etapa 3: Enviado -->
+                                                        <div style="text-align: center; position: relative; z-index: 3;">
+                                                            <div style="width: 32px; height: 32px; border-radius: 50%; background: @(stepIndex >= 3 ? "var(--purple-600)" : "#e2e8f0"); color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.4rem auto; font-size: 0.85rem; font-weight: 700; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                                @(stepIndex >= 3 ? "✓" : "3")
+                                                            </div>
+                                                            <span style="font-size: 0.75rem; font-weight: 600; color: @(stepIndex >= 3 ? "var(--purple-900)" : "var(--gray-500)");">Enviado</span>
+                                                        </div>
+
+                                                        <!-- Etapa 4: Entregado -->
+                                                        <div style="text-align: center; position: relative; z-index: 3;">
+                                                            <div style="width: 32px; height: 32px; border-radius: 50%; background: @(stepIndex >= 4 ? "#16a34a" : "#e2e8f0"); color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.4rem auto; font-size: 0.85rem; font-weight: 700; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                                                                @(stepIndex >= 4 ? "✓" : "4")
+                                                            </div>
+                                                            <span style="font-size: 0.75rem; font-weight: 600; color: @(stepIndex >= 4 ? "#15803d" : "var(--gray-500)");">Entregado</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            }
+
+                                            <!-- Detalle Expandible de Ítems del Pedido -->
+                                            <div id="order-detail-@pedido.Id" style="display: none; margin-top: 1.25rem; border-top: 1px dashed var(--purple-200); padding-top: 1rem;">
+                                                <h5 style="color: var(--purple-900); font-size: 0.9rem; font-weight: 700; margin: 0 0 0.75rem 0;">Productos del Pedido</h5>
+                                                @if (pedido.OrderItems != null && pedido.OrderItems.Count > 0)
+                                                {
+                                                    <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                                                        <thead>
+                                                            <tr style="background-color: var(--purple-50); color: var(--purple-900); border-bottom: 1px solid var(--purple-200);">
+                                                                <th style="padding: 0.5rem; text-align: left;">Producto</th>
+                                                                <th style="padding: 0.5rem; text-align: center;">Cantidad</th>
+                                                                <th style="padding: 0.5rem; text-align: right;">Precio Unit.</th>
+                                                                <th style="padding: 0.5rem; text-align: right;">Subtotal</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @foreach (var item in pedido.OrderItems)
+                                                            {
+                                                                <tr style="border-bottom: 1px solid var(--purple-100);">
+                                                                    <td style="padding: 0.5rem; text-align: left; color: var(--purple-900); font-weight: 600;">
+                                                                        @(item.Product != null ? item.Product.Nombre : "Producto #" + item.ProductId)
+                                                                    </td>
+                                                                    <td style="padding: 0.5rem; text-align: center; color: var(--gray-700);">@item.Cantidad</td>
+                                                                    <td style="padding: 0.5rem; text-align: right; color: var(--gray-700);">@item.PrecioUnitario.ToString("C")</td>
+                                                                    <td style="padding: 0.5rem; text-align: right; color: var(--purple-800); font-weight: 700;">@((item.Cantidad * item.PrecioUnitario).ToString("C"))</td>
+                                                                </tr>
+                                                            }
+                                                        </tbody>
+                                                    </table>
                                                 }
-                                                <span style="background-color: @statusColor; color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; display: inline-block; margin-bottom: 0.5rem; text-transform: capitalize;">
-                                                    @pedido.Estado
-                                                </span>
+                                                else
+                                                {
+                                                    <p style="color: var(--gray-600); font-size: 0.85rem; margin: 0;">No hay detalle de productos disponible para este pedido.</p>
+                                                }
                                             </div>
+
                                         </div>
                                     }
                                 </div>
@@ -113,48 +362,199 @@
                         </div>
                     }
 
+                    <!-- ── TAREA 3: MIS CITAS (Datatable Morado con Agendar/Cancelar/Reprogramar) ── -->
                     @if (Model.ActiveSection == "citas")
                     {
                         <div id="section-citas">
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem;">
-                                <h2 style="color: var(--purple-800); margin: 0;">Mis Citas Optométricas</h2>
-                                <button class="btn btn-outline" onclick="alert('Funcionalidad de agendar cita en desarrollo')">Agendar Nueva Cita</button>
+                            <!-- ENCABEZADO Y CONTROLES DEL DATATABLE MORADO -->
+                            <div style="background-color: var(--purple-900); color: white; padding: 1.25rem 1.5rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                                <h2 style="margin: 0; font-size: 1.25rem; font-weight: 700; color: white;">Mis Citas Optométricas</h2>
+                                <button type="button" onclick="document.getElementById('modal-agendar-cita').style.display='flex'" style="background: white; color: var(--purple-900); border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 700; cursor: pointer; transition: all 0.2s;">
+                                    + Agendar Nueva Cita
+                                </button>
                             </div>
-                            
-                            @if (Model.Citas.Count == 0)
+
+                            <div style="background-color: white; border: 1px solid var(--purple-200); border-top: none; padding: 1rem; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
+                                <!-- Bar de Filtrado y Tamaño -->
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+                                    <div style="display: flex; align-items: center; gap: 0.5rem; color: var(--gray-700); font-size: 0.875rem;">
+                                        <span>Mostrar</span>
+                                        <select onchange="location.href='?section=citas&citasPageSize=' + this.value + '&citasSearch=@Model.CitasSearchTerm'" style="padding: 0.35rem 0.5rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                                            <!option value="5" @(Model.CitasPageSize == 5 ? "selected" : "")>5</!option>
+                                            <!option value="10" @(Model.CitasPageSize == 10 ? "selected" : "")>10</!option>
+                                            <!option value="25" @(Model.CitasPageSize == 25 ? "selected" : "")>25</!option>
+                                        </select>
+                                        <span>registros</span>
+                                    </div>
+
+                                    <form method="get" action="/Dashboard/Usuario" style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <input type="hidden" name="section" value="citas" />
+                                        <input type="hidden" name="citasPageSize" value="@Model.CitasPageSize" />
+                                        <label style="color: var(--gray-700); font-size: 0.875rem; font-weight: 600;">Buscar:</label>
+                                        <input type="text" name="citasSearch" value="@Model.CitasSearchTerm" onkeyup="filterClientSideCitas(this.value)" placeholder="Buscar por servicio o estado..." style="padding: 0.35rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.875rem; min-width: 240px;" />
+                                    </form>
+                                </div>
+
+                                <!-- Tabla -->
+                                <div style="overflow-x: auto;">
+                                    <table id="tableCitasUsuario" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                                        <thead>
+                                            <tr style="background-color: var(--purple-50); color: var(--purple-900); border-bottom: 2px solid var(--purple-200);">
+                                                <th style="padding: 0.75rem; font-weight: 700;">Servicio</th>
+                                                <th style="padding: 0.75rem; font-weight: 700;">Fecha y Hora</th>
+                                                <th style="padding: 0.75rem; font-weight: 700;">Estado</th>
+                                                <th style="padding: 0.75rem; font-weight: 700; text-align: center;">Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @if (Model.Citas == null || Model.Citas.Count == 0)
+                                            {
+                                                <tr>
+                                                    <td colspan="4" style="text-align: center; padding: 2rem; color: var(--gray-500);">
+                                                        No tienes citas programadas actualmente.
+                                                    </td>
+                                                </tr>
+                                            }
+                                            else
+                                            {
+                                                @foreach (var cita in Model.Citas)
+                                                {
+                                                    var statusBadge = cita.Estado.ToLower() switch {
+                                                        "pendiente" => "background:#fef3c7; color:#92400e; border:1px solid #fde68a;",
+                                                        "confirmada" => "background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe;",
+                                                        "completada" => "background:#dcfce7; color:#15803d; border:1px solid #bbf7d0;",
+                                                        "cancelada" => "background:#fee2e2; color:#b91c1c; border:1px solid #fecaca;",
+                                                        _ => "background:#f3f4f6; color:#374151; border:1px solid #e5e7eb;"
+                                                    };
+
+                                                    <tr style="border-bottom: 1px solid var(--purple-100); transition: background-color 0.15s;">
+                                                        <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-900);">
+                                                            @cita.Servicio
+                                                        </td>
+                                                        <td style="padding: 0.75rem; color: var(--gray-700);">
+                                                            📅 @cita.FechaHora.ToString("dd/MM/yyyy HH:mm") hrs
+                                                        </td>
+                                                        <td style="padding: 0.75rem;">
+                                                            <span style="@statusBadge padding: 0.25rem 0.65rem; border-radius: 9999px; font-weight: 600; font-size: 0.8rem; display: inline-block; text-transform: capitalize;">
+                                                                @cita.Estado
+                                                            </span>
+                                                        </td>
+                                                        <td style="padding: 0.75rem; text-align: center;">
+                                                            <div style="display: flex; gap: 0.4rem; justify-content: center;">
+                                                                @if (cita.Estado.ToLower() == "pendiente" || cita.Estado.ToLower() == "confirmada")
+                                                                {
+                                                                    <button type="button" onclick="confirmCancelCita(@cita.Id, '@cita.Servicio')" style="background: white; color: var(--error); border: 1px solid var(--error); padding: 0.3rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+                                                                        Cancelar
+                                                                    </button>
+                                                                }
+
+                                                                @if (cita.Estado.ToLower() != "completada" && cita.Estado.ToLower() != "cancelada")
+                                                                {
+                                                                    <button type="button" onclick="openRescheduleModal(@cita.Id, '@cita.FechaHora.ToString("yyyy-MM-ddTHH:mm")')" style="background: white; color: var(--purple-700); border: 1px solid var(--purple-400); padding: 0.3rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+                                                                        Reprogramar
+                                                                    </button>
+                                                                }
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+
+                                <!-- Footer del Datatable (Total count & Paginación) -->
+                                @{
+                                    var citasStart = Model.CitasTotalCount == 0 ? 0 : ((Model.CitasPage - 1) * Model.CitasPageSize) + 1;
+                                    var citasEnd = Math.Min(Model.CitasPage * Model.CitasPageSize, Model.CitasTotalCount);
+                                }
+                                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; flex-wrap: wrap; gap: 0.5rem; font-size: 0.85rem; color: var(--gray-600);">
+                                    <div>
+                                        Mostrando registros del @citasStart al @citasEnd de un total de @Model.CitasTotalCount registros
+                                    </div>
+
+                                    @if (Model.CitasTotalPages > 1)
+                                    {
+                                        <div style="display: flex; gap: 0.25rem;">
+                                            @for (int p = 1; p <= Model.CitasTotalPages; p++)
+                                            {
+                                                <a href="?section=citas&citasPage=@p&citasPageSize=@Model.CitasPageSize&citasSearch=@Model.CitasSearchTerm" style="padding: 0.3rem 0.65rem; border-radius: 0.25rem; text-decoration: none; font-weight: 600; font-size: 0.8rem; color: @(p == Model.CitasPage ? "white" : "var(--purple-800)"); background-color: @(p == Model.CitasPage ? "var(--purple-600)" : "var(--purple-100)");">
+                                                    @p
+                                                </a>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+
+                            </div>
+                        </div>
+                    }
+
+                    <!-- ── TAREA 4: MIS FAVORITOS (Acciones Carrito y Eliminar) ── -->
+                    @if (Model.ActiveSection == "favoritos")
+                    {
+                        <div id="section-favoritos">
+                            <h2 style="color: var(--purple-800); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem; font-size: 1.35rem; font-weight: 700;">
+                                ❤️ Mis Favoritos
+                            </h2>
+
+                            @if (Model.Favoritos == null || Model.Favoritos.Count == 0)
                             {
-                                <p style="color: var(--gray-600);">No tienes citas programadas.</p>
+                                <div style="text-align: center; padding: 3rem 1rem; background-color: var(--purple-50); border-radius: 0.75rem;">
+                                    <p style="color: var(--gray-600); margin-bottom: 1rem;">Aún no tienes productos en tu lista de favoritos.</p>
+                                    <a asp-controller="Product" asp-action="Tienda" class="btn btn-primary" style="background: var(--purple-600); color: white; text-decoration: none; padding: 0.6rem 1.25rem; border-radius: 0.375rem; display: inline-block;">Explorar la Tienda</a>
+                                </div>
                             }
                             else
                             {
-                                <div style="display: flex; flex-direction: column; gap: 1rem;">
-                                    @foreach(var cita in Model.Citas.OrderByDescending(c => c.FechaHora))
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1.5rem;">
+                                    @foreach (var product in Model.Favoritos)
                                     {
-                                        <div style="border: 1px solid var(--purple-200); border-radius: 0.5rem; padding: 1.5rem; display: flex; justify-content: space-between; align-items: center; background-color: white;">
-                                            <div style="display: flex; align-items: center; gap: 1rem;">
-                                                <div style="background-color: var(--purple-100); width: 60px; height: 60px; border-radius: 0.5rem; display: flex; flex-direction: column; align-items: center; justify-content: center;">
-                                                    <span style="font-size: 1.25rem; font-weight: 700; color: var(--purple-800);">@cita.FechaHora.ToString("dd")</span>
-                                                    <span style="font-size: 0.75rem; color: var(--purple-600); text-transform: uppercase;">@cita.FechaHora.ToString("MMM")</span>
-                                                </div>
-                                                <div>
-                                                    <h4 style="color: var(--purple-900); margin: 0 0 0.25rem 0;">@cita.Servicio</h4>
-                                                    <p style="color: var(--gray-600); font-size: 0.875rem; margin: 0;">Hora: @cita.FechaHora.ToString("HH:mm") hrs</p>
-                                                </div>
-                                            </div>
+                                        <div style="border: 1px solid var(--purple-200); border-radius: 0.75rem; overflow: hidden; background: white; box-shadow: 0 4px 12px rgba(124,58,237,0.06); display: flex; flex-direction: column; justify-content: space-between;">
                                             <div>
-                                                @{
-                                                    var statusColor = cita.Estado switch {
-                                                        "pendiente" => "var(--warning)",
-                                                        "confirmada" => "var(--primary)",
-                                                        "completada" => "var(--success)",
-                                                        "cancelada" => "var(--error)",
-                                                        _ => "var(--gray-500)"
-                                                    };
+                                                @if (!string.IsNullOrWhiteSpace(product.ImagenUrl))
+                                                {
+                                                    <div style="height: 150px; background-image: url('@product.ImagenUrl'); background-size: cover; background-position: center; border-bottom: 1px solid var(--purple-100);"></div>
                                                 }
-                                                <span style="background-color: @statusColor; color: white; padding: 0.25rem 0.75rem; border-radius: 9999px; font-size: 0.875rem; text-transform: capitalize;">
-                                                    @cita.Estado
-                                                </span>
+                                                else
+                                                {
+                                                    <div style="height: 150px; background: linear-gradient(135deg, var(--purple-100), var(--purple-200)); display: flex; align-items: center; justify-content: center;">
+                                                        <span style="font-size: 2.5rem;">👓</span>
+                                                    </div>
+                                                }
+
+                                                <div style="padding: 1rem;">
+                                                    <h4 style="color: var(--purple-900); font-size: 0.95rem; margin: 0 0 0.35rem 0; font-weight: 700; min-height: 2.5rem; line-height: 1.25;">
+                                                        @product.Nombre
+                                                    </h4>
+                                                    <p style="color: var(--purple-700); font-weight: 700; font-size: 1.1rem; margin: 0;">
+                                                        @product.GetFinalPrice().ToString("C")
+                                                    </p>
+                                                </div>
                                             </div>
+
+                                            <!-- Botones de Acción sobre Favorito -->
+                                            <div style="padding: 0.75rem 1rem 1rem 1rem; border-top: 1px dashed var(--purple-100); display: flex; gap: 0.5rem; align-items: center;">
+                                                <!-- Formulario para Añadir al Carrito (RF-M03-01) -->
+                                                <form action="/Cart/Add" method="post" style="flex: 1;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="productId" value="@product.Id" />
+                                                    <input type="hidden" name="quantity" value="1" />
+                                                    <button type="submit" style="width: 100%; background: var(--purple-600); color: white; border: none; padding: 0.5rem 0.5rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
+                                                        🛒 Añadir
+                                                    </button>
+                                                </form>
+
+                                                <!-- Formulario para Eliminar de Favoritos (RF-M02-03) -->
+                                                <form action="/Product/ToggleFavorite" method="post">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="productId" value="@product.Id" />
+                                                    <button type="submit" title="Quitar de Favoritos" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 0.5rem 0.65rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
+                                                        🗑️
+                                                    </button>
+                                                </form>
+                                            </div>
+
                                         </div>
                                     }
                                 </div>
@@ -162,73 +562,169 @@
                         </div>
                     }
 
+                    <!-- ── SECCIÓN 5: CONFIGURACIÓN ── -->
                     @if (Model.ActiveSection == "configuracion")
                     {
                         <div id="section-configuracion">
-                            <h2 style="color: var(--purple-800); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem;">
+                            <h2 style="color: var(--purple-800); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem; font-size: 1.35rem; font-weight: 700;">
                                 Configuración de Seguridad
                             </h2>
                             <form asp-controller="Dashboard" asp-action="ChangePassword" method="post" style="max-width: 500px;">
-                                <div class="form-group" style="margin-bottom: 1rem;">
-                                    <label class="form-label">Contraseña Actual</label>
-                                    <input name="CurrentPassword" type="password" class="form-input" required />
+                                @Html.AntiForgeryToken()
+                                <div class="form-group" style="margin-bottom: 1.25rem;">
+                                    <label class="form-label" style="font-weight: 600; color: var(--gray-700);">Contraseña Actual</label>
+                                    <input name="CurrentPassword" type="password" class="form-input" required style="width: 100%; padding: 0.6rem 0.85rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                                 </div>
-                                <div class="form-group" style="margin-bottom: 1rem;">
-                                    <label class="form-label">Nueva Contraseña</label>
-                                    <input name="NewPassword" type="password" class="form-input" required placeholder="Ej: Pass1234!" />
+                                <div class="form-group" style="margin-bottom: 1.25rem;">
+                                    <label class="form-label" style="font-weight: 600; color: var(--gray-700);">Nueva Contraseña</label>
+                                    <input name="NewPassword" type="password" class="form-input" required placeholder="Ej: Pass1234!" style="width: 100%; padding: 0.6rem 0.85rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                                     <small style="color: var(--gray-500); font-size: 0.75rem; display: block; margin-top: 0.25rem;">
                                         🔒 Mín. 8 caract. (Mayúscula, minúscula, número y especial).
                                     </small>
                                 </div>
                                 <div class="form-group" style="margin-bottom: 1.5rem;">
-                                    <label class="form-label">Confirmar Nueva Contraseña</label>
-                                    <input name="ConfirmNewPassword" type="password" class="form-input" required />
+                                    <label class="form-label" style="font-weight: 600; color: var(--gray-700);">Confirmar Nueva Contraseña</label>
+                                    <input name="ConfirmNewPassword" type="password" class="form-input" required style="width: 100%; padding: 0.6rem 0.85rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                                 </div>
-                                <button type="submit" class="btn btn-outline" style="color: var(--error); border-color: var(--error);">
+                                <button type="submit" class="btn btn-outline" style="color: var(--error); border: 1px solid var(--error); background: white; padding: 0.6rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">
                                     Cambiar Contraseña
                                 </button>
                             </form>
                         </div>
                     }
 
-                    @if (Model.ActiveSection == "favoritos")
-                    {
-                        <div id="section-favoritos">
-                            <h2 style="color: var(--purple-800); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem;">
-                                ❤️ Mis Favoritos
-                            </h2>
-                            @if (Model.Favoritos.Count == 0)
-                            {
-                                <p style="color: var(--gray-600);">Aún no tienes productos favoritos.</p>
-                                <a asp-controller="Product" asp-action="Tienda" class="btn btn-primary" style="display: inline-block; margin-top: 1rem;">Explorar la Tienda</a>
-                            }
-                            else
-                            {
-                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
-                                    @foreach (var product in Model.Favoritos)
-                                    {
-                                        <div style="border: 1px solid var(--purple-200); border-radius: 0.75rem; overflow: hidden; background: white;">
-                                            @if (product.ImagenUrl != null)
-                                            {
-                                                <div style="height: 140px; background-image: url('@product.ImagenUrl'); background-size: cover; background-position: center;"></div>
-                                            }
-                                            else
-                                            {
-                                                <div style="height: 140px; background: linear-gradient(135deg, var(--purple-100), var(--purple-200)); display: flex; align-items: center; justify-content: center;"><span style="font-size: 2rem;">👓</span></div>
-                                            }
-                                            <div style="padding: 1rem;">
-                                                <h4 style="color: var(--purple-900); font-size: 0.95rem; margin: 0 0 0.25rem 0;">@product.Nombre</h4>
-                                                <p style="color: var(--purple-700); font-weight: 700; margin: 0;">@product.GetFinalPrice().ToString("C")</p>
-                                            </div>
-                                        </div>
-                                    }
-                                </div>
-                            }
-                        </div>
-                    }
+    </main>
+</div>
 
-                </div>
-            </div>
+<!-- Modal para Agendar Nueva Cita -->
+<div id="modal-agendar-cita" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 480px; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.2rem; font-weight: 700;">+ Agendar Nueva Cita</h2>
+            <button type="button" onclick="document.getElementById('modal-agendar-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
+        
+        <form action="/Dashboard/UserScheduleAppointment" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Servicio *</label>
+                <select name="Servicio" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                    <option value="">-- Selecciona un servicio --</option>
+                    <option value="Examen visual completo">Examen visual completo</option>
+                    <option value="Control de lentes">Control de lentes</option>
+                    <option value="Primera consulta">Primera consulta</option>
+                    <option value="Adaptación de lentes de contacto">Adaptación de lentes de contacto</option>
+                    <option value="Ajuste y mantenimiento de lentes">Ajuste y mantenimiento de lentes</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Fecha y Hora *</label>
+                <input name="FechaHora" type="datetime-local" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Notas adicionales (Opcional)</label>
+                <textarea name="Notas" class="form-input" rows="3" placeholder="Ej: Presento dolor de cabeza o molestia en ojo derecho..." style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-agendar-cita').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Confirmar Cita</button>
+            </div>
+        </form>
     </div>
-</main>
+</div>
+
+<!-- Modal para Reprogramar Cita -->
+<div id="modal-reprogramar-cita" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 450px; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.2rem; font-weight: 700;">🗓️ Reprogramar Cita</h2>
+            <button type="button" onclick="document.getElementById('modal-reprogramar-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form action="/Dashboard/UserRescheduleAppointment" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="rescheduleCitaId" name="id" />
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nueva Fecha y Hora *</label>
+                <input id="rescheduleFechaHora" name="NuevaFechaHora" type="datetime-local" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-reprogramar-cita').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Guardar Cambio</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleOrderDetail(orderId) {
+        const elem = document.getElementById('order-detail-' + orderId);
+        if (elem) {
+            elem.style.display = (elem.style.display === 'none' || elem.style.display === '') ? 'block' : 'none';
+        }
+    }
+
+    function confirmCancelCita(id, servicio) {
+        if (typeof alertify !== 'undefined') {
+            alertify.confirm(
+                'Cancelar Cita',
+                '¿Está seguro de que desea cancelar su cita para <strong>' + servicio + '</strong>?',
+                function () { executeCancelCita(id); },
+                function () { alertify.message('Cancelación omitida'); }
+            ).set('labels', { ok: 'Sí, cancelar cita', cancel: 'No' });
+        } else if (confirm('¿Está seguro de cancelar su cita para ' + servicio + '?')) {
+            executeCancelCita(id);
+        }
+    }
+
+    function executeCancelCita(id) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/Dashboard/UserCancelAppointment/' + id;
+        
+        const tokenElem = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (tokenElem) {
+            const hiddenToken = document.createElement('input');
+            hiddenToken.type = 'hidden';
+            hiddenToken.name = '__RequestVerificationToken';
+            hiddenToken.value = tokenElem.value;
+            form.appendChild(hiddenToken);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    function openRescheduleModal(id, currentFechaHora) {
+        document.getElementById('rescheduleCitaId').value = id;
+        if (currentFechaHora) {
+            document.getElementById('rescheduleFechaHora').value = currentFechaHora;
+        }
+        document.getElementById('modal-reprogramar-cita').style.display = 'flex';
+    }
+
+    function filterClientSideCitas(filterVal) {
+        const filter = filterVal.toLowerCase();
+        const table = document.getElementById('tableCitasUsuario');
+        if (!table) return;
+        const trs = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+        for (let i = 0; i < trs.length; i++) {
+            let show = false;
+            const tds = trs[i].getElementsByTagName('td');
+            if (tds.length <= 1) continue;
+            for (let j = 0; j < tds.length - 1; j++) {
+                if (tds[j] && tds[j].textContent.toLowerCase().includes(filter)) {
+                    show = true;
+                    break;
+                }
+            }
+            trs[i].style.display = show ? '' : 'none';
+        }
+    }
+</script>

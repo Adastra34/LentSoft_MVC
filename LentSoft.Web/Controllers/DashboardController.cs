@@ -223,9 +223,13 @@ public class DashboardController : Controller
     }
 
     /// <summary>
-    /// User dashboard — migrated from Views/dashboard-usuario.html
+    /// User dashboard — solo lectura de datos propios y gestión de sus citas/perfil/favoritos
     /// </summary>
-    public async Task<IActionResult> Usuario(string section = "perfil")
+    public async Task<IActionResult> Usuario(
+        string section = "perfil",
+        string? citasSearch = null,
+        int citasPage = 1,
+        int citasPageSize = 5)
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var user = await _userService.GetByIdAsync(userId);
@@ -236,20 +240,141 @@ public class DashboardController : Controller
         var pedidos = await _orderService.GetByUserIdAsync(userId);
         var favoritos = await _favoriteService.GetFavoritesByUserIdAsync(userId);
 
+        // Cargar Historial Clínico y Fórmulas Ópticas estrictamente del usuario autenticado
+        var historiales = await _context.HistorialesClinicos
+            .Include(h => h.Optometra)
+            .Where(h => h.UserId == userId)
+            .OrderByDescending(h => h.Fecha)
+            .ToListAsync();
+
+        var formulas = await _context.FormulasOpticas
+            .Include(f => f.Optometra)
+            .Where(f => f.UserId == userId)
+            .OrderByDescending(f => f.Fecha)
+            .ToListAsync();
+
+        // Citas del usuario autenticado con filtrado y paginación
+        var citasQuery = _context.Appointments.Where(a => a.UserId == userId);
+        if (!string.IsNullOrWhiteSpace(citasSearch))
+        {
+            var term = citasSearch.Trim().ToLower();
+            citasQuery = citasQuery.Where(a => a.Servicio.ToLower().Contains(term) || a.Estado.ToLower().Contains(term));
+        }
+
+        var citasTotalCount = await citasQuery.CountAsync();
+        var citasPaginadas = await citasQuery
+            .OrderByDescending(a => a.FechaHora)
+            .Skip((citasPage - 1) * citasPageSize)
+            .Take(citasPageSize)
+            .ToListAsync();
+
         var viewModel = new DashboardUsuarioViewModel
         {
             Usuario = user,
             Pedidos = pedidos,
             Favoritos = favoritos,
+            Historiales = historiales,
+            Formulas = formulas,
+            Citas = citasPaginadas,
+            CitasSearchTerm = citasSearch,
+            CitasPage = citasPage,
+            CitasPageSize = citasPageSize,
+            CitasTotalCount = citasTotalCount,
             ActiveSection = section
         };
 
-        // Load appointments through the user navigation property
-        viewModel.Citas = await _context.Appointments
-            .Where(a => a.UserId == userId)
-            .ToListAsync();
-
         return View(viewModel);
+    }
+
+    // ── Usuario: Agendar Nueva Cita ──
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UserScheduleAppointment(string Servicio, DateTime FechaHora, string? Notas)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        if (string.IsNullOrWhiteSpace(Servicio) || FechaHora <= DateTime.UtcNow)
+        {
+            TempData["ErrorMessage"] = "Por favor selecciona un servicio y una fecha/hora válida a futuro.";
+            return RedirectToAction("Usuario", new { section = "citas" });
+        }
+
+        var appointment = new Appointment
+        {
+            UserId = userId,
+            Servicio = Servicio.Trim(),
+            FechaHora = FechaHora,
+            Notas = Notas?.Trim(),
+            Estado = "pendiente",
+            FechaCreacion = DateTime.UtcNow
+        };
+
+        _context.Appointments.Add(appointment);
+        await _context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = "Cita agendada exitosamente.";
+        return RedirectToAction("Usuario", new { section = "citas" });
+    }
+
+    // ── Usuario: Cancelar Cita ──
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UserCancelAppointment(int id)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var cita = await _context.Appointments.FirstOrDefaultAsync(a => a.Id == id && a.UserId == userId);
+
+        if (cita == null)
+        {
+            TempData["ErrorMessage"] = "Cita no encontrada o no pertenece a tu usuario.";
+            return RedirectToAction("Usuario", new { section = "citas" });
+        }
+
+        if (cita.Estado != "pendiente" && cita.Estado != "confirmada")
+        {
+            TempData["ErrorMessage"] = "Solo puedes cancelar citas pendientes o confirmadas.";
+            return RedirectToAction("Usuario", new { section = "citas" });
+        }
+
+        cita.Estado = "cancelada";
+        await _context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = "La cita ha sido cancelada exitosamente.";
+        return RedirectToAction("Usuario", new { section = "citas" });
+    }
+
+    // ── Usuario: Reprogramar Cita ──
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UserRescheduleAppointment(int id, DateTime NuevaFechaHora)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var cita = await _context.Appointments.FirstOrDefaultAsync(a => a.Id == id && a.UserId == userId);
+
+        if (cita == null)
+        {
+            TempData["ErrorMessage"] = "Cita no encontrada o no pertenece a tu usuario.";
+            return RedirectToAction("Usuario", new { section = "citas" });
+        }
+
+        if (cita.Estado == "completada" || cita.Estado == "cancelada")
+        {
+            TempData["ErrorMessage"] = "No se puede reprogramar una cita completada o cancelada.";
+            return RedirectToAction("Usuario", new { section = "citas" });
+        }
+
+        if (NuevaFechaHora <= DateTime.UtcNow)
+        {
+            TempData["ErrorMessage"] = "La nueva fecha y hora debe ser a futuro.";
+            return RedirectToAction("Usuario", new { section = "citas" });
+        }
+
+        cita.FechaHora = NuevaFechaHora;
+        cita.Estado = "pendiente";
+        await _context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = "La cita ha sido reprogramada exitosamente.";
+        return RedirectToAction("Usuario", new { section = "citas" });
     }
 
     /// <summary>
