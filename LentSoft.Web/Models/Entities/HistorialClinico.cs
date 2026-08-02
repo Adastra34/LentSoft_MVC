@@ -22,6 +22,19 @@ public class HistorialClinico
     [StringLength(2000, ErrorMessage = "El tratamiento no puede superar los 2000 caracteres")]
     public string Tratamiento { get; set; } = string.Empty;
 
+    [StringLength(2000, ErrorMessage = "Los antecedentes no pueden superar los 2000 caracteres")]
+    public string? Antecedentes { get; set; }
+
+    [StringLength(2000, ErrorMessage = "Los exámenes realizados no pueden superar los 2000 caracteres")]
+    public string? ExamenesRealizados { get; set; }
+
+    [StringLength(1000, ErrorMessage = "Las observaciones no pueden superar los 1000 caracteres")]
+    public string? Observaciones { get; set; }
+
+    [Required]
+    [StringLength(20)]
+    public string Estado { get; set; } = "Activo";
+
     [Required]
     public int OptometraId { get; set; }
 

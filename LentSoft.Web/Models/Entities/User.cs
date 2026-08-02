@@ -45,6 +45,39 @@ public class User : IValidatableObject
 
     public DateTime? UltimaCompra { get; set; }
 
+    // Campos Clínicos del Paciente (Tarea 1)
+    public DateTime? FechaNacimiento { get; set; }
+
+    [StringLength(20)]
+    public string? Genero { get; set; }
+
+    [StringLength(255)]
+    public string? Direccion { get; set; }
+
+    [StringLength(100)]
+    public string? EPS { get; set; }
+
+    [StringLength(20)]
+    public string? EstadoPaciente { get; set; } = "Activo";
+
+    [StringLength(2000)]
+    public string? ObservacionesPaciente { get; set; }
+
+    // Datos Profesionales del Optómetra (Tarea 6)
+    [StringLength(50)]
+    public string? RegistroMedico { get; set; }
+
+    [StringLength(150)]
+    public string? Universidad { get; set; }
+
+    [StringLength(200)]
+    public string? EspecialidadDetalle { get; set; }
+
+    public int? AniosExperiencia { get; set; }
+
+    [StringLength(500)]
+    public string? FotoUrl { get; set; }
+
     // Computed display name
     [NotMapped]
     public string NombreCompleto => $"{Nombre} {Apellido}".Trim();

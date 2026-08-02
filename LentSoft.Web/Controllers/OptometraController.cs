@@ -18,7 +18,7 @@ public class OptometraController : Controller
         _context = context;
     }
 
-    public async Task<IActionResult> Index(string section = "dashboard")
+    public async Task<IActionResult> Index(string section = "dashboard", int? detalleId = null)
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var usuario = await _context.Users.FindAsync(userId);
@@ -85,6 +85,7 @@ public class OptometraController : Controller
             ActiveSection = section
         };
 
+        ViewBag.DetalleId = detalleId;
         return View("~/Views/Dashboard/Optometra.cshtml", viewModel);
     }
 
@@ -134,6 +135,11 @@ public class OptometraController : Controller
             existing.Fecha = DateTime.SpecifyKind(model.Fecha, DateTimeKind.Utc);
             existing.Diagnostico = model.Diagnostico;
             existing.Tratamiento = model.Tratamiento;
+            existing.Antecedentes = model.Antecedentes;
+            existing.ExamenesRealizados = model.ExamenesRealizados;
+            existing.Observaciones = model.Observaciones;
+            existing.Estado = model.Estado;
+
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Historial clínico actualizado exitosamente.";
         }
@@ -192,6 +198,22 @@ public class OptometraController : Controller
             existing.OjoDerecho = model.OjoDerecho;
             existing.OjoIzquierdo = model.OjoIzquierdo;
             existing.Resultado = model.Resultado;
+            existing.TonometriaOD = model.TonometriaOD;
+            existing.TonometriaOI = model.TonometriaOI;
+            existing.EsferaOD = model.EsferaOD;
+            existing.CilindroOD = model.CilindroOD;
+            existing.EjeOD = model.EjeOD;
+            existing.AdicionOD = model.AdicionOD;
+            existing.EsferaOI = model.EsferaOI;
+            existing.CilindroOI = model.CilindroOI;
+            existing.EjeOI = model.EjeOI;
+            existing.AdicionOI = model.AdicionOI;
+            existing.SegmentoAnterior = model.SegmentoAnterior;
+            existing.SegmentoPosterior = model.SegmentoPosterior;
+            existing.Diagnostico = model.Diagnostico;
+            existing.Tratamiento = model.Tratamiento;
+            existing.Observaciones = model.Observaciones;
+
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Examen visual actualizado exitosamente.";
         }
@@ -253,6 +275,9 @@ public class OptometraController : Controller
             existing.CilindroOI = model.CilindroOI;
             existing.EjeOI = model.EjeOI;
             existing.Observaciones = model.Observaciones;
+            existing.TipoLente = model.TipoLente;
+            existing.DistanciaPupilar = model.DistanciaPupilar;
+
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Fórmula óptica actualizada exitosamente.";
         }
@@ -277,10 +302,56 @@ public class OptometraController : Controller
         return RedirectToAction("Index", new { section = "formulas" });
     }
 
-    // ── CRUD Pacientes (Solo Editar Datos Básicos) ──
+    // ── CRUD Pacientes (Tarea 1) ──
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditPaciente(int id, string nombre, string apellido, string email, string? telefono)
+    public async Task<IActionResult> CreatePaciente(string nombre, string apellido, string email, string? telefono, string tipoDocumento, string numeroDocumento, DateTime? fechaNacimiento, string? genero, string? direccion, string? eps, string? observacionesPaciente)
+    {
+        var existingEmail = await _context.Users.AnyAsync(u => u.Email == email);
+        if (existingEmail)
+        {
+            TempData["ErrorMessage"] = "El correo ya está registrado.";
+            return RedirectToAction("Index", new { section = "pacientes" });
+        }
+
+        var existingDoc = await _context.Users.AnyAsync(u => u.NumeroDocumento == numeroDocumento);
+        if (existingDoc)
+        {
+            TempData["ErrorMessage"] = "El número de documento ya está registrado.";
+            return RedirectToAction("Index", new { section = "pacientes" });
+        }
+
+        var tempPassword = "user123";
+        var passwordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
+
+        var paciente = new User
+        {
+            Nombre = nombre,
+            Apellido = apellido,
+            Email = email,
+            Telefono = telefono,
+            TipoDocumento = tipoDocumento,
+            NumeroDocumento = numeroDocumento,
+            PasswordHash = passwordHash,
+            Role = "usuario",
+            FechaRegistro = DateTime.UtcNow,
+            FechaNacimiento = fechaNacimiento.HasValue ? DateTime.SpecifyKind(fechaNacimiento.Value, DateTimeKind.Utc) : null,
+            Genero = genero,
+            Direccion = direccion,
+            EPS = eps,
+            EstadoPaciente = "Activo",
+            ObservacionesPaciente = observacionesPaciente
+        };
+
+        _context.Users.Add(paciente);
+        await _context.SaveChangesAsync();
+        TempData["SuccessMessage"] = "Paciente creado exitosamente.";
+        return RedirectToAction("Index", new { section = "pacientes" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditPaciente(int id, string nombre, string apellido, string email, string? telefono, string tipoDocumento, string numeroDocumento, DateTime? fechaNacimiento, string? genero, string? direccion, string? eps, string? estadoPaciente, string? observacionesPaciente)
     {
         var paciente = await _context.Users.FindAsync(id);
         if (paciente != null && paciente.Role == "usuario")
@@ -289,17 +360,44 @@ public class OptometraController : Controller
             paciente.Apellido = apellido;
             paciente.Email = email;
             paciente.Telefono = telefono;
+            paciente.TipoDocumento = tipoDocumento;
+            paciente.NumeroDocumento = numeroDocumento;
+            paciente.FechaNacimiento = fechaNacimiento.HasValue ? DateTime.SpecifyKind(fechaNacimiento.Value, DateTimeKind.Utc) : null;
+            paciente.Genero = genero;
+            paciente.Direccion = direccion;
+            paciente.EPS = eps;
+            paciente.EstadoPaciente = estadoPaciente ?? "Activo";
+            paciente.ObservacionesPaciente = observacionesPaciente;
+
             await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Datos básicos del paciente actualizados.";
+            TempData["SuccessMessage"] = "Datos del paciente actualizados exitosamente.";
         }
         else
         {
-            TempData["ErrorMessage"] = "Error al editar el paciente o no cuenta con los permisos.";
+            TempData["ErrorMessage"] = "No se pudo actualizar el paciente.";
         }
         return RedirectToAction("Index", new { section = "pacientes" });
     }
 
-    // ── Citas ──
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeletePaciente(int id)
+    {
+        var paciente = await _context.Users.FindAsync(id);
+        if (paciente != null && paciente.Role == "usuario")
+        {
+            paciente.EstadoPaciente = "Inactivo";
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Paciente desactivado (Inactivo) exitosamente.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "No se pudo desactivar el paciente.";
+        }
+        return RedirectToAction("Index", new { section = "pacientes" });
+    }
+
+    // ── Citas (Tarea 2) ──
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateAppointment(int UserId, string Servicio, DateTime FechaHora, string? Notas)
@@ -315,7 +413,30 @@ public class OptometraController : Controller
         };
         _context.Appointments.Add(appointment);
         await _context.SaveChangesAsync();
-        TempData["SuccessMessage"] = "Cita creada exitosamente.";
+        TempData["SuccessMessage"] = "Cita programada exitosamente.";
+        return RedirectToAction("Index", new { section = "citas" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditAppointment(int id, int UserId, string Servicio, DateTime FechaHora, string? Notas, string Estado)
+    {
+        var appointment = await _context.Appointments.FindAsync(id);
+        if (appointment != null)
+        {
+            appointment.UserId = UserId;
+            appointment.Servicio = Servicio;
+            appointment.FechaHora = DateTime.SpecifyKind(FechaHora, DateTimeKind.Utc);
+            appointment.Notas = Notas;
+            appointment.Estado = Estado;
+
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Cita actualizada exitosamente.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "No se encontró la cita a editar.";
+        }
         return RedirectToAction("Index", new { section = "citas" });
     }
 
@@ -331,5 +452,39 @@ public class OptometraController : Controller
             TempData["SuccessMessage"] = "Cita eliminada exitosamente.";
         }
         return RedirectToAction("Index", new { section = "citas" });
+    }
+
+    // ── Perfil Profesional (Tarea 6) ──
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateProfile(string nombre, string apellido, string email, string? telefono, string? registroMedico, string? universidad, string? especialidadDetalle, int? aniosExperiencia)
+    {
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var user = await _context.Users.FindAsync(userId);
+        if (user != null)
+        {
+            user.Nombre = nombre;
+            user.Apellido = apellido;
+            user.Email = email;
+            user.Telefono = telefono;
+            user.RegistroMedico = registroMedico;
+            user.Universidad = universidad;
+            user.EspecialidadDetalle = especialidadDetalle;
+            user.AniosExperiencia = aniosExperiencia;
+
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Perfil actualizado exitosamente.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "No se pudo actualizar el perfil.";
+        }
+        return RedirectToAction("Index", new { section = "perfil" });
+    }
+
+    // ── Historial Detalle (Tarea 3) ──
+    public IActionResult HistorialDetalle(int id)
+    {
+        return RedirectToAction("Index", new { section = "historial", detalleId = id });
     }
 }
