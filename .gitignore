@@ -3,4 +3,3 @@ obj/
 *.user
 .vs/
 .vscode/
-appsettings.Development.json
