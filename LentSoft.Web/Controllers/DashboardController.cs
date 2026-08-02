@@ -42,7 +42,18 @@ public class DashboardController : Controller
     /// Admin dashboard — reconstruido con sidebar y 6 secciones
     /// </summary>
     [Authorize(Roles = "admin")]
-    public async Task<IActionResult> Admin(string section = "general", string subtab = "productos", string? searchTerm = null, int page = 1, int pageSize = 5)
+    public async Task<IActionResult> Admin(
+        string section = "general",
+        string subtab = "productos",
+        string? searchTerm = null,
+        int page = 1,
+        int pageSize = 5,
+        string? clientesSearch = null,
+        int clientesPage = 1,
+        int clientesPageSize = 5,
+        string? trabajadoresSearch = null,
+        int trabajadoresPage = 1,
+        int trabajadoresPageSize = 5)
     {
         var now = DateTime.UtcNow;
         var inicioMes = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -77,8 +88,73 @@ public class DashboardController : Controller
             .ToListAsync();
 
         var productos = await _context.Products.OrderBy(p => p.Nombre).ToListAsync();
-        var clientes = await _context.Users.Where(u => u.Role == "usuario").OrderBy(u => u.Nombre).ToListAsync();
-        var trabajadores = await _context.Employees.OrderBy(e => e.Nombre).ToListAsync();
+
+        // ── Clientes (Paginados y Filtrados) ──
+        var clientesQuery = _context.Users.Where(u => u.Role == "usuario");
+        if (!string.IsNullOrWhiteSpace(clientesSearch))
+        {
+            var term = clientesSearch.Trim().ToLower();
+            clientesQuery = clientesQuery.Where(u => u.Nombre.ToLower().Contains(term) || u.Apellido.ToLower().Contains(term) || u.Email.ToLower().Contains(term));
+        }
+        else if (section == "usuarios" && subtab == "clientes" && !string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim().ToLower();
+            clientesQuery = clientesQuery.Where(u => u.Nombre.ToLower().Contains(term) || u.Apellido.ToLower().Contains(term) || u.Email.ToLower().Contains(term));
+            clientesSearch = searchTerm;
+        }
+
+        var clientesTotalCount = await clientesQuery.CountAsync();
+        var clientesList = await clientesQuery
+            .OrderBy(u => u.Nombre)
+            .Skip((clientesPage - 1) * clientesPageSize)
+            .Take(clientesPageSize)
+            .ToListAsync();
+
+        // ── Trabajadores (Paginados y Filtrados) ──
+        var trabajadoresQuery = _context.Employees.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(trabajadoresSearch))
+        {
+            var term = trabajadoresSearch.Trim().ToLower();
+            trabajadoresQuery = trabajadoresQuery.Where(e => e.Nombre.ToLower().Contains(term) || e.Email.ToLower().Contains(term) || e.Puesto.ToLower().Contains(term));
+        }
+        else if (section == "usuarios" && subtab == "trabajadores" && !string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim().ToLower();
+            trabajadoresQuery = trabajadoresQuery.Where(e => e.Nombre.ToLower().Contains(term) || e.Email.ToLower().Contains(term) || e.Puesto.ToLower().Contains(term));
+            trabajadoresSearch = searchTerm;
+        }
+
+        var trabajadoresTotalCount = await trabajadoresQuery.CountAsync();
+        var rawTrabajadores = await trabajadoresQuery
+            .OrderBy(e => e.Nombre)
+            .Skip((trabajadoresPage - 1) * trabajadoresPageSize)
+            .Take(trabajadoresPageSize)
+            .ToListAsync();
+
+        var trabajadoresList = new List<TrabajadorItemViewModel>();
+        foreach (var emp in rawTrabajadores)
+        {
+            int pedidosCount = 0;
+            var userAcc = await _context.Users.FirstOrDefaultAsync(u => u.Email == emp.Email);
+            if (userAcc != null)
+            {
+                pedidosCount = await _context.Orders.CountAsync(o => o.UserId == userAcc.Id);
+            }
+
+            trabajadoresList.Add(new TrabajadorItemViewModel
+            {
+                Id = emp.Id,
+                Nombre = emp.Nombre,
+                Email = emp.Email,
+                Telefono = emp.Telefono,
+                Puesto = emp.Puesto,
+                Departamento = emp.Departamento,
+                Salario = emp.Salario,
+                Rol = string.IsNullOrWhiteSpace(emp.Rol) ? "Trabajador" : emp.Rol,
+                Activo = emp.Activo,
+                PedidosCount = pedidosCount
+            });
+        }
 
         var ventas = await _context.Orders
             .Include(o => o.User)
@@ -111,8 +187,22 @@ public class DashboardController : Controller
             Productos = productos,
             Ventas = ventas,
             Citas = citas,
-            Clientes = clientes,
-            Trabajadores = trabajadores,
+
+            // Clientes
+            Clientes = clientesList,
+            ClientesSearchTerm = clientesSearch,
+            ClientesPage = clientesPage,
+            ClientesPageSize = clientesPageSize,
+            ClientesTotalCount = clientesTotalCount,
+
+            // Trabajadores
+            Trabajadores = trabajadoresList,
+            TrabajadoresSearchTerm = trabajadoresSearch,
+            TrabajadoresPage = trabajadoresPage,
+            TrabajadoresPageSize = trabajadoresPageSize,
+            TrabajadoresTotalCount = trabajadoresTotalCount,
+
+            // Facturas
             Facturas = facturasList,
             FacturasSearchTerm = searchTerm,
             FacturasPage = page,

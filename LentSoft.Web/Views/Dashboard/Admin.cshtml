@@ -409,89 +409,369 @@
         <!-- ==================== SECCIÓN USUARIOS ==================== -->
         @if (Model.ActiveSection == "usuarios")
         {
-            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem;">Gestión de Usuarios</h1>
+            <div style="margin-bottom: 1.5rem;">
+                <h1 style="color: var(--purple-900); font-size: 1.75rem; margin: 0;">Gestión de Usuarios</h1>
+                <p style="color: var(--gray-500); font-size: 0.9rem; margin-top: 0.25rem;">Administra los clientes y empleados del sistema</p>
+            </div>
 
             <!-- Sub-tabs -->
             <div style="display: flex; border-bottom: 2px solid var(--purple-200); margin-bottom: 1.5rem;">
-                <a href="?section=usuarios&subtab=clientes" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "clientes" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "clientes" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;">
-                    Clientes
+                <a href="?section=usuarios&subtab=clientes" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "clientes" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "clientes" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;">
+                    👥 Clientes
                 </a>
-                <a href="?section=usuarios&subtab=trabajadores" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "trabajadores" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "trabajadores" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;">
-                    Trabajadores (Empleados)
+                <a href="?section=usuarios&subtab=trabajadores" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "trabajadores" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "trabajadores" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;">
+                    👔 Trabajadores (Empleados)
                 </a>
             </div>
 
             @if (Model.ActiveSubTab == "clientes")
             {
-                <div class="card" style="padding: 1.5rem; background: white;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <input type="text" id="searchClientes" placeholder="Buscar cliente..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchClientes', 'tableClientes')" />
+                <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.75rem; box-shadow: var(--shadow-md);">
+                    <!-- Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                        <h2 style="color: var(--purple-900); font-size: 1.35rem; font-weight: 700; margin: 0;">Clientes Registrados</h2>
+                        <button type="button" onclick="document.getElementById('modal-crear-cliente').style.display='flex'" 
+                                style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease;"
+                                onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
+                            <span>+ Nuevo Usuario</span>
+                        </button>
                     </div>
-                    <div style="overflow-x: auto;">
-                        <table id="tableClientes" style="width: 100%; border-collapse: collapse; text-align: left;">
-                            <thead>
-                                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                    <th style="padding: 0.75rem;">ID</th>
-                                    <th style="padding: 0.75rem;">Nombre</th>
-                                    <th style="padding: 0.75rem;">Email</th>
-                                    <th style="padding: 0.75rem;">Teléfono</th>
-                                    <th style="padding: 0.75rem;">Fecha Registro</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var cli in Model.Clientes)
+
+                    <!-- Barra Superior DataTable (Fondo morado) -->
+                    <form id="clientesFilterForm" method="get" action="/Dashboard/Admin" style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <input type="hidden" name="section" value="usuarios" />
+                        <input type="hidden" name="subtab" value="clientes" />
+                        <input type="hidden" name="clientesPage" value="1" />
+
+                        <!-- Selector Registros -->
+                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                            <span>Mostrar</span>
+                            <select name="clientesPageSize" style="background-color: white; color: var(--gray-900); border: 1px solid var(--purple-300); border-radius: 0.375rem; padding: 0.35rem 0.6rem; font-size: 0.875rem; cursor: pointer; font-weight: 600;" onchange="document.getElementById('clientesFilterForm').submit();">
+                                @foreach (var size in new[] { 5, 10, 25, 50 })
                                 {
-                                    <tr style="border-bottom: 1px solid var(--purple-100);">
-                                        <td style="padding: 0.75rem; color: var(--gray-500);">#@cli.Id</td>
-                                        <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@cli.Nombre</td>
-                                        <td style="padding: 0.75rem;">@cli.Email</td>
-                                        <td style="padding: 0.75rem;">@(cli.Telefono ?? "N/A")</td>
-                                        <td style="padding: 0.75rem; color: var(--gray-600);">@cli.FechaRegistro.ToLocalTime().ToString("dd/MM/yyyy")</td>
-                                    </tr>
+                                    if (Model.ClientesPageSize == size)
+                                    {
+                                        <option value="@size" selected>@size</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@size">@size</option>
+                                    }
                                 }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            }
-            else if (Model.ActiveSubTab == "trabajadores")
-            {
-                <div class="card" style="padding: 1.5rem; background: white;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <input type="text" id="searchTrabajadores" placeholder="Buscar empleado..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchTrabajadores', 'tableTrabajadores')" />
-                    </div>
-                    <div style="overflow-x: auto;">
-                        <table id="tableTrabajadores" style="width: 100%; border-collapse: collapse; text-align: left;">
+                            </select>
+                            <span>registros</span>
+                        </div>
+
+                        <!-- Búsqueda -->
+                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
+                            <label for="searchClientesInput" style="font-weight: 500;">Buscar:</label>
+                            <input type="text" id="searchClientesInput" name="clientesSearch" value="@Model.ClientesSearchTerm" 
+                                   placeholder="Buscar por nombre o email" 
+                                   style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.875rem; width: 240px; color: var(--gray-900);" 
+                                   onkeyup="filterClientSideClientes(this.value)" />
+                            <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Filtrar</button>
+                        </div>
+                    </form>
+
+                    <!-- Tabla de Clientes -->
+                    <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
+                        <table id="tableClientes" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
                             <thead>
-                                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                    <th style="padding: 0.75rem;">ID</th>
-                                    <th style="padding: 0.75rem;">Nombre</th>
-                                    <th style="padding: 0.75rem;">Puesto</th>
-                                    <th style="padding: 0.75rem;">Departamento</th>
-                                    <th style="padding: 0.75rem;">Email</th>
-                                    <th style="padding: 0.75rem;">Salario</th>
-                                    <th style="padding: 0.75rem;">Estado</th>
+                                <tr style="background-color: var(--purple-50); border-bottom: 2px solid var(--purple-200); color: var(--purple-900);">
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">ID</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Nombre</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Email</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Teléfono</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Fecha Registro</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var emp in Model.Trabajadores)
+                                @if (Model.Clientes.Any())
                                 {
-                                    <tr style="border-bottom: 1px solid var(--purple-100);">
-                                        <td style="padding: 0.75rem; color: var(--gray-500);">#EMP-@emp.Id</td>
-                                        <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@emp.Nombre</td>
-                                        <td style="padding: 0.75rem;">@emp.Puesto</td>
-                                        <td style="padding: 0.75rem;">@emp.Departamento</td>
-                                        <td style="padding: 0.75rem;">@emp.Email</td>
-                                        <td style="padding: 0.75rem; font-weight: 600;">@emp.Salario.ToString("C")</td>
-                                        <td style="padding: 0.75rem;">
-                                            <span style="background-color: @(emp.Activo ? "var(--success)" : "var(--error)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
-                                                @(emp.Activo ? "Activo" : "Inactivo")
-                                            </span>
+                                    @foreach (var cli in Model.Clientes)
+                                    {
+                                        <tr style="border-bottom: 1px solid var(--purple-100); transition: background-color 0.15s ease;" onmouseover="this.style.backgroundColor='var(--purple-50)'" onmouseout="this.style.backgroundColor='transparent'">
+                                            <td style="padding: 0.85rem 1rem; color: var(--gray-500); font-weight: 600;">#@cli.Id</td>
+                                            <td style="padding: 0.85rem 1rem; font-weight: 600; color: var(--purple-900);">@cli.NombreCompleto</td>
+                                            <td style="padding: 0.85rem 1rem; color: var(--gray-800);">@cli.Email</td>
+                                            <td style="padding: 0.85rem 1rem; color: var(--gray-700);">@(cli.Telefono ?? "N/A")</td>
+                                            <td style="padding: 0.85rem 1rem; color: var(--gray-600);">@cli.FechaRegistro.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                            <td style="padding: 0.85rem 1rem; text-align: center;">
+                                                <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
+                                                    <button type="button" onclick="openEditClientModal(@cli.Id, '@cli.Nombre', '@cli.Apellido', '@cli.Email', '@(cli.Telefono ?? "")')"
+                                                            style="background: transparent; color: var(--purple-700); border: 1px solid var(--purple-600); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                                            onmouseover="this.style.backgroundColor='var(--purple-600)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--purple-700)';">
+                                                        ✏️ Editar
+                                                    </button>
+
+                                                    <button type="button" onclick="confirmDeleteUser(@cli.Id, '@cli.NombreCompleto')"
+                                                            style="background: transparent; color: var(--error); border: 1px solid var(--error); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                                            onmouseover="this.style.backgroundColor='var(--error)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--error)';">
+                                                        🗑️ Eliminar
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" style="padding: 2rem; text-align: center; color: var(--gray-500); font-style: italic;">
+                                            No se encontraron clientes registrados o que coincidan con la búsqueda.
                                         </td>
                                     </tr>
                                 }
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Footer DataTable: Paginación -->
+                    @{
+                        var inicioCliReg = Model.ClientesTotalCount == 0 ? 0 : ((Model.ClientesPage - 1) * Model.ClientesPageSize) + 1;
+                        var finCliReg = Math.Min(Model.ClientesPage * Model.ClientesPageSize, Model.ClientesTotalCount);
+                    }
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; flex-wrap: wrap; gap: 1rem; font-size: 0.875rem;">
+                        <div style="color: var(--gray-600); font-weight: 500;">
+                            Mostrando registros del <strong>@inicioCliReg</strong> al <strong>@finCliReg</strong> de un total de <strong>@Model.ClientesTotalCount</strong> registros
+                        </div>
+
+                        @if (Model.ClientesTotalPages > 1)
+                        {
+                            <div style="display: flex; gap: 0.35rem; align-items: center;">
+                                @if (Model.ClientesPage > 1)
+                                {
+                                    <a href="/Dashboard/Admin?section=usuarios&subtab=clientes&clientesPage=@(Model.ClientesPage - 1)&clientesPageSize=@Model.ClientesPageSize&clientesSearch=@Model.ClientesSearchTerm"
+                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                        &laquo; Anterior
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                        &laquo; Anterior
+                                    </span>
+                                }
+
+                                @for (int p = 1; p <= Model.ClientesTotalPages; p++)
+                                {
+                                    if (p == Model.ClientesPage)
+                                    {
+                                        <span style="padding: 0.35rem 0.75rem; border-radius: 0.375rem; background-color: var(--purple-600); color: white; font-weight: 700; font-size: 0.85rem;">
+                                            @p
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <a href="/Dashboard/Admin?section=usuarios&subtab=clientes&clientesPage=@p&clientesPageSize=@Model.ClientesPageSize&clientesSearch=@Model.ClientesSearchTerm"
+                                           style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                            @p
+                                        </a>
+                                    }
+                                }
+
+                                @if (Model.ClientesPage < Model.ClientesTotalPages)
+                                {
+                                    <a href="/Dashboard/Admin?section=usuarios&subtab=clientes&clientesPage=@(Model.ClientesPage + 1)&clientesPageSize=@Model.ClientesPageSize&clientesSearch=@Model.ClientesSearchTerm"
+                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                        Siguiente &raquo;
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                        Siguiente &raquo;
+                                    </span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else if (Model.ActiveSubTab == "trabajadores")
+            {
+                <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.75rem; box-shadow: var(--shadow-md);">
+                    <!-- Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                        <h2 style="color: var(--purple-900); font-size: 1.35rem; font-weight: 700; margin: 0;">Trabajadores (Empleados)</h2>
+                        <button type="button" onclick="document.getElementById('modal-crear-trabajador').style.display='flex'" 
+                                style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease;"
+                                onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
+                            <span>+ Nuevo Trabajador</span>
+                        </button>
+                    </div>
+
+                    <!-- Barra Superior DataTable (Fondo morado) -->
+                    <form id="trabajadoresFilterForm" method="get" action="/Dashboard/Admin" style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <input type="hidden" name="section" value="usuarios" />
+                        <input type="hidden" name="subtab" value="trabajadores" />
+                        <input type="hidden" name="trabajadoresPage" value="1" />
+
+                        <!-- Selector Registros -->
+                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                            <span>Mostrar</span>
+                            <select name="trabajadoresPageSize" style="background-color: white; color: var(--gray-900); border: 1px solid var(--purple-300); border-radius: 0.375rem; padding: 0.35rem 0.6rem; font-size: 0.875rem; cursor: pointer; font-weight: 600;" onchange="document.getElementById('trabajadoresFilterForm').submit();">
+                                @foreach (var size in new[] { 5, 10, 25, 50 })
+                                {
+                                    if (Model.TrabajadoresPageSize == size)
+                                    {
+                                        <option value="@size" selected>@size</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@size">@size</option>
+                                    }
+                                }
+                            </select>
+                            <span>registros</span>
+                        </div>
+
+                        <!-- Búsqueda -->
+                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
+                            <label for="searchTrabajadoresInput" style="font-weight: 500;">Buscar:</label>
+                            <input type="text" id="searchTrabajadoresInput" name="trabajadoresSearch" value="@Model.TrabajadoresSearchTerm" 
+                                   placeholder="Buscar por nombre o email" 
+                                   style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.875rem; width: 240px; color: var(--gray-900);" 
+                                   onkeyup="filterClientSideTrabajadores(this.value)" />
+                            <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Filtrar</button>
+                        </div>
+                    </form>
+
+                    <!-- Tabla de Trabajadores -->
+                    <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
+                        <table id="tableTrabajadores" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                            <thead>
+                                <tr style="background-color: var(--purple-50); border-bottom: 2px solid var(--purple-200); color: var(--purple-900);">
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Nombre</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Email</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Teléfono</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Rol</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;">Pedidos</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Trabajadores.Any())
+                                {
+                                    @foreach (var emp in Model.Trabajadores)
+                                    {
+                                        var badgeBg = emp.Rol.ToLower() switch
+                                        {
+                                            "administrador" or "admin" => "var(--purple-600)",
+                                            "vendedor" or "ventas" => "#2563eb",
+                                            "trabajador" => "var(--success)",
+                                            _ => "var(--gray-500)"
+                                        };
+                                        var rolDisplay = emp.Rol.ToLower() switch
+                                        {
+                                            "administrador" or "admin" => "Administrador",
+                                            "vendedor" or "ventas" => "Vendedor",
+                                            "trabajador" => "Trabajador",
+                                            _ => "Solo Lectura"
+                                        };
+
+                                        <tr style="border-bottom: 1px solid var(--purple-100); transition: background-color 0.15s ease;" onmouseover="this.style.backgroundColor='var(--purple-50)'" onmouseout="this.style.backgroundColor='transparent'">
+                                            <td style="padding: 0.85rem 1rem; font-weight: 600; color: var(--purple-900);">@emp.Nombre</td>
+                                            <td style="padding: 0.85rem 1rem; color: var(--gray-800);">@emp.Email</td>
+                                            <td style="padding: 0.85rem 1rem; color: var(--gray-700);">@(emp.Telefono ?? "N/A")</td>
+                                            <td style="padding: 0.85rem 1rem;">
+                                                <span style="background-color: @badgeBg; color: white; padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; display: inline-block;">
+                                                    @rolDisplay
+                                                </span>
+                                            </td>
+                                            <td style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--purple-900);">
+                                                @emp.PedidosCount
+                                            </td>
+                                            <td style="padding: 0.85rem 1rem; text-align: center;">
+                                                <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
+                                                    <button type="button" onclick="openEditEmployeeModal(@emp.Id, '@emp.Nombre', '@emp.Email', '@(emp.Telefono ?? "")', '@emp.Puesto', '@emp.Departamento', @emp.Salario, '@emp.Rol', @emp.Activo.ToString().ToLower())"
+                                                            style="background: transparent; color: var(--purple-700); border: 1px solid var(--purple-600); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                                            onmouseover="this.style.backgroundColor='var(--purple-600)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--purple-700)';">
+                                                        ✏️ Editar
+                                                    </button>
+
+                                                    <button type="button" onclick="confirmDeleteEmployee(@emp.Id, '@emp.Nombre')"
+                                                            style="background: transparent; color: var(--error); border: 1px solid var(--error); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                                            onmouseover="this.style.backgroundColor='var(--error)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--error)';">
+                                                        🗑️ Eliminar
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" style="padding: 2rem; text-align: center; color: var(--gray-500); font-style: italic;">
+                                            No se encontraron trabajadores registrados o que coincidan con la búsqueda.
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Footer DataTable: Paginación -->
+                    @{
+                        var inicioEmpReg = Model.TrabajadoresTotalCount == 0 ? 0 : ((Model.TrabajadoresPage - 1) * Model.TrabajadoresPageSize) + 1;
+                        var finEmpReg = Math.Min(Model.TrabajadoresPage * Model.TrabajadoresPageSize, Model.TrabajadoresTotalCount);
+                    }
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; flex-wrap: wrap; gap: 1rem; font-size: 0.875rem;">
+                        <div style="color: var(--gray-600); font-weight: 500;">
+                            Mostrando registros del <strong>@inicioEmpReg</strong> al <strong>@finEmpReg</strong> de un total de <strong>@Model.TrabajadoresTotalCount</strong> registros
+                        </div>
+
+                        @if (Model.TrabajadoresTotalPages > 1)
+                        {
+                            <div style="display: flex; gap: 0.35rem; align-items: center;">
+                                @if (Model.TrabajadoresPage > 1)
+                                {
+                                    <a href="/Dashboard/Admin?section=usuarios&subtab=trabajadores&trabajadoresPage=@(Model.TrabajadoresPage - 1)&trabajadoresPageSize=@Model.TrabajadoresPageSize&trabajadoresSearch=@Model.TrabajadoresSearchTerm"
+                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                        &laquo; Anterior
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                        &laquo; Anterior
+                                    </span>
+                                }
+
+                                @for (int p = 1; p <= Model.TrabajadoresTotalPages; p++)
+                                {
+                                    if (p == Model.TrabajadoresPage)
+                                    {
+                                        <span style="padding: 0.35rem 0.75rem; border-radius: 0.375rem; background-color: var(--purple-600); color: white; font-weight: 700; font-size: 0.85rem;">
+                                            @p
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <a href="/Dashboard/Admin?section=usuarios&subtab=trabajadores&trabajadoresPage=@p&trabajadoresPageSize=@Model.TrabajadoresPageSize&trabajadoresSearch=@Model.TrabajadoresSearchTerm"
+                                           style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                            @p
+                                        </a>
+                                    }
+                                }
+
+                                @if (Model.TrabajadoresPage < Model.TrabajadoresTotalPages)
+                                {
+                                    <a href="/Dashboard/Admin?section=usuarios&subtab=trabajadores&trabajadoresPage=@(Model.TrabajadoresPage + 1)&trabajadoresPageSize=@Model.TrabajadoresPageSize&trabajadoresSearch=@Model.TrabajadoresSearchTerm"
+                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                        Siguiente &raquo;
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                        Siguiente &raquo;
+                                    </span>
+                                }
+                            </div>
+                        }
                     </div>
                 </div>
             }
@@ -1274,4 +1554,360 @@
             trs[i].style.display = show ? '' : 'none';
         }
     }
+
+    function openEditClientModal(id, nombre, apellido, email, telefono) {
+        document.getElementById('editClientId').value = id;
+        document.getElementById('editClientNombre').value = nombre;
+        document.getElementById('editClientApellido').value = apellido || '';
+        document.getElementById('editClientEmail').value = email;
+        document.getElementById('editClientTelefono').value = telefono || '';
+        document.getElementById('modal-editar-cliente').style.display = 'flex';
+    }
+
+    function confirmDeleteUser(id, nombre) {
+        if (typeof alertify !== 'undefined') {
+            alertify.confirm(
+                'Eliminar Usuario',
+                '¿Está seguro de que desea eliminar al cliente/usuario <strong>' + nombre + '</strong>?',
+                function () { executeUserDelete(id); },
+                function () { alertify.message('Eliminación cancelada'); }
+            ).set('labels', { ok: 'Sí, eliminar', cancel: 'Cancelar' });
+        } else if (confirm('¿Está seguro de eliminar al usuario ' + nombre + '?')) {
+            executeUserDelete(id);
+        }
+    }
+
+    function executeUserDelete(id) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/User/Delete/' + id;
+        
+        const tokenElem = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (tokenElem) {
+            const hiddenToken = document.createElement('input');
+            hiddenToken.type = 'hidden';
+            hiddenToken.name = '__RequestVerificationToken';
+            hiddenToken.value = tokenElem.value;
+            form.appendChild(hiddenToken);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    function openEditEmployeeModal(id, nombre, email, telefono, puesto, departamento, salario, rol, activo) {
+        document.getElementById('editEmployeeId').value = id;
+        document.getElementById('editEmployeeNombre').value = nombre;
+        document.getElementById('editEmployeeEmail').value = email;
+        document.getElementById('editEmployeeTelefono').value = telefono || '';
+        document.getElementById('editEmployeePuesto').value = puesto || '';
+        document.getElementById('editEmployeeDepartamento').value = departamento || '';
+        document.getElementById('editEmployeeSalario').value = salario;
+        document.getElementById('editEmployeeRol').value = rol || 'Trabajador';
+        document.getElementById('editEmployeeActivo').value = activo ? 'true' : 'false';
+        document.getElementById('modal-editar-trabajador').style.display = 'flex';
+    }
+
+    function confirmDeleteEmployee(id, nombre) {
+        if (typeof alertify !== 'undefined') {
+            alertify.confirm(
+                'Eliminar Trabajador',
+                '¿Está seguro de que desea eliminar al trabajador <strong>' + nombre + '</strong>?',
+                function () { executeEmployeeDelete(id); },
+                function () { alertify.message('Eliminación cancelada'); }
+            ).set('labels', { ok: 'Sí, eliminar', cancel: 'Cancelar' });
+        } else if (confirm('¿Está seguro de eliminar al trabajador ' + nombre + '?')) {
+            executeEmployeeDelete(id);
+        }
+    }
+
+    function executeEmployeeDelete(id) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/User/DeleteEmployee/' + id;
+        
+        const tokenElem = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (tokenElem) {
+            const hiddenToken = document.createElement('input');
+            hiddenToken.type = 'hidden';
+            hiddenToken.name = '__RequestVerificationToken';
+            hiddenToken.value = tokenElem.value;
+            form.appendChild(hiddenToken);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    function filterClientSideClientes(filterVal) {
+        const filter = filterVal.toLowerCase();
+        const table = document.getElementById('tableClientes');
+        if (!table) return;
+        const trs = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+        for (let i = 0; i < trs.length; i++) {
+            let show = false;
+            const tds = trs[i].getElementsByTagName('td');
+            if (tds.length <= 1) continue;
+            for (let j = 0; j < tds.length - 1; j++) {
+                if (tds[j] && tds[j].textContent.toLowerCase().includes(filter)) {
+                    show = true;
+                    break;
+                }
+            }
+            trs[i].style.display = show ? '' : 'none';
+        }
+    }
+
+    function filterClientSideTrabajadores(filterVal) {
+        const filter = filterVal.toLowerCase();
+        const table = document.getElementById('tableTrabajadores');
+        if (!table) return;
+        const trs = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+        for (let i = 0; i < trs.length; i++) {
+            let show = false;
+            const tds = trs[i].getElementsByTagName('td');
+            if (tds.length <= 1) continue;
+            for (let j = 0; j < tds.length - 1; j++) {
+                if (tds[j] && tds[j].textContent.toLowerCase().includes(filter)) {
+                    show = true;
+                    break;
+                }
+            }
+            trs[i].style.display = show ? '' : 'none';
+        }
+    }
 </script>
+
+<!-- Modal para Crear Nuevo Cliente -->
+<div id="modal-crear-cliente" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">+ Nuevo Cliente</h2>
+            <button onclick="document.getElementById('modal-crear-cliente').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form action="/User/CreateClient" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre *</label>
+                    <input name="Nombre" type="text" class="form-input" required placeholder="Ej: Juan" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Apellido</label>
+                    <input name="Apellido" type="text" class="form-input" placeholder="Ej: Pérez" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Email *</label>
+                <input name="Email" type="email" class="form-input" required placeholder="cliente@example.com" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono</label>
+                <input name="Telefono" type="text" class="form-input" placeholder="3001234567" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Tipo Doc.</label>
+                    <select name="TipoDocumento" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                        <option value="CC">CC</option>
+                        <option value="CE">CE</option>
+                        <option value="TI">TI</option>
+                        <option value="Pasaporte">Pasaporte</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Núm. Documento</label>
+                    <input name="NumeroDocumento" type="text" class="form-input" placeholder="1023456789" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Contraseña (Opcional, defecto: user123)</label>
+                <input name="Password" type="password" class="form-input" placeholder="••••••••" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-crear-cliente').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Guardar Cliente</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Editar Cliente -->
+<div id="modal-editar-cliente" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✏️ Editar Cliente</h2>
+            <button onclick="document.getElementById('modal-editar-cliente').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form action="/User/EditClient" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editClientId" name="id" />
+
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre *</label>
+                    <input id="editClientNombre" name="Nombre" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Apellido</label>
+                    <input id="editClientApellido" name="Apellido" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Email *</label>
+                <input id="editClientEmail" name="Email" type="email" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono</label>
+                <input id="editClientTelefono" name="Telefono" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-editar-cliente').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Actualizar Cliente</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Crear Nuevo Trabajador -->
+<div id="modal-crear-trabajador" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">+ Nuevo Trabajador</h2>
+            <button onclick="document.getElementById('modal-crear-trabajador').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form action="/User/CreateEmployee" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre Completo *</label>
+                <input name="Nombre" type="text" class="form-input" required placeholder="Ej: Carlos Ruiz" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Email *</label>
+                <input name="Email" type="email" class="form-input" required placeholder="empleado@lentsoft.com" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono</label>
+                <input name="Telefono" type="text" class="form-input" placeholder="3009876543" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Puesto</label>
+                    <input name="Puesto" type="text" class="form-input" placeholder="Ej: Optómetra / Vendedor" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Departamento</label>
+                    <input name="Departamento" type="text" class="form-input" placeholder="Ej: Salud / Ventas" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Salario</label>
+                    <input name="Salario" type="number" step="0.01" value="1500000" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Rol *</label>
+                    <select name="Rol" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                        <option value="Administrador">Administrador</option>
+                        <option value="Vendedor">Vendedor</option>
+                        <option value="Trabajador" selected>Trabajador</option>
+                        <option value="Solo Lectura">Solo Lectura</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-crear-trabajador').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Guardar Trabajador</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Editar Trabajador -->
+<div id="modal-editar-trabajador" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✏️ Editar Trabajador</h2>
+            <button onclick="document.getElementById('modal-editar-trabajador').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form action="/User/EditEmployee" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editEmployeeId" name="id" />
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre Completo *</label>
+                <input id="editEmployeeNombre" name="Nombre" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Email *</label>
+                <input id="editEmployeeEmail" name="Email" type="email" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono</label>
+                <input id="editEmployeeTelefono" name="Telefono" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Puesto</label>
+                    <input id="editEmployeePuesto" name="Puesto" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Departamento</label>
+                    <input id="editEmployeeDepartamento" name="Departamento" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Salario</label>
+                    <input id="editEmployeeSalario" name="Salario" type="number" step="0.01" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Rol *</label>
+                    <select id="editEmployeeRol" name="Rol" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                        <option value="Administrador">Administrador</option>
+                        <option value="Vendedor">Vendedor</option>
+                        <option value="Trabajador">Trabajador</option>
+                        <option value="Solo Lectura">Solo Lectura</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Estado</label>
+                <select id="editEmployeeActivo" name="Activo" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                </select>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-editar-trabajador').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Actualizar Trabajador</button>
+            </div>
+        </form>
+    </div>
+</div>
+

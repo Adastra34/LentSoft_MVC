@@ -30,7 +30,18 @@ public class DashboardAdminViewModel
 
     // ── Usuarios ──
     public List<User> Clientes { get; set; } = new();
-    public List<Employee> Trabajadores { get; set; } = new();
+    public string? ClientesSearchTerm { get; set; }
+    public int ClientesPage { get; set; } = 1;
+    public int ClientesPageSize { get; set; } = 5;
+    public int ClientesTotalCount { get; set; }
+    public int ClientesTotalPages => (int)Math.Ceiling((double)ClientesTotalCount / (ClientesPageSize > 0 ? ClientesPageSize : 5));
+
+    public List<TrabajadorItemViewModel> Trabajadores { get; set; } = new();
+    public string? TrabajadoresSearchTerm { get; set; }
+    public int TrabajadoresPage { get; set; } = 1;
+    public int TrabajadoresPageSize { get; set; } = 5;
+    public int TrabajadoresTotalCount { get; set; }
+    public int TrabajadoresTotalPages => (int)Math.Ceiling((double)TrabajadoresTotalCount / (TrabajadoresPageSize > 0 ? TrabajadoresPageSize : 5));
 
     // ── Facturas (Paginadas y Filtradas) ──
     public List<Invoice> Facturas { get; set; } = new();
@@ -90,4 +101,18 @@ public class MovimientoInventarioMock
     public int Cantidad { get; set; }
     public DateTime Fecha { get; set; }
     public string Responsable { get; set; } = string.Empty;
+}
+
+public class TrabajadorItemViewModel
+{
+    public int Id { get; set; }
+    public string Nombre { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string? Telefono { get; set; }
+    public string Puesto { get; set; } = string.Empty;
+    public string Departamento { get; set; } = string.Empty;
+    public decimal Salario { get; set; }
+    public string Rol { get; set; } = "Trabajador";
+    public bool Activo { get; set; } = true;
+    public int PedidosCount { get; set; }
 }

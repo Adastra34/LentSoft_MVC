@@ -35,5 +35,9 @@ public class Employee
 
     public DateTime FechaContratacion { get; set; } = DateTime.UtcNow;
 
+    [Required(ErrorMessage = "El rol es obligatorio")]
+    [StringLength(50)]
+    public string Rol { get; set; } = "Trabajador";
+
     public bool Activo { get; set; } = true;
 }
