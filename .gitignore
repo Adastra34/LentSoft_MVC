@@ -3,3 +3,10 @@ obj/
 *.user
 .vs/
 .vscode/
+
+# Configuración local y secretos
+appsettings.Development.json
+appsettings.Local.json
+*.Development.json
+*.Local.json
+

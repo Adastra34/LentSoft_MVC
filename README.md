@@ -79,3 +79,23 @@ Puedes probar los diferentes roles con las siguientes credenciales:
 - **Usuario Cliente:**
   - Email: `user@lentsoft.com`
   - Contraseña: `user123`
+
+## Manejo de Secretos y Configuración en Producción
+
+### Desarrollo Local (User Secrets)
+Para evitar subir credenciales sensibles al control de versiones (`git`), el proyecto utiliza **Secret Manager (.NET User Secrets)** en entorno local.
+
+Los valores reales se gestionan de forma independiente por cada desarrollador:
+```bash
+cd LentSoft.Web
+dotnet user-secrets set "PasswordResetJwt:SecretKey" "<CLAVE_CRIPTOGRAFICA_32_CARACTERES>"
+dotnet user-secrets set "EmailSettings:SmtpUser" "tu-correo@gmail.com"
+dotnet user-secrets set "EmailSettings:SmtpPassword" "tu-app-password"
+```
+
+### Producción (Variables de Entorno)
+En servidores de producción, los valores confidenciales **NO deben incluirse en `appsettings.Production.json`**. Deben establecerse directamente como **Variables de Entorno** del sistema/servidor (usando doble guion bajo `__` para indicar la jerarquía en ASP.NET Core):
+
+- `PasswordResetJwt__SecretKey` : Clave secreta aleatoria criptográfica (mínimo 32 caracteres).
+- `EmailSettings__SmtpUser` : Usuario/Correo para el servidor SMTP.
+- `EmailSettings__SmtpPassword` : Contraseña o token de aplicación SMTP.
