@@ -20,6 +20,14 @@ document.addEventListener('DOMContentLoaded', function() {
             this.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
         });
     }
+
+    // Set min date for datetime-local inputs to local client current time
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    const nowISO = now.toISOString().slice(0, 16);
+    document.querySelectorAll('input[type="datetime-local"]').forEach(input => {
+        input.setAttribute('min', nowISO);
+    });
 });
 
 // Interceptar envío de formularios para mostrar confirmación con Alertify.js

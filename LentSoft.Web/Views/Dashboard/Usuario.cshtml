@@ -618,7 +618,7 @@
 
             <div>
                 <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Fecha y Hora *</label>
-                <input name="FechaHora" type="datetime-local" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                <input name="FechaHora" id="agendarFechaHora" type="datetime-local" class="form-input" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div>
@@ -648,7 +648,7 @@
 
             <div>
                 <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nueva Fecha y Hora *</label>
-                <input id="rescheduleFechaHora" name="NuevaFechaHora" type="datetime-local" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                <input id="rescheduleFechaHora" name="NuevaFechaHora" type="datetime-local" class="form-input" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
