@@ -63,11 +63,19 @@ public class InventoryMovementController : Controller
             movement.Responsable = string.IsNullOrWhiteSpace(userName) ? "Administrador" : userName;
         }
 
-        _context.InventoryMovements.Add(movement);
-        _context.Products.Update(product);
-        await _context.SaveChangesAsync();
+        try
+        {
+            _context.InventoryMovements.Add(movement);
+            _context.Products.Update(product);
+            await _context.SaveChangesAsync();
 
-        TempData["SuccessMessage"] = $"Movimiento de {tipo} registrado exitosamente. Nuevo stock: {product.Stock}.";
+            TempData["SuccessMessage"] = $"Movimiento de {tipo} registrado exitosamente. Nuevo stock: {product.Stock}.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al registrar el movimiento de inventario: {ex.Message}";
+        }
+
         return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "historial" });
     }
 }

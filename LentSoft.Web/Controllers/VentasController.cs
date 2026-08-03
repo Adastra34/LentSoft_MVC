@@ -87,13 +87,25 @@ public class VentasController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateOrderStatus(int id, string estado)
     {
-        var order = await _context.Orders.FindAsync(id);
-        if (order != null)
+        try
         {
-            order.Estado = estado;
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Estado del pedido actualizado.";
+            var order = await _context.Orders.FindAsync(id);
+            if (order != null)
+            {
+                order.Estado = estado;
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Estado del pedido actualizado.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Pedido no encontrado.";
+            }
         }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al actualizar el estado del pedido: {ex.Message}";
+        }
+
         return RedirectToAction("Index", new { section = "ventas" });
     }
 }

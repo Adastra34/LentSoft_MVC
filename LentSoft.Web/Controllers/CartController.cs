@@ -45,7 +45,7 @@ public class CartController : Controller
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, error = ex.Message });
+            return Json(new { success = false, message = ex.Message, error = ex.Message });
         }
     }
 
@@ -55,25 +55,32 @@ public class CartController : Controller
     [HttpPost]
     public async Task<IActionResult> UpdateQuantity(int productId, int cantidad)
     {
-        var userId = GetCurrentUserId();
-        var item = await _cartService.UpdateQuantityAsync(userId, productId, cantidad);
-        if (item == null)
+        try
         {
-            var cart = await _cartService.GetCartAsync(userId);
-            var newTotal = cart?.CartItems.Sum(ci => ci.Subtotal) ?? 0;
-            return Json(new { success = true, deleted = true, totalGeneral = newTotal.ToString("C") });
+            var userId = GetCurrentUserId();
+            var item = await _cartService.UpdateQuantityAsync(userId, productId, cantidad);
+            if (item == null)
+            {
+                var cart = await _cartService.GetCartAsync(userId);
+                var newTotal = cart?.CartItems.Sum(ci => ci.Subtotal) ?? 0;
+                return Json(new { success = true, deleted = true, totalGeneral = newTotal.ToString("C") });
+            }
+            else
+            {
+                var cart = await _cartService.GetCartAsync(userId);
+                var newTotal = cart?.CartItems.Sum(ci => ci.Subtotal) ?? 0;
+                return Json(new { 
+                    success = true, 
+                    deleted = false, 
+                    cantidad = item.Cantidad, 
+                    subtotal = item.Subtotal.ToString("C"), 
+                    totalGeneral = newTotal.ToString("C") 
+                });
+            }
         }
-        else
+        catch (Exception ex)
         {
-            var cart = await _cartService.GetCartAsync(userId);
-            var newTotal = cart?.CartItems.Sum(ci => ci.Subtotal) ?? 0;
-            return Json(new { 
-                success = true, 
-                deleted = false, 
-                cantidad = item.Cantidad, 
-                subtotal = item.Subtotal.ToString("C"), 
-                totalGeneral = newTotal.ToString("C") 
-            });
+            return Json(new { success = false, message = $"Error al actualizar la cantidad: {ex.Message}" });
         }
     }
 
@@ -83,10 +90,17 @@ public class CartController : Controller
     [HttpPost]
     public async Task<IActionResult> RemoveItem(int productId)
     {
-        var userId = GetCurrentUserId();
-        var result = await _cartService.RemoveItemAsync(userId, productId);
-        var cart = await _cartService.GetCartAsync(userId);
-        var newTotal = cart?.CartItems.Sum(ci => ci.Subtotal) ?? 0;
-        return Json(new { success = result, totalGeneral = newTotal.ToString("C"), count = cart?.CartItems.Count ?? 0 });
+        try
+        {
+            var userId = GetCurrentUserId();
+            var result = await _cartService.RemoveItemAsync(userId, productId);
+            var cart = await _cartService.GetCartAsync(userId);
+            var newTotal = cart?.CartItems.Sum(ci => ci.Subtotal) ?? 0;
+            return Json(new { success = result, totalGeneral = newTotal.ToString("C"), count = cart?.CartItems.Count ?? 0 });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = $"Error al eliminar el producto: {ex.Message}" });
+        }
     }
 }

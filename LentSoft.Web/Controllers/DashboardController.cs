@@ -311,20 +311,28 @@ public class DashboardController : Controller
             return RedirectToAction("Usuario", new { section = "citas" });
         }
 
-        var appointment = new Appointment
+        try
         {
-            UserId = userId,
-            Servicio = Servicio.Trim(),
-            FechaHora = FechaHora,
-            Notas = Notas?.Trim(),
-            Estado = "pendiente",
-            FechaCreacion = DateTime.UtcNow
-        };
+            var appointment = new Appointment
+            {
+                UserId = userId,
+                Servicio = Servicio.Trim(),
+                FechaHora = FechaHora,
+                Notas = Notas?.Trim(),
+                Estado = "pendiente",
+                FechaCreacion = DateTime.UtcNow
+            };
 
-        _context.Appointments.Add(appointment);
-        await _context.SaveChangesAsync();
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync();
 
-        TempData["SuccessMessage"] = "Cita agendada exitosamente.";
+            TempData["SuccessMessage"] = "Cita agendada exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al agendar la cita: {ex.Message}";
+        }
+
         return RedirectToAction("Usuario", new { section = "citas" });
     }
 
@@ -334,24 +342,33 @@ public class DashboardController : Controller
     public async Task<IActionResult> UserCancelAppointment(int id)
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var cita = await _context.Appointments.FirstOrDefaultAsync(a => a.Id == id && a.UserId == userId);
 
-        if (cita == null)
+        try
         {
-            TempData["ErrorMessage"] = "Cita no encontrada o no pertenece a tu usuario.";
-            return RedirectToAction("Usuario", new { section = "citas" });
+            var cita = await _context.Appointments.FirstOrDefaultAsync(a => a.Id == id && a.UserId == userId);
+
+            if (cita == null)
+            {
+                TempData["ErrorMessage"] = "Cita no encontrada o no pertenece a tu usuario.";
+                return RedirectToAction("Usuario", new { section = "citas" });
+            }
+
+            if (cita.Estado != "pendiente" && cita.Estado != "confirmada")
+            {
+                TempData["ErrorMessage"] = "Solo puedes cancelar citas pendientes o confirmadas.";
+                return RedirectToAction("Usuario", new { section = "citas" });
+            }
+
+            cita.Estado = "cancelada";
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "La cita ha sido cancelada exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al cancelar la cita: {ex.Message}";
         }
 
-        if (cita.Estado != "pendiente" && cita.Estado != "confirmada")
-        {
-            TempData["ErrorMessage"] = "Solo puedes cancelar citas pendientes o confirmadas.";
-            return RedirectToAction("Usuario", new { section = "citas" });
-        }
-
-        cita.Estado = "cancelada";
-        await _context.SaveChangesAsync();
-
-        TempData["SuccessMessage"] = "La cita ha sido cancelada exitosamente.";
         return RedirectToAction("Usuario", new { section = "citas" });
     }
 
@@ -361,31 +378,40 @@ public class DashboardController : Controller
     public async Task<IActionResult> UserRescheduleAppointment(int id, DateTime NuevaFechaHora)
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var cita = await _context.Appointments.FirstOrDefaultAsync(a => a.Id == id && a.UserId == userId);
 
-        if (cita == null)
+        try
         {
-            TempData["ErrorMessage"] = "Cita no encontrada o no pertenece a tu usuario.";
-            return RedirectToAction("Usuario", new { section = "citas" });
+            var cita = await _context.Appointments.FirstOrDefaultAsync(a => a.Id == id && a.UserId == userId);
+
+            if (cita == null)
+            {
+                TempData["ErrorMessage"] = "Cita no encontrada o no pertenece a tu usuario.";
+                return RedirectToAction("Usuario", new { section = "citas" });
+            }
+
+            if (cita.Estado == "completada" || cita.Estado == "cancelada")
+            {
+                TempData["ErrorMessage"] = "No se puede reprogramar una cita completada o cancelada.";
+                return RedirectToAction("Usuario", new { section = "citas" });
+            }
+
+            if (NuevaFechaHora <= DateTime.UtcNow)
+            {
+                TempData["ErrorMessage"] = "La nueva fecha y hora debe ser a futuro.";
+                return RedirectToAction("Usuario", new { section = "citas" });
+            }
+
+            cita.FechaHora = NuevaFechaHora;
+            cita.Estado = "pendiente";
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "La cita ha sido reprogramada exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al reprogramar la cita: {ex.Message}";
         }
 
-        if (cita.Estado == "completada" || cita.Estado == "cancelada")
-        {
-            TempData["ErrorMessage"] = "No se puede reprogramar una cita completada o cancelada.";
-            return RedirectToAction("Usuario", new { section = "citas" });
-        }
-
-        if (NuevaFechaHora <= DateTime.UtcNow)
-        {
-            TempData["ErrorMessage"] = "La nueva fecha y hora debe ser a futuro.";
-            return RedirectToAction("Usuario", new { section = "citas" });
-        }
-
-        cita.FechaHora = NuevaFechaHora;
-        cita.Estado = "pendiente";
-        await _context.SaveChangesAsync();
-
-        TempData["SuccessMessage"] = "La cita ha sido reprogramada exitosamente.";
         return RedirectToAction("Usuario", new { section = "citas" });
     }
 
@@ -402,10 +428,18 @@ public class DashboardController : Controller
             return RedirectToAction("Usuario", new { section = "perfil" });
         }
 
-        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        await _userService.UpdateProfileAsync(userId, model.Nombre, model.Telefono);
+        try
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            await _userService.UpdateProfileAsync(userId, model.Nombre, model.Telefono);
 
-        TempData["SuccessMessage"] = "Perfil actualizado exitosamente.";
+            TempData["SuccessMessage"] = "Perfil actualizado exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al actualizar el perfil: {ex.Message}";
+        }
+
         return RedirectToAction("Usuario", new { section = "perfil" });
     }
 
@@ -423,16 +457,24 @@ public class DashboardController : Controller
             return RedirectToAction("Usuario", new { section = "configuracion" });
         }
 
-        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var success = await _userService.ChangePasswordAsync(userId, model.CurrentPassword, model.NewPassword);
-
-        if (!success)
+        try
         {
-            TempData["ErrorMessage"] = "La contraseña actual es incorrecta.";
-            return RedirectToAction("Usuario", new { section = "configuracion" });
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var success = await _userService.ChangePasswordAsync(userId, model.CurrentPassword, model.NewPassword);
+
+            if (!success)
+            {
+                TempData["ErrorMessage"] = "La contraseña actual es incorrecta.";
+                return RedirectToAction("Usuario", new { section = "configuracion" });
+            }
+
+            TempData["SuccessMessage"] = "Contraseña actualizada exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al cambiar la contraseña: {ex.Message}";
         }
 
-        TempData["SuccessMessage"] = "Contraseña actualizada exitosamente.";
         return RedirectToAction("Usuario", new { section = "configuracion" });
     }
 
@@ -442,18 +484,26 @@ public class DashboardController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateAppointment(int UserId, string Servicio, DateTime FechaHora, string? Notas)
     {
-        var appointment = new Appointment
+        try
         {
-            UserId = UserId,
-            Servicio = Servicio,
-            FechaHora = FechaHora,
-            Notas = Notas,
-            Estado = "pendiente",
-            FechaCreacion = DateTime.UtcNow
-        };
-        _context.Appointments.Add(appointment);
-        await _context.SaveChangesAsync();
-        TempData["SuccessMessage"] = "Cita creada exitosamente.";
+            var appointment = new Appointment
+            {
+                UserId = UserId,
+                Servicio = Servicio,
+                FechaHora = FechaHora,
+                Notas = Notas,
+                Estado = "pendiente",
+                FechaCreacion = DateTime.UtcNow
+            };
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Cita creada exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al crear la cita: {ex.Message}";
+        }
+
         return RedirectToAction("Admin", new { section = "citas" });
     }
 
@@ -463,13 +513,25 @@ public class DashboardController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateAppointmentStatus(int id, string estado)
     {
-        var cita = await _context.Appointments.FindAsync(id);
-        if (cita != null)
+        try
         {
-            cita.Estado = estado;
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Estado de cita actualizado.";
+            var cita = await _context.Appointments.FindAsync(id);
+            if (cita != null)
+            {
+                cita.Estado = estado;
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Estado de cita actualizado.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Cita no encontrada.";
+            }
         }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al actualizar la cita: {ex.Message}";
+        }
+
         return RedirectToAction("Admin", new { section = "citas" });
     }
 
@@ -479,14 +541,26 @@ public class DashboardController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteAppointment(int id)
     {
-        var cita = await _context.Appointments.FindAsync(id);
-        if (cita != null)
+        try
         {
-            cita.Activo = false;
-            _context.Appointments.Update(cita);
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Cita eliminada exitosamente.";
+            var cita = await _context.Appointments.FindAsync(id);
+            if (cita != null)
+            {
+                cita.Activo = false;
+                _context.Appointments.Update(cita);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Cita eliminada exitosamente.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Cita no encontrada.";
+            }
         }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al eliminar la cita: {ex.Message}";
+        }
+
         return RedirectToAction("Admin", new { section = "citas" });
     }
 

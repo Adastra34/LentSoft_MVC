@@ -96,9 +96,16 @@ public class InvoiceService : IInvoiceService
             invoice.FechaPago = DateTime.UtcNow;
         }
 
-        _context.Invoices.Add(invoice);
-        await _context.SaveChangesAsync();
-        return invoice;
+        try
+        {
+            _context.Invoices.Add(invoice);
+            await _context.SaveChangesAsync();
+            return invoice;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo crear la factura debido a una restricción de datos en la base de datos.", ex);
+        }
     }
 
     public async Task<Invoice?> UpdateAsync(Invoice invoice)
@@ -122,8 +129,15 @@ public class InvoiceService : IInvoiceService
             existing.FechaPago = null;
         }
 
-        await _context.SaveChangesAsync();
-        return existing;
+        try
+        {
+            await _context.SaveChangesAsync();
+            return existing;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo actualizar la factura debido a una restricción de datos.", ex);
+        }
     }
 
     public async Task<bool> DeleteAsync(int id)
@@ -133,8 +147,16 @@ public class InvoiceService : IInvoiceService
 
         existing.Activo = false;
         _context.Invoices.Update(existing);
-        await _context.SaveChangesAsync();
-        return true;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo eliminar la factura porque está asociada a otros registros.", ex);
+        }
     }
 
     public async Task<List<Order>> GetOrdersAvailableForInvoicingAsync()

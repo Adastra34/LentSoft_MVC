@@ -98,8 +98,16 @@ public class ProductService : IProductService
     {
         product.FechaCreacion = DateTime.UtcNow;
         _context.Products.Add(product);
-        await _context.SaveChangesAsync();
-        return product;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return product;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo crear el producto debido a una restricción de datos.", ex);
+        }
     }
 
     public async Task<Product?> UpdateAsync(int id, Product updated)
@@ -117,8 +125,19 @@ public class ProductService : IProductService
         product.ImagenUrl = updated.ImagenUrl;
         product.Activo = updated.Activo;
 
-        await _context.SaveChangesAsync();
-        return product;
+        try
+        {
+            await _context.SaveChangesAsync();
+            return product;
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            throw new InvalidOperationException("El producto fue modificado por otro usuario.", ex);
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudieron guardar los cambios del producto debido a una restricción de datos.", ex);
+        }
     }
 
     public async Task<bool> DeleteAsync(int id)
@@ -128,8 +147,16 @@ public class ProductService : IProductService
 
         product.Activo = false;
         _context.Products.Update(product);
-        await _context.SaveChangesAsync();
-        return true;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se puede eliminar este producto porque tiene pedidos o registros asociados.", ex);
+        }
     }
 
     public async Task<bool> ReactivateAsync(int id)
@@ -139,8 +166,16 @@ public class ProductService : IProductService
 
         product.Activo = true;
         _context.Products.Update(product);
-        await _context.SaveChangesAsync();
-        return true;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo reactivar el producto debido a una restricción de base de datos.", ex);
+        }
     }
 
     public async Task<List<Product>> GetBestSellersAsync(int count = 3)
