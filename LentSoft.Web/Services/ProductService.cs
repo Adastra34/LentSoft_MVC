@@ -16,9 +16,15 @@ public class ProductService : IProductService
         _context = context;
     }
 
-    public async Task<List<Product>> GetAllAsync()
+    public async Task<List<Product>> GetAllAsync(bool includeInactive = false)
     {
-        return await _context.Products
+        var query = _context.Products.AsQueryable();
+        if (!includeInactive)
+        {
+            query = query.Where(p => p.Activo);
+        }
+
+        return await query
             .OrderBy(p => p.Nombre)
             .ToListAsync();
     }
@@ -120,7 +126,19 @@ public class ProductService : IProductService
         var product = await _context.Products.FindAsync(id);
         if (product == null) return false;
 
-        _context.Products.Remove(product);
+        product.Activo = false;
+        _context.Products.Update(product);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> ReactivateAsync(int id)
+    {
+        var product = await _context.Products.FindAsync(id);
+        if (product == null) return false;
+
+        product.Activo = true;
+        _context.Products.Update(product);
         await _context.SaveChangesAsync();
         return true;
     }

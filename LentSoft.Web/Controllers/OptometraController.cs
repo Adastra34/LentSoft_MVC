@@ -28,28 +28,32 @@ public class OptometraController : Controller
         var hoy = now.Date;
 
         var citas = await _context.Appointments
+            .Where(a => a.Activo)
             .Include(a => a.User)
             .OrderByDescending(a => a.FechaHora)
             .ToListAsync();
 
         var pacientes = await _context.Users
-            .Where(u => u.Role == "usuario")
+            .Where(u => u.Role == "usuario" && u.Activo)
             .OrderBy(u => u.Nombre)
             .ToListAsync();
 
         var historiales = await _context.HistorialesClinicos
+            .Where(h => h.Activo)
             .Include(h => h.User)
             .Include(h => h.Optometra)
             .OrderByDescending(h => h.Fecha)
             .ToListAsync();
 
         var examenes = await _context.ExamenesVisuales
+            .Where(e => e.Activo)
             .Include(e => e.User)
             .Include(e => e.Optometra)
             .OrderByDescending(e => e.Fecha)
             .ToListAsync();
 
         var formulas = await _context.FormulasOpticas
+            .Where(f => f.Activo)
             .Include(f => f.User)
             .Include(f => f.Optometra)
             .OrderByDescending(f => f.Fecha)
@@ -157,7 +161,8 @@ public class OptometraController : Controller
         var existing = await _context.HistorialesClinicos.FindAsync(id);
         if (existing != null)
         {
-            _context.HistorialesClinicos.Remove(existing);
+            existing.Activo = false;
+            _context.HistorialesClinicos.Update(existing);
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Historial clínico eliminado exitosamente.";
         }
@@ -231,7 +236,8 @@ public class OptometraController : Controller
         var existing = await _context.ExamenesVisuales.FindAsync(id);
         if (existing != null)
         {
-            _context.ExamenesVisuales.Remove(existing);
+            existing.Activo = false;
+            _context.ExamenesVisuales.Update(existing);
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Examen visual eliminado exitosamente.";
         }
@@ -295,7 +301,8 @@ public class OptometraController : Controller
         var existing = await _context.FormulasOpticas.FindAsync(id);
         if (existing != null)
         {
-            _context.FormulasOpticas.Remove(existing);
+            existing.Activo = false;
+            _context.FormulasOpticas.Update(existing);
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Fórmula óptica eliminada exitosamente.";
         }
@@ -340,7 +347,8 @@ public class OptometraController : Controller
             Direccion = direccion,
             EPS = eps,
             EstadoPaciente = "Activo",
-            ObservacionesPaciente = observacionesPaciente
+            ObservacionesPaciente = observacionesPaciente,
+            Activo = true
         };
 
         _context.Users.Add(paciente);
@@ -386,7 +394,9 @@ public class OptometraController : Controller
         var paciente = await _context.Users.FindAsync(id);
         if (paciente != null && paciente.Role == "usuario")
         {
+            paciente.Activo = false;
             paciente.EstadoPaciente = "Inactivo";
+            _context.Users.Update(paciente);
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Paciente desactivado (Inactivo) exitosamente.";
         }
@@ -409,7 +419,8 @@ public class OptometraController : Controller
             FechaHora = DateTime.SpecifyKind(FechaHora, DateTimeKind.Utc),
             Notas = Notas,
             Estado = "pendiente",
-            FechaCreacion = DateTime.UtcNow
+            FechaCreacion = DateTime.UtcNow,
+            Activo = true
         };
         _context.Appointments.Add(appointment);
         await _context.SaveChangesAsync();
@@ -447,7 +458,8 @@ public class OptometraController : Controller
         var cita = await _context.Appointments.FindAsync(id);
         if (cita != null)
         {
-            _context.Appointments.Remove(cita);
+            cita.Activo = false;
+            _context.Appointments.Update(cita);
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Cita eliminada exitosamente.";
         }

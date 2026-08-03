@@ -16,6 +16,7 @@ public class InvoiceService : IInvoiceService
     public async Task<(List<Invoice> Items, int TotalCount)> GetAllAsync(string? searchTerm, int page, int pageSize)
     {
         var query = _context.Invoices
+            .Where(i => i.Activo)
             .Include(i => i.Order)
                 .ThenInclude(o => o.User)
             .AsQueryable();
@@ -130,7 +131,8 @@ public class InvoiceService : IInvoiceService
         var existing = await _context.Invoices.FindAsync(id);
         if (existing == null) return false;
 
-        _context.Invoices.Remove(existing);
+        existing.Activo = false;
+        _context.Invoices.Update(existing);
         await _context.SaveChangesAsync();
         return true;
     }
@@ -138,6 +140,7 @@ public class InvoiceService : IInvoiceService
     public async Task<List<Order>> GetOrdersAvailableForInvoicingAsync()
     {
         return await _context.Orders
+            .Where(o => o.Activo)
             .Include(o => o.User)
             .OrderByDescending(o => o.FechaPedido)
             .ToListAsync();

@@ -16,9 +16,15 @@ public class UserService : IUserService
         _context = context;
     }
 
-    public async Task<List<User>> GetAllAsync()
+    public async Task<List<User>> GetAllAsync(bool includeInactive = false)
     {
-        return await _context.Users
+        var query = _context.Users.AsQueryable();
+        if (!includeInactive)
+        {
+            query = query.Where(u => u.Activo);
+        }
+
+        return await query
             .OrderBy(u => u.Nombre)
             .ToListAsync();
     }
@@ -58,7 +64,19 @@ public class UserService : IUserService
         var user = await _context.Users.FindAsync(id);
         if (user == null) return false;
 
-        _context.Users.Remove(user);
+        user.Activo = false;
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> ReactivateAsync(int id)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user == null) return false;
+
+        user.Activo = true;
+        _context.Users.Update(user);
         await _context.SaveChangesAsync();
         return true;
     }

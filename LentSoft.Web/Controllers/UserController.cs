@@ -107,10 +107,30 @@ public class UserController : Controller
             }
         }
 
-        _context.Users.Remove(user);
+        user.Activo = false;
+        _context.Users.Update(user);
         await _context.SaveChangesAsync();
 
         TempData["SuccessMessage"] = "Usuario eliminado exitosamente.";
+        return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "clientes" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ReactivateUser(int id)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user == null)
+        {
+            TempData["ErrorMessage"] = "Usuario no encontrado.";
+            return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "clientes" });
+        }
+
+        user.Activo = true;
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = "Usuario reactivado exitosamente.";
         return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "clientes" });
     }
 
@@ -196,10 +216,30 @@ public class UserController : Controller
             return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "trabajadores" });
         }
 
-        _context.Employees.Remove(employee);
+        employee.Activo = false;
+        _context.Employees.Update(employee);
         await _context.SaveChangesAsync();
 
         TempData["SuccessMessage"] = "Trabajador eliminado exitosamente.";
+        return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "trabajadores" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ReactivateEmployee(int id)
+    {
+        var employee = await _context.Employees.FindAsync(id);
+        if (employee == null)
+        {
+            TempData["ErrorMessage"] = "Trabajador no encontrado.";
+            return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "trabajadores" });
+        }
+
+        employee.Activo = true;
+        _context.Employees.Update(employee);
+        await _context.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = "Trabajador reactivado exitosamente.";
         return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "trabajadores" });
     }
 }

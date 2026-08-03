@@ -40,6 +40,8 @@ public class HistorialClinico
 
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 
+    public bool Activo { get; set; } = true;
+
     // Navigation properties
     [ForeignKey(nameof(UserId))]
     public User User { get; set; } = null!;

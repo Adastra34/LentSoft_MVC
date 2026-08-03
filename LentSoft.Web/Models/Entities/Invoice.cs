@@ -41,6 +41,8 @@ public class Invoice : IValidatableObject
     [StringLength(50)]
     public string? MetodoPago { get; set; }
 
+    public bool Activo { get; set; } = true;
+
     // Navigation properties
     [ForeignKey(nameof(OrderId))]
     public Order Order { get; set; } = null!;

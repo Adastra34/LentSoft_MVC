@@ -462,14 +462,20 @@
                             <span>registros</span>
                         </div>
 
-                        <!-- Búsqueda -->
-                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
-                            <label for="searchClientesInput" style="font-weight: 500;">Buscar:</label>
-                            <input type="text" id="searchClientesInput" name="clientesSearch" value="@Model.ClientesSearchTerm" 
-                                   placeholder="Buscar por nombre o email" 
-                                   style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.875rem; width: 240px; color: var(--gray-900);" 
-                                   onkeyup="filterClientSideClientes(this.value)" />
-                            <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Filtrar</button>
+                        <!-- Búsqueda y Toggle Inactivos -->
+                        <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.875rem;">
+                            <label style="display: flex; align-items: center; gap: 0.35rem; font-weight: 500; cursor: pointer;">
+                                <input type="checkbox" name="includeInactive" value="true" @(ViewBag.IncludeInactive == true ? "checked" : "") onchange="document.getElementById('clientesFilterForm').submit();" />
+                                Mostrar inactivos
+                            </label>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <label for="searchClientesInput" style="font-weight: 500;">Buscar:</label>
+                                <input type="text" id="searchClientesInput" name="clientesSearch" value="@Model.ClientesSearchTerm" 
+                                       placeholder="Buscar por nombre o email" 
+                                       style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.875rem; width: 240px; color: var(--gray-900);" 
+                                       onkeyup="filterClientSideClientes(this.value)" />
+                                <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Filtrar</button>
+                            </div>
                         </div>
                     </form>
 
@@ -491,9 +497,15 @@
                                 {
                                     @foreach (var cli in Model.Clientes)
                                     {
-                                        <tr style="border-bottom: 1px solid var(--purple-100); transition: background-color 0.15s ease;" onmouseover="this.style.backgroundColor='var(--purple-50)'" onmouseout="this.style.backgroundColor='transparent'">
+                                        <tr style="border-bottom: 1px solid var(--purple-100); transition: background-color 0.15s ease; @(!cli.Activo ? "opacity: 0.6; background-color: var(--gray-50);" : "")" onmouseover="this.style.backgroundColor='var(--purple-50)'" onmouseout="this.style.backgroundColor='transparent'">
                                             <td style="padding: 0.85rem 1rem; color: var(--gray-500); font-weight: 600;">#@cli.Id</td>
-                                            <td style="padding: 0.85rem 1rem; font-weight: 600; color: var(--purple-900);">@cli.NombreCompleto</td>
+                                            <td style="padding: 0.85rem 1rem; font-weight: 600; color: var(--purple-900);">
+                                                @cli.NombreCompleto
+                                                @if (!cli.Activo)
+                                                {
+                                                    <span style="background-color: var(--gray-200); color: var(--gray-700); padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 700; margin-left: 0.35rem;">Inactivo</span>
+                                                }
+                                            </td>
                                             <td style="padding: 0.85rem 1rem; color: var(--gray-800);">@cli.Email</td>
                                             <td style="padding: 0.85rem 1rem; color: var(--gray-700);">@(cli.Telefono ?? "N/A")</td>
                                             <td style="padding: 0.85rem 1rem; color: var(--gray-600);">@cli.FechaRegistro.ToLocalTime().ToString("dd/MM/yyyy")</td>
@@ -505,11 +517,26 @@
                                                         ✏️ Editar
                                                     </button>
 
-                                                    <button type="button" onclick="confirmDeleteUser(@cli.Id, '@cli.NombreCompleto')"
-                                                            style="background: transparent; color: var(--error); border: 1px solid var(--error); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
-                                                            onmouseover="this.style.backgroundColor='var(--error)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--error)';">
-                                                        🗑️ Eliminar
-                                                    </button>
+                                                    @if (cli.Activo)
+                                                    {
+                                                        <button type="button" onclick="confirmDeleteUser(@cli.Id, '@cli.NombreCompleto')"
+                                                                style="background: transparent; color: var(--error); border: 1px solid var(--error); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                                                onmouseover="this.style.backgroundColor='var(--error)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--error)';">
+                                                            🗑️ Eliminar
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <form method="post" action="/User/ReactivateUser" style="display:inline;">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@cli.Id" />
+                                                            <button type="submit"
+                                                                    style="background: transparent; color: var(--success); border: 1px solid var(--success); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                                                    onmouseover="this.style.backgroundColor='var(--success)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--success)';">
+                                                                🔄 Reactivar
+                                                            </button>
+                                                        </form>
+                                                    }
                                                 </div>
                                             </td>
                                         </tr>
@@ -627,14 +654,20 @@
                             <span>registros</span>
                         </div>
 
-                        <!-- Búsqueda -->
-                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
-                            <label for="searchTrabajadoresInput" style="font-weight: 500;">Buscar:</label>
-                            <input type="text" id="searchTrabajadoresInput" name="trabajadoresSearch" value="@Model.TrabajadoresSearchTerm" 
-                                   placeholder="Buscar por nombre o email" 
-                                   style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.875rem; width: 240px; color: var(--gray-900);" 
-                                   onkeyup="filterClientSideTrabajadores(this.value)" />
-                            <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Filtrar</button>
+                        <!-- Búsqueda y Toggle Inactivos -->
+                        <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.875rem;">
+                            <label style="display: flex; align-items: center; gap: 0.35rem; font-weight: 500; cursor: pointer;">
+                                <input type="checkbox" name="includeInactive" value="true" @(ViewBag.IncludeInactive == true ? "checked" : "") onchange="document.getElementById('trabajadoresFilterForm').submit();" />
+                                Mostrar inactivos
+                            </label>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <label for="searchTrabajadoresInput" style="font-weight: 500;">Buscar:</label>
+                                <input type="text" id="searchTrabajadoresInput" name="trabajadoresSearch" value="@Model.TrabajadoresSearchTerm" 
+                                       placeholder="Buscar por nombre o email" 
+                                       style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.875rem; width: 240px; color: var(--gray-900);" 
+                                       onkeyup="filterClientSideTrabajadores(this.value)" />
+                                <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Filtrar</button>
+                            </div>
                         </div>
                     </form>
 
@@ -671,8 +704,14 @@
                                             _ => "Solo Lectura"
                                         };
 
-                                        <tr style="border-bottom: 1px solid var(--purple-100); transition: background-color 0.15s ease;" onmouseover="this.style.backgroundColor='var(--purple-50)'" onmouseout="this.style.backgroundColor='transparent'">
-                                            <td style="padding: 0.85rem 1rem; font-weight: 600; color: var(--purple-900);">@emp.Nombre</td>
+                                        <tr style="border-bottom: 1px solid var(--purple-100); transition: background-color 0.15s ease; @(!emp.Activo ? "opacity: 0.6; background-color: var(--gray-50);" : "")" onmouseover="this.style.backgroundColor='var(--purple-50)'" onmouseout="this.style.backgroundColor='transparent'">
+                                            <td style="padding: 0.85rem 1rem; font-weight: 600; color: var(--purple-900);">
+                                                @emp.Nombre
+                                                @if (!emp.Activo)
+                                                {
+                                                    <span style="background-color: var(--gray-200); color: var(--gray-700); padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 700; margin-left: 0.35rem;">Inactivo</span>
+                                                }
+                                            </td>
                                             <td style="padding: 0.85rem 1rem; color: var(--gray-800);">@emp.Email</td>
                                             <td style="padding: 0.85rem 1rem; color: var(--gray-700);">@(emp.Telefono ?? "N/A")</td>
                                             <td style="padding: 0.85rem 1rem;">
@@ -691,11 +730,26 @@
                                                         ✏️ Editar
                                                     </button>
 
-                                                    <button type="button" onclick="confirmDeleteEmployee(@emp.Id, '@emp.Nombre')"
-                                                            style="background: transparent; color: var(--error); border: 1px solid var(--error); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
-                                                            onmouseover="this.style.backgroundColor='var(--error)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--error)';">
-                                                        🗑️ Eliminar
-                                                    </button>
+                                                    @if (emp.Activo)
+                                                    {
+                                                        <button type="button" onclick="confirmDeleteEmployee(@emp.Id, '@emp.Nombre')"
+                                                                style="background: transparent; color: var(--error); border: 1px solid var(--error); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                                                onmouseover="this.style.backgroundColor='var(--error)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--error)';">
+                                                            🗑️ Eliminar
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <form method="post" action="/User/ReactivateEmployee" style="display:inline;">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@emp.Id" />
+                                                            <button type="submit"
+                                                                    style="background: transparent; color: var(--success); border: 1px solid var(--success); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                                                    onmouseover="this.style.backgroundColor='var(--success)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--success)';">
+                                                                🔄 Reactivar
+                                                            </button>
+                                                        </form>
+                                                    }
                                                 </div>
                                             </td>
                                         </tr>

@@ -30,6 +30,8 @@ public class Order : IValidatableObject
     [StringLength(100)]
     public string? MetodoPagoSimulado { get; set; }
 
+    public bool Activo { get; set; } = true;
+
     // Navigation properties
     [ForeignKey(nameof(UserId))]
     public User User { get; set; } = null!;

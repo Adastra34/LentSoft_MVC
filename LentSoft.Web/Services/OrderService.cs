@@ -19,6 +19,7 @@ public class OrderService : IOrderService
     public async Task<List<Order>> GetAllAsync()
     {
         return await _context.Orders
+            .Where(o => o.Activo)
             .Include(o => o.User)
             .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product)
@@ -31,7 +32,7 @@ public class OrderService : IOrderService
         return await _context.Orders
             .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product)
-            .Where(o => o.UserId == userId)
+            .Where(o => o.UserId == userId && o.Activo)
             .OrderByDescending(o => o.FechaPedido)
             .ToListAsync();
     }
@@ -77,7 +78,8 @@ public class OrderService : IOrderService
         var order = await _context.Orders.FindAsync(id);
         if (order == null) return false;
 
-        _context.Orders.Remove(order);
+        order.Activo = false;
+        _context.Orders.Update(order);
         await _context.SaveChangesAsync();
         return true;
     }
