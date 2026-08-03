@@ -59,6 +59,13 @@ public class InvoiceController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Invoice invoice)
     {
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos de la factura no válidos.";
+            TempData["ErrorMessage"] = firstError;
+            return RedirectToFacturas();
+        }
+
         if (invoice.OrderId <= 0)
         {
             TempData["ErrorMessage"] = "Debe seleccionar un pedido válido para la factura.";
@@ -82,6 +89,13 @@ public class InvoiceController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(Invoice invoice)
     {
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos de la factura no válidos.";
+            TempData["ErrorMessage"] = firstError;
+            return RedirectToFacturas();
+        }
+
         if (invoice.Id <= 0)
         {
             TempData["ErrorMessage"] = "Factura no válida.";

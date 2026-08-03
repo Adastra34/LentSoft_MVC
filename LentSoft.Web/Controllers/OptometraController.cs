@@ -132,6 +132,13 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditHistorial(HistorialClinico model)
     {
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos del historial no válidos.";
+            TempData["ErrorMessage"] = firstError;
+            return RedirectToAction("Index", new { section = "historial" });
+        }
+
         var existing = await _context.HistorialesClinicos.FindAsync(model.Id);
         if (existing != null)
         {
@@ -185,7 +192,8 @@ public class OptometraController : Controller
         }
         else
         {
-            TempData["ErrorMessage"] = "Error al registrar el examen visual. Por favor verifica los datos.";
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Error al registrar el examen visual.";
+            TempData["ErrorMessage"] = firstError;
         }
         return RedirectToAction("Index", new { section = "examenes" });
     }
@@ -194,6 +202,13 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditExamen(ExamenVisual model)
     {
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos del examen no válidos.";
+            TempData["ErrorMessage"] = firstError;
+            return RedirectToAction("Index", new { section = "examenes" });
+        }
+
         var existing = await _context.ExamenesVisuales.FindAsync(model.Id);
         if (existing != null)
         {
@@ -260,7 +275,8 @@ public class OptometraController : Controller
         }
         else
         {
-            TempData["ErrorMessage"] = "Error al crear la fórmula óptica. Por favor verifica los datos.";
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Error al crear la fórmula óptica.";
+            TempData["ErrorMessage"] = firstError;
         }
         return RedirectToAction("Index", new { section = "formulas" });
     }
@@ -269,6 +285,13 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditFormula(FormulaOptica model)
     {
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos de la fórmula no válidos.";
+            TempData["ErrorMessage"] = firstError;
+            return RedirectToAction("Index", new { section = "formulas" });
+        }
+
         var existing = await _context.FormulasOpticas.FindAsync(model.Id);
         if (existing != null)
         {
@@ -312,16 +335,23 @@ public class OptometraController : Controller
     // ── CRUD Pacientes (Tarea 1) ──
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreatePaciente(string nombre, string apellido, string email, string? telefono, string tipoDocumento, string numeroDocumento, DateTime? fechaNacimiento, string? genero, string? direccion, string? eps, string? observacionesPaciente)
+    public async Task<IActionResult> CreatePaciente(PacienteFormViewModel model)
     {
-        var existingEmail = await _context.Users.AnyAsync(u => u.Email == email);
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos del paciente no válidos.";
+            TempData["ErrorMessage"] = firstError;
+            return RedirectToAction("Index", new { section = "pacientes" });
+        }
+
+        var existingEmail = await _context.Users.AnyAsync(u => u.Email == model.Email);
         if (existingEmail)
         {
             TempData["ErrorMessage"] = "El correo ya está registrado.";
             return RedirectToAction("Index", new { section = "pacientes" });
         }
 
-        var existingDoc = await _context.Users.AnyAsync(u => u.NumeroDocumento == numeroDocumento);
+        var existingDoc = await _context.Users.AnyAsync(u => u.NumeroDocumento == model.NumeroDocumento);
         if (existingDoc)
         {
             TempData["ErrorMessage"] = "El número de documento ya está registrado.";
@@ -333,21 +363,21 @@ public class OptometraController : Controller
 
         var paciente = new User
         {
-            Nombre = nombre,
-            Apellido = apellido,
-            Email = email,
-            Telefono = telefono,
-            TipoDocumento = tipoDocumento,
-            NumeroDocumento = numeroDocumento,
+            Nombre = model.Nombre.Trim(),
+            Apellido = model.Apellido.Trim(),
+            Email = model.Email.Trim().ToLower(),
+            Telefono = model.Telefono?.Trim(),
+            TipoDocumento = string.IsNullOrWhiteSpace(model.TipoDocumento) ? "CC" : model.TipoDocumento,
+            NumeroDocumento = model.NumeroDocumento.Trim(),
             PasswordHash = passwordHash,
             Role = "usuario",
             FechaRegistro = DateTime.UtcNow,
-            FechaNacimiento = fechaNacimiento.HasValue ? DateTime.SpecifyKind(fechaNacimiento.Value, DateTimeKind.Utc) : null,
-            Genero = genero,
-            Direccion = direccion,
-            EPS = eps,
-            EstadoPaciente = "Activo",
-            ObservacionesPaciente = observacionesPaciente,
+            FechaNacimiento = model.FechaNacimiento.HasValue ? DateTime.SpecifyKind(model.FechaNacimiento.Value, DateTimeKind.Utc) : null,
+            Genero = model.Genero,
+            Direccion = model.Direccion,
+            EPS = model.EPS,
+            EstadoPaciente = string.IsNullOrWhiteSpace(model.EstadoPaciente) ? "Activo" : model.EstadoPaciente,
+            ObservacionesPaciente = model.ObservacionesPaciente,
             Activo = true
         };
 
@@ -359,23 +389,30 @@ public class OptometraController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditPaciente(int id, string nombre, string apellido, string email, string? telefono, string tipoDocumento, string numeroDocumento, DateTime? fechaNacimiento, string? genero, string? direccion, string? eps, string? estadoPaciente, string? observacionesPaciente)
+    public async Task<IActionResult> EditPaciente(PacienteFormViewModel model)
     {
-        var paciente = await _context.Users.FindAsync(id);
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos del paciente no válidos.";
+            TempData["ErrorMessage"] = firstError;
+            return RedirectToAction("Index", new { section = "pacientes" });
+        }
+
+        var paciente = await _context.Users.FindAsync(model.Id);
         if (paciente != null && paciente.Role == "usuario")
         {
-            paciente.Nombre = nombre;
-            paciente.Apellido = apellido;
-            paciente.Email = email;
-            paciente.Telefono = telefono;
-            paciente.TipoDocumento = tipoDocumento;
-            paciente.NumeroDocumento = numeroDocumento;
-            paciente.FechaNacimiento = fechaNacimiento.HasValue ? DateTime.SpecifyKind(fechaNacimiento.Value, DateTimeKind.Utc) : null;
-            paciente.Genero = genero;
-            paciente.Direccion = direccion;
-            paciente.EPS = eps;
-            paciente.EstadoPaciente = estadoPaciente ?? "Activo";
-            paciente.ObservacionesPaciente = observacionesPaciente;
+            paciente.Nombre = model.Nombre.Trim();
+            paciente.Apellido = model.Apellido.Trim();
+            paciente.Email = model.Email.Trim().ToLower();
+            paciente.Telefono = model.Telefono?.Trim();
+            paciente.TipoDocumento = string.IsNullOrWhiteSpace(model.TipoDocumento) ? paciente.TipoDocumento : model.TipoDocumento;
+            paciente.NumeroDocumento = model.NumeroDocumento.Trim();
+            paciente.FechaNacimiento = model.FechaNacimiento.HasValue ? DateTime.SpecifyKind(model.FechaNacimiento.Value, DateTimeKind.Utc) : null;
+            paciente.Genero = model.Genero;
+            paciente.Direccion = model.Direccion;
+            paciente.EPS = model.EPS;
+            paciente.EstadoPaciente = model.EstadoPaciente ?? "Activo";
+            paciente.ObservacionesPaciente = model.ObservacionesPaciente;
 
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Datos del paciente actualizados exitosamente.";
@@ -410,15 +447,28 @@ public class OptometraController : Controller
     // ── Citas (Tarea 2) ──
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateAppointment(int UserId, string Servicio, DateTime FechaHora, string? Notas)
+    public async Task<IActionResult> CreateAppointment(AppointmentFormViewModel model)
     {
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos de la cita no válidos.";
+            TempData["ErrorMessage"] = firstError;
+            return RedirectToAction("Index", new { section = "citas" });
+        }
+
+        if (model.FechaHora <= DateTime.UtcNow)
+        {
+            TempData["ErrorMessage"] = "La fecha y hora de la cita debe ser futura.";
+            return RedirectToAction("Index", new { section = "citas" });
+        }
+
         var appointment = new Appointment
         {
-            UserId = UserId,
-            Servicio = Servicio,
-            FechaHora = DateTime.SpecifyKind(FechaHora, DateTimeKind.Utc),
-            Notas = Notas,
-            Estado = "pendiente",
+            UserId = model.UserId,
+            Servicio = model.Servicio.Trim(),
+            FechaHora = DateTime.SpecifyKind(model.FechaHora, DateTimeKind.Utc),
+            Notas = model.Notas?.Trim(),
+            Estado = string.IsNullOrWhiteSpace(model.Estado) ? "pendiente" : model.Estado,
             FechaCreacion = DateTime.UtcNow,
             Activo = true
         };
@@ -430,16 +480,23 @@ public class OptometraController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditAppointment(int id, int UserId, string Servicio, DateTime FechaHora, string? Notas, string Estado)
+    public async Task<IActionResult> EditAppointment(AppointmentFormViewModel model)
     {
-        var appointment = await _context.Appointments.FindAsync(id);
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos de la cita no válidos.";
+            TempData["ErrorMessage"] = firstError;
+            return RedirectToAction("Index", new { section = "citas" });
+        }
+
+        var appointment = await _context.Appointments.FindAsync(model.Id);
         if (appointment != null)
         {
-            appointment.UserId = UserId;
-            appointment.Servicio = Servicio;
-            appointment.FechaHora = DateTime.SpecifyKind(FechaHora, DateTimeKind.Utc);
-            appointment.Notas = Notas;
-            appointment.Estado = Estado;
+            appointment.UserId = model.UserId;
+            appointment.Servicio = model.Servicio.Trim();
+            appointment.FechaHora = DateTime.SpecifyKind(model.FechaHora, DateTimeKind.Utc);
+            appointment.Notas = model.Notas?.Trim();
+            appointment.Estado = model.Estado;
 
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Cita actualizada exitosamente.";
@@ -469,20 +526,27 @@ public class OptometraController : Controller
     // ── Perfil Profesional (Tarea 6) ──
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateProfile(string nombre, string apellido, string email, string? telefono, string? registroMedico, string? universidad, string? especialidadDetalle, int? aniosExperiencia)
+    public async Task<IActionResult> UpdateProfile(OptometraProfileViewModel model)
     {
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos del perfil no válidos.";
+            TempData["ErrorMessage"] = firstError;
+            return RedirectToAction("Index", new { section = "perfil" });
+        }
+
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var user = await _context.Users.FindAsync(userId);
         if (user != null)
         {
-            user.Nombre = nombre;
-            user.Apellido = apellido;
-            user.Email = email;
-            user.Telefono = telefono;
-            user.RegistroMedico = registroMedico;
-            user.Universidad = universidad;
-            user.EspecialidadDetalle = especialidadDetalle;
-            user.AniosExperiencia = aniosExperiencia;
+            user.Nombre = model.Nombre.Trim();
+            user.Apellido = model.Apellido.Trim();
+            user.Email = model.Email.Trim().ToLower();
+            user.Telefono = model.Telefono?.Trim();
+            user.RegistroMedico = model.RegistroMedico?.Trim();
+            user.Universidad = model.Universidad?.Trim();
+            user.EspecialidadDetalle = model.EspecialidadDetalle?.Trim();
+            user.AniosExperiencia = model.AniosExperiencia;
 
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Perfil actualizado exitosamente.";

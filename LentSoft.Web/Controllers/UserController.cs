@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LentSoft.Web.Data;
 using LentSoft.Web.Models.Entities;
+using LentSoft.Web.Models.ViewModels;
 
 namespace LentSoft.Web.Controllers;
 
@@ -20,34 +21,36 @@ public class UserController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateClient(string Nombre, string Apellido, string Email, string? Telefono, string TipoDocumento, string NumeroDocumento, string? Password)
+    public async Task<IActionResult> CreateClient(ClientFormViewModel model)
     {
-        if (string.IsNullOrWhiteSpace(Nombre) || string.IsNullOrWhiteSpace(Email))
+        if (!ModelState.IsValid)
         {
-            TempData["ErrorMessage"] = "El nombre y el correo son obligatorios.";
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos del formulario no válidos.";
+            TempData["ErrorMessage"] = firstError;
             return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "clientes" });
         }
 
-        if (await _context.Users.AnyAsync(u => u.Email == Email))
+        if (await _context.Users.AnyAsync(u => u.Email == model.Email))
         {
             TempData["ErrorMessage"] = "El correo electrónico ya está registrado.";
             return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "clientes" });
         }
 
-        var pass = string.IsNullOrWhiteSpace(Password) ? "user123" : Password;
+        var pass = string.IsNullOrWhiteSpace(model.Password) ? "user123" : model.Password;
         var passwordHash = BCrypt.Net.BCrypt.HashPassword(pass);
 
         var user = new User
         {
-            Nombre = Nombre.Trim(),
-            Apellido = string.IsNullOrWhiteSpace(Apellido) ? "" : Apellido.Trim(),
-            Email = Email.Trim().ToLower(),
-            Telefono = Telefono?.Trim(),
-            TipoDocumento = string.IsNullOrWhiteSpace(TipoDocumento) ? "CC" : TipoDocumento,
-            NumeroDocumento = string.IsNullOrWhiteSpace(NumeroDocumento) ? Guid.NewGuid().ToString("N").Substring(0, 10) : NumeroDocumento.Trim(),
+            Nombre = model.Nombre.Trim(),
+            Apellido = string.IsNullOrWhiteSpace(model.Apellido) ? "" : model.Apellido.Trim(),
+            Email = model.Email.Trim().ToLower(),
+            Telefono = model.Telefono?.Trim(),
+            TipoDocumento = string.IsNullOrWhiteSpace(model.TipoDocumento) ? "CC" : model.TipoDocumento,
+            NumeroDocumento = string.IsNullOrWhiteSpace(model.NumeroDocumento) ? Guid.NewGuid().ToString("N").Substring(0, 10) : model.NumeroDocumento.Trim(),
             PasswordHash = passwordHash,
             Role = "usuario",
-            FechaRegistro = DateTime.UtcNow
+            FechaRegistro = DateTime.UtcNow,
+            Activo = true
         };
 
         _context.Users.Add(user);
@@ -59,25 +62,32 @@ public class UserController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditClient(int id, string Nombre, string Apellido, string Email, string? Telefono)
+    public async Task<IActionResult> EditClient(ClientFormViewModel model)
     {
-        var user = await _context.Users.FindAsync(id);
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos del formulario no válidos.";
+            TempData["ErrorMessage"] = firstError;
+            return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "clientes" });
+        }
+
+        var user = await _context.Users.FindAsync(model.Id);
         if (user == null)
         {
             TempData["ErrorMessage"] = "Cliente no encontrado.";
             return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "clientes" });
         }
 
-        if (await _context.Users.AnyAsync(u => u.Email == Email && u.Id != id))
+        if (await _context.Users.AnyAsync(u => u.Email == model.Email && u.Id != model.Id))
         {
             TempData["ErrorMessage"] = "El correo electrónico ya pertenece a otro usuario.";
             return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "clientes" });
         }
 
-        user.Nombre = Nombre.Trim();
-        user.Apellido = string.IsNullOrWhiteSpace(Apellido) ? "" : Apellido.Trim();
-        user.Email = Email.Trim().ToLower();
-        user.Telefono = Telefono?.Trim();
+        user.Nombre = model.Nombre.Trim();
+        user.Apellido = string.IsNullOrWhiteSpace(model.Apellido) ? "" : model.Apellido.Trim();
+        user.Email = model.Email.Trim().ToLower();
+        user.Telefono = model.Telefono?.Trim();
 
         await _context.SaveChangesAsync();
 
@@ -139,15 +149,16 @@ public class UserController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateEmployee(string Nombre, string Email, string? Telefono, string Puesto, string Departamento, decimal Salario, string Rol)
+    public async Task<IActionResult> CreateEmployee(EmployeeFormViewModel model)
     {
-        if (string.IsNullOrWhiteSpace(Nombre) || string.IsNullOrWhiteSpace(Email))
+        if (!ModelState.IsValid)
         {
-            TempData["ErrorMessage"] = "El nombre y el correo son obligatorios.";
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos del formulario no válidos.";
+            TempData["ErrorMessage"] = firstError;
             return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "trabajadores" });
         }
 
-        if (await _context.Employees.AnyAsync(e => e.Email == Email))
+        if (await _context.Employees.AnyAsync(e => e.Email == model.Email))
         {
             TempData["ErrorMessage"] = "Ya existe un empleado registrado con ese correo electrónico.";
             return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "trabajadores" });
@@ -155,13 +166,13 @@ public class UserController : Controller
 
         var employee = new Employee
         {
-            Nombre = Nombre.Trim(),
-            Email = Email.Trim().ToLower(),
-            Telefono = Telefono?.Trim(),
-            Puesto = string.IsNullOrWhiteSpace(Puesto) ? "Empleado" : Puesto.Trim(),
-            Departamento = string.IsNullOrWhiteSpace(Departamento) ? "General" : Departamento.Trim(),
-            Salario = Salario < 0 ? 0 : Salario,
-            Rol = string.IsNullOrWhiteSpace(Rol) ? "Trabajador" : Rol.Trim(),
+            Nombre = model.Nombre.Trim(),
+            Email = model.Email.Trim().ToLower(),
+            Telefono = model.Telefono?.Trim(),
+            Puesto = string.IsNullOrWhiteSpace(model.Puesto) ? "Empleado" : model.Puesto.Trim(),
+            Departamento = string.IsNullOrWhiteSpace(model.Departamento) ? "General" : model.Departamento.Trim(),
+            Salario = model.Salario < 0 ? 0 : model.Salario,
+            Rol = string.IsNullOrWhiteSpace(model.Rol) ? "Trabajador" : model.Rol.Trim(),
             FechaContratacion = DateTime.UtcNow,
             Activo = true
         };
@@ -175,29 +186,36 @@ public class UserController : Controller
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditEmployee(int id, string Nombre, string Email, string? Telefono, string Puesto, string Departamento, decimal Salario, string Rol, bool Activo)
+    public async Task<IActionResult> EditEmployee(EmployeeFormViewModel model)
     {
-        var employee = await _context.Employees.FindAsync(id);
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos del formulario no válidos.";
+            TempData["ErrorMessage"] = firstError;
+            return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "trabajadores" });
+        }
+
+        var employee = await _context.Employees.FindAsync(model.Id);
         if (employee == null)
         {
             TempData["ErrorMessage"] = "Trabajador no encontrado.";
             return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "trabajadores" });
         }
 
-        if (await _context.Employees.AnyAsync(e => e.Email == Email && e.Id != id))
+        if (await _context.Employees.AnyAsync(e => e.Email == model.Email && e.Id != model.Id))
         {
             TempData["ErrorMessage"] = "El correo electrónico ya pertenece a otro trabajador.";
             return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "trabajadores" });
         }
 
-        employee.Nombre = Nombre.Trim();
-        employee.Email = Email.Trim().ToLower();
-        employee.Telefono = Telefono?.Trim();
-        employee.Puesto = string.IsNullOrWhiteSpace(Puesto) ? employee.Puesto : Puesto.Trim();
-        employee.Departamento = string.IsNullOrWhiteSpace(Departamento) ? employee.Departamento : Departamento.Trim();
-        employee.Salario = Salario < 0 ? 0 : Salario;
-        employee.Rol = string.IsNullOrWhiteSpace(Rol) ? "Trabajador" : Rol.Trim();
-        employee.Activo = Activo;
+        employee.Nombre = model.Nombre.Trim();
+        employee.Email = model.Email.Trim().ToLower();
+        employee.Telefono = model.Telefono?.Trim();
+        employee.Puesto = string.IsNullOrWhiteSpace(model.Puesto) ? employee.Puesto : model.Puesto.Trim();
+        employee.Departamento = string.IsNullOrWhiteSpace(model.Departamento) ? employee.Departamento : model.Departamento.Trim();
+        employee.Salario = model.Salario < 0 ? 0 : model.Salario;
+        employee.Rol = string.IsNullOrWhiteSpace(model.Rol) ? "Trabajador" : model.Rol.Trim();
+        employee.Activo = model.Activo;
 
         await _context.SaveChangesAsync();
 
