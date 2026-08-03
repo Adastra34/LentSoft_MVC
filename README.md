@@ -33,26 +33,35 @@ LentSoft.Web/
 ### Requisitos Previos
 
 - [.NET SDK 9.0 o superior](https://dotnet.microsoft.com/download)
-- SQL Server LocalDB (incluido en Visual Studio) o cualquier otra instancia de SQL Server.
+- **SQL Server LocalDB** (incluido de forma estándar en Visual Studio, o instalable por separado).
+- Herramienta de Entity Framework Core CLI (se puede instalar globalmente ejecutando: `dotnet tool install --global dotnet-ef`).
 
-### Pasos para ejecutar localmente
+### Pasos para ejecutar localmente desde cero
 
-1. Navega a la carpeta del proyecto web:
+1. **Iniciar la instancia de base de datos local (LocalDB)**:
+   Asegúrate de que la instancia `MSSQLLocalDB` esté iniciada en tu equipo ejecutando en la terminal:
+   ```bash
+   sqllocaldb start MSSQLLocalDB
+   ```
+   *(Si por alguna razón la instancia no existiera, la puedes crear primero con `sqllocaldb create MSSQLLocalDB`).*
+
+2. **Navega a la carpeta del proyecto web**:
    ```bash
    cd LentSoft.Web
    ```
 
-2. (Opcional) Compila el proyecto para asegurar que no hay errores:
+3. **Restaurar y aplicar las migraciones a la base de datos**:
+   Ejecuta el siguiente comando para crear la base de datos `LentSoftDB_Dev` y aplicar todo el historial de migraciones desde cero:
    ```bash
-   dotnet build
+   dotnet ef database update
    ```
 
-3. Ejecuta la aplicación:
+4. **Compilar y ejecutar la aplicación**:
    ```bash
    dotnet run
    ```
 
-Al iniciar por primera vez en entorno de Desarrollo (`Development`), la aplicación aplicará automáticamente las migraciones a la base de datos y sembrará los datos de prueba iniciales.
+Al iniciar, el sistema también ejecutará automáticamente el sembrador de datos (`DbSeeder.cs`) para registrar los pacientes de prueba, citas, exámenes, fórmulas e historias clínicas sin duplicar datos.
 
 ## Usuarios de Prueba
 
