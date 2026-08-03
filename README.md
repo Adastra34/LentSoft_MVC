@@ -80,21 +80,17 @@ Puedes probar los diferentes roles con las siguientes credenciales:
   - Email: `user@lentsoft.com`
   - Contraseña: `user123`
 
-## Manejo de Secretos y Configuración en Producción
+## Manejo de Configuración Local y Secretos
 
-### Desarrollo Local (User Secrets)
-Para evitar subir credenciales sensibles al control de versiones (`git`), el proyecto utiliza **Secret Manager (.NET User Secrets)** en entorno local.
+### Desarrollo Local (`appsettings.Development.json`)
+Para evitar subir credenciales sensibles al control de versiones (`git`), el proyecto utiliza un archivo de configuración local `appsettings.Development.json` (el cual está excluido en `.gitignore`).
 
-Los valores reales se gestionan de forma independiente por cada desarrollador:
-```bash
-cd LentSoft.Web
-dotnet user-secrets set "PasswordResetJwt:SecretKey" "<CLAVE_CRIPTOGRAFICA_32_CARACTERES>"
-dotnet user-secrets set "EmailSettings:SmtpUser" "tu-correo@gmail.com"
-dotnet user-secrets set "EmailSettings:SmtpPassword" "tu-app-password"
-```
+Para correr el proyecto localmente:
+1. Copia `LentSoft.Web/appsettings.Development.example.json` a `LentSoft.Web/appsettings.Development.json`.
+2. Completa tus propios valores de prueba (puede ser una cuenta Gmail descartable con contraseña de aplicación para el envío de correos).
 
 ### Producción (Variables de Entorno)
-En servidores de producción, los valores confidenciales **NO deben incluirse en `appsettings.Production.json`**. Deben establecerse directamente como **Variables de Entorno** del sistema/servidor (usando doble guion bajo `__` para indicar la jerarquía en ASP.NET Core):
+En servidores de producción, los valores confidenciales deben establecerse directamente como **Variables de Entorno** del sistema o servidor (usando doble guion bajo `__` para indicar la jerarquía en ASP.NET Core):
 
 - `PasswordResetJwt__SecretKey` : Clave secreta aleatoria criptográfica (mínimo 32 caracteres).
 - `EmailSettings__SmtpUser` : Usuario/Correo para el servidor SMTP.
