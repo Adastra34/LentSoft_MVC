@@ -362,9 +362,9 @@
                                                 class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Editar">
                                             ✏️
                                         </button>
-                                        <form asp-controller="Optometra" asp-action="DeletePaciente" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de desactivar a este paciente? (Su estado cambiará a Inactivo)')">
+                                        <form id="form-delete-paciente-@p.Id" asp-controller="Optometra" asp-action="DeletePaciente" method="post" style="display:inline;">
                                             <input type="hidden" name="id" value="@p.Id" />
-                                            <button type="submit" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Desactivar Paciente">🗑️</button>
+                                            <button type="button" onclick="confirmDeactivatePaciente(@p.Id, '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(p.NombreCompleto))')" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Desactivar Paciente">🗑️</button>
                                         </form>
                                     </td>
                                 </tr>
@@ -691,9 +691,9 @@
                                                 class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Editar">
                                             ✏️
                                         </button>
-                                        <form asp-controller="Optometra" asp-action="DeleteAppointment" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar esta cita?')">
+                                        <form id="form-delete-appointment-@c.Id" asp-controller="Optometra" asp-action="DeleteAppointment" method="post" style="display:inline;">
                                             <input type="hidden" name="id" value="@c.Id" />
-                                            <button type="submit" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar cita">🗑️</button>
+                                            <button type="button" onclick="confirmDeleteAppointment(@c.Id)" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar cita">🗑️</button>
                                         </form>
                                     </td>
                                 </tr>
@@ -994,9 +994,9 @@
                                                     class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Editar">
                                                 ✏️
                                             </button>
-                                            <form asp-controller="Optometra" asp-action="DeleteHistorial" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar este registro?')">
+                                            <form id="form-delete-historial-@h.Id" asp-controller="Optometra" asp-action="DeleteHistorial" method="post" style="display:inline;">
                                                 <input type="hidden" name="id" value="@h.Id" />
-                                                <button type="submit" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar registro">🗑️</button>
+                                                <button type="button" onclick="confirmDeleteHistorial(@h.Id)" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar registro">🗑️</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -1228,9 +1228,9 @@
                                                     class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Editar">
                                                 ✏️
                                             </button>
-                                            <form asp-controller="Optometra" asp-action="DeleteExamen" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar este examen?')">
+                                            <form id="form-delete-examen-@ex.Id" asp-controller="Optometra" asp-action="DeleteExamen" method="post" style="display:inline;">
                                                 <input type="hidden" name="id" value="@ex.Id" />
-                                                <button type="submit" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar examen">🗑️</button>
+                                                <button type="button" onclick="confirmDeleteExamen(@ex.Id)" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar examen">🗑️</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -1671,9 +1671,9 @@
                                                     class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Editar">
                                                 ✏️
                                             </button>
-                                            <form asp-controller="Optometra" asp-action="DeleteFormula" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar esta fórmula?')">
+                                            <form id="form-delete-formula-@f.Id" asp-controller="Optometra" asp-action="DeleteFormula" method="post" style="display:inline;">
                                                 <input type="hidden" name="id" value="@f.Id" />
-                                                <button type="submit" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar fórmula">🗑️</button>
+                                                <button type="button" onclick="confirmDeleteFormula(@f.Id)" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar fórmula">🗑️</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -2471,6 +2471,71 @@
         document.getElementById('edit-formula-tipolente').value = btn.getAttribute('data-tipolente');
         document.getElementById('edit-formula-distanciapupilar').value = btn.getAttribute('data-distanciapupilar');
         document.getElementById('modal-editar-formula').style.display = 'flex';
+    }
+
+    function confirmDeactivatePaciente(id, nombre) {
+        if (typeof alertify !== 'undefined') {
+            alertify.confirm(
+                'Desactivar Paciente',
+                '¿Está seguro de desactivar a <strong>' + nombre + '</strong>? Su estado cambiará a Inactivo.',
+                function () { document.getElementById('form-delete-paciente-' + id).submit(); },
+                function () { alertify.message('Eliminación cancelada'); }
+            ).set('labels', { ok: 'Aceptar', cancel: 'Cancelar' });
+        } else if (confirm('¿Está seguro de desactivar a ' + nombre + '?')) {
+            document.getElementById('form-delete-paciente-' + id).submit();
+        }
+    }
+
+    function confirmDeleteAppointment(id) {
+        if (typeof alertify !== 'undefined') {
+            alertify.confirm(
+                'Eliminar Cita',
+                '¿Está seguro de eliminar esta cita? Esta acción no se puede deshacer.',
+                function () { document.getElementById('form-delete-appointment-' + id).submit(); },
+                function () { alertify.message('Eliminación cancelada'); }
+            ).set('labels', { ok: 'Aceptar', cancel: 'Cancelar' });
+        } else if (confirm('¿Está seguro de eliminar esta cita?')) {
+            document.getElementById('form-delete-appointment-' + id).submit();
+        }
+    }
+
+    function confirmDeleteHistorial(id) {
+        if (typeof alertify !== 'undefined') {
+            alertify.confirm(
+                'Eliminar Registro Clínico',
+                '¿Está seguro de eliminar este registro del historial clínico?',
+                function () { document.getElementById('form-delete-historial-' + id).submit(); },
+                function () { alertify.message('Eliminación cancelada'); }
+            ).set('labels', { ok: 'Aceptar', cancel: 'Cancelar' });
+        } else if (confirm('¿Está seguro de eliminar este registro?')) {
+            document.getElementById('form-delete-historial-' + id).submit();
+        }
+    }
+
+    function confirmDeleteExamen(id) {
+        if (typeof alertify !== 'undefined') {
+            alertify.confirm(
+                'Eliminar Examen Visual',
+                '¿Está seguro de eliminar este examen visual?',
+                function () { document.getElementById('form-delete-examen-' + id).submit(); },
+                function () { alertify.message('Eliminación cancelada'); }
+            ).set('labels', { ok: 'Aceptar', cancel: 'Cancelar' });
+        } else if (confirm('¿Está seguro de eliminar este examen?')) {
+            document.getElementById('form-delete-examen-' + id).submit();
+        }
+    }
+
+    function confirmDeleteFormula(id) {
+        if (typeof alertify !== 'undefined') {
+            alertify.confirm(
+                'Eliminar Fórmula Óptica',
+                '¿Está seguro de eliminar esta fórmula óptica? Esta acción no se puede deshacer.',
+                function () { document.getElementById('form-delete-formula-' + id).submit(); },
+                function () { alertify.message('Eliminación cancelada'); }
+            ).set('labels', { ok: 'Aceptar', cancel: 'Cancelar' });
+        } else if (confirm('¿Está seguro de eliminar esta fórmula?')) {
+            document.getElementById('form-delete-formula-' + id).submit();
+        }
     }
 </script>
 
