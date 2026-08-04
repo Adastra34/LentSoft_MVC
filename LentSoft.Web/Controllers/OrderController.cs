@@ -114,7 +114,7 @@ public class OrderController : Controller
                 {
                     foreach (var item in items)
                     {
-                        var product = await _context.Products.FindAsync(item.ProductId);
+                        var product = await _context.Products.Include(p => p.ProductStocks).FirstOrDefaultAsync(p => p.Id == item.ProductId);
                         if (product != null)
                         {
                             var qty = Math.Max(1, item.Cantidad);
@@ -129,9 +129,10 @@ public class OrderController : Controller
                                 PrecioUnitario = precioUnit
                             });
 
-                            if (product.Stock >= qty)
+                            var pStock = product.ProductStocks.FirstOrDefault(ps => ps.WarehouseId == 1) ?? product.ProductStocks.FirstOrDefault();
+                            if (pStock != null && pStock.Cantidad >= qty)
                             {
-                                product.Stock -= qty;
+                                pStock.Cantidad -= qty;
                             }
                         }
                     }

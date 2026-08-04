@@ -12,6 +12,11 @@ public class InventoryMovement
 
     public Product? Product { get; set; }
 
+    public int? WarehouseId { get; set; }
+
+    [System.ComponentModel.DataAnnotations.Schema.ForeignKey(nameof(WarehouseId))]
+    public Warehouse? Warehouse { get; set; }
+
     [Required(ErrorMessage = "El tipo de movimiento es obligatorio")]
     [StringLength(20)]
     public string Tipo { get; set; } = "Entrada"; // "Entrada" o "Salida"

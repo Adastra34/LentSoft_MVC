@@ -23,6 +23,10 @@ public class Product : IValidatableObject
     [Column(TypeName = "decimal(10,2)")]
     public decimal? PrecioDescuento { get; set; }
 
+    [Range(0, double.MaxValue, ErrorMessage = "El costo de compra no puede ser negativo")]
+    [Column(TypeName = "decimal(10,2)")]
+    public decimal CostoCompra { get; set; } = 0.00m;
+
     [Required(ErrorMessage = "La categoría es obligatoria")]
     [StringLength(50)]
     public string Categoria { get; set; } = string.Empty;
@@ -30,9 +34,12 @@ public class Product : IValidatableObject
     [StringLength(50)]
     public string? Marca { get; set; }
 
+    [NotMapped]
+    public int Stock => ProductStocks?.Sum(ps => ps.Cantidad) ?? 0;
+
     [Required]
-    [Range(0, int.MaxValue, ErrorMessage = "El stock no puede ser negativo")]
-    public int Stock { get; set; }
+    [Range(0, int.MaxValue, ErrorMessage = "El stock mínimo no puede ser negativo")]
+    public int StockMinimo { get; set; } = 5;
 
     [StringLength(500)]
     public string? ImagenUrl { get; set; }
@@ -69,6 +76,8 @@ public class Product : IValidatableObject
     // Navigation properties
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();
+    public ICollection<PurchaseOrderItem> PurchaseOrderItems { get; set; } = new List<PurchaseOrderItem>();
+    public ICollection<ProductStock> ProductStocks { get; set; } = new List<ProductStock>();
 
     /// <summary>
     /// Calcular porcentaje de descuento
@@ -79,6 +88,18 @@ public class Product : IValidatableObject
             return 0;
 
         return (int)Math.Round(((Precio - PrecioDescuento.Value) / Precio) * 100);
+    }
+
+    /// <summary>
+    /// Calcular porcentaje de margen de ganancia respecto al precio de venta final
+    /// </summary>
+    public int GetMargenPorcentaje()
+    {
+        var finalPrice = GetFinalPrice();
+        if (CostoCompra <= 0 || finalPrice <= 0 || finalPrice <= CostoCompra)
+            return 0;
+
+        return (int)Math.Round(((finalPrice - CostoCompra) / finalPrice) * 100);
     }
 
     /// <summary>

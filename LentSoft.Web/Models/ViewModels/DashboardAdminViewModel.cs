@@ -20,6 +20,9 @@ public class DashboardAdminViewModel
     // ── Inventario ──
     public List<Product> Productos { get; set; } = new();
     public List<Supplier> Proveedores { get; set; } = new();
+    public List<PurchaseOrder> PedidosProveedores { get; set; } = new();
+    public List<Warehouse> Bodegas { get; set; } = new();
+    public int? SelectedWarehouseId { get; set; }
     public List<InventoryMovement> HistorialMovimientos { get; set; } = new();
 
     // ── Ventas ──
