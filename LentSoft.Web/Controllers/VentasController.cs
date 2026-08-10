@@ -42,8 +42,9 @@ public class VentasController : Controller
             .ToListAsync();
 
         var clientes = await _context.Users
-            .Where(u => u.Role == "usuario")
+            .Where(u => u.Activo)
             .OrderBy(u => u.Nombre)
+            .ThenBy(u => u.Apellido)
             .ToListAsync();
 
         var ventasDelMes = ventas

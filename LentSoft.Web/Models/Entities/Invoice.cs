@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace LentSoft.Web.Models.Entities;
 
@@ -8,8 +9,8 @@ public class Invoice : IValidatableObject
     [Key]
     public int Id { get; set; }
 
-    [Required]
     [StringLength(50)]
+    [ValidateNever]
     public string NumeroFactura { get; set; } = string.Empty;
 
     [Required]
@@ -45,7 +46,8 @@ public class Invoice : IValidatableObject
 
     // Navigation properties
     [ForeignKey(nameof(OrderId))]
-    public Order Order { get; set; } = null!;
+    [ValidateNever]
+    public Order? Order { get; set; }
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {

@@ -90,9 +90,9 @@
                     <select name="rangoPrecio" class="form-select" onchange="this.form.submit()"
                             style="padding: 0.45rem 0.75rem; border-radius: 0.5rem; border: 1.5px solid var(--gray-200); font-size: 0.85rem; background: white; min-width: 140px;">
                         <option value="">Todos los precios</option>
-                        <option value="menos-1000" selected="@(Model.RangoPrecio == "menos-1000")">Menos de $1,000</option>
-                        <option value="1000-2000" selected="@(Model.RangoPrecio == "1000-2000")">$1,000 - $2,000</option>
-                        <option value="mas-2000" selected="@(Model.RangoPrecio == "mas-2000")">Más de $2,000</option>
+                        <option value="menos-500000" selected="@(Model.RangoPrecio == "menos-500000")">Menos de COP $500.000</option>
+                        <option value="500000-1500000" selected="@(Model.RangoPrecio == "500000-1500000")">COP $500.000 - COP $1.500.000</option>
+                        <option value="mas-1500000" selected="@(Model.RangoPrecio == "mas-1500000")">Más de COP $1.500.000</option>
                     </select>
                     @if (!string.IsNullOrEmpty(Model.Marca) || !string.IsNullOrEmpty(Model.RangoPrecio) || !string.IsNullOrEmpty(Model.Categoria))
                     {

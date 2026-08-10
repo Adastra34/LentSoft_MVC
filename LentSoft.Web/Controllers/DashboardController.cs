@@ -202,6 +202,7 @@ public class DashboardController : Controller
 
             // Clientes
             Clientes = clientesList,
+            TodosLosClientes = await _context.Users.Where(u => u.Activo).OrderBy(u => u.Nombre).ThenBy(u => u.Apellido).ToListAsync(),
             ClientesSearchTerm = clientesSearch,
             ClientesPage = clientesPage,
             ClientesPageSize = clientesPageSize,

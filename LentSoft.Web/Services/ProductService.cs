@@ -64,9 +64,9 @@ public class ProductService : IProductService
         {
             query = rangoPrecio switch
             {
-                "menos-1000" => query.Where(p => p.Precio < 1000),
-                "1000-2000" => query.Where(p => p.Precio >= 1000 && p.Precio <= 2000),
-                "mas-2000" => query.Where(p => p.Precio > 2000),
+                "menos-500000" => query.Where(p => p.Precio < 500000),
+                "500000-1500000" => query.Where(p => p.Precio >= 500000 && p.Precio <= 1500000),
+                "mas-1500000" => query.Where(p => p.Precio > 1500000),
                 _ => query
             };
         }

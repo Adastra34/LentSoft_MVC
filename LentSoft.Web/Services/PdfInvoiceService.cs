@@ -142,7 +142,7 @@ public class PdfInvoiceService : IPdfInvoiceService
                     header.Cell().Background("#7C3AED").Padding(5).Text("Descripción Producto / Servicio").Bold().FontColor(Colors.White);
                     header.Cell().Background("#7C3AED").Padding(5).AlignRight().Text("Cant.").Bold().FontColor(Colors.White);
                     header.Cell().Background("#7C3AED").Padding(5).AlignRight().Text("P. Unitario").Bold().FontColor(Colors.White);
-                    header.Cell().Background("#7C3AED").Padding(5).AlignRight().Text("IVA (19%)").Bold().FontColor(Colors.White);
+                    header.Cell().Background("#7C3AED").Padding(5).AlignRight().Text("IVA Ítem").Bold().FontColor(Colors.White);
                     header.Cell().Background("#7C3AED").Padding(5).AlignRight().Text("Subtotal").Bold().FontColor(Colors.White);
                 });
 
@@ -151,23 +151,25 @@ public class PdfInvoiceService : IPdfInvoiceService
                     foreach (var item in invoice.Order.OrderItems)
                     {
                         var prodName = item.Product?.Nombre ?? $"Producto #{item.ProductId}";
-                        var itemSubtotal = item.Subtotal / 1.19m;
-                        var itemIva = item.Subtotal - itemSubtotal;
+                        var ivaRate = item.Product != null && item.Product.PorcentajeIva >= 0 ? item.Product.PorcentajeIva : 19.00m;
+                        var baseUnit = ivaRate > 0 ? (item.PrecioUnitario / (1m + (ivaRate / 100m))) : item.PrecioUnitario;
+                        var itemSubtotalBase = baseUnit * item.Cantidad;
+                        var itemIva = item.Subtotal - itemSubtotalBase;
 
                         table.Cell().BorderBottom(1).BorderColor("#F3E8FF").Padding(5).Text(prodName);
                         table.Cell().BorderBottom(1).BorderColor("#F3E8FF").Padding(5).AlignRight().Text(item.Cantidad.ToString());
-                        table.Cell().BorderBottom(1).BorderColor("#F3E8FF").Padding(5).AlignRight().Text($"${(item.PrecioUnitario / 1.19m):N2}");
-                        table.Cell().BorderBottom(1).BorderColor("#F3E8FF").Padding(5).AlignRight().Text($"${itemIva:N2}");
-                        table.Cell().BorderBottom(1).BorderColor("#F3E8FF").Padding(5).AlignRight().Text($"${item.Subtotal:N2}");
+                        table.Cell().BorderBottom(1).BorderColor("#F3E8FF").Padding(5).AlignRight().Text($"COP ${baseUnit:N0}");
+                        table.Cell().BorderBottom(1).BorderColor("#F3E8FF").Padding(5).AlignRight().Text($"({ivaRate:0.#}%) COP ${itemIva:N0}");
+                        table.Cell().BorderBottom(1).BorderColor("#F3E8FF").Padding(5).AlignRight().Text($"COP ${item.Subtotal:N0}");
                     }
                 }
                 else
                 {
                     table.Cell().BorderBottom(1).BorderColor("#F3E8FF").Padding(5).Text("Lentes de contacto / Monturas de Optometría");
                     table.Cell().BorderBottom(1).BorderColor("#F3E8FF").Padding(5).AlignRight().Text("1");
-                    table.Cell().BorderBottom(1).BorderColor("#F3E8FF").Padding(5).AlignRight().Text($"${invoice.Subtotal:N2}");
-                    table.Cell().BorderBottom(1).BorderColor("#F3E8FF").Padding(5).AlignRight().Text($"${invoice.Impuestos:N2}");
-                    table.Cell().BorderBottom(1).BorderColor("#F3E8FF").Padding(5).AlignRight().Text($"${invoice.Total:N2}");
+                    table.Cell().BorderBottom(1).BorderColor("#F3E8FF").Padding(5).AlignRight().Text($"COP ${invoice.Subtotal:N0}");
+                    table.Cell().BorderBottom(1).BorderColor("#F3E8FF").Padding(5).AlignRight().Text($"COP ${invoice.Impuestos:N0}");
+                    table.Cell().BorderBottom(1).BorderColor("#F3E8FF").Padding(5).AlignRight().Text($"COP ${invoice.Total:N0}");
                 }
             });
 
@@ -177,17 +179,17 @@ public class PdfInvoiceService : IPdfInvoiceService
                 totCol.Item().Row(r =>
                 {
                     r.ConstantItem(150).Text("Subtotal Gravado:").AlignRight();
-                    r.ConstantItem(110).Text($"${invoice.Subtotal:N2}").Bold().AlignRight();
+                    r.ConstantItem(110).Text($"COP ${invoice.Subtotal:N0}").Bold().AlignRight();
                 });
                 totCol.Item().Row(r =>
                 {
-                    r.ConstantItem(150).Text("IVA 19% (Art. 468 E.T.):").AlignRight();
-                    r.ConstantItem(110).Text($"${invoice.Impuestos:N2}").Bold().AlignRight();
+                    r.ConstantItem(150).Text("Total IVA (Discrim.):").AlignRight();
+                    r.ConstantItem(110).Text($"COP ${invoice.Impuestos:N0}").Bold().AlignRight();
                 });
                 totCol.Item().Row(r =>
                 {
                     r.ConstantItem(150).Text("TOTAL FACTURA:").FontSize(11).Bold().FontColor("#4C1D95").AlignRight();
-                    r.ConstantItem(110).Text($"${invoice.Total:N2}").FontSize(11).Bold().FontColor("#4C1D95").AlignRight();
+                    r.ConstantItem(110).Text($"COP ${invoice.Total:N0}").FontSize(11).Bold().FontColor("#4C1D95").AlignRight();
                 });
             });
 
