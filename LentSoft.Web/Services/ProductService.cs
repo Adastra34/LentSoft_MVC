@@ -18,7 +18,7 @@ public class ProductService : IProductService
 
     public async Task<List<Product>> GetAllAsync(bool includeInactive = false)
     {
-        var query = _context.Products.AsQueryable();
+        var query = _context.Products.Include(p => p.ProductStocks).AsQueryable();
         if (!includeInactive)
         {
             query = query.Where(p => p.Activo);
@@ -32,6 +32,7 @@ public class ProductService : IProductService
     public async Task<List<Product>> GetActiveAsync()
     {
         return await _context.Products
+            .Include(p => p.ProductStocks)
             .Where(p => p.Activo)
             .OrderBy(p => p.Nombre)
             .ToListAsync();
@@ -39,7 +40,9 @@ public class ProductService : IProductService
 
     public async Task<Product?> GetByIdAsync(int id)
     {
-        return await _context.Products.FindAsync(id);
+        return await _context.Products
+            .Include(p => p.ProductStocks)
+            .FirstOrDefaultAsync(p => p.Id == id);
     }
 
     /// <summary>
@@ -48,7 +51,7 @@ public class ProductService : IProductService
     /// </summary>
     public async Task<List<Product>> FilterAsync(string? categoria, string? marca, string? rangoPrecio)
     {
-        var query = _context.Products.Where(p => p.Activo).AsQueryable();
+        var query = _context.Products.Include(p => p.ProductStocks).Where(p => p.Activo).AsQueryable();
 
         if (!string.IsNullOrEmpty(categoria))
         {
@@ -98,10 +101,20 @@ public class ProductService : IProductService
     {
         product.FechaCreacion = DateTime.UtcNow;
         _context.Products.Add(product);
-
         try
         {
             await _context.SaveChangesAsync();
+
+            // Create default ProductStock entry in Bodega Principal (WarehouseId = 1)
+            var defaultStock = new ProductStock
+            {
+                ProductId = product.Id,
+                WarehouseId = 1,
+                Cantidad = 0
+            };
+            _context.ProductStocks.Add(defaultStock);
+            await _context.SaveChangesAsync();
+
             return product;
         }
         catch (DbUpdateException ex)
@@ -112,18 +125,35 @@ public class ProductService : IProductService
 
     public async Task<Product?> UpdateAsync(int id, Product updated)
     {
-        var product = await _context.Products.FindAsync(id);
+        var product = await _context.Products
+            .Include(p => p.ProductStocks)
+            .FirstOrDefaultAsync(p => p.Id == id);
+
         if (product == null) return null;
 
         product.Nombre = updated.Nombre;
         product.Descripcion = updated.Descripcion;
         product.Precio = updated.Precio;
         product.PrecioDescuento = updated.PrecioDescuento;
+        product.CostoCompra = updated.CostoCompra;
         product.Categoria = updated.Categoria;
         product.Marca = updated.Marca;
-        product.Stock = updated.Stock;
+        product.StockMinimo = updated.StockMinimo;
         product.ImagenUrl = updated.ImagenUrl;
         product.Activo = updated.Activo;
+
+        // Update default stock entry in Bodega Principal (WarehouseId = 1)
+        var pStock = product.ProductStocks.FirstOrDefault(ps => ps.WarehouseId == 1);
+        if (pStock == null)
+        {
+            pStock = new ProductStock
+            {
+                ProductId = product.Id,
+                WarehouseId = 1,
+                Cantidad = 0
+            };
+            _context.ProductStocks.Add(pStock);
+        }
 
         try
         {
@@ -180,10 +210,10 @@ public class ProductService : IProductService
 
     public async Task<List<Product>> GetBestSellersAsync(int count = 3)
     {
-        // Return the first N active products ordered by stock (most popular proxy)
         return await _context.Products
+            .Include(p => p.ProductStocks)
             .Where(p => p.Activo)
-            .OrderByDescending(p => p.Stock)
+            .OrderByDescending(p => p.ProductStocks.Sum(ps => ps.Cantidad))
             .Take(count)
             .ToListAsync();
     }
@@ -191,6 +221,7 @@ public class ProductService : IProductService
     public async Task<List<Product>> GetFeaturedAsync()
     {
         return await _context.Products
+            .Include(p => p.ProductStocks)
             .Where(p => p.Activo && p.EsDestacado)
             .OrderByDescending(p => p.Rating)
             .ToListAsync();
@@ -199,7 +230,36 @@ public class ProductService : IProductService
     public async Task<List<Product>> GetGafasAsync()
     {
         return await _context.Products
+            .Include(p => p.ProductStocks)
             .Where(p => p.Activo && (p.Categoria == "lentes-sol" || p.Categoria == "monturas" || p.Categoria == "lentes-graduados"))
+            .OrderBy(p => p.Nombre)
+            .ToListAsync();
+    }
+
+    public async Task<List<Product>> GetProductosBajoStockAsync()
+    {
+        return await _context.Products
+            .Include(p => p.ProductStocks)
+            .Where(p => p.Activo && p.ProductStocks.Sum(ps => ps.Cantidad) <= p.StockMinimo)
+            .OrderBy(p => p.ProductStocks.Sum(ps => ps.Cantidad))
+            .ToListAsync();
+    }
+
+    public async Task<List<InventoryMovement>> GetKardexPorProductoAsync(int productId)
+    {
+        return await _context.InventoryMovements
+            .Include(m => m.Product)
+            .Include(m => m.Warehouse)
+            .Where(m => m.ProductId == productId)
+            .OrderBy(m => m.Fecha)
+            .ToListAsync();
+    }
+
+    public async Task<List<Product>> GetProductosSinMovimientoAsync()
+    {
+        return await _context.Products
+            .Include(p => p.ProductStocks)
+            .Where(p => p.Activo && !_context.InventoryMovements.Any(m => m.ProductId == p.Id))
             .OrderBy(p => p.Nombre)
             .ToListAsync();
     }
