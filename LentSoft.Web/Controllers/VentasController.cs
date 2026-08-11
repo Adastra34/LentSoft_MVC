@@ -42,7 +42,7 @@ public class VentasController : Controller
             .ToListAsync();
 
         var clientes = await _context.Users
-            .Where(u => u.Activo)
+            .Where(u => u.Activo && u.Role == "usuario")
             .OrderBy(u => u.Nombre)
             .ThenBy(u => u.Apellido)
             .ToListAsync();

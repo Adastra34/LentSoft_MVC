@@ -569,7 +569,15 @@
                 <input type="hidden" id="selectedUserIdVentas" name="UserId" value="" />
 
                 <div style="margin-bottom: 0.75rem;">
-                    <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">🔍 Seleccionar Cuenta / Cliente Registrado (Opcional)</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">🔍 Seleccionar Cuenta / Cliente Registrado</label>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <div style="flex: 1;">
+                            <input type="text" id="searchNameVentas" placeholder="⚡ Buscar por nombre o apellido..." onkeyup="filterClientSelectVentas()" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-400); font-size: 0.83rem; background-color: var(--purple-50); color: var(--purple-900); font-weight: 500;" />
+                        </div>
+                        <div style="flex: 1;">
+                            <input type="text" id="searchCedulaVentas" placeholder="🪪 Buscar por N° Cédula C.C..." onkeyup="filterClientSelectVentas()" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-400); font-size: 0.83rem; background-color: var(--purple-50); color: var(--purple-900); font-weight: 500;" />
+                        </div>
+                    </div>
                     <select id="userSelectVentas" class="form-input" onchange="onUserSelectedVentas(this)" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); font-size: 0.85rem; background-color: white;">
                         <option value="">-- Buscar o Seleccionar Cliente Registrado --</option>
                         @foreach (var user in Model.Clientes)
@@ -589,26 +597,26 @@
                 <div style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
                     <div style="flex: 1;">
                         <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Nombre *</label>
-                        <input id="saleNombreVentas" name="Nombre" type="text" required placeholder="Ej: Juan" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" />
+                        <input id="saleNombreVentas" name="Nombre" type="text" required readonly="readonly" placeholder="Seleccione un cliente" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--gray-100); cursor: not-allowed;" />
                     </div>
                     <div style="flex: 1;">
                         <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Apellido *</label>
-                        <input id="saleApellidoVentas" name="Apellido" type="text" required placeholder="Ej: Pérez" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" />
+                        <input id="saleApellidoVentas" name="Apellido" type="text" required readonly="readonly" placeholder="Seleccione un cliente" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--gray-100); cursor: not-allowed;" />
                     </div>
                 </div>
                 <div style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
                     <div style="flex: 1;">
                         <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">N° Cédula / Documento *</label>
-                        <input id="saleCedulaVentas" name="NumeroDocumento" type="text" required placeholder="Ej: 1012345678" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" />
+                        <input id="saleCedulaVentas" name="NumeroDocumento" type="text" required readonly="readonly" placeholder="Seleccione un cliente" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--gray-100); cursor: not-allowed;" />
                     </div>
                     <div style="flex: 1;">
                         <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Teléfono *</label>
-                        <input id="saleTelefonoVentas" name="Telefono" type="text" required placeholder="Ej: 3001234567" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" />
+                        <input id="saleTelefonoVentas" name="Telefono" type="text" required readonly="readonly" placeholder="Seleccione un cliente" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--gray-100); cursor: not-allowed;" />
                     </div>
                 </div>
                 <div style="margin-bottom: 0.75rem;">
                     <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Dirección *</label>
-                    <input id="saleDireccionVentas" name="Direccion" type="text" required placeholder="Ej: Calle 123 # 45-67" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" />
+                    <input id="saleDireccionVentas" name="Direccion" type="text" required readonly="readonly" placeholder="Seleccione un cliente" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--gray-100); cursor: not-allowed;" />
                 </div>
             </div>
 
@@ -812,10 +820,35 @@
         if (jsonInput) jsonInput.value = JSON.stringify(saleItemsVentas.map(i => ({ productId: i.productId, cantidad: i.cantidad })));
     }
 
+    function filterClientSelectVentas() {
+        const nameQuery = (document.getElementById('searchNameVentas')?.value || '').toLowerCase().trim();
+        const cedulaQuery = (document.getElementById('searchCedulaVentas')?.value || '').toLowerCase().trim();
+        const selectEl = document.getElementById('userSelectVentas');
+        if (!selectEl) return;
+        const options = selectEl.options;
+        for (let i = 1; i < options.length; i++) {
+            const opt = options[i];
+            const nombre = (opt.getAttribute('data-nombre') || '').toLowerCase();
+            const apellido = (opt.getAttribute('data-apellido') || '').toLowerCase();
+            const fullName = (nombre + ' ' + apellido).toLowerCase();
+            const cedula = (opt.getAttribute('data-cedula') || '').toLowerCase();
+
+            const nameMatch = !nameQuery || fullName.includes(nameQuery) || nombre.includes(nameQuery) || apellido.includes(nameQuery);
+            const cedulaMatch = !cedulaQuery || cedula.includes(cedulaQuery);
+
+            opt.style.display = (nameMatch && cedulaMatch) ? '' : 'none';
+        }
+    }
+
     function onUserSelectedVentas(selectEl) {
         const option = selectEl.options[selectEl.selectedIndex];
         if (!selectEl.value) {
             document.getElementById('selectedUserIdVentas').value = '';
+            document.getElementById('saleNombreVentas').value = '';
+            document.getElementById('saleApellidoVentas').value = '';
+            document.getElementById('saleCedulaVentas').value = '';
+            document.getElementById('saleTelefonoVentas').value = '';
+            document.getElementById('saleDireccionVentas').value = '';
             return;
         }
         const nombre = option.getAttribute('data-nombre') || '';
@@ -825,11 +858,11 @@
         const direccion = option.getAttribute('data-direccion') || '';
 
         document.getElementById('selectedUserIdVentas').value = selectEl.value;
-        if (nombre) document.getElementById('saleNombreVentas').value = nombre;
-        if (apellido) document.getElementById('saleApellidoVentas').value = apellido;
-        if (cedula) document.getElementById('saleCedulaVentas').value = cedula;
-        if (telefono) document.getElementById('saleTelefonoVentas').value = telefono;
-        if (direccion) document.getElementById('saleDireccionVentas').value = direccion;
+        document.getElementById('saleNombreVentas').value = nombre;
+        document.getElementById('saleApellidoVentas').value = apellido;
+        document.getElementById('saleCedulaVentas').value = cedula;
+        document.getElementById('saleTelefonoVentas').value = telefono;
+        document.getElementById('saleDireccionVentas').value = direccion;
     }
 
     function validateSaleFormVentas() {
