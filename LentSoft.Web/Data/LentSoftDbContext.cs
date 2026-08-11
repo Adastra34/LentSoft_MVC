@@ -383,7 +383,8 @@ public class LentSoftDbContext : DbContext
                 Id = 1,
                 Nombre = "Lentes Ray-Ban Aviator",
                 Descripcion = "Lentes de sol clásicos estilo aviador",
-                Precio = 2500.00m,
+                Precio = 2500000.00m,
+                PorcentajeIva = 19.00m,
                 Categoria = "lentes-sol",
                 Marca = "Ray-Ban",
                 ImagenUrl = "https://images.unsplash.com/photo-1572635196237-14b3f281503f",
@@ -404,8 +405,9 @@ public class LentSoftDbContext : DbContext
                 Id = 2,
                 Nombre = "Lentes de Contacto Acuvue",
                 Descripcion = "Lentes de contacto mensuales",
-                Precio = 450.00m,
-                PrecioDescuento = 399.00m,
+                Precio = 450000.00m,
+                PrecioDescuento = 399000.00m,
+                PorcentajeIva = 19.00m,
                 Categoria = "lentes-contacto",
                 Marca = "Acuvue",
                 Activo = true,
@@ -419,7 +421,8 @@ public class LentSoftDbContext : DbContext
                 Id = 3,
                 Nombre = "Montura Oakley Sport",
                 Descripcion = "Montura deportiva ultraligera",
-                Precio = 1800.00m,
+                Precio = 1800000.00m,
+                PorcentajeIva = 19.00m,
                 Categoria = "monturas",
                 Marca = "Oakley",
                 Activo = true,
@@ -439,7 +442,8 @@ public class LentSoftDbContext : DbContext
                 Id = 4,
                 Nombre = "Lentes Graduados Classic",
                 Descripcion = "Lentes graduados con diseño clásico",
-                Precio = 1200.00m,
+                Precio = 1200000.00m,
+                PorcentajeIva = 19.00m,
                 Categoria = "lentes-graduados",
                 Marca = "LentSoft",
                 Activo = true,
@@ -459,8 +463,9 @@ public class LentSoftDbContext : DbContext
                 Id = 5,
                 Nombre = "Estuche Premium",
                 Descripcion = "Estuche rígido para lentes",
-                Precio = 150.00m,
-                PrecioDescuento = 99.00m,
+                Precio = 150000.00m,
+                PrecioDescuento = 99000.00m,
+                PorcentajeIva = 19.00m,
                 Categoria = "accesorios",
                 Marca = "LentSoft",
                 Activo = true,
@@ -474,7 +479,8 @@ public class LentSoftDbContext : DbContext
                 Id = 6,
                 Nombre = "Líquido Limpiador",
                 Descripcion = "Solución limpiadora para lentes 360ml",
-                Precio = 120.00m,
+                Precio = 120000.00m,
+                PorcentajeIva = 5.00m,
                 Categoria = "accesorios",
                 Marca = "Opti-Free",
                 Activo = true,
@@ -517,7 +523,7 @@ public class LentSoftDbContext : DbContext
                 Telefono = "555-0101",
                 Puesto = "Optometrista",
                 Departamento = "Atención al Cliente",
-                Salario = 25000.00m,
+                Salario = 2500000.00m,
                 FechaContratacion = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc),
                 Activo = true
             },
@@ -529,19 +535,19 @@ public class LentSoftDbContext : DbContext
                 Telefono = "555-0102",
                 Puesto = "Vendedor",
                 Departamento = "Ventas",
-                Salario = 18000.00m,
+                Salario = 1800000.00m,
                 FechaContratacion = new DateTime(2025, 8, 15, 0, 0, 0, DateTimeKind.Utc),
                 Activo = true
             },
             new Employee
             {
                 Id = 3,
-                Nombre = "Ana Martínez",
-                Email = "ana.martinez@lentsoft.com",
+                Nombre = "Carlos Mendoza",
+                Email = "carlos.mendoza@lentsoft.com",
                 Telefono = "555-0103",
                 Puesto = "Gerente",
                 Departamento = "Administración",
-                Salario = 35000.00m,
+                Salario = 3500000.00m,
                 FechaContratacion = new DateTime(2024, 3, 1, 0, 0, 0, DateTimeKind.Utc),
                 Activo = true
             }
@@ -553,7 +559,7 @@ public class LentSoftDbContext : DbContext
             {
                 Id = 1,
                 UserId = 2,
-                Total = 2500.00m,
+                Total = 2500000.00m,
                 Estado = "entregado",
                 DireccionEnvio = "Calle 123 #45-67",
                 FechaPedido = new DateTime(2026, 5, 15, 10, 0, 0, DateTimeKind.Utc)
@@ -562,7 +568,7 @@ public class LentSoftDbContext : DbContext
             {
                 Id = 2,
                 UserId = 2,
-                Total = 1800.00m,
+                Total = 1800000.00m,
                 Estado = "enviado",
                 DireccionEnvio = "Calle 123 #45-67",
                 FechaPedido = new DateTime(2026, 5, 20, 14, 30, 0, DateTimeKind.Utc)
@@ -577,7 +583,7 @@ public class LentSoftDbContext : DbContext
                 OrderId = 1,
                 ProductId = 1,
                 Cantidad = 1,
-                PrecioUnitario = 2500.00m
+                PrecioUnitario = 2500000.00m
             },
             new OrderItem
             {
@@ -585,7 +591,7 @@ public class LentSoftDbContext : DbContext
                 OrderId = 2,
                 ProductId = 3,
                 Cantidad = 1,
-                PrecioUnitario = 1800.00m
+                PrecioUnitario = 1800000.00m
             }
         );
 

@@ -74,15 +74,45 @@ public class InvoiceService : IInvoiceService
         }
         invoice.NumeroFactura = candidate;
 
-        // Auto-calcular montos (Subtotal, IVA 19%, Total) basado en el pedido si no fueron provistos
+        // Auto-calcular montos (Subtotal e IVA discriminado por ítem) basado en el pedido
         if (invoice.OrderId > 0)
         {
-            var order = await _context.Orders.FindAsync(invoice.OrderId);
+            var order = await _context.Orders
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Product)
+                .FirstOrDefaultAsync(o => o.Id == invoice.OrderId);
+
             if (order != null)
             {
                 if (invoice.Total == 0) invoice.Total = order.Total;
-                if (invoice.Subtotal == 0) invoice.Subtotal = Math.Round(invoice.Total / 1.19m, 2);
-                if (invoice.Impuestos == 0) invoice.Impuestos = invoice.Total - invoice.Subtotal;
+
+                if (invoice.Subtotal == 0 || invoice.Impuestos == 0)
+                {
+                    decimal calcSubtotal = 0;
+                    decimal calcImpuestos = 0;
+
+                    if (order.OrderItems != null && order.OrderItems.Any())
+                    {
+                        foreach (var item in order.OrderItems)
+                        {
+                            var rate = item.Product != null && item.Product.PorcentajeIva >= 0 ? item.Product.PorcentajeIva : 19.00m;
+                            var baseUnit = rate > 0 ? (item.PrecioUnitario / (1m + (rate / 100m))) : item.PrecioUnitario;
+                            var itemBaseTotal = baseUnit * item.Cantidad;
+                            var itemIvaTotal = item.Subtotal - itemBaseTotal;
+
+                            calcSubtotal += itemBaseTotal;
+                            calcImpuestos += itemIvaTotal;
+                        }
+                    }
+                    else
+                    {
+                        calcSubtotal = Math.Round(invoice.Total / 1.19m, 2);
+                        calcImpuestos = invoice.Total - calcSubtotal;
+                    }
+
+                    if (invoice.Subtotal == 0) invoice.Subtotal = Math.Round(calcSubtotal, 2);
+                    if (invoice.Impuestos == 0) invoice.Impuestos = Math.Round(calcImpuestos, 2);
+                }
             }
         }
 
@@ -96,9 +126,16 @@ public class InvoiceService : IInvoiceService
             invoice.FechaPago = DateTime.UtcNow;
         }
 
-        _context.Invoices.Add(invoice);
-        await _context.SaveChangesAsync();
-        return invoice;
+        try
+        {
+            _context.Invoices.Add(invoice);
+            await _context.SaveChangesAsync();
+            return invoice;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo crear la factura debido a una restricción de datos en la base de datos.", ex);
+        }
     }
 
     public async Task<Invoice?> UpdateAsync(Invoice invoice)
@@ -122,8 +159,15 @@ public class InvoiceService : IInvoiceService
             existing.FechaPago = null;
         }
 
-        await _context.SaveChangesAsync();
-        return existing;
+        try
+        {
+            await _context.SaveChangesAsync();
+            return existing;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo actualizar la factura debido a una restricción de datos.", ex);
+        }
     }
 
     public async Task<bool> DeleteAsync(int id)
@@ -133,8 +177,16 @@ public class InvoiceService : IInvoiceService
 
         existing.Activo = false;
         _context.Invoices.Update(existing);
-        await _context.SaveChangesAsync();
-        return true;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo eliminar la factura porque está asociada a otros registros.", ex);
+        }
     }
 
     public async Task<List<Order>> GetOrdersAvailableForInvoicingAsync()

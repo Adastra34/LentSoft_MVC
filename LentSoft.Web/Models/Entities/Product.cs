@@ -48,6 +48,9 @@ public class Product : IValidatableObject
 
     public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal PorcentajeIva { get; set; } = 19.00m;
+
     [Column(TypeName = "decimal(3,2)")]
     public decimal Rating { get; set; } = 4.8m;
 

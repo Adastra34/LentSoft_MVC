@@ -67,9 +67,9 @@ public class ProductService : IProductService
         {
             query = rangoPrecio switch
             {
-                "menos-1000" => query.Where(p => p.Precio < 1000),
-                "1000-2000" => query.Where(p => p.Precio >= 1000 && p.Precio <= 2000),
-                "mas-2000" => query.Where(p => p.Precio > 2000),
+                "menos-500000" => query.Where(p => p.Precio < 500000),
+                "500000-1500000" => query.Where(p => p.Precio >= 500000 && p.Precio <= 1500000),
+                "mas-1500000" => query.Where(p => p.Precio > 1500000),
                 _ => query
             };
         }
@@ -101,19 +101,26 @@ public class ProductService : IProductService
     {
         product.FechaCreacion = DateTime.UtcNow;
         _context.Products.Add(product);
-        await _context.SaveChangesAsync();
-
-        // Create default ProductStock entry in Bodega Principal (WarehouseId = 1)
-        var defaultStock = new ProductStock
+        try
         {
-            ProductId = product.Id,
-            WarehouseId = 1,
-            Cantidad = 0
-        };
-        _context.ProductStocks.Add(defaultStock);
-        await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync();
 
-        return product;
+            // Create default ProductStock entry in Bodega Principal (WarehouseId = 1)
+            var defaultStock = new ProductStock
+            {
+                ProductId = product.Id,
+                WarehouseId = 1,
+                Cantidad = 0
+            };
+            _context.ProductStocks.Add(defaultStock);
+            await _context.SaveChangesAsync();
+
+            return product;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo crear el producto debido a una restricción de datos.", ex);
+        }
     }
 
     public async Task<Product?> UpdateAsync(int id, Product updated)
@@ -148,8 +155,19 @@ public class ProductService : IProductService
             _context.ProductStocks.Add(pStock);
         }
 
-        await _context.SaveChangesAsync();
-        return product;
+        try
+        {
+            await _context.SaveChangesAsync();
+            return product;
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            throw new InvalidOperationException("El producto fue modificado por otro usuario.", ex);
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudieron guardar los cambios del producto debido a una restricción de datos.", ex);
+        }
     }
 
     public async Task<bool> DeleteAsync(int id)
@@ -159,8 +177,16 @@ public class ProductService : IProductService
 
         product.Activo = false;
         _context.Products.Update(product);
-        await _context.SaveChangesAsync();
-        return true;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se puede eliminar este producto porque tiene pedidos o registros asociados.", ex);
+        }
     }
 
     public async Task<bool> ReactivateAsync(int id)
@@ -170,8 +196,16 @@ public class ProductService : IProductService
 
         product.Activo = true;
         _context.Products.Update(product);
-        await _context.SaveChangesAsync();
-        return true;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo reactivar el producto debido a una restricción de base de datos.", ex);
+        }
     }
 
     public async Task<List<Product>> GetBestSellersAsync(int count = 3)

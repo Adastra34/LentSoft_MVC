@@ -97,13 +97,25 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateAppointmentStatus(int id, string estado)
     {
-        var cita = await _context.Appointments.FindAsync(id);
-        if (cita != null)
+        try
         {
-            cita.Estado = estado;
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Estado de cita actualizado.";
+            var cita = await _context.Appointments.FindAsync(id);
+            if (cita != null)
+            {
+                cita.Estado = estado;
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Estado de cita actualizado.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Cita no encontrada.";
+            }
         }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al actualizar la cita: {ex.Message}";
+        }
+
         return RedirectToAction("Index", new { section = "citas" });
     }
 
@@ -112,7 +124,13 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateHistorial(HistorialClinico model)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
+        {
+            TempData["ErrorMessage"] = "Error al crear el historial clínico. Por favor verifica los datos.";
+            return RedirectToAction("Index", new { section = "historial" });
+        }
+
+        try
         {
             model.OptometraId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             model.FechaCreacion = DateTime.UtcNow;
@@ -121,10 +139,11 @@ public class OptometraController : Controller
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Historial clínico creado exitosamente.";
         }
-        else
+        catch (Exception ex)
         {
-            TempData["ErrorMessage"] = "Error al crear el historial clínico. Por favor verifica los datos.";
+            TempData["ErrorMessage"] = $"Error al crear el historial clínico: {ex.Message}";
         }
+
         return RedirectToAction("Index", new { section = "historial" });
     }
 
@@ -139,25 +158,33 @@ public class OptometraController : Controller
             return RedirectToAction("Index", new { section = "historial" });
         }
 
-        var existing = await _context.HistorialesClinicos.FindAsync(model.Id);
-        if (existing != null)
+        try
         {
-            existing.UserId = model.UserId;
-            existing.Fecha = DateTime.SpecifyKind(model.Fecha, DateTimeKind.Utc);
-            existing.Diagnostico = model.Diagnostico;
-            existing.Tratamiento = model.Tratamiento;
-            existing.Antecedentes = model.Antecedentes;
-            existing.ExamenesRealizados = model.ExamenesRealizados;
-            existing.Observaciones = model.Observaciones;
-            existing.Estado = model.Estado;
+            var existing = await _context.HistorialesClinicos.FindAsync(model.Id);
+            if (existing != null)
+            {
+                existing.UserId = model.UserId;
+                existing.Fecha = DateTime.SpecifyKind(model.Fecha, DateTimeKind.Utc);
+                existing.Diagnostico = model.Diagnostico;
+                existing.Tratamiento = model.Tratamiento;
+                existing.Antecedentes = model.Antecedentes;
+                existing.ExamenesRealizados = model.ExamenesRealizados;
+                existing.Observaciones = model.Observaciones;
+                existing.Estado = model.Estado;
 
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Historial clínico actualizado exitosamente.";
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Historial clínico actualizado exitosamente.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "No se encontró el registro a editar.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            TempData["ErrorMessage"] = "No se encontró el registro a editar.";
+            TempData["ErrorMessage"] = $"Error al actualizar el historial clínico: {ex.Message}";
         }
+
         return RedirectToAction("Index", new { section = "historial" });
     }
 
@@ -165,14 +192,26 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteHistorial(int id)
     {
-        var existing = await _context.HistorialesClinicos.FindAsync(id);
-        if (existing != null)
+        try
         {
-            existing.Activo = false;
-            _context.HistorialesClinicos.Update(existing);
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Historial clínico eliminado exitosamente.";
+            var existing = await _context.HistorialesClinicos.FindAsync(id);
+            if (existing != null)
+            {
+                existing.Activo = false;
+                _context.HistorialesClinicos.Update(existing);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Historial clínico eliminado exitosamente.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Registro no encontrado.";
+            }
         }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al eliminar el historial clínico: {ex.Message}";
+        }
+
         return RedirectToAction("Index", new { section = "historial" });
     }
 
@@ -181,7 +220,14 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateExamen(ExamenVisual model)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Error al registrar el examen visual.";
+            TempData["ErrorMessage"] = firstError;
+            return RedirectToAction("Index", new { section = "examenes" });
+        }
+
+        try
         {
             model.OptometraId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             model.FechaCreacion = DateTime.UtcNow;
@@ -190,11 +236,11 @@ public class OptometraController : Controller
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Examen visual registrado exitosamente.";
         }
-        else
+        catch (Exception ex)
         {
-            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Error al registrar el examen visual.";
-            TempData["ErrorMessage"] = firstError;
+            TempData["ErrorMessage"] = $"Error al registrar el examen visual: {ex.Message}";
         }
+
         return RedirectToAction("Index", new { section = "examenes" });
     }
 
@@ -209,38 +255,46 @@ public class OptometraController : Controller
             return RedirectToAction("Index", new { section = "examenes" });
         }
 
-        var existing = await _context.ExamenesVisuales.FindAsync(model.Id);
-        if (existing != null)
+        try
         {
-            existing.UserId = model.UserId;
-            existing.Fecha = DateTime.SpecifyKind(model.Fecha, DateTimeKind.Utc);
-            existing.TipoExamen = model.TipoExamen;
-            existing.OjoDerecho = model.OjoDerecho;
-            existing.OjoIzquierdo = model.OjoIzquierdo;
-            existing.Resultado = model.Resultado;
-            existing.TonometriaOD = model.TonometriaOD;
-            existing.TonometriaOI = model.TonometriaOI;
-            existing.EsferaOD = model.EsferaOD;
-            existing.CilindroOD = model.CilindroOD;
-            existing.EjeOD = model.EjeOD;
-            existing.AdicionOD = model.AdicionOD;
-            existing.EsferaOI = model.EsferaOI;
-            existing.CilindroOI = model.CilindroOI;
-            existing.EjeOI = model.EjeOI;
-            existing.AdicionOI = model.AdicionOI;
-            existing.SegmentoAnterior = model.SegmentoAnterior;
-            existing.SegmentoPosterior = model.SegmentoPosterior;
-            existing.Diagnostico = model.Diagnostico;
-            existing.Tratamiento = model.Tratamiento;
-            existing.Observaciones = model.Observaciones;
+            var existing = await _context.ExamenesVisuales.FindAsync(model.Id);
+            if (existing != null)
+            {
+                existing.UserId = model.UserId;
+                existing.Fecha = DateTime.SpecifyKind(model.Fecha, DateTimeKind.Utc);
+                existing.TipoExamen = model.TipoExamen;
+                existing.OjoDerecho = model.OjoDerecho;
+                existing.OjoIzquierdo = model.OjoIzquierdo;
+                existing.Resultado = model.Resultado;
+                existing.TonometriaOD = model.TonometriaOD;
+                existing.TonometriaOI = model.TonometriaOI;
+                existing.EsferaOD = model.EsferaOD;
+                existing.CilindroOD = model.CilindroOD;
+                existing.EjeOD = model.EjeOD;
+                existing.AdicionOD = model.AdicionOD;
+                existing.EsferaOI = model.EsferaOI;
+                existing.CilindroOI = model.CilindroOI;
+                existing.EjeOI = model.EjeOI;
+                existing.AdicionOI = model.AdicionOI;
+                existing.SegmentoAnterior = model.SegmentoAnterior;
+                existing.SegmentoPosterior = model.SegmentoPosterior;
+                existing.Diagnostico = model.Diagnostico;
+                existing.Tratamiento = model.Tratamiento;
+                existing.Observaciones = model.Observaciones;
 
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Examen visual actualizado exitosamente.";
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Examen visual actualizado exitosamente.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "No se encontró el registro a editar.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            TempData["ErrorMessage"] = "No se encontró el registro a editar.";
+            TempData["ErrorMessage"] = $"Error al actualizar el examen visual: {ex.Message}";
         }
+
         return RedirectToAction("Index", new { section = "examenes" });
     }
 
@@ -248,14 +302,26 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteExamen(int id)
     {
-        var existing = await _context.ExamenesVisuales.FindAsync(id);
-        if (existing != null)
+        try
         {
-            existing.Activo = false;
-            _context.ExamenesVisuales.Update(existing);
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Examen visual eliminado exitosamente.";
+            var existing = await _context.ExamenesVisuales.FindAsync(id);
+            if (existing != null)
+            {
+                existing.Activo = false;
+                _context.ExamenesVisuales.Update(existing);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Examen visual eliminado exitosamente.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Registro no encontrado.";
+            }
         }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al eliminar el examen visual: {ex.Message}";
+        }
+
         return RedirectToAction("Index", new { section = "examenes" });
     }
 
@@ -264,7 +330,14 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateFormula(FormulaOptica model)
     {
-        if (ModelState.IsValid)
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Error al crear la fórmula óptica.";
+            TempData["ErrorMessage"] = firstError;
+            return RedirectToAction("Index", new { section = "formulas" });
+        }
+
+        try
         {
             model.OptometraId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
             model.FechaCreacion = DateTime.UtcNow;
@@ -273,11 +346,11 @@ public class OptometraController : Controller
             await _context.SaveChangesAsync();
             TempData["SuccessMessage"] = "Fórmula óptica creada exitosamente.";
         }
-        else
+        catch (Exception ex)
         {
-            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Error al crear la fórmula óptica.";
-            TempData["ErrorMessage"] = firstError;
+            TempData["ErrorMessage"] = $"Error al crear la fórmula óptica: {ex.Message}";
         }
+
         return RedirectToAction("Index", new { section = "formulas" });
     }
 
@@ -292,28 +365,36 @@ public class OptometraController : Controller
             return RedirectToAction("Index", new { section = "formulas" });
         }
 
-        var existing = await _context.FormulasOpticas.FindAsync(model.Id);
-        if (existing != null)
+        try
         {
-            existing.UserId = model.UserId;
-            existing.Fecha = DateTime.SpecifyKind(model.Fecha, DateTimeKind.Utc);
-            existing.EsferaOD = model.EsferaOD;
-            existing.CilindroOD = model.CilindroOD;
-            existing.EjeOD = model.EjeOD;
-            existing.EsferaOI = model.EsferaOI;
-            existing.CilindroOI = model.CilindroOI;
-            existing.EjeOI = model.EjeOI;
-            existing.Observaciones = model.Observaciones;
-            existing.TipoLente = model.TipoLente;
-            existing.DistanciaPupilar = model.DistanciaPupilar;
+            var existing = await _context.FormulasOpticas.FindAsync(model.Id);
+            if (existing != null)
+            {
+                existing.UserId = model.UserId;
+                existing.Fecha = DateTime.SpecifyKind(model.Fecha, DateTimeKind.Utc);
+                existing.EsferaOD = model.EsferaOD;
+                existing.CilindroOD = model.CilindroOD;
+                existing.EjeOD = model.EjeOD;
+                existing.EsferaOI = model.EsferaOI;
+                existing.CilindroOI = model.CilindroOI;
+                existing.EjeOI = model.EjeOI;
+                existing.Observaciones = model.Observaciones;
+                existing.TipoLente = model.TipoLente;
+                existing.DistanciaPupilar = model.DistanciaPupilar;
 
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Fórmula óptica actualizada exitosamente.";
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Fórmula óptica actualizada exitosamente.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "No se encontró el registro a editar.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            TempData["ErrorMessage"] = "No se encontró el registro a editar.";
+            TempData["ErrorMessage"] = $"Error al actualizar la fórmula óptica: {ex.Message}";
         }
+
         return RedirectToAction("Index", new { section = "formulas" });
     }
 
@@ -321,14 +402,26 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteFormula(int id)
     {
-        var existing = await _context.FormulasOpticas.FindAsync(id);
-        if (existing != null)
+        try
         {
-            existing.Activo = false;
-            _context.FormulasOpticas.Update(existing);
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Fórmula óptica eliminada exitosamente.";
+            var existing = await _context.FormulasOpticas.FindAsync(id);
+            if (existing != null)
+            {
+                existing.Activo = false;
+                _context.FormulasOpticas.Update(existing);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Fórmula óptica eliminada exitosamente.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Registro no encontrado.";
+            }
         }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al eliminar la fórmula óptica: {ex.Message}";
+        }
+
         return RedirectToAction("Index", new { section = "formulas" });
     }
 
@@ -344,46 +437,54 @@ public class OptometraController : Controller
             return RedirectToAction("Index", new { section = "pacientes" });
         }
 
-        var existingEmail = await _context.Users.AnyAsync(u => u.Email == model.Email);
-        if (existingEmail)
+        try
         {
-            TempData["ErrorMessage"] = "El correo ya está registrado.";
-            return RedirectToAction("Index", new { section = "pacientes" });
+            var existingEmail = await _context.Users.AnyAsync(u => u.Email == model.Email);
+            if (existingEmail)
+            {
+                TempData["ErrorMessage"] = "El correo ya está registrado.";
+                return RedirectToAction("Index", new { section = "pacientes" });
+            }
+
+            var existingDoc = await _context.Users.AnyAsync(u => u.NumeroDocumento == model.NumeroDocumento);
+            if (existingDoc)
+            {
+                TempData["ErrorMessage"] = "El número de documento ya está registrado.";
+                return RedirectToAction("Index", new { section = "pacientes" });
+            }
+
+            var tempPassword = "user123";
+            var passwordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
+
+            var paciente = new User
+            {
+                Nombre = model.Nombre.Trim(),
+                Apellido = model.Apellido.Trim(),
+                Email = model.Email.Trim().ToLower(),
+                Telefono = model.Telefono?.Trim(),
+                TipoDocumento = string.IsNullOrWhiteSpace(model.TipoDocumento) ? "CC" : model.TipoDocumento,
+                NumeroDocumento = model.NumeroDocumento.Trim(),
+                PasswordHash = passwordHash,
+                Role = "usuario",
+                FechaRegistro = DateTime.UtcNow,
+                FechaNacimiento = model.FechaNacimiento.HasValue ? DateTime.SpecifyKind(model.FechaNacimiento.Value, DateTimeKind.Utc) : null,
+                Genero = model.Genero,
+                Direccion = model.Direccion,
+                EPS = model.EPS,
+                EstadoPaciente = string.IsNullOrWhiteSpace(model.EstadoPaciente) ? "Activo" : model.EstadoPaciente,
+                ObservacionesPaciente = model.ObservacionesPaciente,
+                Activo = true
+            };
+
+            _context.Users.Add(paciente);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Paciente creado exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al crear el paciente: {ex.Message}";
         }
 
-        var existingDoc = await _context.Users.AnyAsync(u => u.NumeroDocumento == model.NumeroDocumento);
-        if (existingDoc)
-        {
-            TempData["ErrorMessage"] = "El número de documento ya está registrado.";
-            return RedirectToAction("Index", new { section = "pacientes" });
-        }
-
-        var tempPassword = "user123";
-        var passwordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
-
-        var paciente = new User
-        {
-            Nombre = model.Nombre.Trim(),
-            Apellido = model.Apellido.Trim(),
-            Email = model.Email.Trim().ToLower(),
-            Telefono = model.Telefono?.Trim(),
-            TipoDocumento = string.IsNullOrWhiteSpace(model.TipoDocumento) ? "CC" : model.TipoDocumento,
-            NumeroDocumento = model.NumeroDocumento.Trim(),
-            PasswordHash = passwordHash,
-            Role = "usuario",
-            FechaRegistro = DateTime.UtcNow,
-            FechaNacimiento = model.FechaNacimiento.HasValue ? DateTime.SpecifyKind(model.FechaNacimiento.Value, DateTimeKind.Utc) : null,
-            Genero = model.Genero,
-            Direccion = model.Direccion,
-            EPS = model.EPS,
-            EstadoPaciente = string.IsNullOrWhiteSpace(model.EstadoPaciente) ? "Activo" : model.EstadoPaciente,
-            ObservacionesPaciente = model.ObservacionesPaciente,
-            Activo = true
-        };
-
-        _context.Users.Add(paciente);
-        await _context.SaveChangesAsync();
-        TempData["SuccessMessage"] = "Paciente creado exitosamente.";
         return RedirectToAction("Index", new { section = "pacientes" });
     }
 
@@ -398,29 +499,37 @@ public class OptometraController : Controller
             return RedirectToAction("Index", new { section = "pacientes" });
         }
 
-        var paciente = await _context.Users.FindAsync(model.Id);
-        if (paciente != null && paciente.Role == "usuario")
+        try
         {
-            paciente.Nombre = model.Nombre.Trim();
-            paciente.Apellido = model.Apellido.Trim();
-            paciente.Email = model.Email.Trim().ToLower();
-            paciente.Telefono = model.Telefono?.Trim();
-            paciente.TipoDocumento = string.IsNullOrWhiteSpace(model.TipoDocumento) ? paciente.TipoDocumento : model.TipoDocumento;
-            paciente.NumeroDocumento = model.NumeroDocumento.Trim();
-            paciente.FechaNacimiento = model.FechaNacimiento.HasValue ? DateTime.SpecifyKind(model.FechaNacimiento.Value, DateTimeKind.Utc) : null;
-            paciente.Genero = model.Genero;
-            paciente.Direccion = model.Direccion;
-            paciente.EPS = model.EPS;
-            paciente.EstadoPaciente = model.EstadoPaciente ?? "Activo";
-            paciente.ObservacionesPaciente = model.ObservacionesPaciente;
+            var paciente = await _context.Users.FindAsync(model.Id);
+            if (paciente != null && paciente.Role == "usuario")
+            {
+                paciente.Nombre = model.Nombre.Trim();
+                paciente.Apellido = model.Apellido.Trim();
+                paciente.Email = model.Email.Trim().ToLower();
+                paciente.Telefono = model.Telefono?.Trim();
+                paciente.TipoDocumento = string.IsNullOrWhiteSpace(model.TipoDocumento) ? paciente.TipoDocumento : model.TipoDocumento;
+                paciente.NumeroDocumento = model.NumeroDocumento.Trim();
+                paciente.FechaNacimiento = model.FechaNacimiento.HasValue ? DateTime.SpecifyKind(model.FechaNacimiento.Value, DateTimeKind.Utc) : null;
+                paciente.Genero = model.Genero;
+                paciente.Direccion = model.Direccion;
+                paciente.EPS = model.EPS;
+                paciente.EstadoPaciente = model.EstadoPaciente ?? "Activo";
+                paciente.ObservacionesPaciente = model.ObservacionesPaciente;
 
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Datos del paciente actualizados exitosamente.";
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Datos del paciente actualizados exitosamente.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "No se pudo actualizar el paciente.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            TempData["ErrorMessage"] = "No se pudo actualizar el paciente.";
+            TempData["ErrorMessage"] = $"Error al actualizar el paciente: {ex.Message}";
         }
+
         return RedirectToAction("Index", new { section = "pacientes" });
     }
 
@@ -428,19 +537,27 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeletePaciente(int id)
     {
-        var paciente = await _context.Users.FindAsync(id);
-        if (paciente != null && paciente.Role == "usuario")
+        try
         {
-            paciente.Activo = false;
-            paciente.EstadoPaciente = "Inactivo";
-            _context.Users.Update(paciente);
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Paciente desactivado (Inactivo) exitosamente.";
+            var paciente = await _context.Users.FindAsync(id);
+            if (paciente != null && paciente.Role == "usuario")
+            {
+                paciente.Activo = false;
+                paciente.EstadoPaciente = "Inactivo";
+                _context.Users.Update(paciente);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Paciente desactivado (Inactivo) exitosamente.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "No se pudo desactivar el paciente.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            TempData["ErrorMessage"] = "No se pudo desactivar el paciente.";
+            TempData["ErrorMessage"] = $"Error al desactivar el paciente: {ex.Message}";
         }
+
         return RedirectToAction("Index", new { section = "pacientes" });
     }
 
@@ -462,19 +579,27 @@ public class OptometraController : Controller
             return RedirectToAction("Index", new { section = "citas" });
         }
 
-        var appointment = new Appointment
+        try
         {
-            UserId = model.UserId,
-            Servicio = model.Servicio.Trim(),
-            FechaHora = DateTime.SpecifyKind(model.FechaHora, DateTimeKind.Utc),
-            Notas = model.Notas?.Trim(),
-            Estado = string.IsNullOrWhiteSpace(model.Estado) ? "pendiente" : model.Estado,
-            FechaCreacion = DateTime.UtcNow,
-            Activo = true
-        };
-        _context.Appointments.Add(appointment);
-        await _context.SaveChangesAsync();
-        TempData["SuccessMessage"] = "Cita programada exitosamente.";
+            var appointment = new Appointment
+            {
+                UserId = model.UserId,
+                Servicio = model.Servicio.Trim(),
+                FechaHora = DateTime.SpecifyKind(model.FechaHora, DateTimeKind.Utc),
+                Notas = model.Notas?.Trim(),
+                Estado = string.IsNullOrWhiteSpace(model.Estado) ? "pendiente" : model.Estado,
+                FechaCreacion = DateTime.UtcNow,
+                Activo = true
+            };
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Cita programada exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al programar la cita: {ex.Message}";
+        }
+
         return RedirectToAction("Index", new { section = "citas" });
     }
 
@@ -489,22 +614,30 @@ public class OptometraController : Controller
             return RedirectToAction("Index", new { section = "citas" });
         }
 
-        var appointment = await _context.Appointments.FindAsync(model.Id);
-        if (appointment != null)
+        try
         {
-            appointment.UserId = model.UserId;
-            appointment.Servicio = model.Servicio.Trim();
-            appointment.FechaHora = DateTime.SpecifyKind(model.FechaHora, DateTimeKind.Utc);
-            appointment.Notas = model.Notas?.Trim();
-            appointment.Estado = model.Estado;
+            var appointment = await _context.Appointments.FindAsync(model.Id);
+            if (appointment != null)
+            {
+                appointment.UserId = model.UserId;
+                appointment.Servicio = model.Servicio.Trim();
+                appointment.FechaHora = DateTime.SpecifyKind(model.FechaHora, DateTimeKind.Utc);
+                appointment.Notas = model.Notas?.Trim();
+                appointment.Estado = model.Estado;
 
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Cita actualizada exitosamente.";
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Cita actualizada exitosamente.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "No se encontró la cita a editar.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            TempData["ErrorMessage"] = "No se encontró la cita a editar.";
+            TempData["ErrorMessage"] = $"Error al actualizar la cita: {ex.Message}";
         }
+
         return RedirectToAction("Index", new { section = "citas" });
     }
 
@@ -512,14 +645,26 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteAppointment(int id)
     {
-        var cita = await _context.Appointments.FindAsync(id);
-        if (cita != null)
+        try
         {
-            cita.Activo = false;
-            _context.Appointments.Update(cita);
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Cita eliminada exitosamente.";
+            var cita = await _context.Appointments.FindAsync(id);
+            if (cita != null)
+            {
+                cita.Activo = false;
+                _context.Appointments.Update(cita);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Cita eliminada exitosamente.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Cita no encontrada.";
+            }
         }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al eliminar la cita: {ex.Message}";
+        }
+
         return RedirectToAction("Index", new { section = "citas" });
     }
 
@@ -535,26 +680,34 @@ public class OptometraController : Controller
             return RedirectToAction("Index", new { section = "perfil" });
         }
 
-        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var user = await _context.Users.FindAsync(userId);
-        if (user != null)
+        try
         {
-            user.Nombre = model.Nombre.Trim();
-            user.Apellido = model.Apellido.Trim();
-            user.Email = model.Email.Trim().ToLower();
-            user.Telefono = model.Telefono?.Trim();
-            user.RegistroMedico = model.RegistroMedico?.Trim();
-            user.Universidad = model.Universidad?.Trim();
-            user.EspecialidadDetalle = model.EspecialidadDetalle?.Trim();
-            user.AniosExperiencia = model.AniosExperiencia;
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null)
+            {
+                user.Nombre = model.Nombre.Trim();
+                user.Apellido = model.Apellido.Trim();
+                user.Email = model.Email.Trim().ToLower();
+                user.Telefono = model.Telefono?.Trim();
+                user.RegistroMedico = model.RegistroMedico?.Trim();
+                user.Universidad = model.Universidad?.Trim();
+                user.EspecialidadDetalle = model.EspecialidadDetalle?.Trim();
+                user.AniosExperiencia = model.AniosExperiencia;
 
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Perfil actualizado exitosamente.";
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Perfil actualizado exitosamente.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "No se pudo actualizar el perfil.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            TempData["ErrorMessage"] = "No se pudo actualizar el perfil.";
+            TempData["ErrorMessage"] = $"Error al actualizar el perfil: {ex.Message}";
         }
+
         return RedirectToAction("Index", new { section = "perfil" });
     }
 

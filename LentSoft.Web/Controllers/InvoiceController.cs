@@ -59,6 +59,9 @@ public class InvoiceController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Invoice invoice)
     {
+        ModelState.Remove(nameof(Invoice.Order));
+        ModelState.Remove(nameof(Invoice.NumeroFactura));
+
         if (!ModelState.IsValid)
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos de la factura no válidos.";
@@ -89,6 +92,9 @@ public class InvoiceController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(Invoice invoice)
     {
+        ModelState.Remove(nameof(Invoice.Order));
+        ModelState.Remove(nameof(Invoice.NumeroFactura));
+
         if (!ModelState.IsValid)
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos de la factura no válidos.";

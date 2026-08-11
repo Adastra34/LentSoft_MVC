@@ -51,10 +51,16 @@ public class OrderService : IOrderService
         order.FechaPedido = DateTime.UtcNow;
         order.Estado = "pendiente";
 
-        _context.Orders.Add(order);
-        await _context.SaveChangesAsync();
-
-        return order;
+        try
+        {
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+            return order;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo crear el pedido debido a un error de base de datos.", ex);
+        }
     }
 
     public async Task<Order?> UpdateStatusAsync(int id, string estado)
@@ -69,8 +75,15 @@ public class OrderService : IOrderService
             order.FechaEntrega = DateTime.UtcNow;
         }
 
-        await _context.SaveChangesAsync();
-        return order;
+        try
+        {
+            await _context.SaveChangesAsync();
+            return order;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo actualizar el estado del pedido debido a un conflicto de datos.", ex);
+        }
     }
 
     public async Task<bool> DeleteAsync(int id)
@@ -80,7 +93,15 @@ public class OrderService : IOrderService
 
         order.Activo = false;
         _context.Orders.Update(order);
-        await _context.SaveChangesAsync();
-        return true;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo eliminar el pedido porque está vinculado a otros registros.", ex);
+        }
     }
 }

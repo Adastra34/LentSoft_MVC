@@ -63,10 +63,20 @@ public class AuthService : IAuthService
             FechaRegistro = DateTime.UtcNow
         };
 
-        _context.Users.Add(user);
-        await _context.SaveChangesAsync();
-
-        return user;
+        try
+        {
+            _context.Users.Add(user);
+            await _context.SaveChangesAsync();
+            return user;
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            throw new InvalidOperationException("El registro de usuario fue modificado concurrentemente.", ex);
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo completar el registro del usuario debido a una restricción de base de datos.", ex);
+        }
     }
 
     public async Task<User?> GetUserByIdAsync(int id)
@@ -82,7 +92,18 @@ public class AuthService : IAuthService
 
     public async Task UpdateUserAsync(User user)
     {
-        _context.Users.Update(user);
-        await _context.SaveChangesAsync();
+        try
+        {
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            throw new InvalidOperationException("El registro de usuario fue modificado por otro proceso.", ex);
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudieron guardar los cambios del usuario debido a una restricción de datos.", ex);
+        }
     }
 }

@@ -33,6 +33,7 @@ public class DashboardAdminViewModel
 
     // ── Usuarios ──
     public List<User> Clientes { get; set; } = new();
+    public List<User> TodosLosClientes { get; set; } = new();
     public string? ClientesSearchTerm { get; set; }
     public int ClientesPage { get; set; } = 1;
     public int ClientesPageSize { get; set; } = 5;

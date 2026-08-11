@@ -46,13 +46,21 @@ public class SupplierController : Controller
             return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
         }
 
-        supplier.FechaRegistro = DateTime.UtcNow;
-        supplier.Activo = true;
+        try
+        {
+            supplier.FechaRegistro = DateTime.UtcNow;
+            supplier.Activo = true;
 
-        _context.Suppliers.Add(supplier);
-        await _context.SaveChangesAsync();
+            _context.Suppliers.Add(supplier);
+            await _context.SaveChangesAsync();
 
-        TempData["SuccessMessage"] = "Proveedor creado exitosamente.";
+            TempData["SuccessMessage"] = "Proveedor creado exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al crear el proveedor: {ex.Message}";
+        }
+
         return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
     }
 
@@ -70,21 +78,29 @@ public class SupplierController : Controller
             return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
         }
 
-        var existing = await _context.Suppliers.FindAsync(supplier.Id);
-        if (existing == null)
+        try
         {
-            TempData["ErrorMessage"] = "Proveedor no encontrado.";
-            return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
+            var existing = await _context.Suppliers.FindAsync(supplier.Id);
+            if (existing == null)
+            {
+                TempData["ErrorMessage"] = "Proveedor no encontrado.";
+                return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
+            }
+
+            existing.Nombre = supplier.Nombre.Trim();
+            existing.TipoProductos = supplier.TipoProductos.Trim();
+            existing.Telefono = supplier.Telefono.Trim();
+            existing.Correo = supplier.Correo.Trim().ToLower();
+
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "Proveedor actualizado exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al actualizar el proveedor: {ex.Message}";
         }
 
-        existing.Nombre = supplier.Nombre.Trim();
-        existing.TipoProductos = supplier.TipoProductos.Trim();
-        existing.Telefono = supplier.Telefono.Trim();
-        existing.Correo = supplier.Correo.Trim().ToLower();
-
-        await _context.SaveChangesAsync();
-
-        TempData["SuccessMessage"] = "Proveedor actualizado exitosamente.";
         return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
     }
 
@@ -95,17 +111,24 @@ public class SupplierController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(string id)
     {
-        var supplier = await _context.Suppliers.FindAsync(id);
-        if (supplier != null)
+        try
         {
-            supplier.Activo = false;
-            _context.Suppliers.Update(supplier);
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Proveedor eliminado exitosamente.";
+            var supplier = await _context.Suppliers.FindAsync(id);
+            if (supplier != null)
+            {
+                supplier.Activo = false;
+                _context.Suppliers.Update(supplier);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Proveedor eliminado exitosamente.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Proveedor no encontrado.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            TempData["ErrorMessage"] = "Proveedor no encontrado.";
+            TempData["ErrorMessage"] = $"Error al eliminar el proveedor: {ex.Message}";
         }
 
         return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
