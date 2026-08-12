@@ -45,6 +45,7 @@ public class DashboardController : Controller
     public async Task<IActionResult> Admin(
         string section = "general",
         string subtab = "productos",
+        string pedidosView = "proveedores",
         string? searchTerm = null,
         int page = 1,
         int pageSize = 5,
@@ -239,8 +240,10 @@ public class DashboardController : Controller
 
             // Navigation
             ActiveSection = section,
-            ActiveSubTab = subtab
+            ActiveSubTab = subtab,
+            ActivePedidosView = pedidosView
         };
+
 
         return View(viewModel);
     }
