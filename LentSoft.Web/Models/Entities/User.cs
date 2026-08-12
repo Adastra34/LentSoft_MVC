@@ -80,7 +80,12 @@ public class User : IValidatableObject
 
     public bool Activo { get; set; } = true;
 
-    // Computed display name
+       // ── Control de intentos fallidos de login ──
+       public int IntentosFallidos { get; set; } = 0;
+       public DateTime? BloqueadoHasta { get; set; }
+
+       // Computed display name
+    
     [NotMapped]
     public string NombreCompleto => $"{Nombre} {Apellido}".Trim();
 
