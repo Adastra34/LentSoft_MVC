@@ -53,8 +53,10 @@ public class OrderController : Controller
     [Authorize(Roles = "admin,ventas")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(
+        int? UserId,
         string Nombre, 
         string Apellido, 
+        string? NumeroDocumento,
         string Telefono, 
         string Direccion, 
         int DescuentoPercent, 
@@ -69,7 +71,22 @@ public class OrderController : Controller
         }
 
         // 1. Buscar o Crear Usuario / Cliente
-        var existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Telefono == Telefono && !string.IsNullOrEmpty(Telefono));
+        User? existingUser = null;
+        if (UserId.HasValue && UserId.Value > 0)
+        {
+            existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Id == UserId.Value);
+        }
+
+        if (existingUser == null && !string.IsNullOrWhiteSpace(NumeroDocumento))
+        {
+            existingUser = await _context.Users.FirstOrDefaultAsync(u => u.NumeroDocumento == NumeroDocumento.Trim());
+        }
+
+        if (existingUser == null && !string.IsNullOrWhiteSpace(Telefono))
+        {
+            existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Telefono == Telefono.Trim());
+        }
+
         if (existingUser == null)
         {
             existingUser = await _context.Users.FirstOrDefaultAsync(u => u.Nombre.ToLower() == Nombre.Trim().ToLower() && u.Apellido.ToLower() == Apellido.Trim().ToLower());
@@ -79,14 +96,16 @@ public class OrderController : Controller
         {
             var randomSuffix = new Random().Next(1000, 9999);
             var cleanNombre = System.Text.RegularExpressions.Regex.Replace(Nombre.ToLower().Trim(), @"\s+", "");
+            var docNum = !string.IsNullOrWhiteSpace(NumeroDocumento) ? NumeroDocumento.Trim() : $"CLI{DateTime.UtcNow.Ticks.ToString()[^8..]}";
             existingUser = new User
             {
                 Nombre = Nombre.Trim(),
                 Apellido = Apellido.Trim(),
                 Email = $"{cleanNombre}{randomSuffix}@cliente.com",
                 Telefono = string.IsNullOrWhiteSpace(Telefono) ? "3000000000" : Telefono.Trim(),
+                Direccion = string.IsNullOrWhiteSpace(Direccion) ? null : Direccion.Trim(),
                 TipoDocumento = "CC",
-                NumeroDocumento = $"CLI{DateTime.UtcNow.Ticks.ToString()[^8..]}",
+                NumeroDocumento = docNum,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("Cliente123!"),
                 Role = "usuario",
                 FechaRegistro = DateTime.UtcNow
@@ -96,7 +115,11 @@ public class OrderController : Controller
         }
         else
         {
+            if (!string.IsNullOrWhiteSpace(Nombre)) existingUser.Nombre = Nombre.Trim();
+            if (!string.IsNullOrWhiteSpace(Apellido)) existingUser.Apellido = Apellido.Trim();
             if (!string.IsNullOrWhiteSpace(Telefono)) existingUser.Telefono = Telefono.Trim();
+            if (!string.IsNullOrWhiteSpace(Direccion)) existingUser.Direccion = Direccion.Trim();
+            if (!string.IsNullOrWhiteSpace(NumeroDocumento)) existingUser.NumeroDocumento = NumeroDocumento.Trim();
             await _context.SaveChangesAsync();
         }
 
@@ -114,7 +137,7 @@ public class OrderController : Controller
                 {
                     foreach (var item in items)
                     {
-                        var product = await _context.Products.FindAsync(item.ProductId);
+                        var product = await _context.Products.Include(p => p.ProductStocks).FirstOrDefaultAsync(p => p.Id == item.ProductId);
                         if (product != null)
                         {
                             var qty = Math.Max(1, item.Cantidad);
@@ -129,9 +152,10 @@ public class OrderController : Controller
                                 PrecioUnitario = precioUnit
                             });
 
-                            if (product.Stock >= qty)
+                            var pStock = product.ProductStocks.FirstOrDefault(ps => ps.WarehouseId == 1) ?? product.ProductStocks.FirstOrDefault();
+                            if (pStock != null && pStock.Cantidad >= qty)
                             {
-                                product.Stock -= qty;
+                                pStock.Cantidad -= qty;
                             }
                         }
                     }

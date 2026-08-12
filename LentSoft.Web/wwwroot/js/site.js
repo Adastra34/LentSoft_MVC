@@ -20,6 +20,14 @@ document.addEventListener('DOMContentLoaded', function() {
             this.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
         });
     }
+
+    // Set min date for datetime-local inputs to local client current time
+    const now = new Date();
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    const nowISO = now.toISOString().slice(0, 16);
+    document.querySelectorAll('input[type="datetime-local"]').forEach(input => {
+        input.setAttribute('min', nowISO);
+    });
 });
 
 // Interceptar envío de formularios para mostrar confirmación con Alertify.js
@@ -69,90 +77,71 @@ async function addToCart(productId, cantidad = 1) {
     }
 }
 
-// Searchable Selects Logic
-document.addEventListener("DOMContentLoaded", function () {
-    initializeSearchableSelects();
-
-    // Reset search inputs when clicking buttons that open modals
-    document.addEventListener("click", function(event) {
-        var target = event.target;
-        if (target.matches("button") || target.closest("button") || target.matches("a") || target.closest("a")) {
-            var el = target.closest("button") || target.closest("a") || target;
-            var onclickAttr = el.getAttribute("onclick");
-            if (onclickAttr && (onclickAttr.indexOf("modal-") > -1 || onclickAttr.indexOf("abrirModal") > -1)) {
-                resetSearchableSelects();
-            }
+// Buscador dinámico reactivo para elementos select con la clase .searchable-select
+function initSearchableSelects() {
+    document.querySelectorAll('select.searchable-select').forEach(function(select) {
+        if (select.nextElementSibling && select.nextElementSibling.classList.contains('searchable-wrapper')) {
+            return; // Ya inicializado
         }
-    });
-});
 
-function initializeSearchableSelects() {
-    var selects = document.querySelectorAll(".searchable-select");
-    selects.forEach(function (select) {
-        if (select.dataset.searchInitialized) return;
-        select.dataset.searchInitialized = "true";
+        // Crear wrapper y campo de búsqueda
+        var wrapper = document.createElement('div');
+        wrapper.className = 'searchable-wrapper';
+        wrapper.style.position = 'relative';
+        wrapper.style.width = select.style.width || '100%';
+        wrapper.style.marginTop = '0.25rem';
 
-        // Create search input
-        var searchInput = document.createElement("input");
-        searchInput.type = "text";
-        searchInput.placeholder = "🔍 Buscar...";
-        searchInput.className = "form-input select-search-input";
-        
-        searchInput.style.width = "100%";
-        searchInput.style.padding = "0.4rem 0.6rem";
-        searchInput.style.marginBottom = "0.4rem";
-        searchInput.style.border = "1px solid var(--purple-200)";
-        searchInput.style.borderRadius = "0.375rem";
-        searchInput.style.fontSize = "0.85rem";
-        searchInput.style.boxSizing = "border-box";
+        var searchInput = document.createElement('input');
+        searchInput.type = 'text';
+        searchInput.placeholder = '🔍 Escribe para buscar...';
+        searchInput.className = 'form-input no-print';
+        searchInput.style.width = '100%';
+        searchInput.style.padding = '0.4rem 0.6rem';
+        searchInput.style.fontSize = '0.85rem';
+        searchInput.style.borderRadius = '0.375rem';
+        searchInput.style.border = '1px solid var(--purple-300)';
+        searchInput.style.boxSizing = 'border-box';
+        searchInput.style.marginBottom = '0.25rem';
 
-        // Insert before the select
-        select.parentNode.insertBefore(searchInput, select);
+        // Insertar antes del select
+        select.parentNode.insertBefore(wrapper, select);
+        wrapper.appendChild(searchInput);
+        wrapper.appendChild(select);
 
-        // Store original options
-        var originalList = [];
-        for (var i = 0; i < select.options.length; i++) {
-            originalList.push({
-                value: select.options[i].value,
-                text: select.options[i].text,
-                selected: select.options[i].selected
-            });
-        }
-        select.dataset.originalOptions = JSON.stringify(originalList);
+        // Guardar opciones originales
+        var originalOptions = Array.from(select.options);
 
-        // Filter handler
-        searchInput.addEventListener("input", function () {
-            var filter = searchInput.value.toLowerCase();
-            var originalOptions = JSON.parse(select.dataset.originalOptions);
-            var currentValue = select.value;
-
-            // Clear select
-            select.innerHTML = "";
-
-            var matchedCount = 0;
-            originalOptions.forEach(function (opt) {
-                if (opt.text.toLowerCase().indexOf(filter) > -1) {
-                    var newOpt = new Option(opt.text, opt.value);
-                    if (opt.value === currentValue) {
-                        newOpt.selected = true;
-                    }
-                    select.add(newOpt);
-                    matchedCount++;
-                }
+        // Evento de búsqueda
+        searchInput.addEventListener('input', function() {
+            var filter = searchInput.value.toLowerCase().trim();
+            select.innerHTML = '';
+            
+            var matched = originalOptions.filter(function(opt) {
+                return opt.text.toLowerCase().includes(filter) || opt.value === '';
             });
 
-            if (matchedCount > 0 && !Array.from(select.options).some(o => o.value === currentValue)) {
-                select.selectedIndex = 0;
-                select.dispatchEvent(new Event('change'));
-            }
+            matched.forEach(function(opt) {
+                select.appendChild(opt);
+            });
         });
+
+        // Guardar referencia al input en el select para poder resetearlo
+        select.searchField = searchInput;
+        select.originalOptionsList = originalOptions;
     });
 }
 
+// Resetear y limpiar búsquedas al recargar/abrir modales
 function resetSearchableSelects() {
-    var searchInputs = document.querySelectorAll(".select-search-input");
-    searchInputs.forEach(function (input) {
-        input.value = "";
-        input.dispatchEvent(new Event('input'));
+    document.querySelectorAll('select.searchable-select').forEach(function(select) {
+        if (select.searchField && select.originalOptionsList) {
+            select.searchField.value = '';
+            select.innerHTML = '';
+            select.originalOptionsList.forEach(function(opt) {
+                select.appendChild(opt);
+            });
+        }
     });
 }
+
+document.addEventListener('DOMContentLoaded', initSearchableSelects);

@@ -1,6 +1,20 @@
 bin/
 obj/
+LentSoft.Web/bin/
+LentSoft.Web/obj/
 *.user
 .vs/
 .vscode/
+.idea/
+*.useros
+*.suo
+*.log
+
+# Databases
+*.db
+*.mdf
+*.ldf
+
+# Local config
 appsettings.Development.json
+appsettings.Local.json

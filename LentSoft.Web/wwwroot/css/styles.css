@@ -596,10 +596,8 @@ label, .form-label {
   100% { transform: rotate(360deg); }
 }
 
-/* Restringir redimensionamiento horizontal en textareas para no romper los diseños */
+/* Restricción de redimensionado vertical para comentarios */
 textarea {
-  resize: vertical;
-  min-height: 60px;
-  max-height: 180px;
-  overflow-y: auto;
+    resize: vertical !important;
+    min-height: 60px;
 }

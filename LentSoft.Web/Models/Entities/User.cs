@@ -78,6 +78,8 @@ public class User : IValidatableObject
     [StringLength(500)]
     public string? FotoUrl { get; set; }
 
+    public bool Activo { get; set; } = true;
+
     // Computed display name
     [NotMapped]
     public string NombreCompleto => $"{Nombre} {Apellido}".Trim();

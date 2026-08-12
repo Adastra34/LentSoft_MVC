@@ -70,42 +70,54 @@ public class CheckoutController : Controller
             return View("Index", model);
         }
 
-        // Create Order and OrderItems
-        var order = new Order
+        try
         {
-            UserId = userId,
-            FechaPedido = DateTime.UtcNow,
-            Estado = "pagado",
-            DireccionEnvio = model.DireccionEnvio,
-            Total = cart.CartItems.Sum(ci => ci.Subtotal),
-            MetodoPagoSimulado = "Tarjeta terminada en " + model.NumeroTarjeta.Substring(Math.Max(0, model.NumeroTarjeta.Length - 4))
-        };
-
-        foreach (var item in cart.CartItems)
-        {
-            // Reduce stock
-            var product = await _context.Products.FindAsync(item.ProductId);
-            if (product != null)
+            // Create Order and OrderItems
+            var order = new Order
             {
-                product.Stock = Math.Max(0, product.Stock - item.Cantidad);
+                UserId = userId,
+                FechaPedido = DateTime.UtcNow,
+                Estado = "pagado",
+                DireccionEnvio = model.DireccionEnvio,
+                Total = cart.CartItems.Sum(ci => ci.Subtotal),
+                MetodoPagoSimulado = "Tarjeta terminada en " + model.NumeroTarjeta.Substring(Math.Max(0, model.NumeroTarjeta.Length - 4))
+            };
+
+            foreach (var item in cart.CartItems)
+            {
+                // Reduce stock from available warehouse
+                var pStock = await _context.ProductStocks
+                    .FirstOrDefaultAsync(ps => ps.ProductId == item.ProductId && ps.WarehouseId == 1)
+                    ?? await _context.ProductStocks.FirstOrDefaultAsync(ps => ps.ProductId == item.ProductId);
+
+                if (pStock != null)
+                {
+                    pStock.Cantidad = Math.Max(0, pStock.Cantidad - item.Cantidad);
+                }
+
+                order.OrderItems.Add(new OrderItem
+                {
+                    ProductId = item.ProductId,
+                    Cantidad = item.Cantidad,
+                    PrecioUnitario = item.PrecioUnitario
+                });
             }
 
-            order.OrderItems.Add(new OrderItem
-            {
-                ProductId = item.ProductId,
-                Cantidad = item.Cantidad,
-                PrecioUnitario = item.PrecioUnitario
-            });
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+
+            // Clear the cart
+            await _cartService.ClearCartAsync(userId);
+
+            TempData["SuccessMessage"] = "¡Pago simulado procesado correctamente!";
+            return RedirectToAction("Confirmacion", new { orderId = order.Id });
         }
-
-        _context.Orders.Add(order);
-        await _context.SaveChangesAsync();
-
-        // Clear the cart
-        await _cartService.ClearCartAsync(userId);
-
-        TempData["SuccessMessage"] = "¡Pago simulado procesado correctamente!";
-        return RedirectToAction("Confirmacion", new { orderId = order.Id });
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al procesar el pago: {ex.Message}";
+            model.Cart = cart;
+            return View("Index", model);
+        }
     }
 
     /// <summary>
