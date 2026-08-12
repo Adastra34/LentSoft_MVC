@@ -23,10 +23,101 @@ public class LentSoftDbContext : DbContext
     public DbSet<HistorialClinico> HistorialesClinicos => Set<HistorialClinico>();
     public DbSet<ExamenVisual> ExamenesVisuales => Set<ExamenVisual>();
     public DbSet<FormulaOptica> FormulasOpticas => Set<FormulaOptica>();
+    public DbSet<Supplier> Suppliers => Set<Supplier>();
+    public DbSet<InventoryMovement> InventoryMovements => Set<InventoryMovement>();
+    public DbSet<PurchaseOrder> PurchaseOrders => Set<PurchaseOrder>();
+    public DbSet<PurchaseOrderItem> PurchaseOrderItems => Set<PurchaseOrderItem>();
+    public DbSet<Warehouse> Warehouses => Set<Warehouse>();
+    public DbSet<ProductStock> ProductStocks => Set<ProductStock>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        // ── PurchaseOrders ──
+        modelBuilder.Entity<PurchaseOrder>(entity =>
+        {
+            entity.HasIndex(e => e.SupplierId);
+            entity.HasIndex(e => e.Estado);
+            entity.HasIndex(e => e.FechaPedido).IsDescending();
+            entity.Property(e => e.Estado).HasDefaultValue("Pendiente");
+            entity.Property(e => e.FechaPedido).HasDefaultValueSql("GETUTCDATE()");
+
+            entity.HasOne(e => e.Supplier)
+                  .WithMany()
+                  .HasForeignKey(e => e.SupplierId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ── PurchaseOrderItems ──
+        modelBuilder.Entity<PurchaseOrderItem>(entity =>
+        {
+            entity.HasIndex(e => e.PurchaseOrderId);
+            entity.HasIndex(e => e.ProductId);
+
+            entity.HasOne(e => e.PurchaseOrder)
+                  .WithMany(o => o.PurchaseOrderItems)
+                  .HasForeignKey(e => e.PurchaseOrderId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Product)
+                  .WithMany(p => p.PurchaseOrderItems)
+                  .HasForeignKey(e => e.ProductId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ── Warehouses ──
+        modelBuilder.Entity<Warehouse>(entity =>
+        {
+            entity.HasIndex(e => e.Nombre);
+            entity.HasIndex(e => e.Activo);
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+        });
+
+        // ── ProductStocks ──
+        modelBuilder.Entity<ProductStock>(entity =>
+        {
+            entity.HasIndex(e => new { e.ProductId, e.WarehouseId }).IsUnique();
+            entity.Property(e => e.Cantidad).HasDefaultValue(0);
+
+            entity.HasOne(e => e.Product)
+                  .WithMany(p => p.ProductStocks)
+                  .HasForeignKey(e => e.ProductId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Warehouse)
+                  .WithMany(w => w.ProductStocks)
+                  .HasForeignKey(e => e.WarehouseId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── Suppliers ──
+        modelBuilder.Entity<Supplier>(entity =>
+        {
+            entity.HasIndex(e => e.Nombre);
+            entity.HasIndex(e => e.Activo);
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.Property(e => e.FechaRegistro).HasDefaultValueSql("GETUTCDATE()");
+        });
+
+        // ── InventoryMovements ──
+        modelBuilder.Entity<InventoryMovement>(entity =>
+        {
+            entity.HasIndex(e => e.ProductId);
+            entity.HasIndex(e => e.WarehouseId);
+            entity.HasIndex(e => e.Fecha).IsDescending();
+            entity.Property(e => e.Fecha).HasDefaultValueSql("GETUTCDATE()");
+
+            entity.HasOne(e => e.Product)
+                  .WithMany()
+                  .HasForeignKey(e => e.ProductId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Warehouse)
+                  .WithMany()
+                  .HasForeignKey(e => e.WarehouseId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
 
         // ── Users ──
         modelBuilder.Entity<User>(entity =>
@@ -47,7 +138,7 @@ public class LentSoftDbContext : DbContext
             entity.HasIndex(e => e.Nombre);
             entity.HasIndex(e => e.Activo);
             entity.HasIndex(e => e.EsDestacado);
-            entity.Property(e => e.Stock).HasDefaultValue(0);
+            entity.Property(e => e.StockMinimo).HasDefaultValue(5);
             entity.Property(e => e.Activo).HasDefaultValue(true);
             entity.Property(e => e.Rating).HasDefaultValue(4.8m);
             entity.Property(e => e.ReviewCount).HasDefaultValue(12);
@@ -292,10 +383,10 @@ public class LentSoftDbContext : DbContext
                 Id = 1,
                 Nombre = "Lentes Ray-Ban Aviator",
                 Descripcion = "Lentes de sol clásicos estilo aviador",
-                Precio = 2500.00m,
+                Precio = 2500000.00m,
+                PorcentajeIva = 19.00m,
                 Categoria = "lentes-sol",
                 Marca = "Ray-Ban",
-                Stock = 50,
                 ImagenUrl = "https://images.unsplash.com/photo-1572635196237-14b3f281503f",
                 Activo = true,
                 Rating = 4.9m,
@@ -314,11 +405,11 @@ public class LentSoftDbContext : DbContext
                 Id = 2,
                 Nombre = "Lentes de Contacto Acuvue",
                 Descripcion = "Lentes de contacto mensuales",
-                Precio = 450.00m,
-                PrecioDescuento = 399.00m,
+                Precio = 450000.00m,
+                PrecioDescuento = 399000.00m,
+                PorcentajeIva = 19.00m,
                 Categoria = "lentes-contacto",
                 Marca = "Acuvue",
-                Stock = 100,
                 Activo = true,
                 Rating = 4.7m,
                 ReviewCount = 42,
@@ -330,10 +421,10 @@ public class LentSoftDbContext : DbContext
                 Id = 3,
                 Nombre = "Montura Oakley Sport",
                 Descripcion = "Montura deportiva ultraligera",
-                Precio = 1800.00m,
+                Precio = 1800000.00m,
+                PorcentajeIva = 19.00m,
                 Categoria = "monturas",
                 Marca = "Oakley",
-                Stock = 30,
                 Activo = true,
                 Rating = 4.8m,
                 ReviewCount = 15,
@@ -351,10 +442,10 @@ public class LentSoftDbContext : DbContext
                 Id = 4,
                 Nombre = "Lentes Graduados Classic",
                 Descripcion = "Lentes graduados con diseño clásico",
-                Precio = 1200.00m,
+                Precio = 1200000.00m,
+                PorcentajeIva = 19.00m,
                 Categoria = "lentes-graduados",
                 Marca = "LentSoft",
-                Stock = 40,
                 Activo = true,
                 Rating = 4.6m,
                 ReviewCount = 19,
@@ -372,11 +463,11 @@ public class LentSoftDbContext : DbContext
                 Id = 5,
                 Nombre = "Estuche Premium",
                 Descripcion = "Estuche rígido para lentes",
-                Precio = 150.00m,
-                PrecioDescuento = 99.00m,
+                Precio = 150000.00m,
+                PrecioDescuento = 99000.00m,
+                PorcentajeIva = 19.00m,
                 Categoria = "accesorios",
                 Marca = "LentSoft",
-                Stock = 200,
                 Activo = true,
                 Rating = 4.5m,
                 ReviewCount = 8,
@@ -388,16 +479,32 @@ public class LentSoftDbContext : DbContext
                 Id = 6,
                 Nombre = "Líquido Limpiador",
                 Descripcion = "Solución limpiadora para lentes 360ml",
-                Precio = 120.00m,
+                Precio = 120000.00m,
+                PorcentajeIva = 5.00m,
                 Categoria = "accesorios",
                 Marca = "Opti-Free",
-                Stock = 150,
                 Activo = true,
                 Rating = 4.9m,
                 ReviewCount = 33,
                 EsDestacado = false,
                 FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
             }
+        );
+
+        // Warehouses
+        modelBuilder.Entity<Warehouse>().HasData(
+            new Warehouse { Id = 1, Nombre = "Bodega Principal", Direccion = "Sede Principal LentSoft", Activo = true },
+            new Warehouse { Id = 2, Nombre = "Bodega Norte", Direccion = "Sucursal Norte", Activo = true }
+        );
+
+        // ProductStocks
+        modelBuilder.Entity<ProductStock>().HasData(
+            new ProductStock { Id = 1, ProductId = 1, WarehouseId = 1, Cantidad = 50 },
+            new ProductStock { Id = 2, ProductId = 2, WarehouseId = 1, Cantidad = 100 },
+            new ProductStock { Id = 3, ProductId = 3, WarehouseId = 1, Cantidad = 30 },
+            new ProductStock { Id = 4, ProductId = 4, WarehouseId = 1, Cantidad = 40 },
+            new ProductStock { Id = 5, ProductId = 5, WarehouseId = 1, Cantidad = 200 },
+            new ProductStock { Id = 6, ProductId = 6, WarehouseId = 1, Cantidad = 150 }
         );
 
         // Seed Sample Favorites
@@ -416,7 +523,7 @@ public class LentSoftDbContext : DbContext
                 Telefono = "555-0101",
                 Puesto = "Optometrista",
                 Departamento = "Atención al Cliente",
-                Salario = 25000.00m,
+                Salario = 2500000.00m,
                 FechaContratacion = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc),
                 Activo = true
             },
@@ -428,19 +535,19 @@ public class LentSoftDbContext : DbContext
                 Telefono = "555-0102",
                 Puesto = "Vendedor",
                 Departamento = "Ventas",
-                Salario = 18000.00m,
+                Salario = 1800000.00m,
                 FechaContratacion = new DateTime(2025, 8, 15, 0, 0, 0, DateTimeKind.Utc),
                 Activo = true
             },
             new Employee
             {
                 Id = 3,
-                Nombre = "Ana Martínez",
-                Email = "ana.martinez@lentsoft.com",
+                Nombre = "Carlos Mendoza",
+                Email = "carlos.mendoza@lentsoft.com",
                 Telefono = "555-0103",
                 Puesto = "Gerente",
                 Departamento = "Administración",
-                Salario = 35000.00m,
+                Salario = 3500000.00m,
                 FechaContratacion = new DateTime(2024, 3, 1, 0, 0, 0, DateTimeKind.Utc),
                 Activo = true
             }
@@ -452,7 +559,7 @@ public class LentSoftDbContext : DbContext
             {
                 Id = 1,
                 UserId = 2,
-                Total = 2500.00m,
+                Total = 2500000.00m,
                 Estado = "entregado",
                 DireccionEnvio = "Calle 123 #45-67",
                 FechaPedido = new DateTime(2026, 5, 15, 10, 0, 0, DateTimeKind.Utc)
@@ -461,7 +568,7 @@ public class LentSoftDbContext : DbContext
             {
                 Id = 2,
                 UserId = 2,
-                Total = 1800.00m,
+                Total = 1800000.00m,
                 Estado = "enviado",
                 DireccionEnvio = "Calle 123 #45-67",
                 FechaPedido = new DateTime(2026, 5, 20, 14, 30, 0, DateTimeKind.Utc)
@@ -476,7 +583,7 @@ public class LentSoftDbContext : DbContext
                 OrderId = 1,
                 ProductId = 1,
                 Cantidad = 1,
-                PrecioUnitario = 2500.00m
+                PrecioUnitario = 2500000.00m
             },
             new OrderItem
             {
@@ -484,7 +591,7 @@ public class LentSoftDbContext : DbContext
                 OrderId = 2,
                 ProductId = 3,
                 Cantidad = 1,
-                PrecioUnitario = 1800.00m
+                PrecioUnitario = 1800000.00m
             }
         );
 
@@ -508,6 +615,20 @@ public class LentSoftDbContext : DbContext
                 Estado = "pendiente",
                 FechaCreacion = new DateTime(2026, 5, 15, 0, 0, 0, DateTimeKind.Utc)
             }
+        );
+
+        // Seed Suppliers
+        modelBuilder.Entity<Supplier>().HasData(
+            new Supplier { Id = "PROV001", Nombre = "Óptica Global S.A.", TipoProductos = "Monturas", Telefono = "555-1001", Correo = "ventas@opticaglobal.com", Activo = true, FechaRegistro = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Supplier { Id = "PROV002", Nombre = "LensTech Colombia", TipoProductos = "Lentes de contacto", Telefono = "555-1002", Correo = "contacto@lenstech.co", Activo = true, FechaRegistro = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Supplier { Id = "PROV003", Nombre = "Distribuidora Visual", TipoProductos = "Accesorios", Telefono = "555-1003", Correo = "info@distvisual.com", Activo = true, FechaRegistro = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
+        );
+
+        // Seed Inventory Movements
+        modelBuilder.Entity<InventoryMovement>().HasData(
+            new InventoryMovement { Id = 1, ProductId = 1, Tipo = "Entrada", Cantidad = 20, Fecha = new DateTime(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc), Responsable = "Administrador" },
+            new InventoryMovement { Id = 2, ProductId = 2, Tipo = "Salida", Cantidad = 5, Fecha = new DateTime(2026, 5, 2, 14, 0, 0, DateTimeKind.Utc), Responsable = "Administrador" },
+            new InventoryMovement { Id = 3, ProductId = 3, Tipo = "Entrada", Cantidad = 10, Fecha = new DateTime(2026, 5, 3, 11, 30, 0, DateTimeKind.Utc), Responsable = "Administrador" }
         );
     }
 }

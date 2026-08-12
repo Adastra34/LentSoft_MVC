@@ -16,9 +16,15 @@ public class UserService : IUserService
         _context = context;
     }
 
-    public async Task<List<User>> GetAllAsync()
+    public async Task<List<User>> GetAllAsync(bool includeInactive = false)
     {
-        return await _context.Users
+        var query = _context.Users.AsQueryable();
+        if (!includeInactive)
+        {
+            query = query.Where(u => u.Activo);
+        }
+
+        return await query
             .OrderBy(u => u.Nombre)
             .ToListAsync();
     }
@@ -36,8 +42,15 @@ public class UserService : IUserService
         user.Nombre = nombre;
         user.Telefono = telefono;
 
-        await _context.SaveChangesAsync();
-        return user;
+        try
+        {
+            await _context.SaveChangesAsync();
+            return user;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo actualizar el perfil debido a un error de base de datos.", ex);
+        }
     }
 
     public async Task<bool> ChangePasswordAsync(int id, string currentPassword, string newPassword)
@@ -49,8 +62,16 @@ public class UserService : IUserService
             return false;
 
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
-        await _context.SaveChangesAsync();
-        return true;
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo cambiar la contraseña debido a una restricción de base de datos.", ex);
+        }
     }
 
     public async Task<bool> DeleteAsync(int id)
@@ -58,8 +79,36 @@ public class UserService : IUserService
         var user = await _context.Users.FindAsync(id);
         if (user == null) return false;
 
-        _context.Users.Remove(user);
-        await _context.SaveChangesAsync();
-        return true;
+        user.Activo = false;
+        _context.Users.Update(user);
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo desactivar el usuario porque está vinculado a otros registros del sistema.", ex);
+        }
+    }
+
+    public async Task<bool> ReactivateAsync(int id)
+    {
+        var user = await _context.Users.FindAsync(id);
+        if (user == null) return false;
+
+        user.Activo = true;
+        _context.Users.Update(user);
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo reactivar el usuario debido a un error de base de datos.", ex);
+        }
     }
 }

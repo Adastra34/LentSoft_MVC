@@ -40,26 +40,33 @@ public class FavoriteService : IFavoriteService
 
     public async Task<bool> ToggleFavoriteAsync(int userId, int productId)
     {
-        var existing = await _context.Favorites
-            .FirstOrDefaultAsync(f => f.UserId == userId && f.ProductId == productId);
+        try
+        {
+            var existing = await _context.Favorites
+                .FirstOrDefaultAsync(f => f.UserId == userId && f.ProductId == productId);
 
-        if (existing != null)
-        {
-            _context.Favorites.Remove(existing);
-            await _context.SaveChangesAsync();
-            return false; // Removed from favorites
-        }
-        else
-        {
-            var favorite = new Favorite
+            if (existing != null)
             {
-                UserId = userId,
-                ProductId = productId,
-                FechaAgregado = DateTime.UtcNow
-            };
-            _context.Favorites.Add(favorite);
-            await _context.SaveChangesAsync();
-            return true; // Added to favorites
+                _context.Favorites.Remove(existing);
+                await _context.SaveChangesAsync();
+                return false; // Removed from favorites
+            }
+            else
+            {
+                var favorite = new Favorite
+                {
+                    UserId = userId,
+                    ProductId = productId,
+                    FechaAgregado = DateTime.UtcNow
+                };
+                _context.Favorites.Add(favorite);
+                await _context.SaveChangesAsync();
+                return true; // Added to favorites
+            }
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo actualizar el estado de favorito debido a un error de base de datos.", ex);
         }
     }
 }

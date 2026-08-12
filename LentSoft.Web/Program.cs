@@ -5,11 +5,23 @@ using Microsoft.EntityFrameworkCore;
 using LentSoft.Web.Data;
 using LentSoft.Web.Services;
 
+// ── Culture Configuration (Pesos Colombianos - COP) ──
+var cultureInfo = new System.Globalization.CultureInfo("es-CO");
+cultureInfo.NumberFormat.CurrencySymbol = "COP $";
+cultureInfo.NumberFormat.CurrencyDecimalDigits = 0;
+cultureInfo.NumberFormat.CurrencyGroupSeparator = ".";
+cultureInfo.NumberFormat.CurrencyDecimalSeparator = ",";
+System.Globalization.CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // ── Database ──
 builder.Services.AddDbContext<LentSoftDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+});
 
 // ── Services (DI) ──
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -22,6 +34,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IPdfInvoiceService, PdfInvoiceService>();
 builder.Services.AddSingleton<IPasswordResetTokenService, PasswordResetTokenService>();
+builder.Services.AddScoped<IPdfFormulaService, PdfFormulaService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
 // ── Authentication (Cookie-based, standard MVC pattern) ──

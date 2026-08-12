@@ -45,6 +45,7 @@ public class DashboardController : Controller
     public async Task<IActionResult> Admin(
         string section = "general",
         string subtab = "productos",
+        string pedidosView = "proveedores",
         string? searchTerm = null,
         int page = 1,
         int pageSize = 5,
@@ -53,44 +54,59 @@ public class DashboardController : Controller
         int clientesPageSize = 5,
         string? trabajadoresSearch = null,
         int trabajadoresPage = 1,
-        int trabajadoresPageSize = 5)
+        int trabajadoresPageSize = 5,
+        bool includeInactive = false,
+        int? warehouseId = null)
     {
+        ViewBag.IncludeInactive = includeInactive;
         var now = DateTime.UtcNow;
         var inicioMes = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
         var inicioMesAnterior = inicioMes.AddMonths(-1);
 
         // ── Stats del mes actual ──
         var ventasMes = await _context.Orders
-            .Where(o => o.Estado != "cancelado" && o.FechaPedido >= inicioMes)
+            .Where(o => o.Activo && o.Estado != "cancelado" && o.FechaPedido >= inicioMes)
             .SumAsync(o => (decimal?)o.Total) ?? 0;
 
         var ventasMesAnterior = await _context.Orders
-            .Where(o => o.Estado != "cancelado" && o.FechaPedido >= inicioMesAnterior && o.FechaPedido < inicioMes)
+            .Where(o => o.Activo && o.Estado != "cancelado" && o.FechaPedido >= inicioMesAnterior && o.FechaPedido < inicioMes)
             .SumAsync(o => (decimal?)o.Total) ?? 0;
 
         var pedidosActivos = await _context.Orders
+            .Where(o => o.Activo)
             .CountAsync(o => o.Estado == "pendiente" || o.Estado == "procesando" || o.Estado == "enviado");
 
         var pedidosActivosAnterior = Math.Max(1, pedidosActivos - 1); // mock anterior
 
-        var clientesTotales = await _context.Users.CountAsync(u => u.Role == "usuario");
+        var clientesTotales = await _context.Users.CountAsync(u => u.Role == "usuario" && u.Activo);
         var clientesAnterior = Math.Max(1, clientesTotales - 1); // mock
 
-        var productosEnStock = await _context.Products.CountAsync(p => p.Activo && p.Stock > 0);
+        var productosEnStock = await _context.Products
+            .Include(p => p.ProductStocks)
+            .CountAsync(p => p.Activo && p.ProductStocks.Sum(ps => ps.Cantidad) > 0);
         var productosAnterior = Math.Max(1, productosEnStock); // mock estable
 
         // ── Datos para las secciones ──
         var pedidosRecientes = await _context.Orders
+            .Where(o => o.Activo)
             .Include(o => o.User)
             .Include(o => o.OrderItems).ThenInclude(oi => oi.Product)
             .OrderByDescending(o => o.FechaPedido)
             .Take(10)
             .ToListAsync();
 
-        var productos = await _context.Products.OrderBy(p => p.Nombre).ToListAsync();
+        var productosQuery = _context.Products.Include(p => p.ProductStocks).AsQueryable();
+        if (!includeInactive) productosQuery = productosQuery.Where(p => p.Activo);
+        if (warehouseId.HasValue && warehouseId.Value > 0)
+        {
+            productosQuery = productosQuery.Where(p => p.ProductStocks.Any(ps => ps.WarehouseId == warehouseId.Value && ps.Cantidad > 0));
+        }
+        var productos = await productosQuery.OrderBy(p => p.Nombre).ToListAsync();
 
         // ── Clientes (Paginados y Filtrados) ──
         var clientesQuery = _context.Users.Where(u => u.Role == "usuario");
+        if (!includeInactive) clientesQuery = clientesQuery.Where(u => u.Activo);
+
         if (!string.IsNullOrWhiteSpace(clientesSearch))
         {
             var term = clientesSearch.Trim().ToLower();
@@ -112,6 +128,8 @@ public class DashboardController : Controller
 
         // ── Trabajadores (Paginados y Filtrados) ──
         var trabajadoresQuery = _context.Employees.AsQueryable();
+        if (!includeInactive) trabajadoresQuery = trabajadoresQuery.Where(e => e.Activo);
+
         if (!string.IsNullOrWhiteSpace(trabajadoresSearch))
         {
             var term = trabajadoresSearch.Trim().ToLower();
@@ -138,7 +156,7 @@ public class DashboardController : Controller
             var userAcc = await _context.Users.FirstOrDefaultAsync(u => u.Email == emp.Email);
             if (userAcc != null)
             {
-                pedidosCount = await _context.Orders.CountAsync(o => o.UserId == userAcc.Id);
+                pedidosCount = await _context.Orders.CountAsync(o => o.UserId == userAcc.Id && o.Activo);
             }
 
             trabajadoresList.Add(new TrabajadorItemViewModel
@@ -157,11 +175,13 @@ public class DashboardController : Controller
         }
 
         var ventas = await _context.Orders
+            .Where(o => o.Activo)
             .Include(o => o.User)
             .OrderByDescending(o => o.FechaPedido)
             .ToListAsync();
 
         var citas = await _context.Appointments
+            .Where(a => a.Activo)
             .Include(a => a.User)
             .OrderByDescending(a => a.FechaHora)
             .ToListAsync();
@@ -190,6 +210,7 @@ public class DashboardController : Controller
 
             // Clientes
             Clientes = clientesList,
+            TodosLosClientes = await _context.Users.Where(u => u.Activo && u.Role == "usuario").OrderBy(u => u.Nombre).ThenBy(u => u.Apellido).ToListAsync(),
             ClientesSearchTerm = clientesSearch,
             ClientesPage = clientesPage,
             ClientesPageSize = clientesPageSize,
@@ -210,14 +231,19 @@ public class DashboardController : Controller
             FacturasTotalCount = facturasTotalCount,
             PedidosDisponibles = pedidosDisponibles,
 
-            // Mock proveedores
-            Proveedores = GetMockProveedores(),
-            HistorialMovimientos = GetMockMovimientos(),
+            // Bodegas, Proveedores, Pedidos a Proveedores e Historial de Movimientos reales
+            Bodegas = await _context.Warehouses.Where(w => w.Activo).OrderBy(w => w.Nombre).ToListAsync(),
+            SelectedWarehouseId = warehouseId,
+            Proveedores = await _context.Suppliers.Where(s => s.Activo).OrderBy(s => s.Nombre).ToListAsync(),
+            PedidosProveedores = await _context.PurchaseOrders.Include(p => p.Supplier).Include(p => p.PurchaseOrderItems).ThenInclude(i => i.Product).OrderByDescending(p => p.FechaPedido).ToListAsync(),
+            HistorialMovimientos = await _context.InventoryMovements.Include(m => m.Product).Include(m => m.Warehouse).OrderByDescending(m => m.Fecha).ToListAsync(),
 
             // Navigation
             ActiveSection = section,
-            ActiveSubTab = subtab
+            ActiveSubTab = subtab,
+            ActivePedidosView = pedidosView
         };
+
 
         return View(viewModel);
     }
@@ -243,18 +269,18 @@ public class DashboardController : Controller
         // Cargar Historial Clínico y Fórmulas Ópticas estrictamente del usuario autenticado
         var historiales = await _context.HistorialesClinicos
             .Include(h => h.Optometra)
-            .Where(h => h.UserId == userId)
+            .Where(h => h.UserId == userId && h.Activo)
             .OrderByDescending(h => h.Fecha)
             .ToListAsync();
 
         var formulas = await _context.FormulasOpticas
             .Include(f => f.Optometra)
-            .Where(f => f.UserId == userId)
+            .Where(f => f.UserId == userId && f.Activo)
             .OrderByDescending(f => f.Fecha)
             .ToListAsync();
 
         // Citas del usuario autenticado con filtrado y paginación
-        var citasQuery = _context.Appointments.Where(a => a.UserId == userId);
+        var citasQuery = _context.Appointments.Where(a => a.UserId == userId && a.Activo);
         if (!string.IsNullOrWhiteSpace(citasSearch))
         {
             var term = citasSearch.Trim().ToLower();
@@ -299,20 +325,28 @@ public class DashboardController : Controller
             return RedirectToAction("Usuario", new { section = "citas" });
         }
 
-        var appointment = new Appointment
+        try
         {
-            UserId = userId,
-            Servicio = Servicio.Trim(),
-            FechaHora = FechaHora,
-            Notas = Notas?.Trim(),
-            Estado = "pendiente",
-            FechaCreacion = DateTime.UtcNow
-        };
+            var appointment = new Appointment
+            {
+                UserId = userId,
+                Servicio = Servicio.Trim(),
+                FechaHora = FechaHora,
+                Notas = Notas?.Trim(),
+                Estado = "pendiente",
+                FechaCreacion = DateTime.UtcNow
+            };
 
-        _context.Appointments.Add(appointment);
-        await _context.SaveChangesAsync();
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync();
 
-        TempData["SuccessMessage"] = "Cita agendada exitosamente.";
+            TempData["SuccessMessage"] = "Cita agendada exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al agendar la cita: {ex.Message}";
+        }
+
         return RedirectToAction("Usuario", new { section = "citas" });
     }
 
@@ -322,24 +356,33 @@ public class DashboardController : Controller
     public async Task<IActionResult> UserCancelAppointment(int id)
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var cita = await _context.Appointments.FirstOrDefaultAsync(a => a.Id == id && a.UserId == userId);
 
-        if (cita == null)
+        try
         {
-            TempData["ErrorMessage"] = "Cita no encontrada o no pertenece a tu usuario.";
-            return RedirectToAction("Usuario", new { section = "citas" });
+            var cita = await _context.Appointments.FirstOrDefaultAsync(a => a.Id == id && a.UserId == userId);
+
+            if (cita == null)
+            {
+                TempData["ErrorMessage"] = "Cita no encontrada o no pertenece a tu usuario.";
+                return RedirectToAction("Usuario", new { section = "citas" });
+            }
+
+            if (cita.Estado != "pendiente" && cita.Estado != "confirmada")
+            {
+                TempData["ErrorMessage"] = "Solo puedes cancelar citas pendientes o confirmadas.";
+                return RedirectToAction("Usuario", new { section = "citas" });
+            }
+
+            cita.Estado = "cancelada";
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "La cita ha sido cancelada exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al cancelar la cita: {ex.Message}";
         }
 
-        if (cita.Estado != "pendiente" && cita.Estado != "confirmada")
-        {
-            TempData["ErrorMessage"] = "Solo puedes cancelar citas pendientes o confirmadas.";
-            return RedirectToAction("Usuario", new { section = "citas" });
-        }
-
-        cita.Estado = "cancelada";
-        await _context.SaveChangesAsync();
-
-        TempData["SuccessMessage"] = "La cita ha sido cancelada exitosamente.";
         return RedirectToAction("Usuario", new { section = "citas" });
     }
 
@@ -349,31 +392,40 @@ public class DashboardController : Controller
     public async Task<IActionResult> UserRescheduleAppointment(int id, DateTime NuevaFechaHora)
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var cita = await _context.Appointments.FirstOrDefaultAsync(a => a.Id == id && a.UserId == userId);
 
-        if (cita == null)
+        try
         {
-            TempData["ErrorMessage"] = "Cita no encontrada o no pertenece a tu usuario.";
-            return RedirectToAction("Usuario", new { section = "citas" });
+            var cita = await _context.Appointments.FirstOrDefaultAsync(a => a.Id == id && a.UserId == userId);
+
+            if (cita == null)
+            {
+                TempData["ErrorMessage"] = "Cita no encontrada o no pertenece a tu usuario.";
+                return RedirectToAction("Usuario", new { section = "citas" });
+            }
+
+            if (cita.Estado == "completada" || cita.Estado == "cancelada")
+            {
+                TempData["ErrorMessage"] = "No se puede reprogramar una cita completada o cancelada.";
+                return RedirectToAction("Usuario", new { section = "citas" });
+            }
+
+            if (NuevaFechaHora <= DateTime.UtcNow)
+            {
+                TempData["ErrorMessage"] = "La nueva fecha y hora debe ser a futuro.";
+                return RedirectToAction("Usuario", new { section = "citas" });
+            }
+
+            cita.FechaHora = NuevaFechaHora;
+            cita.Estado = "pendiente";
+            await _context.SaveChangesAsync();
+
+            TempData["SuccessMessage"] = "La cita ha sido reprogramada exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al reprogramar la cita: {ex.Message}";
         }
 
-        if (cita.Estado == "completada" || cita.Estado == "cancelada")
-        {
-            TempData["ErrorMessage"] = "No se puede reprogramar una cita completada o cancelada.";
-            return RedirectToAction("Usuario", new { section = "citas" });
-        }
-
-        if (NuevaFechaHora <= DateTime.UtcNow)
-        {
-            TempData["ErrorMessage"] = "La nueva fecha y hora debe ser a futuro.";
-            return RedirectToAction("Usuario", new { section = "citas" });
-        }
-
-        cita.FechaHora = NuevaFechaHora;
-        cita.Estado = "pendiente";
-        await _context.SaveChangesAsync();
-
-        TempData["SuccessMessage"] = "La cita ha sido reprogramada exitosamente.";
         return RedirectToAction("Usuario", new { section = "citas" });
     }
 
@@ -390,10 +442,18 @@ public class DashboardController : Controller
             return RedirectToAction("Usuario", new { section = "perfil" });
         }
 
-        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        await _userService.UpdateProfileAsync(userId, model.Nombre, model.Telefono);
+        try
+        {
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            await _userService.UpdateProfileAsync(userId, model.Nombre, model.Telefono);
 
-        TempData["SuccessMessage"] = "Perfil actualizado exitosamente.";
+            TempData["SuccessMessage"] = "Perfil actualizado exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al actualizar el perfil: {ex.Message}";
+        }
+
         return RedirectToAction("Usuario", new { section = "perfil" });
     }
 
@@ -411,16 +471,24 @@ public class DashboardController : Controller
             return RedirectToAction("Usuario", new { section = "configuracion" });
         }
 
-        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var success = await _userService.ChangePasswordAsync(userId, model.CurrentPassword, model.NewPassword);
-
-        if (!success)
+        try
         {
-            TempData["ErrorMessage"] = "La contraseña actual es incorrecta.";
-            return RedirectToAction("Usuario", new { section = "configuracion" });
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var success = await _userService.ChangePasswordAsync(userId, model.CurrentPassword, model.NewPassword);
+
+            if (!success)
+            {
+                TempData["ErrorMessage"] = "La contraseña actual es incorrecta.";
+                return RedirectToAction("Usuario", new { section = "configuracion" });
+            }
+
+            TempData["SuccessMessage"] = "Contraseña actualizada exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al cambiar la contraseña: {ex.Message}";
         }
 
-        TempData["SuccessMessage"] = "Contraseña actualizada exitosamente.";
         return RedirectToAction("Usuario", new { section = "configuracion" });
     }
 
@@ -430,18 +498,26 @@ public class DashboardController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateAppointment(int UserId, string Servicio, DateTime FechaHora, string? Notas)
     {
-        var appointment = new Appointment
+        try
         {
-            UserId = UserId,
-            Servicio = Servicio,
-            FechaHora = FechaHora,
-            Notas = Notas,
-            Estado = "pendiente",
-            FechaCreacion = DateTime.UtcNow
-        };
-        _context.Appointments.Add(appointment);
-        await _context.SaveChangesAsync();
-        TempData["SuccessMessage"] = "Cita creada exitosamente.";
+            var appointment = new Appointment
+            {
+                UserId = UserId,
+                Servicio = Servicio,
+                FechaHora = FechaHora,
+                Notas = Notas,
+                Estado = "pendiente",
+                FechaCreacion = DateTime.UtcNow
+            };
+            _context.Appointments.Add(appointment);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Cita creada exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al crear la cita: {ex.Message}";
+        }
+
         return RedirectToAction("Admin", new { section = "citas" });
     }
 
@@ -451,13 +527,25 @@ public class DashboardController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateAppointmentStatus(int id, string estado)
     {
-        var cita = await _context.Appointments.FindAsync(id);
-        if (cita != null)
+        try
         {
-            cita.Estado = estado;
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Estado de cita actualizado.";
+            var cita = await _context.Appointments.FindAsync(id);
+            if (cita != null)
+            {
+                cita.Estado = estado;
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Estado de cita actualizado.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Cita no encontrada.";
+            }
         }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al actualizar la cita: {ex.Message}";
+        }
+
         return RedirectToAction("Admin", new { section = "citas" });
     }
 
@@ -467,13 +555,26 @@ public class DashboardController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteAppointment(int id)
     {
-        var cita = await _context.Appointments.FindAsync(id);
-        if (cita != null)
+        try
         {
-            _context.Appointments.Remove(cita);
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Cita eliminada exitosamente.";
+            var cita = await _context.Appointments.FindAsync(id);
+            if (cita != null)
+            {
+                cita.Activo = false;
+                _context.Appointments.Update(cita);
+                await _context.SaveChangesAsync();
+                TempData["SuccessMessage"] = "Cita eliminada exitosamente.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Cita no encontrada.";
+            }
         }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al eliminar la cita: {ex.Message}";
+        }
+
         return RedirectToAction("Admin", new { section = "citas" });
     }
 

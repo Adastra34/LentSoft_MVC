@@ -19,6 +19,7 @@ public class OrderService : IOrderService
     public async Task<List<Order>> GetAllAsync()
     {
         return await _context.Orders
+            .Where(o => o.Activo)
             .Include(o => o.User)
             .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product)
@@ -31,7 +32,7 @@ public class OrderService : IOrderService
         return await _context.Orders
             .Include(o => o.OrderItems)
                 .ThenInclude(oi => oi.Product)
-            .Where(o => o.UserId == userId)
+            .Where(o => o.UserId == userId && o.Activo)
             .OrderByDescending(o => o.FechaPedido)
             .ToListAsync();
     }
@@ -50,10 +51,16 @@ public class OrderService : IOrderService
         order.FechaPedido = DateTime.UtcNow;
         order.Estado = "pendiente";
 
-        _context.Orders.Add(order);
-        await _context.SaveChangesAsync();
-
-        return order;
+        try
+        {
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+            return order;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo crear el pedido debido a un error de base de datos.", ex);
+        }
     }
 
     public async Task<Order?> UpdateStatusAsync(int id, string estado)
@@ -68,8 +75,15 @@ public class OrderService : IOrderService
             order.FechaEntrega = DateTime.UtcNow;
         }
 
-        await _context.SaveChangesAsync();
-        return order;
+        try
+        {
+            await _context.SaveChangesAsync();
+            return order;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo actualizar el estado del pedido debido a un conflicto de datos.", ex);
+        }
     }
 
     public async Task<bool> DeleteAsync(int id)
@@ -77,8 +91,17 @@ public class OrderService : IOrderService
         var order = await _context.Orders.FindAsync(id);
         if (order == null) return false;
 
-        _context.Orders.Remove(order);
-        await _context.SaveChangesAsync();
-        return true;
+        order.Activo = false;
+        _context.Orders.Update(order);
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo eliminar el pedido porque está vinculado a otros registros.", ex);
+        }
     }
 }

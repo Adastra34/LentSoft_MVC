@@ -463,7 +463,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Pedido Asociado *</label>
-                    <select name="OrderId" class="form-input" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" onchange="updateNewInvoiceAmounts(this)">
+                    <select name="OrderId" class="form-input searchable-select" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" onchange="updateNewInvoiceAmounts(this)">
                         <option value="">-- Seleccionar Pedido --</option>
                         @foreach (var ord in Model.PedidosDisponibles)
                         {
@@ -565,25 +565,58 @@
                 <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
                     <span>👤</span> DATOS DEL CLIENTE
                 </div>
+
+                <input type="hidden" id="selectedUserIdVentas" name="UserId" value="" />
+
+                <div style="margin-bottom: 0.75rem;">
+                    <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">🔍 Seleccionar Cuenta / Cliente Registrado</label>
+                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                        <div style="flex: 1;">
+                            <input type="text" id="searchNameVentas" placeholder="⚡ Buscar por nombre o apellido..." onkeyup="filterClientSelectVentas()" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-400); font-size: 0.83rem; background-color: var(--purple-50); color: var(--purple-900); font-weight: 500;" />
+                        </div>
+                        <div style="flex: 1;">
+                            <input type="text" id="searchCedulaVentas" placeholder="🪪 Buscar por N° Cédula C.C..." onkeyup="filterClientSelectVentas()" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-400); font-size: 0.83rem; background-color: var(--purple-50); color: var(--purple-900); font-weight: 500;" />
+                        </div>
+                    </div>
+                    <select id="userSelectVentas" class="form-input searchable-select" onchange="onUserSelectedVentas(this)" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); font-size: 0.85rem; background-color: white;">
+                        <option value="">-- Buscar o Seleccionar Cliente Registrado --</option>
+                        @foreach (var user in Model.Clientes)
+                        {
+                            <option value="@user.Id" 
+                                    data-nombre="@user.Nombre" 
+                                    data-apellido="@user.Apellido" 
+                                    data-cedula="@user.NumeroDocumento" 
+                                    data-telefono="@user.Telefono" 
+                                    data-direccion="@user.Direccion">
+                                @user.Nombre @user.Apellido (@(string.IsNullOrEmpty(user.NumeroDocumento) ? user.Email : "C.C. " + user.NumeroDocumento))
+                            </option>
+                        }
+                    </select>
+                </div>
+
                 <div style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
                     <div style="flex: 1;">
                         <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Nombre *</label>
-                        <input name="Nombre" type="text" required placeholder="Ej: Juan" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" />
+                        <input id="saleNombreVentas" name="Nombre" type="text" required readonly="readonly" placeholder="Seleccione un cliente" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--gray-100); cursor: not-allowed;" />
                     </div>
                     <div style="flex: 1;">
                         <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Apellido *</label>
-                        <input name="Apellido" type="text" required placeholder="Ej: Pérez" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" />
+                        <input id="saleApellidoVentas" name="Apellido" type="text" required readonly="readonly" placeholder="Seleccione un cliente" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--gray-100); cursor: not-allowed;" />
                     </div>
                 </div>
-                <div style="display: flex; gap: 0.75rem;">
+                <div style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">N° Cédula / Documento *</label>
+                        <input id="saleCedulaVentas" name="NumeroDocumento" type="text" required readonly="readonly" placeholder="Seleccione un cliente" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--gray-100); cursor: not-allowed;" />
+                    </div>
                     <div style="flex: 1;">
                         <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Teléfono *</label>
-                        <input name="Telefono" type="text" required placeholder="Ej: 3001234567" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" />
+                        <input id="saleTelefonoVentas" name="Telefono" type="text" required readonly="readonly" placeholder="Seleccione un cliente" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--gray-100); cursor: not-allowed;" />
                     </div>
-                    <div style="flex: 1;">
-                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Dirección *</label>
-                        <input name="Direccion" type="text" required placeholder="Ej: Calle 123 # 45-67" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" />
-                    </div>
+                </div>
+                <div style="margin-bottom: 0.75rem;">
+                    <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Dirección *</label>
+                    <input id="saleDireccionVentas" name="Direccion" type="text" required readonly="readonly" placeholder="Seleccione un cliente" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--gray-100); cursor: not-allowed;" />
                 </div>
             </div>
 
@@ -595,12 +628,12 @@
                 <div style="display: flex; gap: 0.5rem; align-items: flex-end; margin-bottom: 0.75rem;">
                     <div style="flex: 2;">
                         <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Producto</label>
-                        <select id="newSaleProdSelectVentas" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
+                        <select id="newSaleProdSelectVentas" class="form-input searchable-select" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
                             <option value="">-- Seleccionar Producto --</option>
                             @foreach (var prod in Model.Productos)
                             {
                                 var precioFinal = prod.PrecioDescuento ?? prod.Precio;
-                                <option value="@prod.Id" data-nombre="@prod.Nombre" data-precio="@precioFinal.ToString(System.Globalization.CultureInfo.InvariantCulture)">@prod.Nombre ($@precioFinal.ToString("N2"))</option>
+                                <option value="@prod.Id" data-nombre="@prod.Nombre" data-precio="@precioFinal.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-iva="@prod.PorcentajeIva.ToString(System.Globalization.CultureInfo.InvariantCulture)">@prod.Nombre (@precioFinal.ToString("C") - IVA @prod.PorcentajeIva.ToString("0.#")%)</option>
                             }
                         </select>
                     </div>
@@ -621,13 +654,14 @@
                                 <th style="padding: 0.5rem 0.75rem;">Producto</th>
                                 <th style="padding: 0.5rem; text-align: center;">Cant.</th>
                                 <th style="padding: 0.5rem; text-align: right;">P. Unit.</th>
+                                <th style="padding: 0.5rem; text-align: center;">IVA</th>
                                 <th style="padding: 0.5rem 0.75rem; text-align: right;">Subtotal</th>
                                 <th style="padding: 0.5rem; text-align: center;"></th>
                             </tr>
                         </thead>
                         <tbody id="saleItemsTableBodyVentas">
                             <tr>
-                                <td colspan="5" style="padding: 1rem; text-align: center; color: var(--gray-500); font-style: italic;">
+                                <td colspan="6" style="padding: 1rem; text-align: center; color: var(--gray-500); font-style: italic;">
                                     No ha agregado productos a esta venta aún.
                                 </td>
                             </tr>
@@ -653,12 +687,12 @@
                         </select>
                     </div>
                     <div style="flex: 1;">
-                        <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Subtotal ($)</label>
-                        <input id="subtotalDisplayVentas" type="text" readonly value="$0.00" class="form-input" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--gray-300); background-color: var(--gray-50); font-weight: 600; text-align: right;" />
+                        <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Subtotal (COP)</label>
+                        <input id="subtotalDisplayVentas" type="text" readonly value="COP $0" class="form-input" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--gray-300); background-color: var(--gray-50); font-weight: 600; text-align: right;" />
                     </div>
                     <div style="flex: 1;">
-                        <label class="form-label" style="font-weight: 700; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">TOTAL VENTA ($)</label>
-                        <input id="totalDisplayVentas" type="text" readonly value="$0.00" class="form-input" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--purple-50); font-weight: 800; color: var(--purple-900); text-align: right; font-size: 0.95rem;" />
+                        <label class="form-label" style="font-weight: 700; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">TOTAL VENTA (COP)</label>
+                        <input id="totalDisplayVentas" type="text" readonly value="COP $0" class="form-input" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--purple-50); font-weight: 800; color: var(--purple-900); text-align: right; font-size: 0.95rem;" />
                     </div>
                 </div>
             </div>
@@ -719,6 +753,7 @@
         const opt = prodSelect.options[prodSelect.selectedIndex];
         const nombre = opt.getAttribute('data-nombre');
         const precio = parseFloat(opt.getAttribute('data-precio') || '0');
+        const iva = parseFloat(opt.getAttribute('data-iva') || '19');
 
         const existingIndex = saleItemsVentas.findIndex(i => i.productId === productId);
         if (existingIndex >= 0) {
@@ -730,6 +765,7 @@
                 nombre: nombre,
                 cantidad: cantidad,
                 precioUnitario: precio,
+                ivaPercent: iva,
                 subtotal: precio * cantidad
             });
         }
@@ -749,14 +785,15 @@
         if (!tbody) return;
 
         if (saleItemsVentas.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="5" style="padding: 1rem; text-align: center; color: var(--gray-500); font-style: italic;">No ha agregado productos a esta venta aún.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" style="padding: 1rem; text-align: center; color: var(--gray-500); font-style: italic;">No ha agregado productos a esta venta aún.</td></tr>`;
         } else {
             tbody.innerHTML = saleItemsVentas.map((item, idx) => `
                 <tr style="border-bottom: 1px solid var(--purple-100);">
                     <td style="padding: 0.5rem 0.75rem; font-weight: 600; color: var(--purple-900);">${item.nombre}</td>
                     <td style="padding: 0.5rem; text-align: center;">${item.cantidad}</td>
-                    <td style="padding: 0.5rem; text-align: right;">$${item.precioUnitario.toFixed(2)}</td>
-                    <td style="padding: 0.5rem 0.75rem; text-align: right; font-weight: 700;">$${item.subtotal.toFixed(2)}</td>
+                    <td style="padding: 0.5rem; text-align: right;">COP $${Math.round(item.precioUnitario).toLocaleString('es-CO')}</td>
+                    <td style="padding: 0.5rem; text-align: center;"><span style="background: var(--purple-100); color: var(--purple-800); padding: 0.15rem 0.45rem; border-radius: 0.25rem; font-weight: 700; font-size: 0.75rem;">${item.ivaPercent}%</span></td>
+                    <td style="padding: 0.5rem 0.75rem; text-align: right; font-weight: 700;">COP $${Math.round(item.subtotal).toLocaleString('es-CO')}</td>
                     <td style="padding: 0.5rem; text-align: center;">
                         <button type="button" onclick="removeSaleItemVentas(${idx})" style="background: none; border: none; color: var(--error); cursor: pointer; font-size: 1rem; font-weight: bold;">&times;</button>
                     </td>
@@ -778,9 +815,54 @@
         const totalDisplay = document.getElementById('totalDisplayVentas');
         const jsonInput = document.getElementById('saleItemsJsonVentas');
 
-        if (subtotalDisplay) subtotalDisplay.value = '$' + subtotalSum.toFixed(2);
-        if (totalDisplay) totalDisplay.value = '$' + totalFinal.toFixed(2);
+        if (subtotalDisplay) subtotalDisplay.value = 'COP $' + Math.round(subtotalSum).toLocaleString('es-CO');
+        if (totalDisplay) totalDisplay.value = 'COP $' + Math.round(totalFinal).toLocaleString('es-CO');
         if (jsonInput) jsonInput.value = JSON.stringify(saleItemsVentas.map(i => ({ productId: i.productId, cantidad: i.cantidad })));
+    }
+
+    function filterClientSelectVentas() {
+        const nameQuery = (document.getElementById('searchNameVentas')?.value || '').toLowerCase().trim();
+        const cedulaQuery = (document.getElementById('searchCedulaVentas')?.value || '').toLowerCase().trim();
+        const selectEl = document.getElementById('userSelectVentas');
+        if (!selectEl) return;
+        const options = selectEl.options;
+        for (let i = 1; i < options.length; i++) {
+            const opt = options[i];
+            const nombre = (opt.getAttribute('data-nombre') || '').toLowerCase();
+            const apellido = (opt.getAttribute('data-apellido') || '').toLowerCase();
+            const fullName = (nombre + ' ' + apellido).toLowerCase();
+            const cedula = (opt.getAttribute('data-cedula') || '').toLowerCase();
+
+            const nameMatch = !nameQuery || fullName.includes(nameQuery) || nombre.includes(nameQuery) || apellido.includes(nameQuery);
+            const cedulaMatch = !cedulaQuery || cedula.includes(cedulaQuery);
+
+            opt.style.display = (nameMatch && cedulaMatch) ? '' : 'none';
+        }
+    }
+
+    function onUserSelectedVentas(selectEl) {
+        const option = selectEl.options[selectEl.selectedIndex];
+        if (!selectEl.value) {
+            document.getElementById('selectedUserIdVentas').value = '';
+            document.getElementById('saleNombreVentas').value = '';
+            document.getElementById('saleApellidoVentas').value = '';
+            document.getElementById('saleCedulaVentas').value = '';
+            document.getElementById('saleTelefonoVentas').value = '';
+            document.getElementById('saleDireccionVentas').value = '';
+            return;
+        }
+        const nombre = option.getAttribute('data-nombre') || '';
+        const apellido = option.getAttribute('data-apellido') || '';
+        const cedula = option.getAttribute('data-cedula') || '';
+        const telefono = option.getAttribute('data-telefono') || '';
+        const direccion = option.getAttribute('data-direccion') || '';
+
+        document.getElementById('selectedUserIdVentas').value = selectEl.value;
+        document.getElementById('saleNombreVentas').value = nombre;
+        document.getElementById('saleApellidoVentas').value = apellido;
+        document.getElementById('saleCedulaVentas').value = cedula;
+        document.getElementById('saleTelefonoVentas').value = telefono;
+        document.getElementById('saleDireccionVentas').value = direccion;
     }
 
     function validateSaleFormVentas() {
@@ -891,3 +973,7 @@
         }
     }
 </script>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -67,8 +67,15 @@ public class ProductController : Controller
             return Unauthorized();
         }
 
-        var isFavorite = await _favoriteService.ToggleFavoriteAsync(userId, productId);
-        return Json(new { isFavorite });
+        try
+        {
+            var isFavorite = await _favoriteService.ToggleFavoriteAsync(userId, productId);
+            return Json(new { success = true, isFavorite });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -85,8 +92,16 @@ public class ProductController : Controller
             return RedirectToAction("Admin", "Dashboard");
         }
 
-        await _productService.CreateAsync(product);
-        TempData["SuccessMessage"] = "Producto creado exitosamente.";
+        try
+        {
+            await _productService.CreateAsync(product);
+            TempData["SuccessMessage"] = "Producto creado exitosamente.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al crear el producto: {ex.Message}";
+        }
+
         return RedirectToAction("Admin", "Dashboard");
     }
 
@@ -98,9 +113,73 @@ public class ProductController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
-        await _productService.DeleteAsync(id);
-        TempData["SuccessMessage"] = "Producto eliminado exitosamente.";
+        try
+        {
+            var deleted = await _productService.DeleteAsync(id);
+            if (deleted)
+            {
+                TempData["SuccessMessage"] = "Producto eliminado exitosamente.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = "Producto no encontrado.";
+            }
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al eliminar el producto: {ex.Message}";
+        }
+
         return RedirectToAction("Admin", "Dashboard");
+    }
+
+    /// <summary>
+    /// Admin: Get product data for editing (GET)
+    /// </summary>
+    [HttpGet]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> Edit(int id)
+    {
+        var product = await _productService.GetByIdAsync(id);
+        if (product == null)
+        {
+            return NotFound();
+        }
+        return Json(product);
+    }
+
+    /// <summary>
+    /// Admin: Edit product (POST)
+    /// </summary>
+    [HttpPost]
+    [Authorize(Roles = "admin")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(Product product)
+    {
+        if (!ModelState.IsValid)
+        {
+            TempData["ErrorMessage"] = "Datos del producto no válidos.";
+            return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "productos" });
+        }
+
+        try
+        {
+            var updated = await _productService.UpdateAsync(product.Id, product);
+            if (updated == null)
+            {
+                TempData["ErrorMessage"] = "Producto no encontrado.";
+            }
+            else
+            {
+                TempData["SuccessMessage"] = "Producto actualizado exitosamente.";
+            }
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al actualizar el producto: {ex.Message}";
+        }
+
+        return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "productos" });
     }
 
     /// <summary>

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using LentSoft.Web.Models.Entities;
 
 namespace LentSoft.Web.Data;
@@ -8,6 +9,48 @@ public static class DbSeeder
 {
     public static void Seed(LentSoftDbContext context)
     {
+        // Asegurar que la columna PorcentajeIva exista en la tabla Products
+        try
+        {
+            context.Database.ExecuteSqlRaw(@"
+                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Products' AND COLUMN_NAME = 'PorcentajeIva')
+                BEGIN
+                    ALTER TABLE Products ADD PorcentajeIva decimal(5,2) NOT NULL DEFAULT 19.00;
+                END
+            ");
+        }
+        catch { }
+
+        // 0. Convertir precios de productos y órdenes existentes a COP si están en formato viejo (< 10000)
+        var oldProducts = context.Products.Where(p => p.Precio < 10000).ToList();
+        foreach (var p in oldProducts)
+        {
+            p.Precio *= 1000;
+            if (p.PrecioDescuento.HasValue) p.PrecioDescuento *= 1000;
+        }
+
+        var oldOrders = context.Orders.Where(o => o.Total < 10000).ToList();
+        foreach (var o in oldOrders)
+        {
+            o.Total *= 1000;
+        }
+
+        var oldOrderItems = context.OrderItems.Where(oi => oi.PrecioUnitario < 10000).ToList();
+        foreach (var oi in oldOrderItems)
+        {
+            oi.PrecioUnitario *= 1000;
+        }
+        var prodsToInit = context.Products.Where(p => p.PorcentajeIva <= 0).ToList();
+        foreach (var p in prodsToInit)
+        {
+            p.PorcentajeIva = p.Nombre.Contains("Líquido", StringComparison.OrdinalIgnoreCase) ? 5.00m : 19.00m;
+        }
+
+        if (oldProducts.Any() || oldOrders.Any() || oldOrderItems.Any() || prodsToInit.Any())
+        {
+            context.SaveChanges();
+        }
+
         // 1. Actualizar perfil del optómetra (Tarea 6)
         var optometra = context.Users.FirstOrDefault(u => u.Email == "optometra@lentsoft.com");
         if (optometra != null)
