@@ -784,7 +784,7 @@
         <form asp-controller="Dashboard" asp-action="CreateAppointment" method="post" style="display:flex; flex-direction:column; gap:1rem;">
             <div class="form-group">
                 <label class="form-label">Seleccionar Paciente</label>
-                <select name="UserId" class="form-input" required>
+                <select name="UserId" class="form-input searchable-select" required>
                     @foreach (var cli in Model.Clientes)
                     {
                         <option value="@cli.Id">@cli.Nombre (@cli.Email)</option>
@@ -795,10 +795,19 @@
             <div class="form-group">
                 <label class="form-label">Servicio</label>
                 <select name="Servicio" class="form-input" required>
-                    <option value="Examen de vista">Examen de vista</option>
-                    <option value="Ajuste de lentes">Ajuste de lentes</option>
+                    <option value="Examen visual completo">Examen visual completo</option>
+                    <option value="Examen de vista">Examen de vista básico</option>
+                    <option value="Control de lentes">Control de lentes</option>
+                    <option value="Primera consulta">Primera consulta</option>
+                    <option value="Seguimiento glaucoma">Seguimiento de glaucoma / presión</option>
+                    <option value="Adaptación lentes contacto">Adaptación de lentes de contacto</option>
+                    <option value="Ajuste de lentes">Ajuste y reparación de monturas</option>
                     <option value="Consulta por lentes de contacto">Consulta por lentes de contacto</option>
-                    <option value="Control optometría">Control optometría</option>
+                    <option value="Control optometría">Control de optometría general</option>
+                    <option value="Examen de agudeza visual (Certificado)">Examen de agudeza visual (Certificado)</option>
+                    <option value="Terapia visual / Ortóptica">Terapia visual / Ortóptica</option>
+                    <option value="Examen de fondo de ojo / Retinoscopia">Examen de fondo de ojo / Retinoscopia</option>
+                    <option value="Consulta de urgencia ocular leve">Consulta de urgencia ocular leve</option>
                 </select>
             </div>
 
@@ -848,7 +857,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Pedido Asociado *</label>
-                    <select name="OrderId" class="form-input" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" onchange="updateNewInvoiceAmounts(this)">
+                    <select name="OrderId" class="form-input searchable-select" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" onchange="updateNewInvoiceAmounts(this)">
                         <option value="">-- Seleccionar Pedido --</option>
                         @foreach (var ord in Model.PedidosDisponibles)
                         {
@@ -980,7 +989,7 @@
                 <div style="display: flex; gap: 0.5rem; align-items: flex-end; margin-bottom: 0.75rem;">
                     <div style="flex: 2;">
                         <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Producto</label>
-                        <select id="newSaleProdSelectAdmin" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
+                        <select id="newSaleProdSelectAdmin" class="form-input searchable-select" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
                             <option value="">-- Seleccionar Producto --</option>
                             @foreach (var prod in Model.Productos)
                             {

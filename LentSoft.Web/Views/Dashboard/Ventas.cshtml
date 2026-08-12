@@ -463,7 +463,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Pedido Asociado *</label>
-                    <select name="OrderId" class="form-input" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" onchange="updateNewInvoiceAmounts(this)">
+                    <select name="OrderId" class="form-input searchable-select" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" onchange="updateNewInvoiceAmounts(this)">
                         <option value="">-- Seleccionar Pedido --</option>
                         @foreach (var ord in Model.PedidosDisponibles)
                         {
@@ -595,7 +595,7 @@
                 <div style="display: flex; gap: 0.5rem; align-items: flex-end; margin-bottom: 0.75rem;">
                     <div style="flex: 2;">
                         <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Producto</label>
-                        <select id="newSaleProdSelectVentas" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
+                        <select id="newSaleProdSelectVentas" class="form-input searchable-select" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
                             <option value="">-- Seleccionar Producto --</option>
                             @foreach (var prod in Model.Productos)
                             {

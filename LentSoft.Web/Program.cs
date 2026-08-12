@@ -21,6 +21,7 @@ builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IPdfInvoiceService, PdfInvoiceService>();
+builder.Services.AddScoped<IPdfFormulaService, PdfFormulaService>();
 builder.Services.AddSingleton<IPasswordResetTokenService, PasswordResetTokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
