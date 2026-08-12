@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using LentSoft.Web.Models;
 using LentSoft.Web.Models.ViewModels;
 using LentSoft.Web.Services;
 
@@ -54,14 +55,25 @@ public class AuthController : Controller
             return View(model);
         }
 
-        var user = await _authService.LoginAsync(model.Email, model.Password);
+        var result = await _authService.LoginAsync(model.Email, model.Password);
 
-        if (user == null)
+        if (result.Result == LoginResult.AccountLocked)
+        {
+            var minutos = (int)Math.Ceiling(result.TiempoRestanteBloqueo!.Value.TotalMinutes);
+            ModelState.AddModelError(string.Empty,
+                $"Demasiados intentos fallidos. Tu cuenta está bloqueada temporalmente, intenta de nuevo en {minutos} minuto{(minutos != 1 ? "s" : "")}.");
+            ViewBag.ReturnUrl = returnUrl;
+            return View(model);
+        }
+
+        if (result.Result == LoginResult.InvalidCredentials)
         {
             ModelState.AddModelError(string.Empty, "Credenciales inválidas. Intenta nuevamente.");
             ViewBag.ReturnUrl = returnUrl;
             return View(model);
         }
+
+        var user = result.User!;
 
         // Create authentication cookie with claims
         var claims = new List<Claim>

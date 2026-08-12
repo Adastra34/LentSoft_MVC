@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using LentSoft.Web.Data;
+using LentSoft.Web.Models;
 using LentSoft.Web.Models.Entities;
 
 namespace LentSoft.Web.Services;
@@ -8,6 +9,9 @@ public class AuthService : IAuthService
 {
     private readonly LentSoftDbContext _context;
 
+    private const int MaxIntentosFallidos = 5;
+    private const int MinutosBloqueo = 15;
+
     public AuthService(LentSoftDbContext context)
     {
         _context = context;
@@ -15,20 +19,53 @@ public class AuthService : IAuthService
 
     /// <summary>
     /// Authenticate user with email and password.
-    /// Migrated from js/auth.js AuthService.login()
+    /// Includes brute-force protection: locks account for 15 minutes after 5 consecutive failed attempts.
     /// </summary>
-    public async Task<User?> LoginAsync(string email, string password)
+    public async Task<LoginAttemptResult> LoginAsync(string email, string password)
     {
         var user = await _context.Users
             .FirstOrDefaultAsync(u => u.Email == email);
 
+        // Usuario no existe — devolver credenciales inválidas (sin revelar que el email no existe)
         if (user == null)
-            return null;
+            return new LoginAttemptResult { Result = LoginResult.InvalidCredentials };
 
+        // Verificar si la cuenta está bloqueada temporalmente
+        if (user.BloqueadoHasta.HasValue && user.BloqueadoHasta.Value > DateTime.UtcNow)
+        {
+            var tiempoRestante = user.BloqueadoHasta.Value - DateTime.UtcNow;
+            return new LoginAttemptResult
+            {
+                Result = LoginResult.AccountLocked,
+                TiempoRestanteBloqueo = tiempoRestante
+            };
+        }
+
+        // Contraseña incorrecta
         if (!BCrypt.Net.BCrypt.Verify(password, user.PasswordHash))
-            return null;
+        {
+            user.IntentosFallidos++;
 
-        return user;
+            if (user.IntentosFallidos >= MaxIntentosFallidos)
+            {
+                user.BloqueadoHasta = DateTime.UtcNow.AddMinutes(MinutosBloqueo);
+                user.IntentosFallidos = 0;
+            }
+
+            await _context.SaveChangesAsync();
+            return new LoginAttemptResult { Result = LoginResult.InvalidCredentials };
+        }
+
+        // Login exitoso — limpiar historial de intentos fallidos
+        user.IntentosFallidos = 0;
+        user.BloqueadoHasta = null;
+        await _context.SaveChangesAsync();
+
+        return new LoginAttemptResult
+        {
+            Result = LoginResult.Success,
+            User = user
+        };
     }
 
     /// <summary>

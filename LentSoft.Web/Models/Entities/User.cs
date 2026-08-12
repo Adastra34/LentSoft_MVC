@@ -78,6 +78,12 @@ public class User : IValidatableObject
     [StringLength(500)]
     public string? FotoUrl { get; set; }
 
+    public bool Activo { get; set; } = true;
+
+    // ── Control de intentos fallidos de login ──
+    public int IntentosFallidos { get; set; } = 0;
+    public DateTime? BloqueadoHasta { get; set; }
+
     // Computed display name
     [NotMapped]
     public string NombreCompleto => $"{Nombre} {Apellido}".Trim();
