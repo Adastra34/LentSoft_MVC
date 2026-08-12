@@ -294,48 +294,112 @@
             }
             else if (Model.ActiveSubTab == "pedidos")
             {
-                <div class="card" style="padding: 1.5rem; background: white;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <input type="text" id="searchPedidosProveedores" placeholder="Buscar pedido a proveedor..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchPedidosProveedores', 'tablePedidosProveedores')" />
-                    </div>
-                    <div style="overflow-x: auto;">
-                        <table id="tablePedidosProveedores" style="width: 100%; border-collapse: collapse; text-align: left;">
-                            <thead>
-                                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                    <th style="padding: 0.75rem;">ID</th>
-                                    <th style="padding: 0.75rem;">Proveedor</th>
-                                    <th style="padding: 0.75rem;">Fecha Pedido</th>
-                                    <th style="padding: 0.75rem;">Entrega Estimada</th>
-                                    <th style="padding: 0.75rem;">Total</th>
-                                    <th style="padding: 0.75rem;">Estado</th>
-                                    <th style="padding: 0.75rem;">Acciones</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var ped in Model.PedidosProveedores)
-                                {
-                                    <tr style="border-bottom: 1px solid var(--purple-100);">
-                                        <td style="padding: 0.75rem; color: var(--purple-700); font-weight: 600;">#PED-@ped.Id.ToString("D4")</td>
-                                        <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@(ped.Supplier?.Nombre ?? ped.SupplierId)</td>
-                                        <td style="padding: 0.75rem; color: var(--gray-600);">@ped.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                                        <td style="padding: 0.75rem; color: var(--gray-600);">@(ped.FechaEstimadaEntrega?.ToString("dd/MM/yyyy") ?? "N/A")</td>
-                                        <td style="padding: 0.75rem; font-weight: 600;">@ped.Total.ToString("C")</td>
-                                        <td style="padding: 0.75rem;">
-                                            <span style="background-color: @(ped.Estado == "Recibido" ? "var(--success)" : ped.Estado == "Parcial" ? "var(--warning)" : ped.Estado == "Cancelado" ? "var(--error)" : "var(--purple-600)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
-                                                @ped.Estado
-                                            </span>
-                                        </td>
-                                        <td style="padding: 0.75rem;">
-                                            <button type="button" onclick="openRecibirPedidoModal(@ped.Id)" style="background: none; border: none; color: var(--purple-700); cursor: pointer; font-size: 0.875rem; text-decoration: underline; margin-right: 0.5rem;">
-                                                📦 Ver / Recibir
-                                            </button>
-                                        </td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                <!-- Sub-sub-tabs para Pedidos -->
+                <div style="display: flex; border-bottom: 2px solid var(--purple-200); margin-bottom: 1.5rem;">
+                    <a href="?section=inventario&subtab=pedidos&pedidosView=proveedores" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActivePedidosView != "ventas" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActivePedidosView != "ventas" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;">
+                        📦 Proveedores
+                    </a>
+                    <a href="?section=inventario&subtab=pedidos&pedidosView=ventas" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActivePedidosView == "ventas" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActivePedidosView == "ventas" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;">
+                        🛒 Ventas
+                    </a>
                 </div>
+
+                @if (Model.ActivePedidosView == "ventas")
+                {
+                    <div class="card" style="padding: 1.5rem; background: white;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <input type="text" id="searchVentasPedidos" placeholder="Buscar venta o cliente..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchVentasPedidos', 'tableVentasPedidos')" />
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table id="tableVentasPedidos" style="width: 100%; border-collapse: collapse; text-align: left;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
+                                        <th style="padding: 0.75rem;">Venta</th>
+                                        <th style="padding: 0.75rem;">Cliente</th>
+                                        <th style="padding: 0.75rem;">Fecha</th>
+                                        <th style="padding: 0.75rem;">Total</th>
+                                        <th style="padding: 0.75rem;">Estado</th>
+                                        <th style="padding: 0.75rem;">Actualizar Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var v in Model.Ventas)
+                                    {
+                                        <tr style="border-bottom: 1px solid var(--purple-100);">
+                                            <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">#ORD-@v.Id.ToString("D4")</td>
+                                            <td style="padding: 0.75rem;">@(v.User?.Nombre ?? "Cliente")</td>
+                                            <td style="padding: 0.75rem; color: var(--gray-600);">@v.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-900);">@v.Total.ToString("C")</td>
+                                            <td style="padding: 0.75rem;">
+                                                <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
+                                                    @v.Estado
+                                                </span>
+                                            </td>
+                                            <td style="padding: 0.75rem;">
+                                                <form asp-controller="Order" asp-action="UpdateStatus" method="post" style="display:flex; gap:0.5rem; align-items:center;">
+                                                    <input type="hidden" name="id" value="@v.Id" />
+                                                    <select name="estado" style="padding: 0.25rem; border-radius: 0.25rem; border: 1px solid var(--gray-300); font-size: 0.85rem;">
+                                                        <option value="pendiente" selected="@(v.Estado == "pendiente")">Pendiente</option>
+                                                        <option value="procesando" selected="@(v.Estado == "procesando")">Procesando</option>
+                                                        <option value="enviado" selected="@(v.Estado == "enviado")">Enviado</option>
+                                                        <option value="entregado" selected="@(v.Estado == "entregado")">Entregado</option>
+                                                        <option value="cancelado" selected="@(v.Estado == "cancelado")">Cancelado</option>
+                                                    </select>
+                                                    <button type="submit" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Guardar</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="card" style="padding: 1.5rem; background: white;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                            <input type="text" id="searchPedidosProveedores" placeholder="Buscar pedido a proveedor..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchPedidosProveedores', 'tablePedidosProveedores')" />
+                        </div>
+                        <div style="overflow-x: auto;">
+                            <table id="tablePedidosProveedores" style="width: 100%; border-collapse: collapse; text-align: left;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
+                                        <th style="padding: 0.75rem;">ID</th>
+                                        <th style="padding: 0.75rem;">Proveedor</th>
+                                        <th style="padding: 0.75rem;">Fecha Pedido</th>
+                                        <th style="padding: 0.75rem;">Entrega Estimada</th>
+                                        <th style="padding: 0.75rem;">Total</th>
+                                        <th style="padding: 0.75rem;">Estado</th>
+                                        <th style="padding: 0.75rem;">Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var ped in Model.PedidosProveedores)
+                                    {
+                                        <tr style="border-bottom: 1px solid var(--purple-100);">
+                                            <td style="padding: 0.75rem; color: var(--purple-700); font-weight: 600;">#PED-@ped.Id.ToString("D4")</td>
+                                            <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@(ped.Supplier?.Nombre ?? ped.SupplierId)</td>
+                                            <td style="padding: 0.75rem; color: var(--gray-600);">@ped.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td style="padding: 0.75rem; color: var(--gray-600);">@(ped.FechaEstimadaEntrega?.ToString("dd/MM/yyyy") ?? "N/A")</td>
+                                            <td style="padding: 0.75rem; font-weight: 600;">@ped.Total.ToString("C")</td>
+                                            <td style="padding: 0.75rem;">
+                                                <span style="background-color: @(ped.Estado == "Recibido" ? "var(--success)" : ped.Estado == "Parcial" ? "var(--warning)" : ped.Estado == "Cancelado" ? "var(--error)" : "var(--purple-600)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
+                                                    @ped.Estado
+                                                </span>
+                                            </td>
+                                            <td style="padding: 0.75rem;">
+                                                <button type="button" onclick="openRecibirPedidoModal(@ped.Id)" style="background: none; border: none; color: var(--purple-700); cursor: pointer; font-size: 0.875rem; text-decoration: underline; margin-right: 0.5rem;">
+                                                    📦 Ver / Recibir
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                }
             }
             else if (Model.ActiveSubTab == "historial")
             {

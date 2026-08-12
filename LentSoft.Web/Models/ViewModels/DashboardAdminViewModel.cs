@@ -59,6 +59,7 @@ public class DashboardAdminViewModel
     // Active section + sub-tab
     public string ActiveSection { get; set; } = "general";
     public string ActiveSubTab { get; set; } = "productos";
+    public string ActivePedidosView { get; set; } = "proveedores";
 
     // Helper: calcular % de variación
     public static string GetVariacion(decimal actual, decimal anterior)

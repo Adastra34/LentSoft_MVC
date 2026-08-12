@@ -198,7 +198,11 @@ public class OrderController : Controller
     private IActionResult RedirectToVentas()
     {
         var referer = Request.Headers["Referer"].ToString();
-        if (User.IsInRole("ventas") || (!string.IsNullOrEmpty(referer) && referer.Contains("/Ventas", StringComparison.OrdinalIgnoreCase)))
+        if (!string.IsNullOrEmpty(referer) && Uri.TryCreate(referer, UriKind.Absolute, out var uri) && Url.IsLocalUrl(uri.PathAndQuery))
+        {
+            return Redirect(uri.PathAndQuery);
+        }
+        if (User.IsInRole("ventas"))
         {
             return RedirectToAction("Index", "Ventas", new { section = "ventas" });
         }
