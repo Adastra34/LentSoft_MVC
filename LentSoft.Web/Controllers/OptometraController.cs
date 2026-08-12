@@ -6,16 +6,20 @@ using LentSoft.Web.Data;
 using LentSoft.Web.Models.ViewModels;
 using LentSoft.Web.Models.Entities;
 
+using LentSoft.Web.Services;
+
 namespace LentSoft.Web.Controllers;
 
 [Authorize(Roles = "optometra")]
 public class OptometraController : Controller
 {
     private readonly LentSoftDbContext _context;
+    private readonly IPdfFormulaService _pdfFormulaService;
 
-    public OptometraController(LentSoftDbContext context)
+    public OptometraController(LentSoftDbContext context, IPdfFormulaService pdfFormulaService)
     {
         _context = context;
+        _pdfFormulaService = pdfFormulaService;
     }
 
     public async Task<IActionResult> Index(string section = "dashboard", int? detalleId = null)
@@ -715,5 +719,24 @@ public class OptometraController : Controller
     public IActionResult HistorialDetalle(int id)
     {
         return RedirectToAction("Index", new { section = "historial", detalleId = id });
+    }
+
+    // ── Descargar PDF de Fórmula Óptica (QuestPDF) ──
+    [HttpGet]
+    public async Task<IActionResult> DownloadFormulaPdf(int id)
+    {
+        var formula = await _context.FormulasOpticas
+            .Include(f => f.User)
+            .Include(f => f.Optometra)
+            .FirstOrDefaultAsync(f => f.Id == id);
+
+        if (formula == null)
+        {
+            return NotFound("Fórmula óptica no encontrada.");
+        }
+
+        byte[] pdfBytes = _pdfFormulaService.GenerateFormulaPdf(formula);
+        string fileName = $"Formula_{formula.User?.NombreCompleto.Replace(" ", "_") ?? "Paciente"}_FOR-{formula.Id:D4}.pdf";
+        return File(pdfBytes, "application/pdf", fileName);
     }
 }

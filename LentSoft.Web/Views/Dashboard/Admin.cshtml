@@ -1213,7 +1213,7 @@
         <form asp-controller="Dashboard" asp-action="CreateAppointment" method="post" style="display:flex; flex-direction:column; gap:1rem;">
             <div class="form-group">
                 <label class="form-label">Seleccionar Paciente</label>
-                <select name="UserId" class="form-input" required>
+                <select name="UserId" class="form-input searchable-select" required>
                     @foreach (var cli in Model.Clientes)
                     {
                         <option value="@cli.Id">@cli.Nombre (@cli.Email)</option>
@@ -1228,6 +1228,9 @@
                     <option value="Ajuste de lentes">Ajuste de lentes</option>
                     <option value="Consulta por lentes de contacto">Consulta por lentes de contacto</option>
                     <option value="Control optometría">Control optometría</option>
+                    <option value="Garantía / Mantenimiento">Garantía / Mantenimiento</option>
+                    <option value="Asesoría de Monturas">Asesoría de Monturas</option>
+                    <option value="Urgencia Ocular Leve">Urgencia Ocular Leve</option>
                 </select>
             </div>
 
@@ -1277,7 +1280,7 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Pedido Asociado *</label>
-                    <select name="OrderId" class="form-input" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" onchange="updateNewInvoiceAmounts(this)">
+                    <select name="OrderId" class="form-input searchable-select" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" onchange="updateNewInvoiceAmounts(this)">
                         <option value="">-- Seleccionar Pedido --</option>
                         @foreach (var ord in Model.PedidosDisponibles)
                         {
@@ -1392,7 +1395,7 @@
                             <input type="text" id="searchCedulaAdmin" placeholder="🪪 Buscar por N° Cédula C.C..." onkeyup="filterClientSelectAdmin()" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-400); font-size: 0.83rem; background-color: var(--purple-50); color: var(--purple-900); font-weight: 500;" />
                         </div>
                     </div>
-                    <select id="userSelectAdmin" class="form-input" onchange="onUserSelectedAdmin(this)" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); font-size: 0.85rem; background-color: white;">
+                    <select id="userSelectAdmin" class="form-input searchable-select" onchange="onUserSelectedAdmin(this)" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); font-size: 0.85rem; background-color: white;">
                         <option value="">-- Buscar o Seleccionar Cliente Registrado --</option>
                         @foreach (var user in (Model.TodosLosClientes.Any() ? Model.TodosLosClientes : Model.Clientes))
                         {
@@ -1442,7 +1445,7 @@
                 <div style="display: flex; gap: 0.5rem; align-items: flex-end; margin-bottom: 0.75rem;">
                     <div style="flex: 2;">
                         <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Producto</label>
-                        <select id="newSaleProdSelectAdmin" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
+                        <select id="newSaleProdSelectAdmin" class="form-input searchable-select" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
                             <option value="">-- Seleccionar Producto --</option>
                             @foreach (var prod in Model.Productos)
                             {
