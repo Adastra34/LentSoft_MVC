@@ -1,0 +1,70 @@
+<nav style="background: white; padding: 0.75rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 1000;">
+    <div class="container" style="display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;">
+        <!-- Logo -->
+        <a asp-controller="Home" asp-action="Index" style="font-size: 1.6rem; font-weight: 800; color: var(--purple-700); letter-spacing: -0.5px; flex-shrink: 0;">
+             LentSoft
+        </a>
+
+        <!-- Nav Links -->
+        <div style="display: flex; align-items: center; gap: 1.75rem; flex-shrink: 0;">
+            <a asp-controller="Home" asp-action="Index" style="color: var(--gray-700); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;">Inicio</a>
+            <a asp-controller="Product" asp-action="Tienda" style="color: var(--gray-700); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;">Tienda</a>
+            <a asp-controller="Home" asp-action="About" style="color: var(--gray-700); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;">Nosotros</a>
+        </div>
+
+        <!-- Search Bar -->
+        <div style="flex: 1; max-width: 380px; position: relative;">
+            <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--gray-400); font-size: 1rem;">🔍</span>
+            <input type="text" placeholder="Buscar gafas, lentes..." style="width: 100%; padding: 0.55rem 0.75rem 0.55rem 2.25rem; border: 2px solid var(--gray-200); border-radius: 9999px; font-size: 0.9rem; background: var(--gray-50); outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--purple-400)'" onblur="this.style.borderColor='var(--gray-200)'" />
+        </div>
+
+        <!-- Right Section -->
+        <div style="display: flex; align-items: center; gap: 1rem; flex-shrink: 0;">
+            <!-- Cart Icon -->
+            <a asp-controller="Cart" asp-action="Index" style="color: var(--gray-600); font-size: 1.3rem; position: relative; transition: color 0.2s;" title="Carrito de compras">
+                🛒
+            </a>
+
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <!-- Dashboard Link -->
+                @if (User.IsInRole("admin"))
+                {
+                    <a asp-controller="Dashboard" asp-action="Admin" style="color: var(--purple-700); font-weight: 600; font-size: 0.875rem; white-space: nowrap;">Dashboard Admin</a>
+                }
+                else if (User.IsInRole("optometra"))
+                {
+                    <a asp-controller="Optometra" asp-action="Index" style="color: var(--purple-700); font-weight: 600; font-size: 0.875rem; white-space: nowrap;">Dashboard Optometría</a>
+                }
+                else if (User.IsInRole("ventas"))
+                {
+                    <a asp-controller="Ventas" asp-action="Index" style="color: var(--purple-700); font-weight: 600; font-size: 0.875rem; white-space: nowrap;">Dashboard Ventas</a>
+                }
+                else
+                {
+                    <a asp-controller="Dashboard" asp-action="Usuario" style="color: var(--purple-700); font-weight: 600; font-size: 0.875rem; white-space: nowrap;">Mi Cuenta</a>
+                }
+
+                <!-- Greeting -->
+                <span style="color: var(--gray-600); font-size: 0.85rem; white-space: nowrap;">
+                    Hola, @User.Identity.Name
+                    <span style="color: var(--purple-500); font-size: 0.75rem;">(@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value)</span>
+                </span>
+
+                <!-- Logout -->
+                <form asp-controller="Auth" asp-action="Logout" method="post" style="display: inline; margin: 0;">
+                    <button type="submit" style="background: transparent; color: var(--purple-700); border: 2px solid var(--purple-500); padding: 0.4rem 0.9rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;">
+                        Cerrar Sesión
+                    </button>
+                </form>
+            }
+            else
+            {
+                <!-- Login Button -->
+                <a asp-controller="Auth" asp-action="Login" style="display: inline-flex; align-items: center; gap: 0.4rem; background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white; padding: 0.5rem 1.25rem; border-radius: 9999px; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; box-shadow: 0 2px 8px rgba(126,34,206,0.3); white-space: nowrap;">
+                    👤 Ingresar
+                </a>
+            }
+        </div>
+    </div>
+</nav>

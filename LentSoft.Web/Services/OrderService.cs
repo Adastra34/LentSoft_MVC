@@ -1,0 +1,107 @@
+using Microsoft.EntityFrameworkCore;
+using LentSoft.Web.Data;
+using LentSoft.Web.Models.Entities;
+
+namespace LentSoft.Web.Services;
+
+/// <summary>
+/// Order service — migrated from Controllers/OrderController.js
+/// </summary>
+public class OrderService : IOrderService
+{
+    private readonly LentSoftDbContext _context;
+
+    public OrderService(LentSoftDbContext context)
+    {
+        _context = context;
+    }
+
+    public async Task<List<Order>> GetAllAsync()
+    {
+        return await _context.Orders
+            .Where(o => o.Activo)
+            .Include(o => o.User)
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+            .OrderByDescending(o => o.FechaPedido)
+            .ToListAsync();
+    }
+
+    public async Task<List<Order>> GetByUserIdAsync(int userId)
+    {
+        return await _context.Orders
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+            .Where(o => o.UserId == userId && o.Activo)
+            .OrderByDescending(o => o.FechaPedido)
+            .ToListAsync();
+    }
+
+    public async Task<Order?> GetByIdAsync(int id)
+    {
+        return await _context.Orders
+            .Include(o => o.User)
+            .Include(o => o.OrderItems)
+                .ThenInclude(oi => oi.Product)
+            .FirstOrDefaultAsync(o => o.Id == id);
+    }
+
+    public async Task<Order> CreateAsync(Order order)
+    {
+        order.FechaPedido = DateTime.UtcNow;
+        order.Estado = "pendiente";
+
+        try
+        {
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+            return order;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo crear el pedido debido a un error de base de datos.", ex);
+        }
+    }
+
+    public async Task<Order?> UpdateStatusAsync(int id, string estado)
+    {
+        var order = await _context.Orders.FindAsync(id);
+        if (order == null) return null;
+
+        order.Estado = estado;
+
+        if (estado == "entregado")
+        {
+            order.FechaEntrega = DateTime.UtcNow;
+        }
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return order;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo actualizar el estado del pedido debido a un conflicto de datos.", ex);
+        }
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        var order = await _context.Orders.FindAsync(id);
+        if (order == null) return false;
+
+        order.Activo = false;
+        _context.Orders.Update(order);
+
+        try
+        {
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (DbUpdateException ex)
+        {
+            throw new InvalidOperationException("No se pudo eliminar el pedido porque está vinculado a otros registros.", ex);
+        }
+    }
+}

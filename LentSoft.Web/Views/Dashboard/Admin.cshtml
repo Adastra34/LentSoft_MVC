@@ -1,0 +1,2261 @@
+@model DashboardAdminViewModel
+@{
+    ViewData["Title"] = "Panel de Administración";
+}
+
+<div style="display: flex; min-height: 85vh; background-color: var(--purple-50);">
+    <!-- Sidebar Sidebar Navigation -->
+    <aside style="width: 260px; background-color: var(--purple-900); color: white; padding: 1.5rem 1rem; flex-shrink: 0;">
+        <div style="padding: 0 0.5rem 1.5rem 0.5rem; border-bottom: 1px solid var(--purple-700); margin-bottom: 1.5rem;">
+            <h2 style="color: white; font-size: 1.25rem; margin: 0;">Admin Dashboard</h2>
+            <p style="color: var(--purple-200); font-size: 0.85rem; margin: 0.25rem 0 0 0;">Gestión Integral LentSoft</p>
+        </div>
+
+        <nav style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <a href="?section=general" class="nav-item @(Model.ActiveSection == "general" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "general" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "general" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                📊 General
+            </a>
+            <a href="?section=inventario&subtab=productos" class="nav-item @(Model.ActiveSection == "inventario" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "inventario" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "inventario" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                📦 Inventario
+            </a>
+            <a href="?section=ventas" class="nav-item @(Model.ActiveSection == "ventas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "ventas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "ventas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                💳 Ventas
+            </a>
+            <a href="?section=citas" class="nav-item @(Model.ActiveSection == "citas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "citas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "citas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                📅 Citas Médicas
+            </a>
+            <a href="?section=usuarios&subtab=clientes" class="nav-item @(Model.ActiveSection == "usuarios" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "usuarios" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "usuarios" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                👥 Usuarios
+            </a>
+            <a href="?section=facturas" class="nav-item @(Model.ActiveSection == "facturas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "facturas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "facturas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                🧾 Facturas
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main style="flex: 1; padding: 2rem; overflow-y: auto;">
+        
+        <!-- ==================== SECCIÓN GENERAL ==================== -->
+        @if (Model.ActiveSection == "general")
+        {
+            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem;">Resumen General</h1>
+
+            <!-- Stats Cards with % variation -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+                <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--purple-600); background: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">Ventas del Mes</p>
+                            <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.VentasDelMes.ToString("C")</h3>
+                        </div>
+                        <span style="background-color: var(--purple-100); color: @DashboardAdminViewModel.GetVariacionColor(Model.VentasDelMes, Model.VentasDelMesAnterior); padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 700;">
+                            @DashboardAdminViewModel.GetVariacion(Model.VentasDelMes, Model.VentasDelMesAnterior)
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--info); background: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">Pedidos Activos</p>
+                            <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.PedidosActivos</h3>
+                        </div>
+                        <span style="background-color: var(--purple-100); color: @DashboardAdminViewModel.GetVariacionColor(Model.PedidosActivos, Model.PedidosActivosAnterior); padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 700;">
+                            @DashboardAdminViewModel.GetVariacion(Model.PedidosActivos, Model.PedidosActivosAnterior)
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--success); background: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">Clientes Totales</p>
+                            <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.ClientesTotales</h3>
+                        </div>
+                        <span style="background-color: var(--purple-100); color: @DashboardAdminViewModel.GetVariacionColor(Model.ClientesTotales, Model.ClientesTotalesAnterior); padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 700;">
+                            @DashboardAdminViewModel.GetVariacion(Model.ClientesTotales, Model.ClientesTotalesAnterior)
+                        </span>
+                    </div>
+                </div>
+
+                <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--warning); background: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">Productos en Stock</p>
+                            <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.ProductosEnStock</h3>
+                        </div>
+                        <span style="background-color: var(--purple-100); color: @DashboardAdminViewModel.GetVariacionColor(Model.ProductosEnStock, Model.ProductosEnStockAnterior); padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 700;">
+                            @DashboardAdminViewModel.GetVariacion(Model.ProductosEnStock, Model.ProductosEnStockAnterior)
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de pedidos recientes -->
+            <div class="card" style="padding: 1.5rem; background: white;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h2 style="color: var(--purple-800); font-size: 1.25rem; margin: 0;">Pedidos Recientes</h2>
+                    <input type="text" id="searchRecentOrders" placeholder="Buscar pedido..." class="form-input" style="width: 250px; padding: 0.4rem 0.75rem; font-size: 0.875rem;" onkeyup="filterTable('searchRecentOrders', 'tableRecentOrders')" />
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="tableRecentOrders" style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
+                                <th style="padding: 0.75rem;">ID</th>
+                                <th style="padding: 0.75rem;">Cliente</th>
+                                <th style="padding: 0.75rem;">Fecha</th>
+                                <th style="padding: 0.75rem;">Total</th>
+                                <th style="padding: 0.75rem;">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var p in Model.PedidosRecientes)
+                            {
+                                <tr style="border-bottom: 1px solid var(--purple-100);">
+                                    <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">#ORD-@p.Id.ToString("D4")</td>
+                                    <td style="padding: 0.75rem;">@(p.User?.Nombre ?? "Cliente")</td>
+                                    <td style="padding: 0.75rem; color: var(--gray-600);">@p.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td style="padding: 0.75rem; font-weight: 600;">@p.Total.ToString("C")</td>
+                                    <td style="padding: 0.75rem;">
+                                        <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; text-transform: capitalize;">
+                                            @p.Estado
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <!-- ==================== SECCIÓN INVENTARIO ==================== -->
+        @if (Model.ActiveSection == "inventario")
+        {
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;">Gestión de Inventario</h1>
+                @if (Model.ActiveSubTab == "productos")
+                {
+                    <button class="btn btn-primary" onclick="document.getElementById('modal-producto').style.display='flex'">
+                        + Nuevo Producto
+                    </button>
+                }
+                else if (Model.ActiveSubTab == "proveedores")
+                {
+                    <button class="btn btn-primary" onclick="document.getElementById('modal-crear-proveedor').style.display='flex'">
+                        + Nuevo Proveedor
+                    </button>
+                }
+                else if (Model.ActiveSubTab == "historial")
+                {
+                    <button class="btn btn-primary" onclick="document.getElementById('modal-nuevo-movimiento').style.display='flex'">
+                        + Nuevo Movimiento
+                    </button>
+                }
+            </div>
+
+            <!-- Sub-tabs -->
+            <div style="display: flex; border-bottom: 2px solid var(--purple-200); margin-bottom: 1.5rem;">
+                <a href="?section=inventario&subtab=productos" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "productos" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "productos" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;">
+                    Productos
+                </a>
+                <a href="?section=inventario&subtab=proveedores" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "proveedores" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "proveedores" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;">
+                    Proveedores
+                </a>
+                <a href="?section=inventario&subtab=historial" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "historial" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "historial" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;">
+                    Historial de Movimientos
+                </a>
+            </div>
+
+            @if (Model.ActiveSubTab == "productos")
+            {
+                <div class="card" style="padding: 1.5rem; background: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <input type="text" id="searchProducts" placeholder="Buscar producto..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchProducts', 'tableProducts')" />
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table id="tableProducts" style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
+                                    <th style="padding: 0.75rem;">ID</th>
+                                    <th style="padding: 0.75rem;">Nombre</th>
+                                    <th style="padding: 0.75rem;">Categoría</th>
+                                    <th style="padding: 0.75rem;">Precio</th>
+                                    <th style="padding: 0.75rem;">Stock</th>
+                                    <th style="padding: 0.75rem;">Estado</th>
+                                    <th style="padding: 0.75rem;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var prod in Model.Productos)
+                                {
+                                    <tr style="border-bottom: 1px solid var(--purple-100);">
+                                        <td style="padding: 0.75rem; color: var(--gray-500);">#@prod.Id</td>
+                                        <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@prod.Nombre</td>
+                                        <td style="padding: 0.75rem; color: var(--gray-600);">@prod.Categoria</td>
+                                        <td style="padding: 0.75rem; color: var(--gray-600);">@prod.Precio.ToString("C")</td>
+                                        <td style="padding: 0.75rem; color: @(prod.Stock < 10 ? "var(--error)" : "var(--gray-600)"); font-weight: @(prod.Stock < 10 ? "bold" : "normal");">
+                                            @prod.Stock
+                                        </td>
+                                        <td style="padding: 0.75rem;">
+                                            <span style="background-color: @(prod.Activo ? "var(--success)" : "var(--error)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
+                                                @(prod.Activo ? "Activo" : "Inactivo")
+                                            </span>
+                                        </td>
+                                        <td style="padding: 0.75rem;">
+                                            <button type="button" onclick="openEditProductModal(@prod.Id, '@System.Web.HttpUtility.JavaScriptStringEncode(prod.Nombre)', '@System.Web.HttpUtility.JavaScriptStringEncode(prod.Descripcion ?? "")', @prod.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture), '@(prod.PrecioDescuento?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")', '@System.Web.HttpUtility.JavaScriptStringEncode(prod.Categoria)', '@System.Web.HttpUtility.JavaScriptStringEncode(prod.Marca ?? "")', @prod.Stock, @(prod.Activo ? "true" : "false"), '@System.Web.HttpUtility.JavaScriptStringEncode(prod.ImagenUrl ?? "")')" style="background: none; border: none; color: var(--purple-700); cursor: pointer; font-size: 0.875rem; text-decoration: underline; margin-right: 0.5rem;">✏️ Editar</button>
+                                            <form asp-controller="Product" asp-action="Delete" asp-route-id="@prod.Id" method="post" style="display:inline;" onsubmit="confirmDelete(event, '¿Deseas eliminar el producto @prod.Nombre?', this)">
+                                                <button type="submit" style="background: none; border: none; color: var(--error); cursor: pointer; font-size: 0.875rem; text-decoration: underline;">Eliminar</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else if (Model.ActiveSubTab == "proveedores")
+            {
+                <div class="card" style="padding: 1.5rem; background: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <input type="text" id="searchProveedores" placeholder="Buscar proveedor..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchProveedores', 'tableProveedores')" />
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table id="tableProveedores" style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
+                                    <th style="padding: 0.75rem;">ID</th>
+                                    <th style="padding: 0.75rem;">Empresa</th>
+                                    <th style="padding: 0.75rem;">Tipo Productos</th>
+                                    <th style="padding: 0.75rem;">Teléfono</th>
+                                    <th style="padding: 0.75rem;">Email</th>
+                                    <th style="padding: 0.75rem;">Estado</th>
+                                    <th style="padding: 0.75rem;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var prov in Model.Proveedores)
+                                {
+                                    <tr style="border-bottom: 1px solid var(--purple-100);">
+                                        <td style="padding: 0.75rem; color: var(--gray-500); font-weight: 600;">@prov.Id</td>
+                                        <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@prov.Nombre</td>
+                                        <td style="padding: 0.75rem;">@prov.TipoProductos</td>
+                                        <td style="padding: 0.75rem;">@prov.Telefono</td>
+                                        <td style="padding: 0.75rem;">@prov.Correo</td>
+                                        <td style="padding: 0.75rem;">
+                                            <span style="background-color: @(prov.Activo ? "var(--success)" : "var(--gray-400)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
+                                                @(prov.Activo ? "Activo" : "Inactivo")
+                                            </span>
+                                        </td>
+                                        <td style="padding: 0.75rem;">
+                                            <button type="button" onclick="openEditSupplierModal('@prov.Id', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Nombre)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.TipoProductos)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Telefono)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Correo)')" style="background: none; border: none; color: var(--purple-700); cursor: pointer; font-size: 0.875rem; text-decoration: underline; margin-right: 0.5rem;">✏️ Editar</button>
+                                            <form asp-controller="Supplier" asp-action="Delete" asp-route-id="@prov.Id" method="post" style="display:inline;" onsubmit="confirmDelete(event, '¿Deseas eliminar al proveedor @prov.Nombre?', this)">
+                                                <button type="submit" style="background: none; border: none; color: var(--error); cursor: pointer; font-size: 0.875rem; text-decoration: underline;">Eliminar</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else if (Model.ActiveSubTab == "historial")
+            {
+                <div class="card" style="padding: 1.5rem; background: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <input type="text" id="searchHistorial" placeholder="Buscar en historial..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchHistorial', 'tableHistorial')" />
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table id="tableHistorial" style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
+                                    <th style="padding: 0.75rem;">ID</th>
+                                    <th style="padding: 0.75rem;">Producto</th>
+                                    <th style="padding: 0.75rem;">Tipo</th>
+                                    <th style="padding: 0.75rem;">Cantidad</th>
+                                    <th style="padding: 0.75rem;">Fecha</th>
+                                    <th style="padding: 0.75rem;">Responsable</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var mov in Model.HistorialMovimientos)
+                                {
+                                    <tr style="border-bottom: 1px solid var(--purple-100);">
+                                        <td style="padding: 0.75rem; color: var(--gray-500);">#MOV-@mov.Id</td>
+                                        <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@(mov.Product?.Nombre ?? "Producto #" + mov.ProductId)</td>
+                                        <td style="padding: 0.75rem;">
+                                            <span style="background-color: @(mov.Tipo?.ToLower() == "entrada" ? "var(--success)" : "var(--warning)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; text-transform: uppercase;">
+                                                @mov.Tipo
+                                            </span>
+                                        </td>
+                                        <td style="padding: 0.75rem; font-weight: 600;">@mov.Cantidad</td>
+                                        <td style="padding: 0.75rem; color: var(--gray-600);">@mov.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td style="padding: 0.75rem;">@(mov.Responsable ?? "Administrador")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        }
+
+        <!-- ==================== SECCIÓN VENTAS ==================== -->
+        @if (Model.ActiveSection == "ventas")
+        {
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;">Listado de Ventas</h1>
+                <button type="button" onclick="document.getElementById('modal-venta').style.display='flex'" 
+                        style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease;"
+                        onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
+                    <span>+ Registrar Nueva Venta</span>
+                </button>
+            </div>
+
+            <div class="card" style="padding: 1.5rem; background: white;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <input type="text" id="searchVentas" placeholder="Buscar venta o cliente..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchVentas', 'tableVentas')" />
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="tableVentas" style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
+                                <th style="padding: 0.75rem;">Venta</th>
+                                <th style="padding: 0.75rem;">Cliente</th>
+                                <th style="padding: 0.75rem;">Fecha</th>
+                                <th style="padding: 0.75rem;">Total</th>
+                                <th style="padding: 0.75rem;">Estado</th>
+                                <th style="padding: 0.75rem;">Actualizar Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var v in Model.Ventas)
+                            {
+                                <tr style="border-bottom: 1px solid var(--purple-100);">
+                                    <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">#ORD-@v.Id.ToString("D4")</td>
+                                    <td style="padding: 0.75rem;">@(v.User?.Nombre ?? "Cliente")</td>
+                                    <td style="padding: 0.75rem; color: var(--gray-600);">@v.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-900);">@v.Total.ToString("C")</td>
+                                    <td style="padding: 0.75rem;">
+                                        <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
+                                            @v.Estado
+                                        </span>
+                                    </td>
+                                    <td style="padding: 0.75rem;">
+                                        <form asp-controller="Order" asp-action="UpdateStatus" method="post" style="display:flex; gap:0.5rem; align-items:center;">
+                                            <input type="hidden" name="id" value="@v.Id" />
+                                            <select name="estado" style="padding: 0.25rem; border-radius: 0.25rem; border: 1px solid var(--gray-300); font-size: 0.85rem;">
+                                                <option value="pendiente" selected="@(v.Estado == "pendiente")">Pendiente</option>
+                                                <option value="procesando" selected="@(v.Estado == "procesando")">Procesando</option>
+                                                <option value="enviado" selected="@(v.Estado == "enviado")">Enviado</option>
+                                                <option value="entregado" selected="@(v.Estado == "entregado")">Entregado</option>
+                                                <option value="cancelado" selected="@(v.Estado == "cancelado")">Cancelado</option>
+                                            </select>
+                                            <button type="submit" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Guardar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <!-- ==================== SECCIÓN CITAS ==================== -->
+        @if (Model.ActiveSection == "citas")
+        {
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;">Gestión de Citas Médicas</h1>
+                <button class="btn btn-primary" onclick="document.getElementById('modal-cita').style.display='flex'">
+                    + Nueva Cita
+                </button>
+            </div>
+
+            <div class="card" style="padding: 1.5rem; background: white;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <input type="text" id="searchCitas" placeholder="Buscar cita o paciente..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchCitas', 'tableCitas')" />
+                </div>
+                <div style="overflow-x: auto;">
+                    <table id="tableCitas" style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
+                                <th style="padding: 0.75rem;">ID</th>
+                                <th style="padding: 0.75rem;">Paciente</th>
+                                <th style="padding: 0.75rem;">Servicio</th>
+                                <th style="padding: 0.75rem;">Fecha y Hora</th>
+                                <th style="padding: 0.75rem;">Estado</th>
+                                <th style="padding: 0.75rem;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var c in Model.Citas)
+                            {
+                                <tr style="border-bottom: 1px solid var(--purple-100);">
+                                    <td style="padding: 0.75rem; color: var(--gray-500);">#CITA-@c.Id</td>
+                                    <td style="padding: 0.75rem; font-weight: 500;">@(c.User?.Nombre ?? "Paciente")</td>
+                                    <td style="padding: 0.75rem;">@c.Servicio</td>
+                                    <td style="padding: 0.75rem; color: var(--gray-600);">@c.FechaHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td style="padding: 0.75rem;">
+                                        <form asp-controller="Dashboard" asp-action="UpdateAppointmentStatus" method="post" style="display:inline;">
+                                            <input type="hidden" name="id" value="@c.Id" />
+                                            <select name="estado" style="padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.8rem;" onchange="this.form.submit()">
+                                                <option value="pendiente" selected="@(c.Estado == "pendiente")">Pendiente</option>
+                                                <option value="confirmada" selected="@(c.Estado == "confirmada")">Confirmada</option>
+                                                <option value="completada" selected="@(c.Estado == "completada")">Completada</option>
+                                                <option value="cancelada" selected="@(c.Estado == "cancelada")">Cancelada</option>
+                                            </select>
+                                        </form>
+                                    </td>
+                                    <td style="padding: 0.75rem;">
+                                        <form asp-controller="Dashboard" asp-action="DeleteAppointment" method="post" style="display:inline;" onsubmit="confirmDelete(event, '¿Deseas eliminar la cita #@c.Id?', this)">
+                                            <input type="hidden" name="id" value="@c.Id" />
+                                            <button type="submit" style="background: none; border: none; color: var(--error); cursor: pointer; font-size: 0.875rem; text-decoration: underline;">Eliminar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+
+        <!-- ==================== SECCIÓN USUARIOS ==================== -->
+        @if (Model.ActiveSection == "usuarios")
+        {
+            <div style="margin-bottom: 1.5rem;">
+                <h1 style="color: var(--purple-900); font-size: 1.75rem; margin: 0;">Gestión de Usuarios</h1>
+                <p style="color: var(--gray-500); font-size: 0.9rem; margin-top: 0.25rem;">Administra los clientes y empleados del sistema</p>
+            </div>
+
+            <!-- Sub-tabs -->
+            <div style="display: flex; border-bottom: 2px solid var(--purple-200); margin-bottom: 1.5rem;">
+                <a href="?section=usuarios&subtab=clientes" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "clientes" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "clientes" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;">
+                    👥 Clientes
+                </a>
+                <a href="?section=usuarios&subtab=trabajadores" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "trabajadores" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "trabajadores" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;">
+                    👔 Trabajadores (Empleados)
+                </a>
+            </div>
+
+            @if (Model.ActiveSubTab == "clientes")
+            {
+                <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.75rem; box-shadow: var(--shadow-md);">
+                    <!-- Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                        <h2 style="color: var(--purple-900); font-size: 1.35rem; font-weight: 700; margin: 0;">Clientes Registrados</h2>
+                        <button type="button" onclick="document.getElementById('modal-crear-cliente').style.display='flex'" 
+                                style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease;"
+                                onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
+                            <span>+ Nuevo Usuario</span>
+                        </button>
+                    </div>
+
+                    <!-- Barra Superior DataTable (Fondo morado) -->
+                    <form id="clientesFilterForm" method="get" action="/Dashboard/Admin" style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <input type="hidden" name="section" value="usuarios" />
+                        <input type="hidden" name="subtab" value="clientes" />
+                        <input type="hidden" name="clientesPage" value="1" />
+
+                        <!-- Selector Registros -->
+                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                            <span>Mostrar</span>
+                            <select name="clientesPageSize" style="background-color: white; color: var(--gray-900); border: 1px solid var(--purple-300); border-radius: 0.375rem; padding: 0.35rem 0.6rem; font-size: 0.875rem; cursor: pointer; font-weight: 600;" onchange="document.getElementById('clientesFilterForm').submit();">
+                                @foreach (var size in new[] { 5, 10, 25, 50 })
+                                {
+                                    if (Model.ClientesPageSize == size)
+                                    {
+                                        <option value="@size" selected>@size</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@size">@size</option>
+                                    }
+                                }
+                            </select>
+                            <span>registros</span>
+                        </div>
+
+                        <!-- Búsqueda y Toggle Inactivos -->
+                        <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.875rem;">
+                            <label style="display: flex; align-items: center; gap: 0.35rem; font-weight: 500; cursor: pointer;">
+                                <input type="checkbox" name="includeInactive" value="true" @(ViewBag.IncludeInactive == true ? "checked" : "") onchange="document.getElementById('clientesFilterForm').submit();" />
+                                Mostrar inactivos
+                            </label>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <label for="searchClientesInput" style="font-weight: 500;">Buscar:</label>
+                                <input type="text" id="searchClientesInput" name="clientesSearch" value="@Model.ClientesSearchTerm" 
+                                       placeholder="Buscar por nombre o email" 
+                                       style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.875rem; width: 240px; color: var(--gray-900);" 
+                                       onkeyup="filterClientSideClientes(this.value)" />
+                                <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Filtrar</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Tabla de Clientes -->
+                    <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
+                        <table id="tableClientes" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                            <thead>
+                                <tr style="background-color: var(--purple-50); border-bottom: 2px solid var(--purple-200); color: var(--purple-900);">
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">ID</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Nombre</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Email</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Teléfono</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Fecha Registro</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Clientes.Any())
+                                {
+                                    @foreach (var cli in Model.Clientes)
+                                    {
+                                        <tr style="border-bottom: 1px solid var(--purple-100); transition: background-color 0.15s ease; @(!cli.Activo ? "opacity: 0.6; background-color: var(--gray-50);" : "")" onmouseover="this.style.backgroundColor='var(--purple-50)'" onmouseout="this.style.backgroundColor='transparent'">
+                                            <td style="padding: 0.85rem 1rem; color: var(--gray-500); font-weight: 600;">#@cli.Id</td>
+                                            <td style="padding: 0.85rem 1rem; font-weight: 600; color: var(--purple-900);">
+                                                @cli.NombreCompleto
+                                                @if (!cli.Activo)
+                                                {
+                                                    <span style="background-color: var(--gray-200); color: var(--gray-700); padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 700; margin-left: 0.35rem;">Inactivo</span>
+                                                }
+                                            </td>
+                                            <td style="padding: 0.85rem 1rem; color: var(--gray-800);">@cli.Email</td>
+                                            <td style="padding: 0.85rem 1rem; color: var(--gray-700);">@(cli.Telefono ?? "N/A")</td>
+                                            <td style="padding: 0.85rem 1rem; color: var(--gray-600);">@cli.FechaRegistro.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                            <td style="padding: 0.85rem 1rem; text-align: center;">
+                                                <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
+                                                    <button type="button" onclick="openEditClientModal(@cli.Id, '@cli.Nombre', '@cli.Apellido', '@cli.Email', '@(cli.Telefono ?? "")')"
+                                                            style="background: transparent; color: var(--purple-700); border: 1px solid var(--purple-600); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                                            onmouseover="this.style.backgroundColor='var(--purple-600)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--purple-700)';">
+                                                        ✏️ Editar
+                                                    </button>
+
+                                                    @if (cli.Activo)
+                                                    {
+                                                        <button type="button" onclick="confirmDeleteUser(@cli.Id, '@cli.NombreCompleto')"
+                                                                style="background: transparent; color: var(--error); border: 1px solid var(--error); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                                                onmouseover="this.style.backgroundColor='var(--error)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--error)';">
+                                                            🗑️ Eliminar
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <form method="post" action="/User/ReactivateUser" style="display:inline;">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@cli.Id" />
+                                                            <button type="submit"
+                                                                    style="background: transparent; color: var(--success); border: 1px solid var(--success); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                                                    onmouseover="this.style.backgroundColor='var(--success)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--success)';">
+                                                                🔄 Reactivar
+                                                            </button>
+                                                        </form>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" style="padding: 2rem; text-align: center; color: var(--gray-500); font-style: italic;">
+                                            No se encontraron clientes registrados o que coincidan con la búsqueda.
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Footer DataTable: Paginación -->
+                    @{
+                        var inicioCliReg = Model.ClientesTotalCount == 0 ? 0 : ((Model.ClientesPage - 1) * Model.ClientesPageSize) + 1;
+                        var finCliReg = Math.Min(Model.ClientesPage * Model.ClientesPageSize, Model.ClientesTotalCount);
+                    }
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; flex-wrap: wrap; gap: 1rem; font-size: 0.875rem;">
+                        <div style="color: var(--gray-600); font-weight: 500;">
+                            Mostrando registros del <strong>@inicioCliReg</strong> al <strong>@finCliReg</strong> de un total de <strong>@Model.ClientesTotalCount</strong> registros
+                        </div>
+
+                        @if (Model.ClientesTotalPages > 1)
+                        {
+                            <div style="display: flex; gap: 0.35rem; align-items: center;">
+                                @if (Model.ClientesPage > 1)
+                                {
+                                    <a href="/Dashboard/Admin?section=usuarios&subtab=clientes&clientesPage=@(Model.ClientesPage - 1)&clientesPageSize=@Model.ClientesPageSize&clientesSearch=@Model.ClientesSearchTerm"
+                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                        &laquo; Anterior
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                        &laquo; Anterior
+                                    </span>
+                                }
+
+                                @for (int p = 1; p <= Model.ClientesTotalPages; p++)
+                                {
+                                    if (p == Model.ClientesPage)
+                                    {
+                                        <span style="padding: 0.35rem 0.75rem; border-radius: 0.375rem; background-color: var(--purple-600); color: white; font-weight: 700; font-size: 0.85rem;">
+                                            @p
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <a href="/Dashboard/Admin?section=usuarios&subtab=clientes&clientesPage=@p&clientesPageSize=@Model.ClientesPageSize&clientesSearch=@Model.ClientesSearchTerm"
+                                           style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                            @p
+                                        </a>
+                                    }
+                                }
+
+                                @if (Model.ClientesPage < Model.ClientesTotalPages)
+                                {
+                                    <a href="/Dashboard/Admin?section=usuarios&subtab=clientes&clientesPage=@(Model.ClientesPage + 1)&clientesPageSize=@Model.ClientesPageSize&clientesSearch=@Model.ClientesSearchTerm"
+                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                        Siguiente &raquo;
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                        Siguiente &raquo;
+                                    </span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            else if (Model.ActiveSubTab == "trabajadores")
+            {
+                <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.75rem; box-shadow: var(--shadow-md);">
+                    <!-- Header -->
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                        <h2 style="color: var(--purple-900); font-size: 1.35rem; font-weight: 700; margin: 0;">Trabajadores (Empleados)</h2>
+                        <button type="button" onclick="document.getElementById('modal-crear-trabajador').style.display='flex'" 
+                                style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease;"
+                                onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
+                            <span>+ Nuevo Trabajador</span>
+                        </button>
+                    </div>
+
+                    <!-- Barra Superior DataTable (Fondo morado) -->
+                    <form id="trabajadoresFilterForm" method="get" action="/Dashboard/Admin" style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                        <input type="hidden" name="section" value="usuarios" />
+                        <input type="hidden" name="subtab" value="trabajadores" />
+                        <input type="hidden" name="trabajadoresPage" value="1" />
+
+                        <!-- Selector Registros -->
+                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                            <span>Mostrar</span>
+                            <select name="trabajadoresPageSize" style="background-color: white; color: var(--gray-900); border: 1px solid var(--purple-300); border-radius: 0.375rem; padding: 0.35rem 0.6rem; font-size: 0.875rem; cursor: pointer; font-weight: 600;" onchange="document.getElementById('trabajadoresFilterForm').submit();">
+                                @foreach (var size in new[] { 5, 10, 25, 50 })
+                                {
+                                    if (Model.TrabajadoresPageSize == size)
+                                    {
+                                        <option value="@size" selected>@size</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@size">@size</option>
+                                    }
+                                }
+                            </select>
+                            <span>registros</span>
+                        </div>
+
+                        <!-- Búsqueda y Toggle Inactivos -->
+                        <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.875rem;">
+                            <label style="display: flex; align-items: center; gap: 0.35rem; font-weight: 500; cursor: pointer;">
+                                <input type="checkbox" name="includeInactive" value="true" @(ViewBag.IncludeInactive == true ? "checked" : "") onchange="document.getElementById('trabajadoresFilterForm').submit();" />
+                                Mostrar inactivos
+                            </label>
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <label for="searchTrabajadoresInput" style="font-weight: 500;">Buscar:</label>
+                                <input type="text" id="searchTrabajadoresInput" name="trabajadoresSearch" value="@Model.TrabajadoresSearchTerm" 
+                                       placeholder="Buscar por nombre o email" 
+                                       style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.875rem; width: 240px; color: var(--gray-900);" 
+                                       onkeyup="filterClientSideTrabajadores(this.value)" />
+                                <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Filtrar</button>
+                            </div>
+                        </div>
+                    </form>
+
+                    <!-- Tabla de Trabajadores -->
+                    <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
+                        <table id="tableTrabajadores" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                            <thead>
+                                <tr style="background-color: var(--purple-50); border-bottom: 2px solid var(--purple-200); color: var(--purple-900);">
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Nombre</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Email</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Teléfono</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Rol</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;">Pedidos</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.Trabajadores.Any())
+                                {
+                                    @foreach (var emp in Model.Trabajadores)
+                                    {
+                                        var badgeBg = emp.Rol.ToLower() switch
+                                        {
+                                            "administrador" or "admin" => "var(--purple-600)",
+                                            "vendedor" or "ventas" => "#2563eb",
+                                            "trabajador" => "var(--success)",
+                                            _ => "var(--gray-500)"
+                                        };
+                                        var rolDisplay = emp.Rol.ToLower() switch
+                                        {
+                                            "administrador" or "admin" => "Administrador",
+                                            "vendedor" or "ventas" => "Vendedor",
+                                            "trabajador" => "Trabajador",
+                                            _ => "Solo Lectura"
+                                        };
+
+                                        <tr style="border-bottom: 1px solid var(--purple-100); transition: background-color 0.15s ease; @(!emp.Activo ? "opacity: 0.6; background-color: var(--gray-50);" : "")" onmouseover="this.style.backgroundColor='var(--purple-50)'" onmouseout="this.style.backgroundColor='transparent'">
+                                            <td style="padding: 0.85rem 1rem; font-weight: 600; color: var(--purple-900);">
+                                                @emp.Nombre
+                                                @if (!emp.Activo)
+                                                {
+                                                    <span style="background-color: var(--gray-200); color: var(--gray-700); padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 700; margin-left: 0.35rem;">Inactivo</span>
+                                                }
+                                            </td>
+                                            <td style="padding: 0.85rem 1rem; color: var(--gray-800);">@emp.Email</td>
+                                            <td style="padding: 0.85rem 1rem; color: var(--gray-700);">@(emp.Telefono ?? "N/A")</td>
+                                            <td style="padding: 0.85rem 1rem;">
+                                                <span style="background-color: @badgeBg; color: white; padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; display: inline-block;">
+                                                    @rolDisplay
+                                                </span>
+                                            </td>
+                                            <td style="padding: 0.85rem 1rem; text-align: center; font-weight: 700; color: var(--purple-900);">
+                                                @emp.PedidosCount
+                                            </td>
+                                            <td style="padding: 0.85rem 1rem; text-align: center;">
+                                                <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
+                                                    <button type="button" onclick="openEditEmployeeModal(@emp.Id, '@emp.Nombre', '@emp.Email', '@(emp.Telefono ?? "")', '@emp.Puesto', '@emp.Departamento', @emp.Salario, '@emp.Rol', @emp.Activo.ToString().ToLower())"
+                                                            style="background: transparent; color: var(--purple-700); border: 1px solid var(--purple-600); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                                            onmouseover="this.style.backgroundColor='var(--purple-600)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--purple-700)';">
+                                                        ✏️ Editar
+                                                    </button>
+
+                                                    @if (emp.Activo)
+                                                    {
+                                                        <button type="button" onclick="confirmDeleteEmployee(@emp.Id, '@emp.Nombre')"
+                                                                style="background: transparent; color: var(--error); border: 1px solid var(--error); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                                                onmouseover="this.style.backgroundColor='var(--error)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--error)';">
+                                                            🗑️ Eliminar
+                                                        </button>
+                                                    }
+                                                    else
+                                                    {
+                                                        <form method="post" action="/User/ReactivateEmployee" style="display:inline;">
+                                                            @Html.AntiForgeryToken()
+                                                            <input type="hidden" name="id" value="@emp.Id" />
+                                                            <button type="submit"
+                                                                    style="background: transparent; color: var(--success); border: 1px solid var(--success); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                                                    onmouseover="this.style.backgroundColor='var(--success)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--success)';">
+                                                                🔄 Reactivar
+                                                            </button>
+                                                        </form>
+                                                    }
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="6" style="padding: 2rem; text-align: center; color: var(--gray-500); font-style: italic;">
+                                            No se encontraron trabajadores registrados o que coincidan con la búsqueda.
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Footer DataTable: Paginación -->
+                    @{
+                        var inicioEmpReg = Model.TrabajadoresTotalCount == 0 ? 0 : ((Model.TrabajadoresPage - 1) * Model.TrabajadoresPageSize) + 1;
+                        var finEmpReg = Math.Min(Model.TrabajadoresPage * Model.TrabajadoresPageSize, Model.TrabajadoresTotalCount);
+                    }
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; flex-wrap: wrap; gap: 1rem; font-size: 0.875rem;">
+                        <div style="color: var(--gray-600); font-weight: 500;">
+                            Mostrando registros del <strong>@inicioEmpReg</strong> al <strong>@finEmpReg</strong> de un total de <strong>@Model.TrabajadoresTotalCount</strong> registros
+                        </div>
+
+                        @if (Model.TrabajadoresTotalPages > 1)
+                        {
+                            <div style="display: flex; gap: 0.35rem; align-items: center;">
+                                @if (Model.TrabajadoresPage > 1)
+                                {
+                                    <a href="/Dashboard/Admin?section=usuarios&subtab=trabajadores&trabajadoresPage=@(Model.TrabajadoresPage - 1)&trabajadoresPageSize=@Model.TrabajadoresPageSize&trabajadoresSearch=@Model.TrabajadoresSearchTerm"
+                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                        &laquo; Anterior
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                        &laquo; Anterior
+                                    </span>
+                                }
+
+                                @for (int p = 1; p <= Model.TrabajadoresTotalPages; p++)
+                                {
+                                    if (p == Model.TrabajadoresPage)
+                                    {
+                                        <span style="padding: 0.35rem 0.75rem; border-radius: 0.375rem; background-color: var(--purple-600); color: white; font-weight: 700; font-size: 0.85rem;">
+                                            @p
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <a href="/Dashboard/Admin?section=usuarios&subtab=trabajadores&trabajadoresPage=@p&trabajadoresPageSize=@Model.TrabajadoresPageSize&trabajadoresSearch=@Model.TrabajadoresSearchTerm"
+                                           style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                            @p
+                                        </a>
+                                    }
+                                }
+
+                                @if (Model.TrabajadoresPage < Model.TrabajadoresTotalPages)
+                                {
+                                    <a href="/Dashboard/Admin?section=usuarios&subtab=trabajadores&trabajadoresPage=@(Model.TrabajadoresPage + 1)&trabajadoresPageSize=@Model.TrabajadoresPageSize&trabajadoresSearch=@Model.TrabajadoresSearchTerm"
+                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                        Siguiente &raquo;
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                        Siguiente &raquo;
+                                    </span>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+
+        <!-- ==================== SECCIÓN FACTURAS ==================== -->
+        <!-- ==================== SECCIÓN FACTURAS ==================== -->
+        @if (Model.ActiveSection == "facturas")
+        {
+            <div style="margin-bottom: 1.5rem;">
+                <h1 style="color: var(--purple-900); font-size: 1.75rem; margin: 0;">Facturas</h1>
+                <p style="color: var(--gray-500); font-size: 0.9rem; margin-top: 0.25rem;">Gestiona tu negocio desde un solo lugar</p>
+            </div>
+
+            <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.75rem; box-shadow: var(--shadow-md);">
+                <!-- Header de la sección de la tabla con botón Nueva Factura -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                    <h2 style="color: var(--purple-900); font-size: 1.35rem; font-weight: 700; margin: 0;">Gestión de Facturas</h2>
+                    <button type="button" onclick="document.getElementById('modal-factura').style.display='flex'" 
+                            style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease;"
+                            onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
+                        <span>+ Nueva Factura</span>
+                    </button>
+                </div>
+
+                <!-- Barra Superior DataTable (Fondo morado) -->
+                <form id="facturasFilterForm" method="get" action="/Dashboard/Admin" style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <input type="hidden" name="section" value="facturas" />
+                    <input type="hidden" name="page" value="1" />
+
+                    <!-- Selector Registros por página -->
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+                        <span>Mostrar</span>
+                        <select name="pageSize" style="background-color: white; color: var(--gray-900); border: 1px solid var(--purple-300); border-radius: 0.375rem; padding: 0.35rem 0.6rem; font-size: 0.875rem; cursor: pointer; font-weight: 600;" onchange="document.getElementById('facturasFilterForm').submit();">
+                            @foreach (var size in new[] { 5, 10, 25, 50 })
+                            {
+                                if (Model.FacturasPageSize == size)
+                                {
+                                    <option value="@size" selected>@size</option>
+                                }
+                                else
+                                {
+                                    <option value="@size">@size</option>
+                                }
+                            }
+                        </select>
+                        <span>registros</span>
+                    </div>
+
+                    <!-- Búsqueda en tiempo real / envío -->
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
+                        <label for="searchFacturasInput" style="font-weight: 500;">Buscar:</label>
+                        <input type="text" id="searchFacturasInput" name="searchTerm" value="@Model.FacturasSearchTerm" 
+                               placeholder="Buscar por número, cliente" 
+                               style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.875rem; width: 240px; color: var(--gray-900);" 
+                               onkeyup="filterClientSideFacturas(this.value)" />
+                        <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Filtrar</button>
+                    </div>
+                </form>
+
+                <!-- Tabla de Facturas -->
+                <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
+                    <table id="tableFacturas" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                        <thead>
+                            <tr style="background-color: var(--purple-50); border-bottom: 2px solid var(--purple-200); color: var(--purple-900);">
+                                <th style="padding: 0.85rem 1rem; font-weight: 700;">Número</th>
+                                <th style="padding: 0.85rem 1rem; font-weight: 700;">Cliente</th>
+                                <th style="padding: 0.85rem 1rem; font-weight: 700;">Fecha</th>
+                                <th style="padding: 0.85rem 1rem; font-weight: 700;">Total</th>
+                                <th style="padding: 0.85rem 1rem; font-weight: 700;">Estado</th>
+                                <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Facturas.Any())
+                            {
+                                @foreach (var fac in Model.Facturas)
+                                {
+                                    var clientName = fac.Order?.User != null ? fac.Order.User.NombreCompleto : "Cliente N/A";
+                                    var badgeBg = fac.Estado.ToLower() switch
+                                    {
+                                        "pagada" => "var(--success)",
+                                        "cancelada" => "var(--error)",
+                                        _ => "var(--warning)"
+                                    };
+                                    var estadoDisplay = fac.Estado.ToLower() switch
+                                    {
+                                        "pagada" => "Pagada",
+                                        "cancelada" => "Cancelada",
+                                        _ => "Pendiente"
+                                    };
+
+                                    <tr style="border-bottom: 1px solid var(--purple-100); transition: background-color 0.15s ease;" onmouseover="this.style.backgroundColor='var(--purple-50)'" onmouseout="this.style.backgroundColor='transparent'">
+                                        <td style="padding: 0.85rem 1rem; font-weight: 700; color: var(--purple-700);">@fac.NumeroFactura</td>
+                                        <td style="padding: 0.85rem 1rem; font-weight: 500; color: var(--gray-800);">@clientName</td>
+                                        <td style="padding: 0.85rem 1rem; color: var(--gray-600);">@fac.FechaEmision.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                        <td style="padding: 0.85rem 1rem; font-weight: 700; color: var(--purple-900);">@fac.Total.ToString("C")</td>
+                                        <td style="padding: 0.85rem 1rem;">
+                                            <span style="background-color: @badgeBg; color: white; padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; display: inline-block;">
+                                                @estadoDisplay
+                                            </span>
+                                        </td>
+                                        <td style="padding: 0.85rem 1rem; text-align: center;">
+                                            <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
+                                                <!-- Botón Eliminar -->
+                                                <button type="button" 
+                                                        onclick="confirmDeleteInvoice(@fac.Id, '@fac.NumeroFactura')"
+                                                        style="background: transparent; color: var(--error); border: 1px solid var(--error); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
+                                                        onmouseover="this.style.backgroundColor='var(--error)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--error)';">
+                                                    🗑️ Eliminar
+                                                </button>
+
+                                                <!-- Botón Descargar PDF -->
+                                                <a href="/Invoice/DownloadPdf/@fac.Id" target="_blank"
+                                                   style="background-color: var(--purple-100); color: var(--purple-900); border: 1px solid var(--purple-300); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; transition: all 0.2s ease;"
+                                                   onmouseover="this.style.backgroundColor='var(--purple-700)'; this.style.color='white';" onmouseout="this.style.backgroundColor='var(--purple-100)'; this.style.color='var(--purple-900)';">
+                                                    📄 PDF
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6" style="padding: 2rem; text-align: center; color: var(--gray-500); font-style: italic;">
+                                        No se encontraron facturas registradas o que coincidan con la búsqueda.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Footer DataTable: Conteo y Paginación -->
+                @{
+                    var inicioReg = Model.FacturasTotalCount == 0 ? 0 : ((Model.FacturasPage - 1) * Model.FacturasPageSize) + 1;
+                    var finReg = Math.Min(Model.FacturasPage * Model.FacturasPageSize, Model.FacturasTotalCount);
+                }
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; flex-wrap: wrap; gap: 1rem; font-size: 0.875rem;">
+                    <div style="color: var(--gray-600); font-weight: 500;">
+                        Mostrando registros del <strong>@inicioReg</strong> al <strong>@finReg</strong> de un total de <strong>@Model.FacturasTotalCount</strong> registros
+                    </div>
+
+                    @if (Model.FacturasTotalPages > 1)
+                    {
+                        <div style="display: flex; gap: 0.35rem; align-items: center;">
+                            <!-- Botón Anterior -->
+                            @if (Model.FacturasPage > 1)
+                            {
+                                <a href="/Dashboard/Admin?section=facturas&page=@(Model.FacturasPage - 1)&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
+                                   style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                    &laquo; Anterior
+                                </a>
+                            }
+                            else
+                            {
+                                <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                    &laquo; Anterior
+                                </span>
+                            }
+
+                            <!-- Números de Página -->
+                            @for (int p = 1; p <= Model.FacturasTotalPages; p++)
+                            {
+                                if (p == Model.FacturasPage)
+                                {
+                                    <span style="padding: 0.35rem 0.75rem; border-radius: 0.375rem; background-color: var(--purple-600); color: white; font-weight: 700; font-size: 0.85rem;">
+                                        @p
+                                    </span>
+                                }
+                                else
+                                {
+                                    <a href="/Dashboard/Admin?section=facturas&page=@p&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
+                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                        @p
+                                    </a>
+                                }
+                            }
+
+                            <!-- Botón Siguiente -->
+                            @if (Model.FacturasPage < Model.FacturasTotalPages)
+                            {
+                                <a href="/Dashboard/Admin?section=facturas&page=@(Model.FacturasPage + 1)&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
+                                   style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                    Siguiente &raquo;
+                                </a>
+                            }
+                            else
+                            {
+                                <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                    Siguiente &raquo;
+                                </span>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+
+    </main>
+</div>
+
+<!-- Modal para Nuevo Producto -->
+<div id="modal-producto" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+    <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="color: var(--purple-900); margin: 0;">Nuevo Producto</h2>
+            <button onclick="document.getElementById('modal-producto').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form asp-controller="Product" asp-action="Create" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+            <div class="form-group">
+                <label class="form-label">Nombre del Producto</label>
+                <input name="Nombre" type="text" class="form-input" required />
+            </div>
+            
+            <div class="row">
+                <div class="col col-6">
+                    <div class="form-group">
+                        <label class="form-label">Precio Regular</label>
+                        <input name="Precio" type="number" step="0.01" class="form-input" required />
+                    </div>
+                </div>
+                <div class="col col-6">
+                    <div class="form-group">
+                        <label class="form-label">Precio Descuento (Opcional)</label>
+                        <input name="PrecioDescuento" type="number" step="0.01" class="form-input" />
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col col-6">
+                    <div class="form-group">
+                        <label class="form-label">Categoría</label>
+                        <input name="Categoria" type="text" class="form-input" required />
+                    </div>
+                </div>
+                <div class="col col-6">
+                    <div class="form-group">
+                        <label class="form-label">Marca</label>
+                        <input name="Marca" type="text" class="form-input" />
+                    </div>
+                </div>
+            </div>
+            
+            <div class="row">
+                <div class="col col-6">
+                    <div class="form-group">
+                        <label class="form-label">Stock Inicial</label>
+                        <input name="Stock" type="number" class="form-input" required value="0" />
+                    </div>
+                </div>
+                <div class="col col-6">
+                    <div class="form-group" style="display:flex; align-items:center; height:100%; padding-top:2rem;">
+                        <input name="Activo" type="checkbox" value="true" checked style="margin-right:0.5rem;" />
+                        <label class="form-label" style="margin:0;">Activo</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">URL de la Imagen</label>
+                <input name="ImagenUrl" type="url" class="form-input" />
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Descripción</label>
+                <textarea name="Descripcion" class="form-input" rows="3"></textarea>
+            </div>
+            
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-producto').style.display='none'" class="btn btn-outline" style="flex: 1;">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Guardar Producto</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Nueva Cita -->
+<div id="modal-cita" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
+    <div class="card" style="width: 100%; max-width: 500px; background: white;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+            <h2 style="color: var(--purple-900); margin: 0;">Programar Cita</h2>
+            <button onclick="document.getElementById('modal-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+
+        <form asp-controller="Dashboard" asp-action="CreateAppointment" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+            <div class="form-group">
+                <label class="form-label">Seleccionar Paciente</label>
+                <select name="UserId" class="form-input" required>
+                    @foreach (var cli in Model.Clientes)
+                    {
+                        <option value="@cli.Id">@cli.Nombre (@cli.Email)</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Servicio</label>
+                <select name="Servicio" class="form-input" required>
+                    <option value="Examen de vista">Examen de vista</option>
+                    <option value="Ajuste de lentes">Ajuste de lentes</option>
+                    <option value="Consulta por lentes de contacto">Consulta por lentes de contacto</option>
+                    <option value="Control optometría">Control optometría</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Fecha y Hora</label>
+                <input name="FechaHora" type="datetime-local" class="form-input" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" required />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Notas Adicionales</label>
+                <textarea name="Notas" class="form-input" rows="2"></textarea>
+            </div>
+
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-cita').style.display='none'" class="btn btn-outline" style="flex: 1;">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="flex: 1;">Crear Cita</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Nueva Factura (Estilo DIAN) -->
+<div id="modal-factura" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div style="width: 100%; max-width: 550px; background: white; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);">
+        
+        <!-- Header Morado Tipo DIAN -->
+        <div style="background: linear-gradient(135deg, var(--purple-700), var(--purple-600)); color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.2rem; font-weight: 700;">
+                    <span>📄</span> Factura Electrónica de Venta
+                </div>
+                <div style="font-size: 0.78rem; color: var(--purple-100); margin-top: 0.25rem; font-weight: 500;">
+                    Resolución DIAN Nº 18764028920000 | Rango: FAC-0001 a FAC-5000
+                </div>
+            </div>
+            <button type="button" onclick="document.getElementById('modal-factura').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: white; line-height: 1;">&times;</button>
+        </div>
+
+        <!-- Formulario DIAN -->
+        <form asp-controller="Invoice" asp-action="Create" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;">
+            @Html.AntiForgeryToken()
+
+            <!-- Seccion 1: Datos del Pedido -->
+            <div>
+                <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <span>📋</span> DATOS DEL PEDIDO
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Pedido Asociado *</label>
+                    <select name="OrderId" class="form-input" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" onchange="updateNewInvoiceAmounts(this)">
+                        <option value="">-- Seleccionar Pedido --</option>
+                        @foreach (var ord in Model.PedidosDisponibles)
+                        {
+                            var usrName = ord.User != null ? ord.User.NombreCompleto : "Cliente";
+                            <option value="@ord.Id" data-total="@ord.Total">#ORD-@ord.Id.ToString("D4") - @usrName (@ord.Total.ToString("C"))</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- Seccion 2: Datos de Facturación -->
+            <div>
+                <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <span>📑</span> DATOS DE FACTURACIÓN (NÚMERO AUTO-GENERADO)
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Estado *</label>
+                        <select name="Estado" class="form-input" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
+                            <option value="pendiente" selected>Pendiente</option>
+                            <option value="pagada">Pagada</option>
+                            <option value="cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Método de Pago *</label>
+                        <select name="MetodoPago" class="form-input" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
+                            <option value="Efectivo" selected>Efectivo</option>
+                            <option value="Tarjeta">Tarjeta Débito/Crédito</option>
+                            <option value="Transferencia">Transferencia / PSE</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seccion 3: Valores -->
+            <div>
+                <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <span>💰</span> VALORES (IVA 19% — ART. 468 E.T.)
+                </div>
+                <div style="display: flex; gap: 0.75rem;">
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.35rem; display: block;">Subtotal</label>
+                        <input id="newInvoiceSubtotal" name="Subtotal" type="number" step="0.01" class="form-input" readonly placeholder="Auto-calculado" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--gray-300); background-color: var(--gray-50);" />
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.35rem; display: block;">IVA 19%</label>
+                        <input id="newInvoiceImpuestos" name="Impuestos" type="number" step="0.01" class="form-input" readonly placeholder="Auto-calculado" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--gray-300); background-color: var(--gray-50);" />
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 700; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.35rem; display: block;">TOTAL</label>
+                        <input id="newInvoiceTotal" name="Total" type="number" step="0.01" class="form-input" readonly placeholder="Auto-calculado" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--purple-50); font-weight: 700; color: var(--purple-900);" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warning Box CUFE DIAN -->
+            <div style="background-color: #FEFCE8; border: 1px solid #FDE047; color: #854D0E; padding: 0.75rem 1rem; border-radius: 0.5rem; font-size: 0.78rem; line-height: 1.4; display: flex; gap: 0.5rem; align-items: flex-start;">
+                <span style="font-size: 0.9rem;">⚠️</span>
+                <div>
+                    Al crear esta factura se generará un <strong>CUFE</strong> (Código Único de Factura Electrónica) y estará disponible para descarga en formato PDF conforme a la Resolución DIAN.
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+                <button type="button" onclick="document.getElementById('modal-factura').style.display='none'" 
+                        style="flex: 1; border: 2px solid var(--purple-600); color: var(--purple-600); background: transparent; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.88rem; cursor: pointer;">
+                    Cancelar
+                </button>
+                <button type="submit" 
+                        style="flex: 1.5; background-color: var(--purple-600); color: white; border: none; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+                    <span>📄</span> Emitir Factura Electrónica
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Registrar Nueva Venta (Múltiples Productos) -->
+<div id="modal-venta" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div style="width: 100%; max-width: 600px; background: white; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); max-height: 90vh; display: flex; flex-direction: column;">
+        
+        <!-- Header Morado -->
+        <div style="background: linear-gradient(135deg, var(--purple-700), var(--purple-600)); color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.2rem; font-weight: 700;">
+                <span>💳</span> Registrar Nueva Venta
+            </div>
+            <button type="button" onclick="document.getElementById('modal-venta').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: white; line-height: 1;">&times;</button>
+        </div>
+
+        <!-- Formulario -->
+        <form asp-controller="Order" asp-action="Create" method="post" onsubmit="return validateSaleFormAdmin()" style="padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="saleItemsJsonAdmin" name="ItemsJson" value="[]" />
+
+            <!-- Sección 1: Datos del Cliente -->
+            <div>
+                <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <span>👤</span> DATOS DEL CLIENTE
+                </div>
+
+                <input type="hidden" id="selectedUserIdAdmin" name="UserId" value="" />
+
+                <div style="margin-bottom: 0.75rem;">
+                    <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">🔍 Seleccionar Cuenta / Cliente Registrado (Opcional)</label>
+                    <select id="userSelectAdmin" class="form-input" onchange="onUserSelectedAdmin(this)" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); font-size: 0.85rem; background-color: white;">
+                        <option value="">-- Buscar o Seleccionar Cliente Registrado --</option>
+                        @foreach (var user in (Model.TodosLosClientes.Any() ? Model.TodosLosClientes : Model.Clientes))
+                        {
+                            <option value="@user.Id" 
+                                    data-nombre="@user.Nombre" 
+                                    data-apellido="@user.Apellido" 
+                                    data-cedula="@user.NumeroDocumento" 
+                                    data-telefono="@user.Telefono" 
+                                    data-direccion="@user.Direccion">
+                                @user.Nombre @user.Apellido (@(string.IsNullOrEmpty(user.NumeroDocumento) ? user.Email : "C.C. " + user.NumeroDocumento))
+                            </option>
+                        }
+                    </select>
+                </div>
+
+                <div style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Nombre *</label>
+                        <input id="saleNombreAdmin" name="Nombre" type="text" required placeholder="Ej: Juan" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" />
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Apellido *</label>
+                        <input id="saleApellidoAdmin" name="Apellido" type="text" required placeholder="Ej: Pérez" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" />
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">N° Cédula / Documento *</label>
+                        <input id="saleCedulaAdmin" name="NumeroDocumento" type="text" required placeholder="Ej: 1012345678" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" />
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Teléfono *</label>
+                        <input id="saleTelefonoAdmin" name="Telefono" type="text" required placeholder="Ej: 3001234567" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" />
+                    </div>
+                </div>
+                <div style="margin-bottom: 0.75rem;">
+                    <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Dirección *</label>
+                    <input id="saleDireccionAdmin" name="Direccion" type="text" required placeholder="Ej: Calle 123 # 45-67" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <!-- Sección 2: Agregar Productos -->
+            <div>
+                <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <span>👓</span> SELECCIONAR PRODUCTOS
+                </div>
+                <div style="display: flex; gap: 0.5rem; align-items: flex-end; margin-bottom: 0.75rem;">
+                    <div style="flex: 2;">
+                        <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Producto</label>
+                        <select id="newSaleProdSelectAdmin" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
+                            <option value="">-- Seleccionar Producto --</option>
+                            @foreach (var prod in Model.Productos)
+                            {
+                                var precioFinal = prod.PrecioDescuento ?? prod.Precio;
+                                <option value="@prod.Id" data-nombre="@prod.Nombre" data-precio="@precioFinal.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-iva="@prod.PorcentajeIva.ToString(System.Globalization.CultureInfo.InvariantCulture)">@prod.Nombre (@precioFinal.ToString("C") - IVA @prod.PorcentajeIva.ToString("0.#")%)</option>
+                            }
+                        </select>
+                    </div>
+                    <div style="width: 85px;">
+                        <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Cantidad</label>
+                        <input id="newSaleQtyInputAdmin" type="number" min="1" value="1" oninput="if(this.value < 1) this.value = 1;" class="form-input" style="width: 100%; padding: 0.55rem 0.5rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); text-align: center;" />
+                    </div>
+                    <button type="button" onclick="addSaleItemAdmin()" style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 0.9rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.82rem; cursor: pointer; white-space: nowrap; height: 38px;">
+                        + Agregar
+                    </button>
+                </div>
+
+                <!-- Tabla Lista de Productos Agregados -->
+                <div style="border: 1px solid var(--purple-200); border-radius: 0.5rem; overflow: hidden; background: var(--gray-50);">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem;">
+                        <thead>
+                            <tr style="background-color: var(--purple-100); color: var(--purple-900); text-align: left;">
+                                <th style="padding: 0.5rem 0.75rem;">Producto</th>
+                                <th style="padding: 0.5rem; text-align: center;">Cant.</th>
+                                <th style="padding: 0.5rem; text-align: right;">P. Unit.</th>
+                                <th style="padding: 0.5rem; text-align: center;">IVA</th>
+                                <th style="padding: 0.5rem 0.75rem; text-align: right;">Subtotal</th>
+                                <th style="padding: 0.5rem; text-align: center;"></th>
+                            </tr>
+                        </thead>
+                        <tbody id="saleItemsTableBodyAdmin">
+                            <tr>
+                                <td colspan="6" style="padding: 1rem; text-align: center; color: var(--gray-500); font-style: italic;">
+                                    No ha agregado productos a esta venta aún.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sección 3: Totales y Descuento -->
+            <div>
+                <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <span>💰</span> DESCUENTO Y TOTALES
+                </div>
+                <div style="display: flex; gap: 0.75rem;">
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Descuento (%) *</label>
+                        <select id="descuentoSelectAdmin" name="DescuentoPercent" class="form-input" required onchange="calculateSaleTotalsAdmin()" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); font-weight: 600;">
+                            @for (int d = 0; d <= 30; d++)
+                            {
+                                var label = d == 0 ? "0% (Sin Descuento)" : $"{d}% Descuento";
+                                <option value="@d">@label</option>
+                            }
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Subtotal (COP)</label>
+                        <input id="subtotalDisplayAdmin" type="text" readonly value="COP $0" class="form-input" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--gray-300); background-color: var(--gray-50); font-weight: 600; text-align: right;" />
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 700; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">TOTAL VENTA (COP)</label>
+                        <input id="totalDisplayAdmin" type="text" readonly value="COP $0" class="form-input" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--purple-50); font-weight: 800; color: var(--purple-900); text-align: right; font-size: 0.95rem;" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sección 4: Pago y Estado -->
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Método de Pago *</label>
+                    <select name="MetodoPagoSimulado" class="form-input" required style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
+                        <option value="Efectivo" selected>Efectivo</option>
+                        <option value="Tarjeta">Tarjeta Débito/Crédito</option>
+                        <option value="Transferencia">Transferencia / PSE</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Estado Inicial *</label>
+                    <select name="Estado" class="form-input" required style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
+                        <option value="pendiente" selected>Pendiente</option>
+                        <option value="procesando">Procesando</option>
+                        <option value="enviado">Enviado</option>
+                        <option value="entregado">Entregado</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+                <button type="button" onclick="document.getElementById('modal-venta').style.display='none'" 
+                        style="flex: 1; border: 2px solid var(--purple-600); color: var(--purple-600); background: transparent; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.88rem; cursor: pointer;">
+                    Cancelar
+                </button>
+                <button type="submit" 
+                        style="flex: 1.5; background-color: var(--purple-600); color: white; border: none; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+                    <span>💳</span> Registrar Venta
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    let saleItemsAdmin = [];
+
+    function addSaleItemAdmin() {
+        const prodSelect = document.getElementById('newSaleProdSelectAdmin');
+        const qtyInput = document.getElementById('newSaleQtyInputAdmin');
+        if (!prodSelect || !qtyInput) return;
+
+        const productId = parseInt(prodSelect.value || '0', 10);
+        const cantidad = parseInt(qtyInput.value || '1', 10);
+
+        if (productId <= 0 || cantidad <= 0) {
+            if (typeof alertify !== 'undefined') alertify.error('Seleccione un producto válido y una cantidad mayor a 0');
+            else alert('Seleccione un producto válido');
+            return;
+        }
+
+        const opt = prodSelect.options[prodSelect.selectedIndex];
+        const nombre = opt.getAttribute('data-nombre');
+        const precio = parseFloat(opt.getAttribute('data-precio') || '0');
+        const iva = parseFloat(opt.getAttribute('data-iva') || '19');
+
+        const existingIndex = saleItemsAdmin.findIndex(i => i.productId === productId);
+        if (existingIndex >= 0) {
+            saleItemsAdmin[existingIndex].cantidad += cantidad;
+            saleItemsAdmin[existingIndex].subtotal = saleItemsAdmin[existingIndex].cantidad * precio;
+        } else {
+            saleItemsAdmin.push({
+                productId: productId,
+                nombre: nombre,
+                cantidad: cantidad,
+                precioUnitario: precio,
+                ivaPercent: iva,
+                subtotal: precio * cantidad
+            });
+        }
+
+        prodSelect.value = '';
+        qtyInput.value = 1;
+        renderSaleItemsAdmin();
+    }
+
+    function removeSaleItemAdmin(index) {
+        saleItemsAdmin.splice(index, 1);
+        renderSaleItemsAdmin();
+    }
+
+    function renderSaleItemsAdmin() {
+        const tbody = document.getElementById('saleItemsTableBodyAdmin');
+        if (!tbody) return;
+
+        if (saleItemsAdmin.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="6" style="padding: 1rem; text-align: center; color: var(--gray-500); font-style: italic;">No ha agregado productos a esta venta aún.</td></tr>`;
+        } else {
+            tbody.innerHTML = saleItemsAdmin.map((item, idx) => `
+                <tr style="border-bottom: 1px solid var(--purple-100);">
+                    <td style="padding: 0.5rem 0.75rem; font-weight: 600; color: var(--purple-900);">${item.nombre}</td>
+                    <td style="padding: 0.5rem; text-align: center;">${item.cantidad}</td>
+                    <td style="padding: 0.5rem; text-align: right;">COP $${Math.round(item.precioUnitario).toLocaleString('es-CO')}</td>
+                    <td style="padding: 0.5rem; text-align: center;"><span style="background: var(--purple-100); color: var(--purple-800); padding: 0.15rem 0.45rem; border-radius: 0.25rem; font-weight: 700; font-size: 0.75rem;">${item.ivaPercent}%</span></td>
+                    <td style="padding: 0.5rem 0.75rem; text-align: right; font-weight: 700;">COP $${Math.round(item.subtotal).toLocaleString('es-CO')}</td>
+                    <td style="padding: 0.5rem; text-align: center;">
+                        <button type="button" onclick="removeSaleItemAdmin(${idx})" style="background: none; border: none; color: var(--error); cursor: pointer; font-size: 1rem; font-weight: bold;">&times;</button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        calculateSaleTotalsAdmin();
+    }
+
+    function calculateSaleTotalsAdmin() {
+        const subtotalSum = saleItemsAdmin.reduce((acc, i) => acc + i.subtotal, 0);
+        const descSelect = document.getElementById('descuentoSelectAdmin');
+        const descPercent = parseInt(descSelect ? descSelect.value : '0', 10);
+
+        const totalFinal = subtotalSum * (1 - (descPercent / 100));
+
+        const subtotalDisplay = document.getElementById('subtotalDisplayAdmin');
+        const totalDisplay = document.getElementById('totalDisplayAdmin');
+        const jsonInput = document.getElementById('saleItemsJsonAdmin');
+
+        if (subtotalDisplay) subtotalDisplay.value = 'COP $' + Math.round(subtotalSum).toLocaleString('es-CO');
+        if (totalDisplay) totalDisplay.value = 'COP $' + Math.round(totalFinal).toLocaleString('es-CO');
+        if (jsonInput) jsonInput.value = JSON.stringify(saleItemsAdmin.map(i => ({ productId: i.productId, cantidad: i.cantidad })));
+    }
+
+    function onUserSelectedAdmin(selectEl) {
+        const option = selectEl.options[selectEl.selectedIndex];
+        if (!selectEl.value) {
+            document.getElementById('selectedUserIdAdmin').value = '';
+            return;
+        }
+        const nombre = option.getAttribute('data-nombre') || '';
+        const apellido = option.getAttribute('data-apellido') || '';
+        const cedula = option.getAttribute('data-cedula') || '';
+        const telefono = option.getAttribute('data-telefono') || '';
+        const direccion = option.getAttribute('data-direccion') || '';
+
+        document.getElementById('selectedUserIdAdmin').value = selectEl.value;
+        if (nombre) document.getElementById('saleNombreAdmin').value = nombre;
+        if (apellido) document.getElementById('saleApellidoAdmin').value = apellido;
+        if (cedula) document.getElementById('saleCedulaAdmin').value = cedula;
+        if (telefono) document.getElementById('saleTelefonoAdmin').value = telefono;
+        if (direccion) document.getElementById('saleDireccionAdmin').value = direccion;
+    }
+
+    function validateSaleFormAdmin() {
+        if (saleItemsAdmin.length === 0) {
+            if (typeof alertify !== 'undefined') alertify.error('Debe agregar al menos un producto a la venta.');
+            else alert('Debe agregar al menos un producto a la venta.');
+            return false;
+        }
+        return true;
+    }
+    function filterTable(inputId, tableId) {
+        const input = document.getElementById(inputId);
+        const filter = input.value.toLowerCase();
+        const table = document.getElementById(tableId);
+        const trs = table.getElementsByTagName('tr');
+
+        for (let i = 1; i < trs.length; i++) {
+            let show = false;
+            const tds = trs[i].getElementsByTagName('td');
+            for (let j = 0; j < tds.length; j++) {
+                if (tds[j] && tds[j].textContent.toLowerCase().includes(filter)) {
+                    show = true;
+                    break;
+                }
+            }
+            trs[i].style.display = show ? '' : 'none';
+        }
+    }
+
+    function updateNewInvoiceAmounts(selectElem) {
+        const selectedOpt = selectElem.options[selectElem.selectedIndex];
+        const total = parseFloat(selectedOpt.getAttribute('data-total') || '0');
+        if (total > 0) {
+            const subtotal = (total / 1.19).toFixed(2);
+            const impuestos = (total - subtotal).toFixed(2);
+            document.getElementById('newInvoiceSubtotal').value = subtotal;
+            document.getElementById('newInvoiceImpuestos').value = impuestos;
+            document.getElementById('newInvoiceTotal').value = total.toFixed(2);
+        }
+    }
+
+    function openEditInvoiceModal(id, numero, orderId, subtotal, impuestos, total, estado, metodoPago, cliente) {
+        document.getElementById('editInvoiceId').value = id;
+        document.getElementById('editInvoiceOrderId').value = orderId;
+        document.getElementById('editInvoiceNumeroDisplay').innerText = 'Factura ' + numero;
+        document.getElementById('editInvoiceClienteDisplay').innerText = 'Cliente: ' + cliente;
+        document.getElementById('editInvoiceEstado').value = estado.toLowerCase();
+        document.getElementById('editInvoiceMetodoPago').value = metodoPago || 'Efectivo';
+        document.getElementById('editInvoiceSubtotal').value = subtotal;
+        document.getElementById('editInvoiceImpuestos').value = impuestos;
+        document.getElementById('editInvoiceTotal').value = total;
+        document.getElementById('modal-edit-factura').style.display = 'flex';
+    }
+
+    function confirmDeleteInvoice(id, numero) {
+        if (typeof alertify !== 'undefined') {
+            alertify.confirm(
+                'Eliminar Factura',
+                '¿Está seguro de que desea eliminar la factura <strong>' + numero + '</strong>? Esta acción no se puede deshacer.',
+                function () {
+                    executeInvoiceDelete(id);
+                },
+                function () {
+                    alertify.message('Eliminación cancelada');
+                }
+            ).set('labels', { ok: 'Sí, eliminar', cancel: 'Cancelar' });
+        } else if (confirm('¿Está seguro de eliminar la factura ' + numero + '?')) {
+            executeInvoiceDelete(id);
+        }
+    }
+
+    function executeInvoiceDelete(id) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/Invoice/Delete/' + id;
+        
+        const tokenElem = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (tokenElem) {
+            const hiddenToken = document.createElement('input');
+            hiddenToken.type = 'hidden';
+            hiddenToken.name = '__RequestVerificationToken';
+            hiddenToken.value = tokenElem.value;
+            form.appendChild(hiddenToken);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    function filterClientSideFacturas(filterVal) {
+        const filter = filterVal.toLowerCase();
+        const table = document.getElementById('tableFacturas');
+        if (!table) return;
+        const trs = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+        for (let i = 0; i < trs.length; i++) {
+            let show = false;
+            const tds = trs[i].getElementsByTagName('td');
+            if (tds.length <= 1) continue;
+            for (let j = 0; j < tds.length - 1; j++) {
+                if (tds[j] && tds[j].textContent.toLowerCase().includes(filter)) {
+                    show = true;
+                    break;
+                }
+            }
+            trs[i].style.display = show ? '' : 'none';
+        }
+    }
+
+    function openEditClientModal(id, nombre, apellido, email, telefono) {
+        document.getElementById('editClientId').value = id;
+        document.getElementById('editClientNombre').value = nombre;
+        document.getElementById('editClientApellido').value = apellido || '';
+        document.getElementById('editClientEmail').value = email;
+        document.getElementById('editClientTelefono').value = telefono || '';
+        document.getElementById('modal-editar-cliente').style.display = 'flex';
+    }
+
+    function confirmDeleteUser(id, nombre) {
+        if (typeof alertify !== 'undefined') {
+            alertify.confirm(
+                'Eliminar Usuario',
+                '¿Está seguro de que desea eliminar al cliente/usuario <strong>' + nombre + '</strong>?',
+                function () { executeUserDelete(id); },
+                function () { alertify.message('Eliminación cancelada'); }
+            ).set('labels', { ok: 'Sí, eliminar', cancel: 'Cancelar' });
+        } else if (confirm('¿Está seguro de eliminar al usuario ' + nombre + '?')) {
+            executeUserDelete(id);
+        }
+    }
+
+    function executeUserDelete(id) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/User/Delete/' + id;
+        
+        const tokenElem = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (tokenElem) {
+            const hiddenToken = document.createElement('input');
+            hiddenToken.type = 'hidden';
+            hiddenToken.name = '__RequestVerificationToken';
+            hiddenToken.value = tokenElem.value;
+            form.appendChild(hiddenToken);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    function openEditEmployeeModal(id, nombre, email, telefono, puesto, departamento, salario, rol, activo) {
+        document.getElementById('editEmployeeId').value = id;
+        document.getElementById('editEmployeeNombre').value = nombre;
+        document.getElementById('editEmployeeEmail').value = email;
+        document.getElementById('editEmployeeTelefono').value = telefono || '';
+        document.getElementById('editEmployeePuesto').value = puesto || '';
+        document.getElementById('editEmployeeDepartamento').value = departamento || '';
+        document.getElementById('editEmployeeSalario').value = salario;
+        document.getElementById('editEmployeeRol').value = rol || 'Trabajador';
+        document.getElementById('editEmployeeActivo').value = activo ? 'true' : 'false';
+        document.getElementById('modal-editar-trabajador').style.display = 'flex';
+    }
+
+    function confirmDeleteEmployee(id, nombre) {
+        if (typeof alertify !== 'undefined') {
+            alertify.confirm(
+                'Eliminar Trabajador',
+                '¿Está seguro de que desea eliminar al trabajador <strong>' + nombre + '</strong>?',
+                function () { executeEmployeeDelete(id); },
+                function () { alertify.message('Eliminación cancelada'); }
+            ).set('labels', { ok: 'Sí, eliminar', cancel: 'Cancelar' });
+        } else if (confirm('¿Está seguro de eliminar al trabajador ' + nombre + '?')) {
+            executeEmployeeDelete(id);
+        }
+    }
+
+    function executeEmployeeDelete(id) {
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '/User/DeleteEmployee/' + id;
+        
+        const tokenElem = document.querySelector('input[name="__RequestVerificationToken"]');
+        if (tokenElem) {
+            const hiddenToken = document.createElement('input');
+            hiddenToken.type = 'hidden';
+            hiddenToken.name = '__RequestVerificationToken';
+            hiddenToken.value = tokenElem.value;
+            form.appendChild(hiddenToken);
+        }
+
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    function filterClientSideClientes(filterVal) {
+        const filter = filterVal.toLowerCase();
+        const table = document.getElementById('tableClientes');
+        if (!table) return;
+        const trs = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+        for (let i = 0; i < trs.length; i++) {
+            let show = false;
+            const tds = trs[i].getElementsByTagName('td');
+            if (tds.length <= 1) continue;
+            for (let j = 0; j < tds.length - 1; j++) {
+                if (tds[j] && tds[j].textContent.toLowerCase().includes(filter)) {
+                    show = true;
+                    break;
+                }
+            }
+            trs[i].style.display = show ? '' : 'none';
+        }
+    }
+
+    function filterClientSideTrabajadores(filterVal) {
+        const filter = filterVal.toLowerCase();
+        const table = document.getElementById('tableTrabajadores');
+        if (!table) return;
+        const trs = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+
+        for (let i = 0; i < trs.length; i++) {
+            let show = false;
+            const tds = trs[i].getElementsByTagName('td');
+            if (tds.length <= 1) continue;
+            for (let j = 0; j < tds.length - 1; j++) {
+                if (tds[j] && tds[j].textContent.toLowerCase().includes(filter)) {
+                    show = true;
+                    break;
+                }
+            }
+            trs[i].style.display = show ? '' : 'none';
+        }
+    }
+
+    function openEditProductModal(id, nombre, descripcion, precio, precioDescuento, categoria, marca, stock, activo, imagenUrl) {
+        document.getElementById('editProductId').value = id;
+        document.getElementById('editProductNombre').value = nombre;
+        document.getElementById('editProductDescripcion').value = descripcion || '';
+        document.getElementById('editProductPrecio').value = precio;
+        document.getElementById('editProductPrecioDescuento').value = precioDescuento || '';
+        document.getElementById('editProductCategoria').value = categoria;
+        document.getElementById('editProductMarca').value = marca || '';
+        document.getElementById('editProductStock').value = stock;
+        document.getElementById('editProductActivo').checked = (activo === true || activo === 'true');
+        document.getElementById('editProductImagenUrl').value = imagenUrl || '';
+        document.getElementById('modal-editar-producto').style.display = 'flex';
+    }
+
+    function openEditSupplierModal(id, nombre, tipoProductos, telefono, correo) {
+        document.getElementById('editSupplierId').value = id;
+        document.getElementById('editSupplierNombre').value = nombre;
+        document.getElementById('editSupplierTipoProductos').value = tipoProductos;
+        document.getElementById('editSupplierTelefono').value = telefono;
+        document.getElementById('editSupplierCorreo').value = correo;
+        document.getElementById('modal-editar-proveedor').style.display = 'flex';
+    }
+</script>
+
+<!-- Modal para Crear Nuevo Cliente -->
+<div id="modal-crear-cliente" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">+ Nuevo Cliente</h2>
+            <button onclick="document.getElementById('modal-crear-cliente').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form action="/User/CreateClient" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre *</label>
+                    <input name="Nombre" type="text" class="form-input" required placeholder="Ej: Juan" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Apellido</label>
+                    <input name="Apellido" type="text" class="form-input" placeholder="Ej: Pérez" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Email *</label>
+                <input name="Email" type="email" class="form-input" required placeholder="cliente@example.com" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono</label>
+                <input name="Telefono" type="text" class="form-input" placeholder="3001234567" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Tipo Doc.</label>
+                    <select name="TipoDocumento" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                        <option value="CC">CC</option>
+                        <option value="CE">CE</option>
+                        <option value="TI">TI</option>
+                        <option value="Pasaporte">Pasaporte</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Núm. Documento</label>
+                    <input name="NumeroDocumento" type="text" class="form-input" placeholder="1023456789" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Contraseña (Opcional, defecto: user123)</label>
+                <input name="Password" type="password" class="form-input" placeholder="••••••••" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-crear-cliente').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Guardar Cliente</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Editar Cliente -->
+<div id="modal-editar-cliente" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✏️ Editar Cliente</h2>
+            <button onclick="document.getElementById('modal-editar-cliente').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form action="/User/EditClient" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editClientId" name="id" />
+
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre *</label>
+                    <input id="editClientNombre" name="Nombre" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Apellido</label>
+                    <input id="editClientApellido" name="Apellido" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Email *</label>
+                <input id="editClientEmail" name="Email" type="email" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono</label>
+                <input id="editClientTelefono" name="Telefono" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-editar-cliente').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Actualizar Cliente</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Crear Nuevo Trabajador -->
+<div id="modal-crear-trabajador" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">+ Nuevo Trabajador</h2>
+            <button onclick="document.getElementById('modal-crear-trabajador').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form action="/User/CreateEmployee" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre Completo *</label>
+                <input name="Nombre" type="text" class="form-input" required placeholder="Ej: Carlos Ruiz" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Email *</label>
+                <input name="Email" type="email" class="form-input" required placeholder="empleado@lentsoft.com" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono</label>
+                <input name="Telefono" type="text" class="form-input" placeholder="3009876543" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Puesto</label>
+                    <input name="Puesto" type="text" class="form-input" placeholder="Ej: Optómetra / Vendedor" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Departamento</label>
+                    <input name="Departamento" type="text" class="form-input" placeholder="Ej: Salud / Ventas" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Salario</label>
+                    <input name="Salario" type="number" step="0.01" value="1500000" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Rol *</label>
+                    <select name="Rol" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                        <option value="Administrador">Administrador</option>
+                        <option value="Vendedor">Vendedor</option>
+                        <option value="Trabajador" selected>Trabajador</option>
+                        <option value="Solo Lectura">Solo Lectura</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-crear-trabajador').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Guardar Trabajador</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Editar Trabajador -->
+<div id="modal-editar-trabajador" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✏️ Editar Trabajador</h2>
+            <button onclick="document.getElementById('modal-editar-trabajador').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form action="/User/EditEmployee" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editEmployeeId" name="id" />
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre Completo *</label>
+                <input id="editEmployeeNombre" name="Nombre" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Email *</label>
+                <input id="editEmployeeEmail" name="Email" type="email" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono</label>
+                <input id="editEmployeeTelefono" name="Telefono" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Puesto</label>
+                    <input id="editEmployeePuesto" name="Puesto" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Departamento</label>
+                    <input id="editEmployeeDepartamento" name="Departamento" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Salario</label>
+                    <input id="editEmployeeSalario" name="Salario" type="number" step="0.01" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Rol *</label>
+                    <select id="editEmployeeRol" name="Rol" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                        <option value="Administrador">Administrador</option>
+                        <option value="Vendedor">Vendedor</option>
+                        <option value="Trabajador">Trabajador</option>
+                        <option value="Solo Lectura">Solo Lectura</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Estado</label>
+                <select id="editEmployeeActivo" name="Activo" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                    <option value="true">Activo</option>
+                    <option value="false">Inactivo</option>
+                </select>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-editar-trabajador').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Actualizar Trabajador</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Editar Producto -->
+<div id="modal-editar-producto" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✏️ Editar Producto</h2>
+            <button onclick="document.getElementById('modal-editar-producto').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form asp-controller="Product" asp-action="Edit" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editProductId" name="Id" />
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre del Producto *</label>
+                <input id="editProductNombre" name="Nombre" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+            
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Precio Regular *</label>
+                    <input id="editProductPrecio" name="Precio" type="number" step="0.01" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Precio Descuento</label>
+                    <input id="editProductPrecioDescuento" name="PrecioDescuento" type="number" step="0.01" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Categoría *</label>
+                    <input id="editProductCategoria" name="Categoria" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Marca</label>
+                    <input id="editProductMarca" name="Marca" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 0.75rem; align-items: center;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Stock *</label>
+                    <input id="editProductStock" name="Stock" type="number" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1; padding-top: 1.25rem;">
+                    <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">
+                        <input id="editProductActivo" name="Activo" type="checkbox" value="true" />
+                        Activo
+                    </label>
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">URL de la Imagen</label>
+                <input id="editProductImagenUrl" name="ImagenUrl" type="url" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+            
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Descripción</label>
+                <textarea id="editProductDescripcion" name="Descripcion" class="form-input" rows="3" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);"></textarea>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-editar-producto').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Actualizar Producto</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Crear Nuevo Proveedor -->
+<div id="modal-crear-proveedor" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">+ Nuevo Proveedor</h2>
+            <button onclick="document.getElementById('modal-crear-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form asp-controller="Supplier" asp-action="Create" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Código de Proveedor (Opcional, ej: PROV001)</label>
+                <input name="Id" type="text" class="form-input" placeholder="Autogenerado si se deja en blanco" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Empresa / Proveedor *</label>
+                <input name="Nombre" type="text" class="form-input" required placeholder="Ej: Óptica Global S.A." style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Tipo de Productos *</label>
+                <input name="TipoProductos" type="text" class="form-input" required placeholder="Ej: Monturas / Lentes de contacto" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono *</label>
+                <input name="Telefono" type="text" class="form-input" required placeholder="555-1001" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Correo Electrónico *</label>
+                <input name="Correo" type="email" class="form-input" required placeholder="ventas@proveedor.com" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-crear-proveedor').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Guardar Proveedor</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Editar Proveedor -->
+<div id="modal-editar-proveedor" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✏️ Editar Proveedor</h2>
+            <button onclick="document.getElementById('modal-editar-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form asp-controller="Supplier" asp-action="Edit" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editSupplierId" name="Id" />
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Empresa / Proveedor *</label>
+                <input id="editSupplierNombre" name="Nombre" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Tipo de Productos *</label>
+                <input id="editSupplierTipoProductos" name="TipoProductos" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono *</label>
+                <input id="editSupplierTelefono" name="Telefono" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Correo Electrónico *</label>
+                <input id="editSupplierCorreo" name="Correo" type="email" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-editar-proveedor').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Actualizar Proveedor</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal para Nuevo Movimiento de Inventario -->
+<div id="modal-nuevo-movimiento" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">+ Registrar Movimiento de Inventario</h2>
+            <button onclick="document.getElementById('modal-nuevo-movimiento').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form asp-controller="InventoryMovement" asp-action="Create" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem;">Producto *</label>
+                <select name="ProductId" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                    <option value="">-- Seleccionar Producto --</option>
+                    @foreach (var prod in Model.Productos)
+                    {
+                        <option value="@prod.Id">@prod.Nombre (Stock actual: @prod.Stock)</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem;">Tipo de Movimiento *</label>
+                <select name="Tipo" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                    <option value="Entrada" selected>Entrada (Sumar a Stock)</option>
+                    <option value="Salida">Salida (Restar de Stock)</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem;">Cantidad *</label>
+                <input name="Cantidad" type="number" min="1" value="1" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Responsable (Opcional)</label>
+                <input name="Responsable" type="text" class="form-input" placeholder="Nombre de quien realiza el movimiento" value="@(User.Identity?.Name ?? "Administrador")" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-nuevo-movimiento').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Guardar Movimiento</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+

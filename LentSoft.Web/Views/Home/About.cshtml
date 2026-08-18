@@ -1,0 +1,116 @@
+@{
+    ViewData["Title"] = "Nosotros";
+}
+
+<main style="padding: 2rem 0; min-height: 70vh;">
+    <div class="container">
+        <!-- Hero Section -->
+        <div class="text-center" style="text-align: center; margin-bottom: 4rem;">
+            <h1 style="margin-bottom: 1rem;">Sobre LentSoft</h1>
+            <p style="font-size: 1.25rem; color: var(--gray-600); max-width: 800px; margin: 0 auto;">
+                Líderes en soluciones ópticas con más de 10 años de experiencia
+            </p>
+        </div>
+
+        <!-- Mission & Vision -->
+        <div class="row" style="margin-bottom: 4rem;">
+            <div class="col col-6">
+                <div class="card">
+                    <h2 style="color: var(--purple-700); margin-bottom: 1rem;">Nuestra Misión</h2>
+                    <p style="line-height: 1.8; color: var(--gray-700);">
+                        Proporcionar soluciones ópticas de la más alta calidad, combinando tecnología avanzada
+                        con un servicio personalizado para mejorar la calidad de vida de nuestros clientes a través
+                        de una visión clara y cómoda.
+                    </p>
+                </div>
+            </div>
+            <div class="col col-6">
+                <div class="card">
+                    <h2 style="color: var(--purple-700); margin-bottom: 1rem;">Nuestra Visión</h2>
+                    <p style="line-height: 1.8; color: var(--gray-700);">
+                        Ser la plataforma óptica líder en Latinoamérica, reconocida por nuestra innovación,
+                        calidad excepcional y compromiso con la satisfacción del cliente, transformando la
+                        forma en que las personas cuidan de su salud visual.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Values -->
+        <div style="margin-bottom: 4rem;">
+            <h2 class="text-center" style="text-align: center; margin-bottom: 2rem;">Nuestros Valores</h2>
+            <div class="row">
+                <div class="col col-3">
+                    <div class="card text-center">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">✨</div>
+                        <h4 style="color: var(--purple-700);">Calidad</h4>
+                        <p style="color: var(--gray-600);">Productos certificados de las mejores marcas</p>
+                    </div>
+                </div>
+                <div class="col col-3">
+                    <div class="card text-center">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🎯</div>
+                        <h4 style="color: var(--purple-700);">Innovación</h4>
+                        <p style="color: var(--gray-600);">Tecnología de punta en salud visual</p>
+                    </div>
+                </div>
+                <div class="col col-3">
+                    <div class="card text-center">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">💜</div>
+                        <h4 style="color: var(--purple-700);">Compromiso</h4>
+                        <p style="color: var(--gray-600);">Dedicados a tu bienestar visual</p>
+                    </div>
+                </div>
+                <div class="col col-3">
+                    <div class="card text-center">
+                        <div style="font-size: 3rem; margin-bottom: 1rem;">🤝</div>
+                        <h4 style="color: var(--purple-700);">Confianza</h4>
+                        <p style="color: var(--gray-600);">Tu salud visual es nuestra prioridad</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Team -->
+        <div>
+            <h2 class="text-center" style="text-align: center; margin-bottom: 2rem;">Nuestro Equipo</h2>
+            <div class="row">
+                <div class="col col-4">
+                    <div class="card text-center">
+                        <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, var(--purple-400), var(--purple-600)); margin: 0 auto 1rem;"></div>
+                        <h4 style="color: var(--purple-900);">Dr. Carlos Mendoza</h4>
+                        <p style="color: var(--purple-600); font-weight: 600;">Optometrista Principal</p>
+                        <p style="color: var(--gray-600); font-size: 0.875rem;">15 años de experiencia</p>
+                    </div>
+                </div>
+                <div class="col col-4">
+                    <div class="card text-center">
+                        <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, var(--purple-400), var(--purple-600)); margin: 0 auto 1rem;"></div>
+                        <h4 style="color: var(--purple-900);">Dra. María González</h4>
+                        <p style="color: var(--purple-600); font-weight: 600;">Especialista en Lentes de Contacto</p>
+                        <p style="color: var(--gray-600); font-size: 0.875rem;">12 años de experiencia</p>
+                    </div>
+                </div>
+                <div class="col col-4">
+                    <div class="card text-center">
+                        <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, var(--purple-400), var(--purple-600)); margin: 0 auto 1rem;"></div>
+                        <h4 style="color: var(--purple-900);">Juan Pérez</h4>
+                        <p style="color: var(--purple-600); font-weight: 600;">Asesor de Ventas</p>
+                        <p style="color: var(--gray-600); font-size: 0.875rem;">8 años de experiencia</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Contact CTA -->
+        <div class="card text-center" style="margin-top: 4rem; background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white;">
+            <h2 style="color: white; margin-bottom: 1rem;">¿Tienes Preguntas?</h2>
+            <p style="font-size: 1.125rem; margin-bottom: 2rem; color: var(--purple-100);">
+                Estamos aquí para ayudarte. Contáctanos hoy mismo.
+            </p>
+            <a asp-controller="Auth" asp-action="Register" class="btn btn-primary" style="background: white; color: var(--purple-700);">
+                Contáctanos
+            </a>
+        </div>
+    </div>
+</main>
