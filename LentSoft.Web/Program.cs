@@ -34,7 +34,6 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IPdfInvoiceService, PdfInvoiceService>();
 builder.Services.AddSingleton<IPasswordResetTokenService, PasswordResetTokenService>();
-builder.Services.AddScoped<IPdfFormulaService, PdfFormulaService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
 // ── Authentication (Cookie-based, standard MVC pattern) ──
