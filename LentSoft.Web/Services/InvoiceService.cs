@@ -18,7 +18,7 @@ public class InvoiceService : IInvoiceService
         var query = _context.Invoices
             .Where(i => i.Activo)
             .Include(i => i.Order)
-                .ThenInclude(o => o.User)
+                .ThenInclude(o => o!.User)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -53,9 +53,9 @@ public class InvoiceService : IInvoiceService
     {
         return await _context.Invoices
             .Include(i => i.Order)
-                .ThenInclude(o => o.User)
+                .ThenInclude(o => o!.User)
             .Include(i => i.Order)
-                .ThenInclude(o => o.OrderItems)
+                .ThenInclude(o => o!.OrderItems)
                     .ThenInclude(oi => oi.Product)
             .FirstOrDefaultAsync(i => i.Id == id);
     }

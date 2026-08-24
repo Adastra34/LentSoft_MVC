@@ -61,7 +61,7 @@ public class LentSoftDbContext : DbContext
             entity.Property(e => e.Role).HasDefaultValue("usuario");
             entity.Property(e => e.TipoDocumento).HasDefaultValue("CC");
             entity.Property(e => e.FechaRegistro).HasDefaultValueSql("GETUTCDATE()");
-            entity.HasCheckConstraint("CK_Users_Role", "[Role] IN ('usuario', 'admin', 'optometra', 'ventas')");
+            entity.ToTable(t => t.HasCheckConstraint("CK_Users_Role", "[Role] IN ('usuario', 'admin', 'optometra', 'ventas')"));
         });
 
         // ── Products ──
@@ -73,6 +73,7 @@ public class LentSoftDbContext : DbContext
             entity.HasIndex(e => e.EsDestacado);
             entity.Property(e => e.Stock).HasDefaultValue(0);
             entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.Property(e => e.PorcentajeIva).HasDefaultValue(19.00m);
             entity.Property(e => e.Rating).HasDefaultValue(4.8m);
             entity.Property(e => e.ReviewCount).HasDefaultValue(12);
             entity.Property(e => e.EsDestacado).HasDefaultValue(false);
