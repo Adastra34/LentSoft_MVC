@@ -251,7 +251,15 @@ public class OrderController : Controller
     private IActionResult RedirectToVentas()
     {
         var referer = Request.Headers["Referer"].ToString();
-        if (User.IsInRole("ventas") || (!string.IsNullOrEmpty(referer) && referer.Contains("/Ventas", StringComparison.OrdinalIgnoreCase)))
+        if (!string.IsNullOrEmpty(referer) && referer.Contains("/Admin", StringComparison.OrdinalIgnoreCase))
+        {
+            return RedirectToAction("Admin", "Dashboard", new { section = "ventas" });
+        }
+        if (!string.IsNullOrEmpty(referer) && referer.Contains("/Ventas", StringComparison.OrdinalIgnoreCase))
+        {
+            return RedirectToAction("Index", "Ventas", new { section = "ventas" });
+        }
+        if (User.IsInRole("ventas"))
         {
             return RedirectToAction("Index", "Ventas", new { section = "ventas" });
         }
