@@ -617,7 +617,7 @@
                 <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
                     <span>👓</span> SELECCIONAR PRODUCTOS
                 </div>
-                <div style="display: flex; gap: 0.5rem; align-items: flex-end; margin-bottom: 0.75rem;">
+                <div style="display: flex; gap: 0.5rem; align-items: flex-end; margin-bottom: 0.3rem;">
                     <div style="flex: 2;">
                         <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Producto</label>
                         <select id="newSaleProdSelectVentas" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
@@ -625,17 +625,20 @@
                             @foreach (var prod in Model.Productos)
                             {
                                 var precioFinal = prod.PrecioDescuento ?? prod.Precio;
-                                <option value="@prod.Id" data-nombre="@prod.Nombre" data-precio="@precioFinal.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-iva="@prod.PorcentajeIva.ToString(System.Globalization.CultureInfo.InvariantCulture)">@prod.Nombre (@precioFinal.ToString("C") - IVA @prod.PorcentajeIva.ToString("0.#")%)</option>
+                                <option value="@prod.Id" data-nombre="@prod.Nombre" data-precio="@precioFinal.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-iva="@prod.PorcentajeIva.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-stock="@prod.Stock">@prod.Nombre (@precioFinal.ToString("C") - Stock: @prod.Stock)</option>
                             }
                         </select>
                     </div>
                     <div style="width: 85px;">
                         <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">Cantidad</label>
-                        <input id="newSaleQtyInputVentas" type="number" min="1" value="1" oninput="if(this.value < 1) this.value = 1;" class="form-input" style="width: 100%; padding: 0.55rem 0.5rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); text-align: center;" />
+                        <input id="newSaleQtyInputVentas" type="number" min="1" value="1" class="form-input" style="width: 100%; padding: 0.55rem 0.5rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); text-align: center;" />
                     </div>
                     <button type="button" onclick="addSaleItemVentas()" style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 0.9rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.82rem; cursor: pointer; white-space: nowrap; height: 38px;">
                         + Agregar
                     </button>
+                </div>
+                <div style="margin-bottom: 0.75rem;">
+                    <span id="stock-availability-msg" style="font-size: 0.75rem; color: var(--purple-700); font-weight: 600; display: block; min-height: 1rem;"></span>
                 </div>
 
                 <!-- Tabla Lista de Productos Agregados -->
@@ -728,7 +731,7 @@
 <script>
     let saleItemsVentas = [];
 
-    function addSaleItemVentas() {
+    async function addSaleItemVentas() {
         const prodSelect = document.getElementById('newSaleProdSelectVentas');
         const qtyInput = document.getElementById('newSaleQtyInputVentas');
         if (!prodSelect || !qtyInput) return;
@@ -738,34 +741,112 @@
 
         if (productId <= 0 || cantidad <= 0) {
             if (typeof alertify !== 'undefined') alertify.error('Seleccione un producto válido y una cantidad mayor a 0');
-            else alert('Seleccione un producto válido');
+            else alert('Seleccione un producto válido y una cantidad mayor a 0');
             return;
         }
 
-        const opt = prodSelect.options[prodSelect.selectedIndex];
-        const nombre = opt.getAttribute('data-nombre');
-        const precio = parseFloat(opt.getAttribute('data-precio') || '0');
-        const iva = parseFloat(opt.getAttribute('data-iva') || '19');
-
         const existingIndex = saleItemsVentas.findIndex(i => i.productId === productId);
+        let totalQty = cantidad;
         if (existingIndex >= 0) {
-            saleItemsVentas[existingIndex].cantidad += cantidad;
-            saleItemsVentas[existingIndex].subtotal = saleItemsVentas[existingIndex].cantidad * precio;
-        } else {
-            saleItemsVentas.push({
-                productId: productId,
-                nombre: nombre,
-                cantidad: cantidad,
-                precioUnitario: precio,
-                ivaPercent: iva,
-                subtotal: precio * cantidad
-            });
+            totalQty += saleItemsVentas[existingIndex].cantidad;
         }
 
-        prodSelect.value = '';
-        qtyInput.value = 1;
-        renderSaleItemsVentas();
+        // Validate stock on the server
+        try {
+            const response = await fetch(`/Product/CheckStock?productId=${productId}&quantity=${totalQty}`);
+            if (!response.ok) throw new Error('Error al consultar stock.');
+            const result = await response.json();
+
+            if (!result.success) {
+                if (typeof alertify !== 'undefined') alertify.error(result.message);
+                else alert(result.message);
+                return;
+            }
+
+            if (!result.sufficient) {
+                const alreadyInGrid = existingIndex >= 0 ? saleItemsVentas[existingIndex].cantidad : 0;
+                const allowed = result.available - alreadyInGrid;
+                const msg = `Stock insuficiente en el servidor. Disponible real: ${result.available}.` + 
+                            (alreadyInGrid > 0 ? ` Ya tienes ${alreadyInGrid} en la lista.` : '');
+                if (typeof alertify !== 'undefined') alertify.error(msg);
+                else alert(msg);
+                return;
+            }
+
+            const opt = prodSelect.options[prodSelect.selectedIndex];
+            const nombre = opt.getAttribute('data-nombre');
+            const precio = parseFloat(opt.getAttribute('data-precio') || '0');
+            const iva = parseFloat(opt.getAttribute('data-iva') || '19');
+
+            if (existingIndex >= 0) {
+                saleItemsVentas[existingIndex].cantidad = totalQty;
+                saleItemsVentas[existingIndex].subtotal = saleItemsVentas[existingIndex].cantidad * precio;
+            } else {
+                saleItemsVentas.push({
+                    productId: productId,
+                    nombre: nombre,
+                    cantidad: cantidad,
+                    precioUnitario: precio,
+                    ivaPercent: iva,
+                    subtotal: precio * cantidad
+                });
+            }
+
+            prodSelect.value = '';
+            qtyInput.value = 1;
+
+            // Reset stock message
+            const stockMsg = document.getElementById('stock-availability-msg');
+            if (stockMsg) stockMsg.innerText = '';
+            qtyInput.removeAttribute('max');
+
+            renderSaleItemsVentas();
+        } catch (err) {
+            console.error(err);
+            if (typeof alertify !== 'undefined') alertify.error('Error al validar el stock en el servidor.');
+            else alert('Error al validar el stock en el servidor.');
+        }
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const prodSelect = document.getElementById('newSaleProdSelectVentas');
+        const qtyInput = document.getElementById('newSaleQtyInputVentas');
+        const stockMsg = document.getElementById('stock-availability-msg');
+
+        if (prodSelect && qtyInput) {
+            prodSelect.addEventListener('change', function () {
+                if (!this.value) {
+                    qtyInput.removeAttribute('max');
+                    if (stockMsg) stockMsg.innerText = '';
+                    return;
+                }
+                const opt = this.options[this.selectedIndex];
+                const stock = parseInt(opt.getAttribute('data-stock') || '0', 10);
+                qtyInput.setAttribute('max', stock);
+                if (stockMsg) {
+                    stockMsg.innerText = 'Stock disponible: ' + stock;
+                }
+                
+                let val = parseInt(qtyInput.value || '1', 10);
+                if (val > stock) {
+                    qtyInput.value = stock;
+                }
+            });
+
+            qtyInput.addEventListener('input', function () {
+                if (!prodSelect.value) return;
+                const opt = prodSelect.options[prodSelect.selectedIndex];
+                const stock = parseInt(opt.getAttribute('data-stock') || '0', 10);
+                let val = parseInt(this.value || '1', 10);
+                if (val > stock) {
+                    this.value = stock;
+                }
+                if (val < 1) {
+                    this.value = 1;
+                }
+            });
+        }
+    });
 
     function removeSaleItemVentas(index) {
         saleItemsVentas.splice(index, 1);

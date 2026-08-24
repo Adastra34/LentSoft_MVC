@@ -240,4 +240,19 @@ public class ProductController : Controller
 
         return View(viewModel);
     }
+
+    /// <summary>
+    /// GET /Product/CheckStock?productId={id}&quantity={qty}
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> CheckStock(int productId, int quantity)
+    {
+        var product = await _productService.GetByIdAsync(productId);
+        if (product == null)
+        {
+            return Json(new { success = false, message = "Producto no encontrado." });
+        }
+        var available = product.Stock;
+        return Json(new { success = true, available, sufficient = available >= quantity });
+    }
 }
