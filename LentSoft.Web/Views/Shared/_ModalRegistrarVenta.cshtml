@@ -25,13 +25,20 @@
 
                 <input type="hidden" id="selectedUserId" name="UserId" value="" />
 
-                <div style="margin-bottom: 0.75rem;">
-                    <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">🔍 Seleccionar Cuenta / Cliente Registrado (Opcional)</label>
-                    <select id="userSelect" class="form-input" onchange="onUserSelected(this)" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); font-size: 0.85rem; background-color: white;">
-                        <option value="">-- Buscar o Seleccionar Cliente Registrado --</option>
-                        @if (Model.Clientes != null)
-                        {
-                            foreach (var user in Model.Clientes)
+                @{
+                    var soloClientes = Model.Clientes?
+                        .Where(u => u.Role == "usuario" || string.Equals(u.Role, "usuario", StringComparison.OrdinalIgnoreCase))
+                        .ToList() ?? new List<LentSoft.Web.Models.Entities.User>();
+                    var clientesPorNombre = soloClientes.OrderBy(u => u.Nombre).ThenBy(u => u.Apellido).ToList();
+                    var clientesPorCedula = soloClientes.OrderBy(u => u.NumeroDocumento).ToList();
+                }
+
+                <div style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">🔍 Buscar por Nombre (Clientes)</label>
+                        <select id="userSelectNombre" class="form-input" onchange="onClientSelectedByName(this)" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); font-size: 0.85rem; background-color: white;">
+                            <option value="">-- Buscar por Nombre --</option>
+                            @foreach (var user in clientesPorNombre)
                             {
                                 <option value="@user.Id" 
                                         data-nombre="@user.Nombre" 
@@ -39,11 +46,28 @@
                                         data-cedula="@user.NumeroDocumento" 
                                         data-telefono="@user.Telefono" 
                                         data-direccion="@user.Direccion">
-                                    @user.Nombre @user.Apellido (@(string.IsNullOrEmpty(user.NumeroDocumento) ? user.Email : "C.C. " + user.NumeroDocumento))
+                                    @user.NombreCompleto @(string.IsNullOrEmpty(user.NumeroDocumento) ? "" : "(C.C. " + user.NumeroDocumento + ")")
                                 </option>
                             }
-                        }
-                    </select>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;">🪪 Buscar por C.C. / Documento (Clientes)</label>
+                        <select id="userSelectCedula" class="form-input" onchange="onClientSelectedByCedula(this)" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); font-size: 0.85rem; background-color: white;">
+                            <option value="">-- Buscar por C.C. --</option>
+                            @foreach (var user in clientesPorCedula)
+                            {
+                                <option value="@user.Id" 
+                                        data-nombre="@user.Nombre" 
+                                        data-apellido="@user.Apellido" 
+                                        data-cedula="@user.NumeroDocumento" 
+                                        data-telefono="@user.Telefono" 
+                                        data-direccion="@user.Direccion">
+                                    @(string.IsNullOrEmpty(user.NumeroDocumento) ? "Sin C.C." : "C.C. " + user.NumeroDocumento) - @user.NombreCompleto
+                                </option>
+                            }
+                        </select>
+                    </div>
                 </div>
 
                 <div style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
@@ -355,24 +379,69 @@
         if (jsonInput) jsonInput.value = JSON.stringify(saleItems.map(i => ({ productId: i.productId, cantidad: i.cantidad })));
     }
 
-    function onUserSelected(selectEl) {
-        const option = selectEl.options[selectEl.selectedIndex];
-        if (!selectEl.value) {
+    function setCustomerFieldsReadOnly(isReadOnly) {
+        const fieldIds = ['saleNombre', 'saleApellido', 'saleCedula', 'saleTelefono', 'saleDireccion'];
+        fieldIds.forEach(id => {
+            const input = document.getElementById(id);
+            if (input) {
+                input.readOnly = isReadOnly;
+                if (isReadOnly) {
+                    input.style.backgroundColor = 'var(--gray-100)';
+                    input.style.cursor = 'not-allowed';
+                } else {
+                    input.style.backgroundColor = 'white';
+                    input.style.cursor = 'text';
+                }
+            }
+        });
+    }
+
+    function populateCustomerData(option) {
+        if (!option || !option.value) {
             document.getElementById('selectedUserId').value = '';
+            document.getElementById('saleNombre').value = '';
+            document.getElementById('saleApellido').value = '';
+            document.getElementById('saleCedula').value = '';
+            document.getElementById('saleTelefono').value = '';
+            document.getElementById('saleDireccion').value = '';
+            setCustomerFieldsReadOnly(false);
             return;
         }
+
+        const id = option.value;
         const nombre = option.getAttribute('data-nombre') || '';
         const apellido = option.getAttribute('data-apellido') || '';
         const cedula = option.getAttribute('data-cedula') || '';
         const telefono = option.getAttribute('data-telefono') || '';
         const direccion = option.getAttribute('data-direccion') || '';
 
-        document.getElementById('selectedUserId').value = selectEl.value;
-        if (nombre) document.getElementById('saleNombre').value = nombre;
-        if (apellido) document.getElementById('saleApellido').value = apellido;
-        if (cedula) document.getElementById('saleCedula').value = cedula;
-        if (telefono) document.getElementById('saleTelefono').value = telefono;
-        if (direccion) document.getElementById('saleDireccion').value = direccion;
+        document.getElementById('selectedUserId').value = id;
+        document.getElementById('saleNombre').value = nombre;
+        document.getElementById('saleApellido').value = apellido;
+        document.getElementById('saleCedula').value = cedula;
+        document.getElementById('saleTelefono').value = telefono;
+        document.getElementById('saleDireccion').value = direccion;
+
+        // Solo ver, no editar (Read-only)
+        setCustomerFieldsReadOnly(true);
+    }
+
+    function onClientSelectedByName(selectEl) {
+        const val = selectEl.value;
+        const cedulaSelect = document.getElementById('userSelectCedula');
+        if (cedulaSelect) cedulaSelect.value = val;
+        
+        const option = selectEl.options[selectEl.selectedIndex];
+        populateCustomerData(option);
+    }
+
+    function onClientSelectedByCedula(selectEl) {
+        const val = selectEl.value;
+        const nombreSelect = document.getElementById('userSelectNombre');
+        if (nombreSelect) nombreSelect.value = val;
+        
+        const option = selectEl.options[selectEl.selectedIndex];
+        populateCustomerData(option);
     }
 
     function validateSaleForm() {
