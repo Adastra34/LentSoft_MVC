@@ -16,6 +16,23 @@ System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ── JWT Secret Key Validations (Fail-Fast) ──
+var jwtPasswordKey = builder.Configuration["PasswordResetJwt:SecretKey"];
+if (string.IsNullOrEmpty(jwtPasswordKey) || 
+    jwtPasswordKey == "CONFIGURAR_EN_USER_SECRETS_O_VARIABLE_DE_ENTORNO" || 
+    jwtPasswordKey.Length < 16)
+{
+    throw new InvalidOperationException("La clave secreta para PasswordResetJwt no está configurada o es demasiado corta.");
+}
+
+var jwtSaleKey = builder.Configuration["SaleConfirmationJwt:SecretKey"];
+if (string.IsNullOrEmpty(jwtSaleKey) || 
+    jwtSaleKey == "CONFIGURAR_EN_USER_SECRETS_O_VARIABLE_DE_ENTORNO" || 
+    jwtSaleKey.Length < 16)
+{
+    throw new InvalidOperationException("La clave secreta para SaleConfirmationJwt no está configurada o es demasiado corta.");
+}
+
 // ── Database ──
 builder.Services.AddDbContext<LentSoftDbContext>(options =>
 {
@@ -34,6 +51,7 @@ builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IPdfInvoiceService, PdfInvoiceService>();
 builder.Services.AddSingleton<IPasswordResetTokenService, PasswordResetTokenService>();
+builder.Services.AddSingleton<ISaleConfirmationTokenService, SaleConfirmationTokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 
 // ── Authentication (Cookie-based, standard MVC pattern) ──
