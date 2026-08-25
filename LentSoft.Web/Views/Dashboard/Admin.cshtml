@@ -149,9 +149,20 @@
                 }
                 else if (Model.ActiveSubTab == "historial")
                 {
-                    <button class="btn btn-primary" onclick="document.getElementById('modal-nuevo-movimiento').style.display='flex'" data-i18n="admin.inv.newmovement">
-                        + Nuevo Movimiento
+                    <button type="button" onclick="exportMovimientosToExcel()" style="background-color: #10B981; color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                        📥 Exportar a Excel
                     </button>
+                }
+                else if (Model.ActiveSubTab == "pedidos")
+                {
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button id="btn-top-nuevo-pedido-venta" class="btn btn-primary" onclick="document.getElementById('modal-crear-pedido-venta').style.display='flex'">
+                            + Nuevo Pedido Venta
+                        </button>
+                        <button id="btn-top-nuevo-pedido-proveedor" class="btn btn-primary" style="background-color: var(--purple-700); display: none;" onclick="document.getElementById('modal-crear-pedido-proveedor').style.display='flex'">
+                            + Nuevo Pedido Proveedor
+                        </button>
+                    </div>
                 }
             </div>
 
@@ -165,6 +176,9 @@
                 </a>
                 <a href="?section=inventario&subtab=historial" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "historial" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "historial" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;" data-i18n="admin.inv.tab.history">
                     Historial de Movimientos
+                </a>
+                <a href="?section=inventario&subtab=pedidos" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "pedidos" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "pedidos" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;">
+                    📋 Pedidos
                 </a>
             </div>
 
@@ -267,6 +281,14 @@
                 <div class="card" style="padding: 1.5rem; background: white;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                         <input type="text" id="searchHistorial" placeholder="Buscar en historial..." data-i18n-placeholder="admin.inv.searchhistory" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchHistorial', 'tableHistorial')" />
+                        
+                        <div style="display: flex; gap: 0.75rem; align-items: center;">
+                            <label style="font-weight: 600; font-size: 0.85rem; color: var(--purple-900);">Orden por Fecha:</label>
+                            <select onchange="location.href='?section=inventario&subtab=historial&movSort=' + this.value" class="form-input" style="padding: 0.4rem 0.75rem; font-size: 0.85rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                                <option value="desc" selected="@(ViewBag.MovSort != "asc")">Más recientes primero (Descendente)</option>
+                                <option value="asc" selected="@(ViewBag.MovSort == "asc")">Más antiguos primero (Ascendente)</option>
+                            </select>
+                        </div>
                     </div>
                     <div style="overflow-x: auto;">
                         <table id="tableHistorial" style="width: 100%; border-collapse: collapse; text-align: left;">
@@ -276,7 +298,7 @@
                                     <th style="padding: 0.75rem;" data-i18n="modal.sale.selectproduct">Producto</th>
                                     <th style="padding: 0.75rem;" data-i18n="admin.inv.type">Tipo</th>
                                     <th style="padding: 0.75rem;" data-i18n="admin.inv.qty">Cantidad</th>
-                                    <th style="padding: 0.75rem;" data-i18n="admin.inv.date">Fecha</th>
+                                    <th style="padding: 0.75rem; cursor: pointer;" onclick="location.href='?section=inventario&subtab=historial&movSort=@(ViewBag.MovSort == "asc" ? "desc" : "asc")'">Fecha @(ViewBag.MovSort == "asc" ? "▲" : "▼")</th>
                                     <th style="padding: 0.75rem;" data-i18n="admin.inv.responsible">Responsable</th>
                                 </tr>
                             </thead>
@@ -295,6 +317,120 @@
                                         <td style="padding: 0.75rem; font-weight: 600;">@mov.Cantidad</td>
                                         <td style="padding: 0.75rem; color: var(--gray-600);">@mov.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                         <td style="padding: 0.75rem;">@(mov.Responsable ?? "Administrador")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+            else if (Model.ActiveSubTab == "pedidos")
+            {
+                <!-- Pestañas internas de Pedidos: Ventas vs Proveedores (Sin recarga de página) -->
+                <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; background: var(--purple-100); padding: 0.35rem; border-radius: 0.5rem; width: fit-content;">
+                    <button id="tab-btn-pedidos-ventas" type="button" onclick="switchPedidosTab('ventas')" style="padding: 0.5rem 1.25rem; font-weight: 600; font-size: 0.9rem; border-radius: 0.375rem; border: none; cursor: pointer; background: var(--purple-700); color: white; transition: all 0.2s ease;">
+                        🛒 Pedidos de Ventas
+                    </button>
+                    <button id="tab-btn-pedidos-proveedores" type="button" onclick="switchPedidosTab('proveedores')" style="padding: 0.5rem 1.25rem; font-weight: 600; font-size: 0.9rem; border-radius: 0.375rem; border: none; cursor: pointer; background: transparent; color: var(--purple-900); transition: all 0.2s ease;">
+                        🚚 Pedidos a Proveedores
+                    </button>
+                </div>
+
+                <!-- CONTENIDO PESTAÑA VENTAS (Independiente) -->
+                <div id="content-pedidos-ventas" class="card" style="padding: 1.5rem; background: white;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <input type="text" id="searchPedidosVentas" placeholder="Buscar pedido de venta..." class="form-input" style="width: 320px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchPedidosVentas', 'tablePedidosVentas')" />
+                        <span style="font-size: 0.85rem; color: var(--gray-500);">* Manejo independiente sin acoplamiento al inventario</span>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table id="tablePedidosVentas" style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
+                                    <th style="padding: 0.75rem;">N° Pedido</th>
+                                    <th style="padding: 0.75rem;">Cliente</th>
+                                    <th style="padding: 0.75rem;">Producto</th>
+                                    <th style="padding: 0.75rem;">Cantidad</th>
+                                    <th style="padding: 0.75rem;">Precio U.</th>
+                                    <th style="padding: 0.75rem;">Total</th>
+                                    <th style="padding: 0.75rem;">Fecha</th>
+                                    <th style="padding: 0.75rem;">Estado</th>
+                                    <th style="padding: 0.75rem; text-align: right;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in Model.PedidosVentas)
+                                {
+                                    <tr style="border-bottom: 1px solid var(--purple-100);">
+                                        <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-900);">@p.NumeroPedido</td>
+                                        <td style="padding: 0.75rem;">@p.ClienteNombre</td>
+                                        <td style="padding: 0.75rem; font-weight: 500;">@p.ProductoNombre</td>
+                                        <td style="padding: 0.75rem; font-weight: 600;">@p.Cantidad</td>
+                                        <td style="padding: 0.75rem;">$@p.PrecioUnitario.ToString("N0")</td>
+                                        <td style="padding: 0.75rem; font-weight: 700; color: var(--purple-800);">$@p.Total.ToString("N0")</td>
+                                        <td style="padding: 0.75rem; color: var(--gray-600); font-size: 0.85rem;">@p.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td style="padding: 0.75rem;">
+                                            <span style="background-color: @(p.Estado.ToLower() == "entregado" ? "var(--success)" : p.Estado.ToLower() == "enviado" ? "#3B82F6" : p.Estado.ToLower() == "cancelado" ? "var(--danger)" : "var(--warning)"); color: white; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">
+                                                @p.Estado
+                                            </span>
+                                        </td>
+                                        <td style="padding: 0.75rem; text-align: right;">
+                                            <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;" onclick="openEditSalesOrderModal(@p.Id, '@p.NumeroPedido', '@p.ClienteNombre', '@p.ProductoNombre', @p.Cantidad, @p.PrecioUnitario, '@p.Estado', '@p.Notas')">✏️ Editar</button>
+                                            <form asp-action="DeleteSalesOrder" asp-controller="Dashboard" method="post" style="display: inline;" onsubmit="return confirm('¿Seguro que deseas eliminar este pedido de venta?');">
+                                                <input type="hidden" name="id" value="@p.Id" />
+                                                <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">🗑️</button>
+                                            </form>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- CONTENIDO PESTAÑA PROVEEDORES (Conectado a DB Inventario) -->
+                <div id="content-pedidos-proveedores" class="card" style="padding: 1.5rem; background: white; display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <input type="text" id="searchPedidosProveedores" placeholder="Buscar pedido a proveedor..." class="form-input" style="width: 320px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchPedidosProveedores', 'tablePedidosProveedores')" />
+                        <span style="font-size: 0.85rem; color: var(--purple-700); font-weight: 600;">⚡ Conectado a la base de datos de Proveedores y Productos</span>
+                    </div>
+                    <div style="overflow-x: auto;">
+                        <table id="tablePedidosProveedores" style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
+                                    <th style="padding: 0.75rem;">N° Pedido</th>
+                                    <th style="padding: 0.75rem;">Proveedor (DB)</th>
+                                    <th style="padding: 0.75rem;">Producto (DB)</th>
+                                    <th style="padding: 0.75rem;">Cantidad</th>
+                                    <th style="padding: 0.75rem;">Precio U.</th>
+                                    <th style="padding: 0.75rem;">Total</th>
+                                    <th style="padding: 0.75rem;">Fecha</th>
+                                    <th style="padding: 0.75rem;">Estado</th>
+                                    <th style="padding: 0.75rem; text-align: right;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in Model.PedidosProveedores)
+                                {
+                                    <tr style="border-bottom: 1px solid var(--purple-100);">
+                                        <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-900);">@p.NumeroPedido</td>
+                                        <td style="padding: 0.75rem; font-weight: 500;">@(p.Supplier?.Nombre ?? "Proveedor ID: " + p.SupplierId)</td>
+                                        <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-800);">@(p.Product?.Nombre ?? "Producto ID: " + p.ProductId)</td>
+                                        <td style="padding: 0.75rem; font-weight: 600;">@p.Cantidad</td>
+                                        <td style="padding: 0.75rem;">$@p.PrecioUnitario.ToString("N0")</td>
+                                        <td style="padding: 0.75rem; font-weight: 700; color: var(--purple-900);">$@p.Total.ToString("N0")</td>
+                                        <td style="padding: 0.75rem; color: var(--gray-600); font-size: 0.85rem;">@p.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td style="padding: 0.75rem;">
+                                            <span style="background-color: @(p.Estado.ToLower() == "recibido" ? "var(--success)" : p.Estado.ToLower() == "cancelado" ? "var(--danger)" : "var(--warning)"); color: white; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">
+                                                @p.Estado
+                                            </span>
+                                        </td>
+                                        <td style="padding: 0.75rem; text-align: right;">
+                                            <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;" onclick="openEditSupplierOrderModal(@p.Id, '@p.NumeroPedido', '@p.SupplierId', @p.ProductId, @p.Cantidad, @p.PrecioUnitario, '@p.Estado', '@p.Notas')">✏️ Editar</button>
+                                            <form asp-action="DeleteSupplierOrder" asp-controller="Dashboard" method="post" style="display: inline;" onsubmit="return confirm('¿Seguro que deseas eliminar este pedido a proveedor?');">
+                                                <input type="hidden" name="id" value="@p.Id" />
+                                                <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">🗑️</button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 }
                             </tbody>
@@ -1967,5 +2103,344 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        function switchPedidosTab(tabName) {
+            const contentVentas = document.getElementById('content-pedidos-ventas');
+            const contentProveedores = document.getElementById('content-pedidos-proveedores');
+            const btnVentas = document.getElementById('tab-btn-pedidos-ventas');
+            const btnProveedores = document.getElementById('tab-btn-pedidos-proveedores');
+            const btnTopVenta = document.getElementById('btn-top-nuevo-pedido-venta');
+            const btnTopProveedor = document.getElementById('btn-top-nuevo-pedido-proveedor');
+
+            if (!contentVentas || !contentProveedores) return;
+
+            if (tabName === 'proveedores') {
+                contentVentas.style.display = 'none';
+                contentProveedores.style.display = 'block';
+
+                btnProveedores.style.background = 'var(--purple-700)';
+                btnProveedores.style.color = 'white';
+
+                btnVentas.style.background = 'transparent';
+                btnVentas.style.color = 'var(--purple-900)';
+
+                if (btnTopVenta) btnTopVenta.style.display = 'none';
+                if (btnTopProveedor) btnTopProveedor.style.display = 'inline-flex';
+            } else {
+                contentProveedores.style.display = 'none';
+                contentVentas.style.display = 'block';
+
+                btnVentas.style.background = 'var(--purple-700)';
+                btnVentas.style.color = 'white';
+
+                btnProveedores.style.background = 'transparent';
+                btnProveedores.style.color = 'var(--purple-900)';
+
+                if (btnTopVenta) btnTopVenta.style.display = 'inline-flex';
+                if (btnTopProveedor) btnTopProveedor.style.display = 'none';
+            }
+        }
+
+        function exportMovimientosToExcel() {
+            const table = document.getElementById('tableHistorial');
+            if (!table) {
+                alert('No se encontró la tabla de historial de movimientos.');
+                return;
+            }
+
+            const wb = XLSX.utils.table_to_book(table, { sheet: "Historial de Movimientos" });
+            XLSX.writeFile(wb, "Historial_Movimientos_LentSoft.xlsx");
+        }
+
+        function openEditSalesOrderModal(id, numero, cliente, producto, cantidad, precio, estado, notas) {
+            document.getElementById('editSalesOrderId').value = id;
+            document.getElementById('editSalesOrderNumero').value = numero;
+            document.getElementById('editSalesOrderCliente').value = cliente;
+            document.getElementById('editSalesOrderProducto').value = producto;
+            document.getElementById('editSalesOrderCantidad').value = cantidad;
+            document.getElementById('editSalesOrderPrecio').value = precio;
+            document.getElementById('editSalesOrderEstado').value = estado.toLowerCase();
+            document.getElementById('editSalesOrderNotas').value = notas || '';
+            document.getElementById('modal-editar-pedido-venta').style.display = 'flex';
+        }
+
+        function openEditSupplierOrderModal(id, numero, supplierId, productId, cantidad, precio, estado, notas) {
+            document.getElementById('editSupplierOrderId').value = id;
+            document.getElementById('editSupplierOrderNumero').value = numero;
+            document.getElementById('editSupplierOrderSupplierId').value = supplierId;
+            document.getElementById('editSupplierOrderProductId').value = productId;
+            document.getElementById('editSupplierOrderCantidad').value = cantidad;
+            document.getElementById('editSupplierOrderPrecio').value = precio;
+            document.getElementById('editSupplierOrderEstado').value = estado.toLowerCase();
+            document.getElementById('editSupplierOrderNotas').value = notas || '';
+            document.getElementById('modal-editar-pedido-proveedor').style.display = 'flex';
+        }
+
+        document.addEventListener("DOMContentLoaded", function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const innerTab = urlParams.get('innerTab');
+            if (innerTab === 'proveedores') {
+                switchPedidosTab('proveedores');
+            } else {
+                switchPedidosTab('ventas');
+            }
+        });
+    </script>
 }
+
+<!-- MODALES DE PEDIDOS -->
+<div id="modal-crear-pedido-venta" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">🛒 Nuevo Pedido de Venta</h2>
+            <button onclick="document.getElementById('modal-crear-pedido-venta').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form asp-controller="Dashboard" asp-action="CreateSalesOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Número de Pedido *</label>
+                <input name="NumeroPedido" type="text" class="form-input" required value="PED-VENTA-@DateTime.UtcNow.Ticks.ToString().Substring(12)" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre del Cliente *</label>
+                <input name="ClienteNombre" type="text" class="form-input" required placeholder="Ej: María Rodríguez" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Producto *</label>
+                <input name="ProductoNombre" type="text" class="form-input" required placeholder="Ej: Montura Ray-Ban Especial" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Cantidad *</label>
+                    <input name="Cantidad" type="number" min="1" value="1" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Precio Unitario ($) *</label>
+                    <input name="PrecioUnitario" type="number" step="100" min="0" value="150000" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Estado</label>
+                <select name="Estado" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                    <option value="pendiente">Pendiente</option>
+                    <option value="enviado">Enviado</option>
+                    <option value="entregado">Entregado</option>
+                    <option value="cancelado">Cancelado</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Notas</label>
+                <textarea name="Notas" class="form-input" rows="2" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-crear-pedido-venta').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Guardar Pedido Venta</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modal-editar-pedido-venta" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✏️ Editar Pedido de Venta</h2>
+            <button onclick="document.getElementById('modal-editar-pedido-venta').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form asp-controller="Dashboard" asp-action="EditSalesOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editSalesOrderId" name="Id" />
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Número de Pedido *</label>
+                <input id="editSalesOrderNumero" name="NumeroPedido" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre del Cliente *</label>
+                <input id="editSalesOrderCliente" name="ClienteNombre" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Producto *</label>
+                <input id="editSalesOrderProducto" name="ProductoNombre" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Cantidad *</label>
+                    <input id="editSalesOrderCantidad" name="Cantidad" type="number" min="1" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Precio Unitario ($) *</label>
+                    <input id="editSalesOrderPrecio" name="PrecioUnitario" type="number" step="100" min="0" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Estado</label>
+                <select id="editSalesOrderEstado" name="Estado" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                    <option value="pendiente">Pendiente</option>
+                    <option value="enviado">Enviado</option>
+                    <option value="entregado">Entregado</option>
+                    <option value="cancelado">Cancelado</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Notas</label>
+                <textarea id="editSalesOrderNotas" name="Notas" class="form-input" rows="2" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-editar-pedido-venta').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Actualizar Pedido Venta</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modal-crear-pedido-proveedor" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">🚚 Nuevo Pedido a Proveedor (DB)</h2>
+            <button onclick="document.getElementById('modal-crear-pedido-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form asp-controller="Dashboard" asp-action="CreateSupplierOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Número de Pedido *</label>
+                <input name="NumeroPedido" type="text" class="form-input" required value="PED-PROV-@DateTime.UtcNow.Ticks.ToString().Substring(12)" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Proveedor (DB) *</label>
+                <select name="SupplierId" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                    <option value="">-- Seleccionar Proveedor DB --</option>
+                    @foreach (var s in Model.Proveedores)
+                    {
+                        <option value="@s.Id">@s.Nombre (@s.TipoProductos)</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Producto de Inventario (DB) *</label>
+                <select name="ProductId" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                    <option value="">-- Seleccionar Producto DB --</option>
+                    @foreach (var p in Model.Productos)
+                    {
+                        <option value="@p.Id">@p.Nombre (Stock: @p.Stock)</option>
+                    }
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Cantidad *</label>
+                    <input name="Cantidad" type="number" min="1" value="10" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Precio Unitario ($) *</label>
+                    <input name="PrecioUnitario" type="number" step="100" min="0" value="250000" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Estado</label>
+                <select name="Estado" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                    <option value="pendiente">Pendiente</option>
+                    <option value="recibido">Recibido</option>
+                    <option value="cancelado">Cancelado</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Notas</label>
+                <textarea name="Notas" class="form-input" rows="2" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-crear-pedido-proveedor').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Guardar Pedido Proveedor</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="modal-editar-pedido-proveedor" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+    <div class="card" style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✏️ Editar Pedido a Proveedor</h2>
+            <button onclick="document.getElementById('modal-editar-pedido-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form asp-controller="Dashboard" asp-action="EditSupplierOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editSupplierOrderId" name="Id" />
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Número de Pedido *</label>
+                <input id="editSupplierOrderNumero" name="NumeroPedido" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Proveedor (DB) *</label>
+                <select id="editSupplierOrderSupplierId" name="SupplierId" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                    @foreach (var s in Model.Proveedores)
+                    {
+                        <option value="@s.Id">@s.Nombre (@s.TipoProductos)</option>
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Producto de Inventario (DB) *</label>
+                <select id="editSupplierOrderProductId" name="ProductId" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                    @foreach (var p in Model.Productos)
+                    {
+                        <option value="@p.Id">@p.Nombre (Stock: @p.Stock)</option>
+                    }
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Cantidad *</label>
+                    <input id="editSupplierOrderCantidad" name="Cantidad" type="number" min="1" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Precio Unitario ($) *</label>
+                    <input id="editSupplierOrderPrecio" name="PrecioUnitario" type="number" step="100" min="0" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Estado</label>
+                <select id="editSupplierOrderEstado" name="Estado" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                    <option value="pendiente">Pendiente</option>
+                    <option value="recibido">Recibido</option>
+                    <option value="cancelado">Cancelado</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Notas</label>
+                <textarea id="editSupplierOrderNotas" name="Notas" class="form-input" rows="2" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-editar-pedido-proveedor').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Actualizar Pedido Proveedor</button>
+            </div>
+        </form>
+    </div>
+</div>
 

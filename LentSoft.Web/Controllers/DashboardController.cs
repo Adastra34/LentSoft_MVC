@@ -54,9 +54,11 @@ public class DashboardController : Controller
         string? trabajadoresSearch = null,
         int trabajadoresPage = 1,
         int trabajadoresPageSize = 5,
-        bool includeInactive = false)
+        bool includeInactive = false,
+        string movSort = "desc")
     {
         ViewBag.IncludeInactive = includeInactive;
+        ViewBag.MovSort = movSort;
         var now = DateTime.UtcNow;
         var inicioMes = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
         var inicioMesAnterior = inicioMes.AddMonths(-1);
@@ -223,9 +225,13 @@ public class DashboardController : Controller
             FacturasTotalCount = facturasTotalCount,
             PedidosDisponibles = pedidosDisponibles,
 
-            // Proveedores y Historial de Movimientos reales
+            // Proveedores, Historial y Pedidos reales de Inventario
             Proveedores = await _context.Suppliers.Where(s => s.Activo).OrderBy(s => s.Nombre).ToListAsync(),
-            HistorialMovimientos = await _context.InventoryMovements.Include(m => m.Product).OrderByDescending(m => m.Fecha).ToListAsync(),
+            HistorialMovimientos = await (movSort == "asc" 
+                ? _context.InventoryMovements.Include(m => m.Product).OrderBy(m => m.Fecha).ToListAsync()
+                : _context.InventoryMovements.Include(m => m.Product).OrderByDescending(m => m.Fecha).ToListAsync()),
+            PedidosVentas = await _context.SalesOrders.Where(o => o.Activo).OrderByDescending(o => o.Fecha).ToListAsync(),
+            PedidosProveedores = await _context.SupplierOrders.Include(o => o.Supplier).Include(o => o.Product).Where(o => o.Activo).OrderByDescending(o => o.Fecha).ToListAsync(),
 
             // Navigation
             ActiveSection = section,
@@ -563,6 +569,158 @@ public class DashboardController : Controller
         }
 
         return RedirectToAction("Admin", new { section = "citas" });
+    }
+
+    // ── GESTIÓN DE PEDIDOS DE VENTAS (INDEPENDIENTES) ──
+    [HttpPost]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> CreateSalesOrder(SalesOrder model)
+    {
+        if (ModelState.IsValid)
+        {
+            model.Total = model.Cantidad * model.PrecioUnitario;
+            if (model.Fecha == default) model.Fecha = DateTime.UtcNow;
+            model.Activo = true;
+            _context.SalesOrders.Add(model);
+
+            // Registro automático en Historial de Movimientos (SALIDA)
+            var targetProduct = await _context.Products.FirstOrDefaultAsync(p => p.Nombre.ToLower() == model.ProductoNombre.ToLower() || p.Nombre.ToLower().Contains(model.ProductoNombre.ToLower()));
+            if (targetProduct == null)
+            {
+                targetProduct = await _context.Products.FirstOrDefaultAsync();
+            }
+            if (targetProduct != null)
+            {
+                var movement = new InventoryMovement
+                {
+                    ProductId = targetProduct.Id,
+                    Tipo = "Salida",
+                    Cantidad = model.Cantidad,
+                    Fecha = model.Fecha,
+                    Responsable = User.Identity?.Name ?? $"Pedido Venta ({model.ClienteNombre})"
+                };
+                _context.InventoryMovements.Add(movement);
+            }
+
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Pedido de venta registrado correctamente.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Verifique los campos ingresados para el pedido de venta.";
+        }
+        return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> EditSalesOrder(SalesOrder model)
+    {
+        var existing = await _context.SalesOrders.FindAsync(model.Id);
+        if (existing != null)
+        {
+            existing.NumeroPedido = model.NumeroPedido;
+            existing.ClienteNombre = model.ClienteNombre;
+            existing.ProductoNombre = model.ProductoNombre;
+            existing.Cantidad = model.Cantidad;
+            existing.PrecioUnitario = model.PrecioUnitario;
+            existing.Total = model.Cantidad * model.PrecioUnitario;
+            existing.Estado = model.Estado;
+            existing.Notas = model.Notas;
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Pedido de venta actualizado correctamente.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "No se encontró el pedido de venta especificado.";
+        }
+        return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> DeleteSalesOrder(int id)
+    {
+        var existing = await _context.SalesOrders.FindAsync(id);
+        if (existing != null)
+        {
+            existing.Activo = false;
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Pedido de venta eliminado correctamente.";
+        }
+        return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
+    }
+
+    // ── GESTIÓN DE PEDIDOS A PROVEEDORES (VINCULADOS A INVENTARIO DB) ──
+    [HttpPost]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> CreateSupplierOrder(SupplierOrder model)
+    {
+        if (ModelState.IsValid)
+        {
+            model.Total = model.Cantidad * model.PrecioUnitario;
+            if (model.Fecha == default) model.Fecha = DateTime.UtcNow;
+            model.Activo = true;
+            _context.SupplierOrders.Add(model);
+
+            // Registro automático en Historial de Movimientos (ENTRADA)
+            var movement = new InventoryMovement
+            {
+                ProductId = model.ProductId,
+                Tipo = "Entrada",
+                Cantidad = model.Cantidad,
+                Fecha = model.Fecha,
+                Responsable = User.Identity?.Name ?? $"Pedido Proveedor ({model.NumeroPedido})"
+            };
+            _context.InventoryMovements.Add(movement);
+
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Pedido a proveedor registrado correctamente.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "Verifique los datos del pedido a proveedor.";
+        }
+        return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "proveedores" });
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> EditSupplierOrder(SupplierOrder model)
+    {
+        var existing = await _context.SupplierOrders.FindAsync(model.Id);
+        if (existing != null)
+        {
+            existing.NumeroPedido = model.NumeroPedido;
+            existing.SupplierId = model.SupplierId;
+            existing.ProductId = model.ProductId;
+            existing.Cantidad = model.Cantidad;
+            existing.PrecioUnitario = model.PrecioUnitario;
+            existing.Total = model.Cantidad * model.PrecioUnitario;
+            existing.Estado = model.Estado;
+            existing.Notas = model.Notas;
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Pedido a proveedor actualizado correctamente.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "No se encontró el pedido a proveedor especificado.";
+        }
+        return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "proveedores" });
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> DeleteSupplierOrder(int id)
+    {
+        var existing = await _context.SupplierOrders.FindAsync(id);
+        if (existing != null)
+        {
+            existing.Activo = false;
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Pedido a proveedor eliminado correctamente.";
+        }
+        return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "proveedores" });
     }
 
     // ── Mock data ──

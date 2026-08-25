@@ -21,6 +21,8 @@ public class DashboardAdminViewModel
     public List<Product> Productos { get; set; } = new();
     public List<Supplier> Proveedores { get; set; } = new();
     public List<InventoryMovement> HistorialMovimientos { get; set; } = new();
+    public List<SalesOrder> PedidosVentas { get; set; } = new();
+    public List<SupplierOrder> PedidosProveedores { get; set; } = new();
 
     // ── Ventas ──
     public List<Order> Ventas { get; set; } = new();

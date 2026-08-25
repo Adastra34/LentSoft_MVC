@@ -25,6 +25,8 @@ public class LentSoftDbContext : DbContext
     public DbSet<FormulaOptica> FormulasOpticas => Set<FormulaOptica>();
     public DbSet<Supplier> Suppliers => Set<Supplier>();
     public DbSet<InventoryMovement> InventoryMovements => Set<InventoryMovement>();
+    public DbSet<SalesOrder> SalesOrders => Set<SalesOrder>();
+    public DbSet<SupplierOrder> SupplierOrders => Set<SupplierOrder>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -50,6 +52,32 @@ public class LentSoftDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(e => e.ProductId)
                   .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ── SupplierOrders ──
+        modelBuilder.Entity<SupplierOrder>(entity =>
+        {
+            entity.HasIndex(e => e.NumeroPedido);
+            entity.HasIndex(e => e.SupplierId);
+            entity.HasIndex(e => e.ProductId);
+            entity.Property(e => e.Fecha).HasDefaultValueSql("GETUTCDATE()");
+
+            entity.HasOne(e => e.Supplier)
+                  .WithMany()
+                  .HasForeignKey(e => e.SupplierId)
+                  .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.Product)
+                  .WithMany()
+                  .HasForeignKey(e => e.ProductId)
+                  .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ── SalesOrders ──
+        modelBuilder.Entity<SalesOrder>(entity =>
+        {
+            entity.HasIndex(e => e.NumeroPedido);
+            entity.Property(e => e.Fecha).HasDefaultValueSql("GETUTCDATE()");
         });
 
         // ── Users ──
@@ -553,6 +581,18 @@ public class LentSoftDbContext : DbContext
             new InventoryMovement { Id = 1, ProductId = 1, Tipo = "Entrada", Cantidad = 20, Fecha = new DateTime(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc), Responsable = "Administrador" },
             new InventoryMovement { Id = 2, ProductId = 2, Tipo = "Salida", Cantidad = 5, Fecha = new DateTime(2026, 5, 2, 14, 0, 0, DateTimeKind.Utc), Responsable = "Administrador" },
             new InventoryMovement { Id = 3, ProductId = 3, Tipo = "Entrada", Cantidad = 10, Fecha = new DateTime(2026, 5, 3, 11, 30, 0, DateTimeKind.Utc), Responsable = "Administrador" }
+        );
+
+        // Seed Supplier Orders
+        modelBuilder.Entity<SupplierOrder>().HasData(
+            new SupplierOrder { Id = 1, NumeroPedido = "PED-PROV-001", SupplierId = "PROV001", ProductId = 1, Cantidad = 15, PrecioUnitario = 1200000.00m, Total = 18000000.00m, Estado = "recibido", Fecha = new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc), Activo = true },
+            new SupplierOrder { Id = 2, NumeroPedido = "PED-PROV-002", SupplierId = "PROV002", ProductId = 2, Cantidad = 30, PrecioUnitario = 200000.00m, Total = 6000000.00m, Estado = "pendiente", Fecha = new DateTime(2026, 5, 20, 0, 0, 0, DateTimeKind.Utc), Activo = true }
+        );
+
+        // Seed Sales Orders (Independientes)
+        modelBuilder.Entity<SalesOrder>().HasData(
+            new SalesOrder { Id = 1, NumeroPedido = "PED-VENTA-001", ClienteNombre = "Carlos Ramírez", ProductoNombre = "Gafas de Sol Polarizadas Especiales", Cantidad = 2, PrecioUnitario = 350000.00m, Total = 700000.00m, Estado = "entregado", Fecha = new DateTime(2026, 5, 12, 0, 0, 0, DateTimeKind.Utc), Activo = true },
+            new SalesOrder { Id = 2, NumeroPedido = "PED-VENTA-002", ClienteNombre = "Ana María Torres", ProductoNombre = "Lentes de Contacto Toricos Custom", Cantidad = 1, PrecioUnitario = 480000.00m, Total = 480000.00m, Estado = "enviado", Fecha = new DateTime(2026, 5, 22, 0, 0, 0, DateTimeKind.Utc), Activo = true }
         );
     }
 }
