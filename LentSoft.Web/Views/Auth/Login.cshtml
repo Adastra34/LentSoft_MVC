@@ -11,13 +11,13 @@
             <div style="position: absolute; inset: 0; background: linear-gradient(to right, rgba(59, 7, 100, 0.4), rgba(124, 58, 237, 0.2));"></div>
             <div style="position: absolute; bottom: 2rem; left: 2rem; right: 2rem; color: white; z-index: 2;">
                 <h3 style="color: white; font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem; font-family: var(--font-primary);">LentSoft Optical</h3>
-                <p style="color: var(--purple-100); font-size: 0.875rem; margin: 0;">Tu salud visual en las mejores manos.</p>
+                <p style="color: var(--purple-100); font-size: 0.875rem; margin: 0;" data-i18n="auth.login.subtitle">Tu salud visual en las mejores manos.</p>
             </div>
         </div>
 
         <!-- Right Column: Form -->
         <div style="padding: 3rem 2.5rem; display: flex; flex-direction: column; justify-content: center; background: white;">
-            <h1 style="text-align: center; margin-bottom: 2rem; color: var(--purple-700); font-size: 1.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--font-primary);">
+            <h1 style="text-align: center; margin-bottom: 2rem; color: var(--purple-700); font-size: 1.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--font-primary);" data-i18n="auth.login.title">
                 INICIO DE SESIÓN
             </h1>
 
@@ -60,14 +60,14 @@
 
                 <!-- Email Field (No visible label) -->
                 <div class="form-group" style="margin-bottom: 0;">
-                    <input asp-for="Email" placeholder="Correo electrónico" class="form-input" style="border-radius: 9999px; padding: 0.75rem 1.25rem; border: 1.5px solid var(--border);" />
+                    <input asp-for="Email" placeholder="Correo electrónico" data-i18n-placeholder="auth.login.email" class="form-input" style="border-radius: 9999px; padding: 0.75rem 1.25rem; border: 1.5px solid var(--border);" />
                     <span asp-validation-for="Email" style="color: var(--error); font-size: 0.75rem; padding-left: 0.75rem; display: block; margin-top: 0.25rem;"></span>
                 </div>
 
                 <!-- Password Field with Toggle Eye Icon -->
                 <div class="form-group" style="margin-bottom: 0;">
                     <div style="position: relative;">
-                        <input asp-for="Password" placeholder="Contraseña" class="form-input" style="border-radius: 9999px; padding: 0.75rem 3rem 0.75rem 1.25rem; border: 1.5px solid var(--border);" id="passwordInput" />
+                        <input asp-for="Password" placeholder="Contraseña" data-i18n-placeholder="auth.login.password" class="form-input" style="border-radius: 9999px; padding: 0.75rem 3rem 0.75rem 1.25rem; border: 1.5px solid var(--border);" id="passwordInput" />
                         <button type="button" id="togglePasswordBtn" style="position: absolute; right: 1rem; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: var(--gray-500); font-size: 1.1rem;" title="Mostrar/Ocultar contraseña">
                             👁️
                         </button>
@@ -77,19 +77,19 @@
 
                 <!-- Forgot Password Link -->
                 <div style="text-align: left;">
-                    <a asp-controller="Auth" asp-action="ForgotPassword" style="color: var(--purple-700); font-size: 0.85rem; font-weight: 500;">
+                    <a asp-controller="Auth" asp-action="ForgotPassword" style="color: var(--purple-700); font-size: 0.85rem; font-weight: 500;" data-i18n="auth.login.forgot">
                         ¿Olvidaste tu contraseña?
                     </a>
                 </div>
 
                 <!-- Submit Button (Slate Dark / Full Width / Rounded) -->
-                <button type="submit" class="btn" style="width: 100%; background-color: var(--gray-800); color: white; border-radius: 9999px; padding: 0.8rem; font-size: 0.95rem; font-weight: 600; margin-top: 0.5rem; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#111827'" onmouseout="this.style.backgroundColor='var(--gray-800)'">
+                <button type="submit" class="btn" style="width: 100%; background-color: var(--gray-800); color: white; border-radius: 9999px; padding: 0.8rem; font-size: 0.95rem; font-weight: 600; margin-top: 0.5rem; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#111827'" onmouseout="this.style.backgroundColor='var(--gray-800)'" data-i18n="auth.login.submit">
                     Iniciar sesión
                 </button>
 
                 <!-- Create Account Link -->
                 <div style="text-align: center; margin-top: 0.75rem;">
-                    <a asp-controller="Auth" asp-action="Register" style="color: var(--purple-700); font-size: 0.9rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px;">
+                    <a asp-controller="Auth" asp-action="Register" style="color: var(--purple-700); font-size: 0.9rem; font-weight: 600; text-decoration: underline; text-underline-offset: 3px;" data-i18n="auth.login.create">
                         Crear cuenta
                     </a>
                 </div>

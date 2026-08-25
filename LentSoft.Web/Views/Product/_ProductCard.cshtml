@@ -102,11 +102,11 @@
                 onmouseout="this.style.opacity='1'">
             @if (Model.HasStock())
             {
-                <text>🛒 Añadir al Carrito</text>
+                <text><span data-i18n="product.addcart">🛒 Añadir al Carrito</span></text>
             }
             else
             {
-                <text>Agotado</text>
+                <text><span data-i18n="product.soldout">Agotado</span></text>
             }
         </button>
     </div>

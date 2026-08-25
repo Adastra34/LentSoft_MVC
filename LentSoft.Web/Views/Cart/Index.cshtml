@@ -8,7 +8,7 @@
 <main style="padding: 2.5rem 0; min-height: 80vh; background: var(--purple-50); font-family: var(--font-secondary);">
     <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 1.5rem;">
         
-        <h1 style="color: var(--purple-900); font-size: 2rem; font-weight: 800; font-family: var(--font-primary); margin-bottom: 2rem;">
+        <h1 style="color: var(--purple-900); font-size: 2rem; font-weight: 800; font-family: var(--font-primary); margin-bottom: 2rem;" data-i18n="cart.title">
             Tu Carrito de Compras
         </h1>
 
@@ -17,11 +17,11 @@
             {
                 <div style="text-align: center; padding: 4rem 2rem; background: white; border-radius: 1.25rem; box-shadow: var(--shadow-md); border: 1.5px solid var(--gray-100);">
                     <div style="font-size: 4.5rem; margin-bottom: 1.5rem;">🛒</div>
-                    <h3 style="color: var(--purple-900); font-family: var(--font-primary); font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">Tu carrito está vacío</h3>
-                    <p style="color: var(--gray-500); font-size: 0.95rem; margin-bottom: 1.5rem; max-width: 320px; margin-left: auto; margin-right: auto;">
+                    <h3 style="color: var(--purple-900); font-family: var(--font-primary); font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;" data-i18n="cart.empty">Tu carrito está vacío</h3>
+                    <p style="color: var(--gray-500); font-size: 0.95rem; margin-bottom: 1.5rem; max-width: 320px; margin-left: auto; margin-right: auto;" data-i18n="cart.empty.desc">
                         Parece que aún no has agregado productos. Explora nuestro catálogo y encuentra lo que necesitas.
                     </p>
-                    <a asp-controller="Product" asp-action="Tienda" class="btn" style="background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white; padding: 0.75rem 2rem; border-radius: 9999px; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(124,58,237,0.3); display: inline-block; text-decoration: none;">
+                    <a asp-controller="Product" asp-action="Tienda" class="btn" style="background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white; padding: 0.75rem 2rem; border-radius: 9999px; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(124,58,237,0.3); display: inline-block; text-decoration: none;" data-i18n="cart.goshop">
                         Ir a la Tienda
                     </a>
                 </div>
@@ -35,10 +35,10 @@
                         <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
                             <thead>
                                 <tr style="background: var(--purple-100); border-bottom: 1.5px solid var(--gray-200); color: var(--purple-900); font-weight: 700;">
-                                    <th style="padding: 1.25rem 1rem;">Producto</th>
-                                    <th style="padding: 1.25rem 1rem; text-align: center;">Precio</th>
-                                    <th style="padding: 1.25rem 1rem; text-align: center;">Cantidad</th>
-                                    <th style="padding: 1.25rem 1rem; text-align: right;">Subtotal</th>
+                                    <th style="padding: 1.25rem 1rem;" data-i18n="cart.product">Producto</th>
+                                    <th style="padding: 1.25rem 1rem; text-align: center;" data-i18n="cart.price">Precio</th>
+                                    <th style="padding: 1.25rem 1rem; text-align: center;" data-i18n="cart.qty">Cantidad</th>
+                                    <th style="padding: 1.25rem 1rem; text-align: right;" data-i18n="cart.subtotal">Subtotal</th>
                                     <th style="padding: 1.25rem 1rem; text-align: center;"></th>
                                 </tr>
                             </thead>
@@ -62,7 +62,7 @@
                                                 <a href="/Product/Details/@item.ProductId" style="color: var(--purple-900); font-weight: 700; text-decoration: none; font-family: var(--font-primary); font-size: 0.95rem; line-height: 1.3; display: block;" onmouseover="this.style.color='var(--purple-600)'" onmouseout="this.style.color='var(--purple-900)'">
                                                     @item.Product.Nombre
                                                 </a>
-                                                <span style="color: var(--gray-400); font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">Marca: @(item.Product.Marca ?? "LentSoft")</span>
+                                                <span style="color: var(--gray-400); font-size: 0.75rem; text-transform: uppercase; font-weight: 600;"><span data-i18n="cart.brand">Marca:</span> @(item.Product.Marca ?? "LentSoft")</span>
                                             </div>
                                         </td>
                                         
@@ -99,32 +99,32 @@
 
                     <!-- Right: Summary Box -->
                     <div style="background: white; border-radius: 1.25rem; padding: 1.75rem; box-shadow: var(--shadow-md); border: 1px solid var(--gray-100); display: flex; flex-direction: column; gap: 1.5rem;">
-                        <h3 style="color: var(--purple-900); font-family: var(--font-primary); font-size: 1.25rem; font-weight: 700; margin: 0; border-bottom: 1.5px solid var(--gray-100); padding-bottom: 0.75rem;">
+                        <h3 style="color: var(--purple-900); font-family: var(--font-primary); font-size: 1.25rem; font-weight: 700; margin: 0; border-bottom: 1.5px solid var(--gray-100); padding-bottom: 0.75rem;" data-i18n="cart.summary">
                             Resumen de Compra
                         </h3>
 
                         <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.9rem; color: var(--gray-700);">
                             <div style="display: flex; justify-content: space-between;">
-                                <span>Productos</span>
+                                <span data-i18n="cart.products">Productos</span>
                                 <span style="font-weight: 600;" id="summaryTotalCount">@cartItems.Sum(ci => ci.Cantidad) unidades</span>
                             </div>
                             <div style="display: flex; justify-content: space-between;">
-                                <span>Envío</span>
-                                <span style="color: var(--success); font-weight: 700;">Gratis</span>
+                                <span data-i18n="cart.shipping">Envío</span>
+                                <span style="color: var(--success); font-weight: 700;" data-i18n="cart.free">Gratis</span>
                             </div>
                             <div style="display: flex; justify-content: space-between; border-top: 1.5px solid var(--gray-100); padding-top: 1rem; margin-top: 0.5rem;">
-                                <strong style="color: var(--purple-900); font-size: 1.1rem; font-family: var(--font-primary);">Total General</strong>
+                                <strong style="color: var(--purple-900); font-size: 1.1rem; font-family: var(--font-primary);" data-i18n="cart.total">Total General</strong>
                                 <strong style="color: var(--purple-700); font-size: 1.25rem;" id="summaryTotalGeneral">@totalGeneral.ToString("C")</strong>
                             </div>
                         </div>
 
                         <a asp-controller="Checkout" asp-action="Index" class="btn" style="background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white; border: none; border-radius: 0.75rem; padding: 0.9rem; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(124,58,237,0.3); text-align: center; text-decoration: none;"
                                 onmouseover="this.style.transform='translateY(-2px)'"
-                                onmouseout="this.style.transform='translateY(0)'">
+                                onmouseout="this.style.transform='translateY(0)'" data-i18n="cart.checkout">
                             Proceder al pago 💳
                         </a>
                         
-                        <a asp-controller="Product" asp-action="Tienda" style="color: var(--purple-600); text-align: center; font-size: 0.85rem; font-weight: 600; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">
+                        <a asp-controller="Product" asp-action="Tienda" style="color: var(--purple-600); text-align: center; font-size: 0.85rem; font-weight: 600; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'" data-i18n="cart.continue">
                             ← Continuar Comprando
                         </a>
                     </div>
