@@ -7,27 +7,27 @@
     <!-- Sidebar Sidebar Navigation -->
     <aside style="width: 260px; background-color: var(--purple-900); color: white; padding: 1.5rem 1rem; flex-shrink: 0;">
         <div style="padding: 0 0.5rem 1.5rem 0.5rem; border-bottom: 1px solid var(--purple-700); margin-bottom: 1.5rem;">
-            <h2 style="color: white; font-size: 1.25rem; margin: 0;">Admin Dashboard</h2>
-            <p style="color: var(--purple-200); font-size: 0.85rem; margin: 0.25rem 0 0 0;">Gestión Integral LentSoft</p>
+            <h2 style="color: white; font-size: 1.25rem; margin: 0;" data-i18n="admin.portal">Admin Dashboard</h2>
+            <p style="color: var(--purple-200); font-size: 0.85rem; margin: 0.25rem 0 0 0;" data-i18n="admin.management">Gestión Integral LentSoft</p>
         </div>
 
         <nav style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <a href="?section=general" class="nav-item @(Model.ActiveSection == "general" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "general" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "general" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+            <a href="?section=general" class="nav-item @(Model.ActiveSection == "general" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "general" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "general" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="admin.nav.general">
                 📊 General
             </a>
-            <a href="?section=inventario&subtab=productos" class="nav-item @(Model.ActiveSection == "inventario" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "inventario" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "inventario" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+            <a href="?section=inventario&subtab=productos" class="nav-item @(Model.ActiveSection == "inventario" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "inventario" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "inventario" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="admin.nav.inventory">
                 📦 Inventario
             </a>
-            <a href="?section=ventas" class="nav-item @(Model.ActiveSection == "ventas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "ventas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "ventas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+            <a href="?section=ventas" class="nav-item @(Model.ActiveSection == "ventas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "ventas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "ventas" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="admin.nav.sales">
                 💳 Ventas
             </a>
-            <a href="?section=citas" class="nav-item @(Model.ActiveSection == "citas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "citas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "citas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+            <a href="?section=citas" class="nav-item @(Model.ActiveSection == "citas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "citas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "citas" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="admin.nav.appointments">
                 📅 Citas Médicas
             </a>
-            <a href="?section=usuarios&subtab=clientes" class="nav-item @(Model.ActiveSection == "usuarios" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "usuarios" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "usuarios" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+            <a href="?section=usuarios&subtab=clientes" class="nav-item @(Model.ActiveSection == "usuarios" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "usuarios" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "usuarios" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="admin.nav.users">
                 👥 Usuarios
             </a>
-            <a href="?section=facturas" class="nav-item @(Model.ActiveSection == "facturas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "facturas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "facturas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+            <a href="?section=facturas" class="nav-item @(Model.ActiveSection == "facturas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "facturas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "facturas" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="admin.nav.invoices">
                 🧾 Facturas
             </a>
         </nav>
@@ -39,14 +39,14 @@
         <!-- ==================== SECCIÓN GENERAL ==================== -->
         @if (Model.ActiveSection == "general")
         {
-            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem;">Resumen General</h1>
+            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem;" data-i18n="admin.general.title">Resumen General</h1>
 
             <!-- Stats Cards with % variation -->
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
                 <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--purple-600); background: white;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
-                            <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">Ventas del Mes</p>
+                            <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="admin.general.monthly">Ventas del Mes</p>
                             <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.VentasDelMes.ToString("C")</h3>
                         </div>
                         <span style="background-color: var(--purple-100); color: @DashboardAdminViewModel.GetVariacionColor(Model.VentasDelMes, Model.VentasDelMesAnterior); padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 700;">
@@ -58,7 +58,7 @@
                 <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--info); background: white;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
-                            <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">Pedidos Activos</p>
+                            <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="admin.general.activeorders">Pedidos Activos</p>
                             <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.PedidosActivos</h3>
                         </div>
                         <span style="background-color: var(--purple-100); color: @DashboardAdminViewModel.GetVariacionColor(Model.PedidosActivos, Model.PedidosActivosAnterior); padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 700;">
@@ -70,7 +70,7 @@
                 <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--success); background: white;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
-                            <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">Clientes Totales</p>
+                            <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="admin.general.totalclients">Clientes Totales</p>
                             <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.ClientesTotales</h3>
                         </div>
                         <span style="background-color: var(--purple-100); color: @DashboardAdminViewModel.GetVariacionColor(Model.ClientesTotales, Model.ClientesTotalesAnterior); padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 700;">
@@ -82,7 +82,7 @@
                 <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--warning); background: white;">
                     <div style="display: flex; justify-content: space-between; align-items: flex-start;">
                         <div>
-                            <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">Productos en Stock</p>
+                            <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="admin.general.instock">Productos en Stock</p>
                             <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.ProductosEnStock</h3>
                         </div>
                         <span style="background-color: var(--purple-100); color: @DashboardAdminViewModel.GetVariacionColor(Model.ProductosEnStock, Model.ProductosEnStockAnterior); padding: 0.25rem 0.5rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 700;">
@@ -95,18 +95,18 @@
             <!-- Tabla de pedidos recientes -->
             <div class="card" style="padding: 1.5rem; background: white;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <h2 style="color: var(--purple-800); font-size: 1.25rem; margin: 0;">Pedidos Recientes</h2>
-                    <input type="text" id="searchRecentOrders" placeholder="Buscar pedido..." class="form-input" style="width: 250px; padding: 0.4rem 0.75rem; font-size: 0.875rem;" onkeyup="filterTable('searchRecentOrders', 'tableRecentOrders')" />
+                    <h2 style="color: var(--purple-800); font-size: 1.25rem; margin: 0;" data-i18n="admin.general.recentorders">Pedidos Recientes</h2>
+                    <input type="text" id="searchRecentOrders" placeholder="Buscar pedido..." data-i18n-placeholder="admin.general.searchorder" class="form-input" style="width: 250px; padding: 0.4rem 0.75rem; font-size: 0.875rem;" onkeyup="filterTable('searchRecentOrders', 'tableRecentOrders')" />
                 </div>
                 <div style="overflow-x: auto;">
                     <table id="tableRecentOrders" style="width: 100%; border-collapse: collapse; text-align: left;">
                         <thead>
                             <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
                                 <th style="padding: 0.75rem;">ID</th>
-                                <th style="padding: 0.75rem;">Cliente</th>
-                                <th style="padding: 0.75rem;">Fecha</th>
-                                <th style="padding: 0.75rem;">Total</th>
-                                <th style="padding: 0.75rem;">Estado</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.client">Cliente</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.date">Fecha</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.total">Total</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.status">Estado</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -134,22 +134,22 @@
         @if (Model.ActiveSection == "inventario")
         {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;">Gestión de Inventario</h1>
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;" data-i18n="admin.inv.title">Gestión de Inventario</h1>
                 @if (Model.ActiveSubTab == "productos")
                 {
-                    <button class="btn btn-primary" onclick="document.getElementById('modal-producto').style.display='flex'">
+                    <button class="btn btn-primary" onclick="document.getElementById('modal-producto').style.display='flex'" data-i18n="admin.inv.newproduct">
                         + Nuevo Producto
                     </button>
                 }
                 else if (Model.ActiveSubTab == "proveedores")
                 {
-                    <button class="btn btn-primary" onclick="document.getElementById('modal-crear-proveedor').style.display='flex'">
+                    <button class="btn btn-primary" onclick="document.getElementById('modal-crear-proveedor').style.display='flex'" data-i18n="admin.inv.newsupplier">
                         + Nuevo Proveedor
                     </button>
                 }
                 else if (Model.ActiveSubTab == "historial")
                 {
-                    <button class="btn btn-primary" onclick="document.getElementById('modal-nuevo-movimiento').style.display='flex'">
+                    <button class="btn btn-primary" onclick="document.getElementById('modal-nuevo-movimiento').style.display='flex'" data-i18n="admin.inv.newmovement">
                         + Nuevo Movimiento
                     </button>
                 }
@@ -157,13 +157,13 @@
 
             <!-- Sub-tabs -->
             <div style="display: flex; border-bottom: 2px solid var(--purple-200); margin-bottom: 1.5rem;">
-                <a href="?section=inventario&subtab=productos" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "productos" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "productos" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;">
+                <a href="?section=inventario&subtab=productos" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "productos" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "productos" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;" data-i18n="admin.inv.tab.products">
                     Productos
                 </a>
-                <a href="?section=inventario&subtab=proveedores" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "proveedores" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "proveedores" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;">
+                <a href="?section=inventario&subtab=proveedores" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "proveedores" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "proveedores" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;" data-i18n="admin.inv.tab.suppliers">
                     Proveedores
                 </a>
-                <a href="?section=inventario&subtab=historial" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "historial" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "historial" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;">
+                <a href="?section=inventario&subtab=historial" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "historial" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "historial" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;" data-i18n="admin.inv.tab.history">
                     Historial de Movimientos
                 </a>
             </div>
@@ -172,19 +172,19 @@
             {
                 <div class="card" style="padding: 1.5rem; background: white;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <input type="text" id="searchProducts" placeholder="Buscar producto..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchProducts', 'tableProducts')" />
+                        <input type="text" id="searchProducts" placeholder="Buscar producto..." data-i18n-placeholder="admin.inv.searchproduct" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchProducts', 'tableProducts')" />
                     </div>
                     <div style="overflow-x: auto;">
                         <table id="tableProducts" style="width: 100%; border-collapse: collapse; text-align: left;">
                             <thead>
                                 <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
                                     <th style="padding: 0.75rem;">ID</th>
-                                    <th style="padding: 0.75rem;">Nombre</th>
-                                    <th style="padding: 0.75rem;">Categoría</th>
-                                    <th style="padding: 0.75rem;">Precio</th>
-                                    <th style="padding: 0.75rem;">Stock</th>
-                                    <th style="padding: 0.75rem;">Estado</th>
-                                    <th style="padding: 0.75rem;">Acciones</th>
+                                    <th style="padding: 0.75rem;" data-i18n="modal.sale.selectproduct">Nombre</th>
+                                    <th style="padding: 0.75rem;" data-i18n="sales.inventory.category">Categoría</th>
+                                    <th style="padding: 0.75rem;" data-i18n="sales.inventory.price">Precio</th>
+                                    <th style="padding: 0.75rem;" data-i18n="modal.sale.qty">Stock</th>
+                                    <th style="padding: 0.75rem;" data-i18n="sales.table.status">Estado</th>
+                                    <th style="padding: 0.75rem;" data-i18n="sales.table.actions">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -199,14 +199,14 @@
                                             @prod.Stock
                                         </td>
                                         <td style="padding: 0.75rem;">
-                                            <span style="background-color: @(prod.Activo ? "var(--success)" : "var(--error)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
+                                            <span style="background-color: @(prod.Activo ? "var(--success)" : "var(--error)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;" data-i18n="@(prod.Activo ? "admin.inv.active" : "admin.inv.inactive")">
                                                 @(prod.Activo ? "Activo" : "Inactivo")
                                             </span>
                                         </td>
                                         <td style="padding: 0.75rem;">
-                                            <button type="button" onclick="openEditProductModal(@prod.Id, '@System.Web.HttpUtility.JavaScriptStringEncode(prod.Nombre)', '@System.Web.HttpUtility.JavaScriptStringEncode(prod.Descripcion ?? "")', @prod.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture), '@(prod.PrecioDescuento?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")', '@System.Web.HttpUtility.JavaScriptStringEncode(prod.Categoria)', '@System.Web.HttpUtility.JavaScriptStringEncode(prod.Marca ?? "")', @prod.Stock, @(prod.Activo ? "true" : "false"), '@System.Web.HttpUtility.JavaScriptStringEncode(prod.ImagenUrl ?? "")')" style="background: none; border: none; color: var(--purple-700); cursor: pointer; font-size: 0.875rem; text-decoration: underline; margin-right: 0.5rem;">✏️ Editar</button>
+                                            <button type="button" onclick="openEditProductModal(@prod.Id, '@System.Web.HttpUtility.JavaScriptStringEncode(prod.Nombre)', '@System.Web.HttpUtility.JavaScriptStringEncode(prod.Descripcion ?? "")', @prod.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture), '@(prod.PrecioDescuento?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")', '@System.Web.HttpUtility.JavaScriptStringEncode(prod.Categoria)', '@System.Web.HttpUtility.JavaScriptStringEncode(prod.Marca ?? "")', @prod.Stock, @(prod.Activo ? "true" : "false"), '@System.Web.HttpUtility.JavaScriptStringEncode(prod.ImagenUrl ?? "")')" style="background: none; border: none; color: var(--purple-700); cursor: pointer; font-size: 0.875rem; text-decoration: underline; margin-right: 0.5rem;" data-i18n="admin.inv.edit">✏️ Editar</button>
                                             <form asp-controller="Product" asp-action="Delete" asp-route-id="@prod.Id" method="post" style="display:inline;" onsubmit="confirmDelete(event, '¿Deseas eliminar el producto @prod.Nombre?', this)">
-                                                <button type="submit" style="background: none; border: none; color: var(--error); cursor: pointer; font-size: 0.875rem; text-decoration: underline;">Eliminar</button>
+                                                <button type="submit" style="background: none; border: none; color: var(--error); cursor: pointer; font-size: 0.875rem; text-decoration: underline;" data-i18n="admin.inv.delete">Eliminar</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -220,19 +220,19 @@
             {
                 <div class="card" style="padding: 1.5rem; background: white;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <input type="text" id="searchProveedores" placeholder="Buscar proveedor..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchProveedores', 'tableProveedores')" />
+                        <input type="text" id="searchProveedores" placeholder="Buscar proveedor..." data-i18n-placeholder="admin.inv.searchsupplier" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchProveedores', 'tableProveedores')" />
                     </div>
                     <div style="overflow-x: auto;">
                         <table id="tableProveedores" style="width: 100%; border-collapse: collapse; text-align: left;">
                             <thead>
                                 <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
                                     <th style="padding: 0.75rem;">ID</th>
-                                    <th style="padding: 0.75rem;">Empresa</th>
-                                    <th style="padding: 0.75rem;">Tipo Productos</th>
-                                    <th style="padding: 0.75rem;">Teléfono</th>
-                                    <th style="padding: 0.75rem;">Email</th>
-                                    <th style="padding: 0.75rem;">Estado</th>
-                                    <th style="padding: 0.75rem;">Acciones</th>
+                                    <th style="padding: 0.75rem;" data-i18n="admin.inv.company">Empresa</th>
+                                    <th style="padding: 0.75rem;" data-i18n="admin.inv.producttype">Tipo Productos</th>
+                                    <th style="padding: 0.75rem;" data-i18n="admin.inv.phone">Teléfono</th>
+                                    <th style="padding: 0.75rem;" data-i18n="admin.inv.email">Email</th>
+                                    <th style="padding: 0.75rem;" data-i18n="sales.table.status">Estado</th>
+                                    <th style="padding: 0.75rem;" data-i18n="sales.table.actions">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -245,14 +245,14 @@
                                         <td style="padding: 0.75rem;">@prov.Telefono</td>
                                         <td style="padding: 0.75rem;">@prov.Correo</td>
                                         <td style="padding: 0.75rem;">
-                                            <span style="background-color: @(prov.Activo ? "var(--success)" : "var(--gray-400)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
+                                            <span style="background-color: @(prov.Activo ? "var(--success)" : "var(--gray-400)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;" data-i18n="@(prov.Activo ? "admin.inv.active" : "admin.inv.inactive")">
                                                 @(prov.Activo ? "Activo" : "Inactivo")
                                             </span>
                                         </td>
                                         <td style="padding: 0.75rem;">
-                                            <button type="button" onclick="openEditSupplierModal('@prov.Id', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Nombre)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.TipoProductos)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Telefono)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Correo)')" style="background: none; border: none; color: var(--purple-700); cursor: pointer; font-size: 0.875rem; text-decoration: underline; margin-right: 0.5rem;">✏️ Editar</button>
+                                            <button type="button" onclick="openEditSupplierModal('@prov.Id', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Nombre)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.TipoProductos)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Telefono)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Correo)')" style="background: none; border: none; color: var(--purple-700); cursor: pointer; font-size: 0.875rem; text-decoration: underline; margin-right: 0.5rem;" data-i18n="admin.inv.edit">✏️ Editar</button>
                                             <form asp-controller="Supplier" asp-action="Delete" asp-route-id="@prov.Id" method="post" style="display:inline;" onsubmit="confirmDelete(event, '¿Deseas eliminar al proveedor @prov.Nombre?', this)">
-                                                <button type="submit" style="background: none; border: none; color: var(--error); cursor: pointer; font-size: 0.875rem; text-decoration: underline;">Eliminar</button>
+                                                <button type="submit" style="background: none; border: none; color: var(--error); cursor: pointer; font-size: 0.875rem; text-decoration: underline;" data-i18n="admin.inv.delete">Eliminar</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -266,28 +266,29 @@
             {
                 <div class="card" style="padding: 1.5rem; background: white;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <input type="text" id="searchHistorial" placeholder="Buscar en historial..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchHistorial', 'tableHistorial')" />
+                        <input type="text" id="searchHistorial" placeholder="Buscar en historial..." data-i18n-placeholder="admin.inv.searchhistory" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchHistorial', 'tableHistorial')" />
                     </div>
                     <div style="overflow-x: auto;">
                         <table id="tableHistorial" style="width: 100%; border-collapse: collapse; text-align: left;">
                             <thead>
                                 <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
                                     <th style="padding: 0.75rem;">ID</th>
-                                    <th style="padding: 0.75rem;">Producto</th>
-                                    <th style="padding: 0.75rem;">Tipo</th>
-                                    <th style="padding: 0.75rem;">Cantidad</th>
-                                    <th style="padding: 0.75rem;">Fecha</th>
-                                    <th style="padding: 0.75rem;">Responsable</th>
+                                    <th style="padding: 0.75rem;" data-i18n="modal.sale.selectproduct">Producto</th>
+                                    <th style="padding: 0.75rem;" data-i18n="admin.inv.type">Tipo</th>
+                                    <th style="padding: 0.75rem;" data-i18n="admin.inv.qty">Cantidad</th>
+                                    <th style="padding: 0.75rem;" data-i18n="admin.inv.date">Fecha</th>
+                                    <th style="padding: 0.75rem;" data-i18n="admin.inv.responsible">Responsable</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach (var mov in Model.HistorialMovimientos)
                                 {
+                                    var tipoKey = mov.Tipo?.ToLower() == "entrada" ? "admin.inv.inflow" : "admin.inv.outflow";
                                     <tr style="border-bottom: 1px solid var(--purple-100);">
                                         <td style="padding: 0.75rem; color: var(--gray-500);">#MOV-@mov.Id</td>
                                         <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@(mov.Product?.Nombre ?? "Producto #" + mov.ProductId)</td>
                                         <td style="padding: 0.75rem;">
-                                            <span style="background-color: @(mov.Tipo?.ToLower() == "entrada" ? "var(--success)" : "var(--warning)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; text-transform: uppercase;">
+                                            <span style="background-color: @(mov.Tipo?.ToLower() == "entrada" ? "var(--success)" : "var(--warning)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; text-transform: uppercase;" data-i18n="@tipoKey">
                                                 @mov.Tipo
                                             </span>
                                         </td>
@@ -307,28 +308,28 @@
         @if (Model.ActiveSection == "ventas")
         {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;">Listado de Ventas</h1>
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;" data-i18n="admin.sales.title">Listado de Ventas</h1>
                 <button type="button" onclick="document.getElementById('modal-venta').style.display='flex'" 
                         style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease;"
                         onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
-                    <span>+ Registrar Nueva Venta</span>
+                    <span data-i18n="sales.btn.new">+ Registrar Nueva Venta</span>
                 </button>
             </div>
 
             <div class="card" style="padding: 1.5rem; background: white;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <input type="text" id="searchVentas" placeholder="Buscar venta o cliente..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchVentas', 'tableVentas')" />
+                    <input type="text" id="searchVentas" placeholder="Buscar venta o cliente..." data-i18n-placeholder="admin.sales.search" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchVentas', 'tableVentas')" />
                 </div>
                 <div style="overflow-x: auto;">
                     <table id="tableVentas" style="width: 100%; border-collapse: collapse; text-align: left;">
                         <thead>
                             <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                <th style="padding: 0.75rem;">Venta</th>
-                                <th style="padding: 0.75rem;">Cliente</th>
-                                <th style="padding: 0.75rem;">Fecha</th>
-                                <th style="padding: 0.75rem;">Total</th>
-                                <th style="padding: 0.75rem;">Estado</th>
-                                <th style="padding: 0.75rem;">Actualizar Estado</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.order">Venta</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.client">Cliente</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.date">Fecha</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.total">Total</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.status">Estado</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.currentstatus">Actualizar Estado</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -348,13 +349,13 @@
                                         <form asp-controller="Order" asp-action="UpdateStatus" method="post" style="display:flex; gap:0.5rem; align-items:center;">
                                             <input type="hidden" name="id" value="@v.Id" />
                                             <select name="estado" style="padding: 0.25rem; border-radius: 0.25rem; border: 1px solid var(--gray-300); font-size: 0.85rem;">
-                                                <option value="pendiente" selected="@(v.Estado == "pendiente")">Pendiente</option>
-                                                <option value="procesando" selected="@(v.Estado == "procesando")">Procesando</option>
-                                                <option value="enviado" selected="@(v.Estado == "enviado")">Enviado</option>
-                                                <option value="entregado" selected="@(v.Estado == "entregado")">Entregado</option>
-                                                <option value="cancelado" selected="@(v.Estado == "cancelado")">Cancelado</option>
+                                                <option value="pendiente" selected="@(v.Estado == "pendiente")" data-i18n="sales.status.pending">Pendiente</option>
+                                                <option value="procesando" selected="@(v.Estado == "procesando")" data-i18n="sales.status.processing">Procesando</option>
+                                                <option value="enviado" selected="@(v.Estado == "enviado")" data-i18n="sales.status.shipped">Enviado</option>
+                                                <option value="entregado" selected="@(v.Estado == "entregado")" data-i18n="sales.status.delivered">Entregado</option>
+                                                <option value="cancelado" selected="@(v.Estado == "cancelado")" data-i18n="sales.status.cancelled">Cancelado</option>
                                             </select>
-                                            <button type="submit" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;">Guardar</button>
+                                            <button type="submit" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" data-i18n="admin.sales.save">Guardar</button>
                                         </form>
                                     </td>
                                 </tr>
@@ -369,26 +370,26 @@
         @if (Model.ActiveSection == "citas")
         {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;">Gestión de Citas Médicas</h1>
-                <button class="btn btn-primary" onclick="document.getElementById('modal-cita').style.display='flex'">
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;" data-i18n="admin.citas.title">Gestión de Citas Médicas</h1>
+                <button class="btn btn-primary" onclick="document.getElementById('modal-cita').style.display='flex'" data-i18n="admin.citas.new">
                     + Nueva Cita
                 </button>
             </div>
 
             <div class="card" style="padding: 1.5rem; background: white;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <input type="text" id="searchCitas" placeholder="Buscar cita o paciente..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchCitas', 'tableCitas')" />
+                    <input type="text" id="searchCitas" placeholder="Buscar cita o paciente..." data-i18n-placeholder="admin.citas.search" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchCitas', 'tableCitas')" />
                 </div>
                 <div style="overflow-x: auto;">
                     <table id="tableCitas" style="width: 100%; border-collapse: collapse; text-align: left;">
                         <thead>
                             <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
                                 <th style="padding: 0.75rem;">ID</th>
-                                <th style="padding: 0.75rem;">Paciente</th>
-                                <th style="padding: 0.75rem;">Servicio</th>
-                                <th style="padding: 0.75rem;">Fecha y Hora</th>
-                                <th style="padding: 0.75rem;">Estado</th>
-                                <th style="padding: 0.75rem;">Acciones</th>
+                                <th style="padding: 0.75rem;" data-i18n="admin.citas.patient">Paciente</th>
+                                <th style="padding: 0.75rem;" data-i18n="admin.citas.service">Servicio</th>
+                                <th style="padding: 0.75rem;" data-i18n="admin.citas.datetime">Fecha y Hora</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.status">Estado</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.actions">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -403,17 +404,17 @@
                                         <form asp-controller="Dashboard" asp-action="UpdateAppointmentStatus" method="post" style="display:inline;">
                                             <input type="hidden" name="id" value="@c.Id" />
                                             <select name="estado" style="padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.8rem;" onchange="this.form.submit()">
-                                                <option value="pendiente" selected="@(c.Estado == "pendiente")">Pendiente</option>
-                                                <option value="confirmada" selected="@(c.Estado == "confirmada")">Confirmada</option>
-                                                <option value="completada" selected="@(c.Estado == "completada")">Completada</option>
-                                                <option value="cancelada" selected="@(c.Estado == "cancelada")">Cancelada</option>
+                                                <option value="pendiente" selected="@(c.Estado == "pendiente")" data-i18n="sales.status.pending">Pendiente</option>
+                                                <option value="confirmada" selected="@(c.Estado == "confirmada")" data-i18n="admin.citas.confirmed">Confirmada</option>
+                                                <option value="completada" selected="@(c.Estado == "completada")" data-i18n="admin.citas.completed">Completada</option>
+                                                <option value="cancelada" selected="@(c.Estado == "cancelada")" data-i18n="sales.status.cancelled">Cancelada</option>
                                             </select>
                                         </form>
                                     </td>
                                     <td style="padding: 0.75rem;">
                                         <form asp-controller="Dashboard" asp-action="DeleteAppointment" method="post" style="display:inline;" onsubmit="confirmDelete(event, '¿Deseas eliminar la cita #@c.Id?', this)">
                                             <input type="hidden" name="id" value="@c.Id" />
-                                            <button type="submit" style="background: none; border: none; color: var(--error); cursor: pointer; font-size: 0.875rem; text-decoration: underline;">Eliminar</button>
+                                            <button type="submit" style="background: none; border: none; color: var(--error); cursor: pointer; font-size: 0.875rem; text-decoration: underline;" data-i18n="admin.inv.delete">Eliminar</button>
                                         </form>
                                     </td>
                                 </tr>
@@ -428,16 +429,16 @@
         @if (Model.ActiveSection == "usuarios")
         {
             <div style="margin-bottom: 1.5rem;">
-                <h1 style="color: var(--purple-900); font-size: 1.75rem; margin: 0;">Gestión de Usuarios</h1>
-                <p style="color: var(--gray-500); font-size: 0.9rem; margin-top: 0.25rem;">Administra los clientes y empleados del sistema</p>
+                <h1 style="color: var(--purple-900); font-size: 1.75rem; margin: 0;" data-i18n="admin.users.title">Gestión de Usuarios</h1>
+                <p style="color: var(--gray-500); font-size: 0.9rem; margin-top: 0.25rem;" data-i18n="admin.users.subtitle">Administra los clientes y empleados del sistema</p>
             </div>
 
             <!-- Sub-tabs -->
             <div style="display: flex; border-bottom: 2px solid var(--purple-200); margin-bottom: 1.5rem;">
-                <a href="?section=usuarios&subtab=clientes" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "clientes" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "clientes" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;">
+                <a href="?section=usuarios&subtab=clientes" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "clientes" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "clientes" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;" data-i18n="admin.users.tab.clients">
                     👥 Clientes
                 </a>
-                <a href="?section=usuarios&subtab=trabajadores" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "trabajadores" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "trabajadores" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;">
+                <a href="?section=usuarios&subtab=trabajadores" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "trabajadores" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "trabajadores" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;" data-i18n="admin.users.tab.employees">
                     👔 Trabajadores (Empleados)
                 </a>
             </div>
@@ -447,11 +448,11 @@
                 <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.75rem; box-shadow: var(--shadow-md);">
                     <!-- Header -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-                        <h2 style="color: var(--purple-900); font-size: 1.35rem; font-weight: 700; margin: 0;">Clientes Registrados</h2>
+                        <h2 style="color: var(--purple-900); font-size: 1.35rem; font-weight: 700; margin: 0;" data-i18n="admin.users.regclients">Clientes Registrados</h2>
                         <button type="button" onclick="document.getElementById('modal-crear-cliente').style.display='flex'" 
                                 style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease;"
                                 onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
-                            <span>+ Nuevo Usuario</span>
+                            <span data-i18n="admin.users.newuser">+ Nuevo Usuario</span>
                         </button>
                     </div>
 
@@ -484,15 +485,15 @@
                         <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.875rem;">
                             <label style="display: flex; align-items: center; gap: 0.35rem; font-weight: 500; cursor: pointer;">
                                 <input type="checkbox" name="includeInactive" value="true" @(ViewBag.IncludeInactive == true ? "checked" : "") onchange="document.getElementById('clientesFilterForm').submit();" />
-                                Mostrar inactivos
+                                <span data-i18n="admin.users.showinactive">Mostrar inactivos</span>
                             </label>
                             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                <label for="searchClientesInput" style="font-weight: 500;">Buscar:</label>
+                                <label for="searchClientesInput" style="font-weight: 500;" data-i18n="sales.invoices.searchlabel">Buscar:</label>
                                 <input type="text" id="searchClientesInput" name="clientesSearch" value="@Model.ClientesSearchTerm" 
-                                       placeholder="Buscar por nombre o email" 
+                                       placeholder="Buscar por nombre o email" data-i18n-placeholder="admin.users.searchclients"
                                        style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.875rem; width: 240px; color: var(--gray-900);" 
                                        onkeyup="filterClientSideClientes(this.value)" />
-                                <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Filtrar</button>
+                                <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;" data-i18n="sales.invoices.filter">Filtrar</button>
                             </div>
                         </div>
                     </form>
@@ -503,11 +504,11 @@
                             <thead>
                                 <tr style="background-color: var(--purple-50); border-bottom: 2px solid var(--purple-200); color: var(--purple-900);">
                                     <th style="padding: 0.85rem 1rem; font-weight: 700;">ID</th>
-                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Nombre</th>
-                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Email</th>
-                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Teléfono</th>
-                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Fecha Registro</th>
-                                    <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;">Acciones</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="modal.sale.firstname">Nombre</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="admin.inv.email">Email</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="admin.inv.phone">Teléfono</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="admin.users.regdate">Fecha Registro</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;" data-i18n="sales.table.actions">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -521,7 +522,7 @@
                                                 @cli.NombreCompleto
                                                 @if (!cli.Activo)
                                                 {
-                                                    <span style="background-color: var(--gray-200); color: var(--gray-700); padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 700; margin-left: 0.35rem;">Inactivo</span>
+                                                    <span style="background-color: var(--gray-200); color: var(--gray-700); padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 700; margin-left: 0.35rem;" data-i18n="admin.inv.inactive">Inactivo</span>
                                                 }
                                             </td>
                                             <td style="padding: 0.85rem 1rem; color: var(--gray-800);">@cli.Email</td>
@@ -531,7 +532,7 @@
                                                 <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
                                                     <button type="button" onclick="openEditClientModal(@cli.Id, '@cli.Nombre', '@cli.Apellido', '@cli.Email', '@(cli.Telefono ?? "")')"
                                                             style="background: transparent; color: var(--purple-700); border: 1px solid var(--purple-600); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
-                                                            onmouseover="this.style.backgroundColor='var(--purple-600)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--purple-700)';">
+                                                            onmouseover="this.style.backgroundColor='var(--purple-600)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--purple-700)';" data-i18n="admin.inv.edit">
                                                         ✏️ Editar
                                                     </button>
 
@@ -539,7 +540,7 @@
                                                     {
                                                         <button type="button" onclick="confirmDeleteUser(@cli.Id, '@cli.NombreCompleto')"
                                                                 style="background: transparent; color: var(--error); border: 1px solid var(--error); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
-                                                                onmouseover="this.style.backgroundColor='var(--error)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--error)';">
+                                                                onmouseover="this.style.backgroundColor='var(--error)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--error)';" data-i18n="sales.invoices.delete">
                                                             🗑️ Eliminar
                                                         </button>
                                                     }
@@ -550,7 +551,7 @@
                                                             <input type="hidden" name="id" value="@cli.Id" />
                                                             <button type="submit"
                                                                     style="background: transparent; color: var(--success); border: 1px solid var(--success); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
-                                                                    onmouseover="this.style.backgroundColor='var(--success)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--success)';">
+                                                                    onmouseover="this.style.backgroundColor='var(--success)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--success)';" data-i18n="admin.users.reactivate">
                                                                 🔄 Reactivar
                                                             </button>
                                                         </form>
@@ -563,7 +564,7 @@
                                 else
                                 {
                                     <tr>
-                                        <td colspan="6" style="padding: 2rem; text-align: center; color: var(--gray-500); font-style: italic;">
+                                        <td colspan="6" style="padding: 2rem; text-align: center; color: var(--gray-500); font-style: italic;" data-i18n="admin.users.noresults">
                                             No se encontraron clientes registrados o que coincidan con la búsqueda.
                                         </td>
                                     </tr>
@@ -579,7 +580,7 @@
                     }
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; flex-wrap: wrap; gap: 1rem; font-size: 0.875rem;">
                         <div style="color: var(--gray-600); font-weight: 500;">
-                            Mostrando registros del <strong>@inicioCliReg</strong> al <strong>@finCliReg</strong> de un total de <strong>@Model.ClientesTotalCount</strong> registros
+                            <span data-i18n="sales.invoices.showing">Mostrando registros del</span> <strong>@inicioCliReg</strong> <span data-i18n="sales.invoices.to">al</span> <strong>@finCliReg</strong> <span data-i18n="sales.invoices.of">de un total de</span> <strong>@Model.ClientesTotalCount</strong> <span data-i18n="sales.invoices.records">registros</span>
                         </div>
 
                         @if (Model.ClientesTotalPages > 1)
@@ -639,11 +640,11 @@
                 <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.75rem; box-shadow: var(--shadow-md);">
                     <!-- Header -->
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-                        <h2 style="color: var(--purple-900); font-size: 1.35rem; font-weight: 700; margin: 0;">Trabajadores (Empleados)</h2>
+                        <h2 style="color: var(--purple-900); font-size: 1.35rem; font-weight: 700; margin: 0;" data-i18n="admin.users.tab.employees">Trabajadores (Empleados)</h2>
                         <button type="button" onclick="document.getElementById('modal-crear-trabajador').style.display='flex'" 
                                 style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease;"
                                 onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
-                            <span>+ Nuevo Trabajador</span>
+                            <span data-i18n="admin.users.newemployee">+ Nuevo Trabajador</span>
                         </button>
                     </div>
 
@@ -655,7 +656,7 @@
 
                         <!-- Selector Registros -->
                         <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500;">
-                            <span>Mostrar</span>
+                            <span data-i18n="sales.invoices.show">Mostrar</span>
                             <select name="trabajadoresPageSize" style="background-color: white; color: var(--gray-900); border: 1px solid var(--purple-300); border-radius: 0.375rem; padding: 0.35rem 0.6rem; font-size: 0.875rem; cursor: pointer; font-weight: 600;" onchange="document.getElementById('trabajadoresFilterForm').submit();">
                                 @foreach (var size in new[] { 5, 10, 25, 50 })
                                 {
@@ -669,22 +670,22 @@
                                     }
                                 }
                             </select>
-                            <span>registros</span>
+                            <span data-i18n="sales.invoices.records">registros</span>
                         </div>
 
                         <!-- Búsqueda y Toggle Inactivos -->
                         <div style="display: flex; align-items: center; gap: 1rem; font-size: 0.875rem;">
                             <label style="display: flex; align-items: center; gap: 0.35rem; font-weight: 500; cursor: pointer;">
                                 <input type="checkbox" name="includeInactive" value="true" @(ViewBag.IncludeInactive == true ? "checked" : "") onchange="document.getElementById('trabajadoresFilterForm').submit();" />
-                                Mostrar inactivos
+                                <span data-i18n="admin.users.showinactive">Mostrar inactivos</span>
                             </label>
                             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                <label for="searchTrabajadoresInput" style="font-weight: 500;">Buscar:</label>
+                                <label for="searchTrabajadoresInput" style="font-weight: 500;" data-i18n="sales.invoices.searchlabel">Buscar:</label>
                                 <input type="text" id="searchTrabajadoresInput" name="trabajadoresSearch" value="@Model.TrabajadoresSearchTerm" 
-                                       placeholder="Buscar por nombre o email" 
+                                       placeholder="Buscar por nombre o email" data-i18n-placeholder="admin.users.searchclients"
                                        style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.875rem; width: 240px; color: var(--gray-900);" 
                                        onkeyup="filterClientSideTrabajadores(this.value)" />
-                                <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Filtrar</button>
+                                <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;" data-i18n="sales.invoices.filter">Filtrar</button>
                             </div>
                         </div>
                     </form>
@@ -694,12 +695,12 @@
                         <table id="tableTrabajadores" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
                             <thead>
                                 <tr style="background-color: var(--purple-50); border-bottom: 2px solid var(--purple-200); color: var(--purple-900);">
-                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Nombre</th>
-                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Email</th>
-                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Teléfono</th>
-                                    <th style="padding: 0.85rem 1rem; font-weight: 700;">Rol</th>
-                                    <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;">Pedidos</th>
-                                    <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;">Acciones</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="admin.modal.worker.fullname">Nombre</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="admin.inv.email">Email</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="admin.inv.phone">Teléfono</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="admin.modal.worker.role">Rol</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;" data-i18n="admin.users.orderscount">Pedidos</th>
+                                    <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;" data-i18n="sales.table.actions">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -727,7 +728,7 @@
                                                 @emp.Nombre
                                                 @if (!emp.Activo)
                                                 {
-                                                    <span style="background-color: var(--gray-200); color: var(--gray-700); padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 700; margin-left: 0.35rem;">Inactivo</span>
+                                                    <span style="background-color: var(--gray-200); color: var(--gray-700); padding: 0.15rem 0.4rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 700; margin-left: 0.35rem;" data-i18n="admin.inv.inactive">Inactivo</span>
                                                 }
                                             </td>
                                             <td style="padding: 0.85rem 1rem; color: var(--gray-800);">@emp.Email</td>
@@ -744,7 +745,7 @@
                                                 <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
                                                     <button type="button" onclick="openEditEmployeeModal(@emp.Id, '@emp.Nombre', '@emp.Email', '@(emp.Telefono ?? "")', '@emp.Puesto', '@emp.Departamento', @emp.Salario, '@emp.Rol', @emp.Activo.ToString().ToLower())"
                                                             style="background: transparent; color: var(--purple-700); border: 1px solid var(--purple-600); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
-                                                            onmouseover="this.style.backgroundColor='var(--purple-600)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--purple-700)';">
+                                                            onmouseover="this.style.backgroundColor='var(--purple-600)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--purple-700)';" data-i18n="admin.inv.edit">
                                                         ✏️ Editar
                                                     </button>
 
@@ -752,7 +753,7 @@
                                                     {
                                                         <button type="button" onclick="confirmDeleteEmployee(@emp.Id, '@emp.Nombre')"
                                                                 style="background: transparent; color: var(--error); border: 1px solid var(--error); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
-                                                                onmouseover="this.style.backgroundColor='var(--error)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--error)';">
+                                                                onmouseover="this.style.backgroundColor='var(--error)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--error)';" data-i18n="sales.invoices.delete">
                                                             🗑️ Eliminar
                                                         </button>
                                                     }
@@ -763,7 +764,7 @@
                                                             <input type="hidden" name="id" value="@emp.Id" />
                                                             <button type="submit"
                                                                     style="background: transparent; color: var(--success); border: 1px solid var(--success); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
-                                                                    onmouseover="this.style.backgroundColor='var(--success)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--success)';">
+                                                                    onmouseover="this.style.backgroundColor='var(--success)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--success)';" data-i18n="admin.users.reactivate">
                                                                 🔄 Reactivar
                                                             </button>
                                                         </form>
@@ -776,7 +777,7 @@
                                 else
                                 {
                                     <tr>
-                                        <td colspan="6" style="padding: 2rem; text-align: center; color: var(--gray-500); font-style: italic;">
+                                        <td colspan="6" style="padding: 2rem; text-align: center; color: var(--gray-500); font-style: italic;" data-i18n="admin.users.noemployees">
                                             No se encontraron trabajadores registrados o que coincidan con la búsqueda.
                                         </td>
                                     </tr>
@@ -792,7 +793,7 @@
                     }
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; flex-wrap: wrap; gap: 1rem; font-size: 0.875rem;">
                         <div style="color: var(--gray-600); font-weight: 500;">
-                            Mostrando registros del <strong>@inicioEmpReg</strong> al <strong>@finEmpReg</strong> de un total de <strong>@Model.TrabajadoresTotalCount</strong> registros
+                            <span data-i18n="sales.invoices.showing">Mostrando registros del</span> <strong>@inicioEmpReg</strong> <span data-i18n="sales.invoices.to">al</span> <strong>@finEmpReg</strong> <span data-i18n="sales.invoices.of">de un total de</span> <strong>@Model.TrabajadoresTotalCount</strong> <span data-i18n="sales.invoices.records">registros</span>
                         </div>
 
                         @if (Model.TrabajadoresTotalPages > 1)
@@ -850,22 +851,21 @@
         }
 
         <!-- ==================== SECCIÓN FACTURAS ==================== -->
-        <!-- ==================== SECCIÓN FACTURAS ==================== -->
         @if (Model.ActiveSection == "facturas")
         {
             <div style="margin-bottom: 1.5rem;">
-                <h1 style="color: var(--purple-900); font-size: 1.75rem; margin: 0;">Facturas</h1>
-                <p style="color: var(--gray-500); font-size: 0.9rem; margin-top: 0.25rem;">Gestiona tu negocio desde un solo lugar</p>
+                <h1 style="color: var(--purple-900); font-size: 1.75rem; margin: 0;" data-i18n="sales.invoices.title">Facturas</h1>
+                <p style="color: var(--gray-500); font-size: 0.9rem; margin-top: 0.25rem;" data-i18n="sales.invoices.subtitle">Gestiona tu negocio desde un solo lugar</p>
             </div>
 
             <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.75rem; box-shadow: var(--shadow-md);">
                 <!-- Header de la sección de la tabla con botón Nueva Factura -->
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-                    <h2 style="color: var(--purple-900); font-size: 1.35rem; font-weight: 700; margin: 0;">Gestión de Facturas</h2>
+                    <h2 style="color: var(--purple-900); font-size: 1.35rem; font-weight: 700; margin: 0;" data-i18n="sales.invoices.mgmt">Gestión de Facturas</h2>
                     <button type="button" onclick="document.getElementById('modal-factura').style.display='flex'" 
                             style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease;"
                             onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
-                        <span>+ Nueva Factura</span>
+                        <span data-i18n="sales.invoices.new">+ Nueva Factura</span>
                     </button>
                 </div>
 
@@ -876,7 +876,7 @@
 
                     <!-- Selector Registros por página -->
                     <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500;">
-                        <span>Mostrar</span>
+                        <span data-i18n="sales.invoices.show">Mostrar</span>
                         <select name="pageSize" style="background-color: white; color: var(--gray-900); border: 1px solid var(--purple-300); border-radius: 0.375rem; padding: 0.35rem 0.6rem; font-size: 0.875rem; cursor: pointer; font-weight: 600;" onchange="document.getElementById('facturasFilterForm').submit();">
                             @foreach (var size in new[] { 5, 10, 25, 50 })
                             {
@@ -890,17 +890,17 @@
                                 }
                             }
                         </select>
-                        <span>registros</span>
+                        <span data-i18n="sales.invoices.records">registros</span>
                     </div>
 
                     <!-- Búsqueda en tiempo real / envío -->
                     <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
-                        <label for="searchFacturasInput" style="font-weight: 500;">Buscar:</label>
+                        <label for="searchFacturasInput" style="font-weight: 500;" data-i18n="sales.invoices.searchlabel">Buscar:</label>
                         <input type="text" id="searchFacturasInput" name="searchTerm" value="@Model.FacturasSearchTerm" 
-                               placeholder="Buscar por número, cliente" 
+                               placeholder="Buscar por número, cliente" data-i18n-placeholder="sales.invoices.searchplaceholder"
                                style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.875rem; width: 240px; color: var(--gray-900);" 
                                onkeyup="filterClientSideFacturas(this.value)" />
-                        <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Filtrar</button>
+                        <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;" data-i18n="sales.invoices.filter">Filtrar</button>
                     </div>
                 </form>
 
@@ -909,12 +909,12 @@
                     <table id="tableFacturas" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
                         <thead>
                             <tr style="background-color: var(--purple-50); border-bottom: 2px solid var(--purple-200); color: var(--purple-900);">
-                                <th style="padding: 0.85rem 1rem; font-weight: 700;">Número</th>
-                                <th style="padding: 0.85rem 1rem; font-weight: 700;">Cliente</th>
-                                <th style="padding: 0.85rem 1rem; font-weight: 700;">Fecha</th>
-                                <th style="padding: 0.85rem 1rem; font-weight: 700;">Total</th>
-                                <th style="padding: 0.85rem 1rem; font-weight: 700;">Estado</th>
-                                <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;">Acciones</th>
+                                <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.invoices.number">Número</th>
+                                <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.table.client">Cliente</th>
+                                <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.table.date">Fecha</th>
+                                <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.table.total">Total</th>
+                                <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.table.status">Estado</th>
+                                <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;" data-i18n="sales.table.actions">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -935,6 +935,12 @@
                                         "cancelada" => "Cancelada",
                                         _ => "Pendiente"
                                     };
+                                    var estadoI18nKey = fac.Estado.ToLower() switch
+                                    {
+                                        "pagada" => "sales.invoices.paid",
+                                        "cancelada" => "sales.status.cancelled",
+                                        _ => "sales.status.pending"
+                                    };
 
                                     <tr style="border-bottom: 1px solid var(--purple-100); transition: background-color 0.15s ease;" onmouseover="this.style.backgroundColor='var(--purple-50)'" onmouseout="this.style.backgroundColor='transparent'">
                                         <td style="padding: 0.85rem 1rem; font-weight: 700; color: var(--purple-700);">@fac.NumeroFactura</td>
@@ -942,7 +948,7 @@
                                         <td style="padding: 0.85rem 1rem; color: var(--gray-600);">@fac.FechaEmision.ToLocalTime().ToString("dd/MM/yyyy")</td>
                                         <td style="padding: 0.85rem 1rem; font-weight: 700; color: var(--purple-900);">@fac.Total.ToString("C")</td>
                                         <td style="padding: 0.85rem 1rem;">
-                                            <span style="background-color: @badgeBg; color: white; padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; display: inline-block;">
+                                            <span style="background-color: @badgeBg; color: white; padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; display: inline-block;" data-i18n="@estadoI18nKey">
                                                 @estadoDisplay
                                             </span>
                                         </td>
@@ -952,14 +958,14 @@
                                                 <button type="button" 
                                                         onclick="confirmDeleteInvoice(@fac.Id, '@fac.NumeroFactura')"
                                                         style="background: transparent; color: var(--error); border: 1px solid var(--error); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
-                                                        onmouseover="this.style.backgroundColor='var(--error)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--error)';">
+                                                        onmouseover="this.style.backgroundColor='var(--error)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--error)';" data-i18n="sales.invoices.delete">
                                                     🗑️ Eliminar
                                                 </button>
 
                                                 <!-- Botón Descargar PDF -->
                                                 <a href="/Invoice/DownloadPdf/@fac.Id" target="_blank"
                                                    style="background-color: var(--purple-100); color: var(--purple-900); border: 1px solid var(--purple-300); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; transition: all 0.2s ease;"
-                                                   onmouseover="this.style.backgroundColor='var(--purple-700)'; this.style.color='white';" onmouseout="this.style.backgroundColor='var(--purple-100)'; this.style.color='var(--purple-900)';">
+                                                   onmouseover="this.style.backgroundColor='var(--purple-700)'; this.style.color='white';" onmouseout="this.style.backgroundColor='var(--purple-100)'; this.style.color='var(--purple-900)';" data-i18n="sales.invoices.pdf">
                                                     📄 PDF
                                                 </a>
                                             </div>
@@ -970,7 +976,7 @@
                             else
                             {
                                 <tr>
-                                    <td colspan="6" style="padding: 2rem; text-align: center; color: var(--gray-500); font-style: italic;">
+                                    <td colspan="6" style="padding: 2rem; text-align: center; color: var(--gray-500); font-style: italic;" data-i18n="sales.invoices.empty">
                                         No se encontraron facturas registradas o que coincidan con la búsqueda.
                                     </td>
                                 </tr>
@@ -986,7 +992,7 @@
                 }
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; flex-wrap: wrap; gap: 1rem; font-size: 0.875rem;">
                     <div style="color: var(--gray-600); font-weight: 500;">
-                        Mostrando registros del <strong>@inicioReg</strong> al <strong>@finReg</strong> de un total de <strong>@Model.FacturasTotalCount</strong> registros
+                        <span data-i18n="sales.invoices.showing">Mostrando registros del</span> <strong>@inicioReg</strong> <span data-i18n="sales.invoices.to">al</span> <strong>@finReg</strong> <span data-i18n="sales.invoices.of">de un total de</span> <strong>@Model.FacturasTotalCount</strong> <span data-i18n="sales.invoices.records">registros</span>
                     </div>
 
                     @if (Model.FacturasTotalPages > 1)
@@ -996,13 +1002,13 @@
                             @if (Model.FacturasPage > 1)
                             {
                                 <a href="/Dashboard/Admin?section=facturas&page=@(Model.FacturasPage - 1)&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
-                                   style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                   style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;" data-i18n="sales.invoices.prev">
                                     &laquo; Anterior
                                 </a>
                             }
                             else
                             {
-                                <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;" data-i18n="sales.invoices.prev">
                                     &laquo; Anterior
                                 </span>
                             }
@@ -1029,13 +1035,13 @@
                             @if (Model.FacturasPage < Model.FacturasTotalPages)
                             {
                                 <a href="/Dashboard/Admin?section=facturas&page=@(Model.FacturasPage + 1)&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
-                                   style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                   style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;" data-i18n="sales.invoices.next">
                                     Siguiente &raquo;
                                 </a>
                             }
                             else
                             {
-                                <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;" data-i18n="sales.invoices.next">
                                     Siguiente &raquo;
                                 </span>
                             }
@@ -1052,26 +1058,26 @@
 <div id="modal-producto" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
     <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h2 style="color: var(--purple-900); margin: 0;">Nuevo Producto</h2>
+            <h2 style="color: var(--purple-900); margin: 0;" data-i18n="admin.modal.product.new">Nuevo Producto</h2>
             <button onclick="document.getElementById('modal-producto').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
         <form asp-controller="Product" asp-action="Create" method="post" style="display:flex; flex-direction:column; gap:1rem;">
             <div class="form-group">
-                <label class="form-label">Nombre del Producto</label>
+                <label class="form-label" data-i18n="admin.modal.product.name">Nombre del Producto</label>
                 <input name="Nombre" type="text" class="form-input" required />
             </div>
             
             <div class="row">
                 <div class="col col-6">
                     <div class="form-group">
-                        <label class="form-label">Precio Regular</label>
+                        <label class="form-label" data-i18n="admin.modal.product.price">Precio Regular</label>
                         <input name="Precio" type="number" step="0.01" class="form-input" required />
                     </div>
                 </div>
                 <div class="col col-6">
                     <div class="form-group">
-                        <label class="form-label">Precio Descuento (Opcional)</label>
+                        <label class="form-label" data-i18n="admin.modal.product.discountprice">Precio Descuento (Opcional)</label>
                         <input name="PrecioDescuento" type="number" step="0.01" class="form-input" />
                     </div>
                 </div>
@@ -1080,13 +1086,13 @@
             <div class="row">
                 <div class="col col-6">
                     <div class="form-group">
-                        <label class="form-label">Categoría</label>
+                        <label class="form-label" data-i18n="admin.modal.product.category">Categoría</label>
                         <input name="Categoria" type="text" class="form-input" required />
                     </div>
                 </div>
                 <div class="col col-6">
                     <div class="form-group">
-                        <label class="form-label">Marca</label>
+                        <label class="form-label" data-i18n="admin.modal.product.brand">Marca</label>
                         <input name="Marca" type="text" class="form-input" />
                     </div>
                 </div>
@@ -1095,31 +1101,31 @@
             <div class="row">
                 <div class="col col-6">
                     <div class="form-group">
-                        <label class="form-label">Stock Inicial</label>
+                        <label class="form-label" data-i18n="admin.modal.product.stock">Stock Inicial</label>
                         <input name="Stock" type="number" class="form-input" required value="0" />
                     </div>
                 </div>
                 <div class="col col-6">
                     <div class="form-group" style="display:flex; align-items:center; height:100%; padding-top:2rem;">
                         <input name="Activo" type="checkbox" value="true" checked style="margin-right:0.5rem;" />
-                        <label class="form-label" style="margin:0;">Activo</label>
+                        <label class="form-label" style="margin:0;" data-i18n="admin.inv.active">Activo</label>
                     </div>
                 </div>
             </div>
 
             <div class="form-group">
-                <label class="form-label">URL de la Imagen</label>
+                <label class="form-label" data-i18n="admin.modal.product.imgurl">URL de la Imagen</label>
                 <input name="ImagenUrl" type="url" class="form-input" />
             </div>
             
             <div class="form-group">
-                <label class="form-label">Descripción</label>
+                <label class="form-label" data-i18n="admin.modal.product.description">Descripción</label>
                 <textarea name="Descripcion" class="form-input" rows="3"></textarea>
             </div>
             
             <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                <button type="button" onclick="document.getElementById('modal-producto').style.display='none'" class="btn btn-outline" style="flex: 1;">Cancelar</button>
-                <button type="submit" class="btn btn-primary" style="flex: 1;">Guardar Producto</button>
+                <button type="button" onclick="document.getElementById('modal-producto').style.display='none'" class="btn btn-outline" style="flex: 1;" data-i18n="sales.modal.invoice.cancel">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="flex: 1;" data-i18n="admin.modal.product.save">Guardar Producto</button>
             </div>
         </form>
     </div>
@@ -1129,13 +1135,13 @@
 <div id="modal-cita" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000;">
     <div class="card" style="width: 100%; max-width: 500px; background: white;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-            <h2 style="color: var(--purple-900); margin: 0;">Programar Cita</h2>
+            <h2 style="color: var(--purple-900); margin: 0;" data-i18n="admin.modal.cita.title">Programar Cita</h2>
             <button onclick="document.getElementById('modal-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
 
         <form asp-controller="Dashboard" asp-action="CreateAppointment" method="post" style="display:flex; flex-direction:column; gap:1rem;">
             <div class="form-group">
-                <label class="form-label">Seleccionar Paciente</label>
+                <label class="form-label" data-i18n="admin.modal.cita.selectpatient">Seleccionar Paciente</label>
                 <select name="UserId" class="form-input" required>
                     @foreach (var cli in Model.Clientes)
                     {
@@ -1145,7 +1151,7 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Servicio</label>
+                <label class="form-label" data-i18n="admin.modal.cita.service">Servicio</label>
                 <select name="Servicio" class="form-input" required>
                     <option value="Examen de vista">Examen de vista</option>
                     <option value="Ajuste de lentes">Ajuste de lentes</option>
@@ -1155,18 +1161,18 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Fecha y Hora</label>
+                <label class="form-label" data-i18n="admin.modal.cita.datetime">Fecha y Hora</label>
                 <input name="FechaHora" type="datetime-local" class="form-input" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" required />
             </div>
 
             <div class="form-group">
-                <label class="form-label">Notas Adicionales</label>
+                <label class="form-label" data-i18n="admin.modal.cita.notes">Notas Adicionales</label>
                 <textarea name="Notas" class="form-input" rows="2"></textarea>
             </div>
 
             <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-                <button type="button" onclick="document.getElementById('modal-cita').style.display='none'" class="btn btn-outline" style="flex: 1;">Cancelar</button>
-                <button type="submit" class="btn btn-primary" style="flex: 1;">Crear Cita</button>
+                <button type="button" onclick="document.getElementById('modal-cita').style.display='none'" class="btn btn-outline" style="flex: 1;" data-i18n="sales.modal.invoice.cancel">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="flex: 1;" data-i18n="admin.modal.cita.create">Crear Cita</button>
             </div>
         </form>
     </div>
@@ -1534,7 +1540,7 @@
 <div id="modal-crear-cliente" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
     <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
-            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">+ Nuevo Cliente</h2>
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;" data-i18n="admin.modal.client.new">+ Nuevo Cliente</h2>
             <button onclick="document.getElementById('modal-crear-cliente').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
@@ -1542,28 +1548,28 @@
             @Html.AntiForgeryToken()
             <div style="display: flex; gap: 0.75rem;">
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre *</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="modal.sale.firstname">Nombre *</label>
                     <input name="Nombre" type="text" class="form-input" required placeholder="Ej: Juan" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Apellido</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="modal.sale.lastname">Apellido</label>
                     <input name="Apellido" type="text" class="form-input" placeholder="Ej: Pérez" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Email *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.email">Email *</label>
                 <input name="Email" type="email" class="form-input" required placeholder="cliente@example.com" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.phone">Teléfono</label>
                 <input name="Telefono" type="text" class="form-input" placeholder="3001234567" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div style="display: flex; gap: 0.75rem;">
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Tipo Doc.</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.client.doctype">Tipo Doc.</label>
                     <select name="TipoDocumento" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
                         <option value="CC">CC</option>
                         <option value="CE">CE</option>
@@ -1572,19 +1578,19 @@
                     </select>
                 </div>
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Núm. Documento</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="modal.sale.docnum">Núm. Documento</label>
                     <input name="NumeroDocumento" type="text" class="form-input" placeholder="1023456789" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Contraseña (Opcional, defecto: user123)</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.client.password">Contraseña (Opcional, defecto: user123)</label>
                 <input name="Password" type="password" class="form-input" placeholder="••••••••" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
-                <button type="button" onclick="document.getElementById('modal-crear-cliente').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
-                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Guardar Cliente</button>
+                <button type="button" onclick="document.getElementById('modal-crear-cliente').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;" data-i18n="sales.modal.invoice.cancel">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;" data-i18n="admin.modal.client.save">Guardar Cliente</button>
             </div>
         </form>
     </div>
@@ -1594,7 +1600,7 @@
 <div id="modal-editar-cliente" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
     <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
-            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✏️ Editar Cliente</h2>
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;" data-i18n="admin.modal.client.edit">✏️ Editar Cliente</h2>
             <button onclick="document.getElementById('modal-editar-cliente').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
@@ -1604,28 +1610,28 @@
 
             <div style="display: flex; gap: 0.75rem;">
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre *</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="modal.sale.firstname">Nombre *</label>
                     <input id="editClientNombre" name="Nombre" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Apellido</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="modal.sale.lastname">Apellido</label>
                     <input id="editClientApellido" name="Apellido" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Email *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.email">Email *</label>
                 <input id="editClientEmail" name="Email" type="email" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.phone">Teléfono</label>
                 <input id="editClientTelefono" name="Telefono" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
-                <button type="button" onclick="document.getElementById('modal-editar-cliente').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
-                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Actualizar Cliente</button>
+                <button type="button" onclick="document.getElementById('modal-editar-cliente').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;" data-i18n="sales.modal.invoice.cancel">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;" data-i18n="admin.modal.client.update">Actualizar Cliente</button>
             </div>
         </form>
     </div>
@@ -1635,57 +1641,57 @@
 <div id="modal-crear-trabajador" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
     <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
-            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">+ Nuevo Trabajador</h2>
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;" data-i18n="admin.modal.worker.new">+ Nuevo Trabajador</h2>
             <button onclick="document.getElementById('modal-crear-trabajador').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
         <form action="/User/CreateEmployee" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
             @Html.AntiForgeryToken()
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre Completo *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.worker.fullname">Nombre Completo *</label>
                 <input name="Nombre" type="text" class="form-input" required placeholder="Ej: Carlos Ruiz" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Email *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.email">Email *</label>
                 <input name="Email" type="email" class="form-input" required placeholder="empleado@lentsoft.com" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.phone">Teléfono</label>
                 <input name="Telefono" type="text" class="form-input" placeholder="3009876543" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div style="display: flex; gap: 0.75rem;">
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Puesto</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.worker.position">Puesto</label>
                     <input name="Puesto" type="text" class="form-input" placeholder="Ej: Optómetra / Vendedor" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Departamento</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.worker.department">Departamento</label>
                     <input name="Departamento" type="text" class="form-input" placeholder="Ej: Salud / Ventas" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
             </div>
 
             <div style="display: flex; gap: 0.75rem;">
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Salario</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.worker.salary">Salario</label>
                     <input name="Salario" type="number" step="0.01" value="1500000" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Rol *</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.worker.role">Rol *</label>
                     <select name="Rol" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
-                        <option value="Administrador">Administrador</option>
-                        <option value="Vendedor">Vendedor</option>
-                        <option value="Trabajador" selected>Trabajador</option>
-                        <option value="Solo Lectura">Solo Lectura</option>
+                        <option value="Administrador" data-i18n="admin.role.admin">Administrador</option>
+                        <option value="Vendedor" data-i18n="admin.role.seller">Vendedor</option>
+                        <option value="Trabajador" selected data-i18n="admin.role.worker">Trabajador</option>
+                        <option value="Solo Lectura" data-i18n="admin.role.readonly">Solo Lectura</option>
                     </select>
                 </div>
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
-                <button type="button" onclick="document.getElementById('modal-crear-trabajador').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
-                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Guardar Trabajador</button>
+                <button type="button" onclick="document.getElementById('modal-crear-trabajador').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;" data-i18n="sales.modal.invoice.cancel">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;" data-i18n="admin.modal.worker.save">Guardar Trabajador</button>
             </div>
         </form>
     </div>
@@ -1695,7 +1701,7 @@
 <div id="modal-editar-trabajador" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
     <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
-            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✏️ Editar Trabajador</h2>
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;" data-i18n="admin.modal.worker.edit">✏️ Editar Trabajador</h2>
             <button onclick="document.getElementById('modal-editar-trabajador').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
@@ -1704,58 +1710,58 @@
             <input type="hidden" id="editEmployeeId" name="id" />
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre Completo *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.worker.fullname">Nombre Completo *</label>
                 <input id="editEmployeeNombre" name="Nombre" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Email *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.email">Email *</label>
                 <input id="editEmployeeEmail" name="Email" type="email" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.phone">Teléfono</label>
                 <input id="editEmployeeTelefono" name="Telefono" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div style="display: flex; gap: 0.75rem;">
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Puesto</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.worker.position">Puesto</label>
                     <input id="editEmployeePuesto" name="Puesto" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Departamento</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.worker.department">Departamento</label>
                     <input id="editEmployeeDepartamento" name="Departamento" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
             </div>
 
             <div style="display: flex; gap: 0.75rem;">
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Salario</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.worker.salary">Salario</label>
                     <input id="editEmployeeSalario" name="Salario" type="number" step="0.01" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Rol *</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.worker.role">Rol *</label>
                     <select id="editEmployeeRol" name="Rol" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
-                        <option value="Administrador">Administrador</option>
-                        <option value="Vendedor">Vendedor</option>
-                        <option value="Trabajador">Trabajador</option>
-                        <option value="Solo Lectura">Solo Lectura</option>
+                        <option value="Administrador" data-i18n="admin.role.admin">Administrador</option>
+                        <option value="Vendedor" data-i18n="admin.role.seller">Vendedor</option>
+                        <option value="Trabajador" data-i18n="admin.role.worker">Trabajador</option>
+                        <option value="Solo Lectura" data-i18n="admin.role.readonly">Solo Lectura</option>
                     </select>
                 </div>
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Estado</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="sales.table.status">Estado</label>
                 <select id="editEmployeeActivo" name="Activo" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
-                    <option value="true">Activo</option>
-                    <option value="false">Inactivo</option>
+                    <option value="true" data-i18n="admin.inv.active">Activo</option>
+                    <option value="false" data-i18n="admin.inv.inactive">Inactivo</option>
                 </select>
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
-                <button type="button" onclick="document.getElementById('modal-editar-trabajador').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
-                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Actualizar Trabajador</button>
+                <button type="button" onclick="document.getElementById('modal-editar-trabajador').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;" data-i18n="sales.modal.invoice.cancel">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;" data-i18n="admin.modal.worker.update">Actualizar Trabajador</button>
             </div>
         </form>
     </div>
@@ -1765,7 +1771,7 @@
 <div id="modal-editar-producto" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
     <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
-            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✏️ Editar Producto</h2>
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;" data-i18n="admin.modal.product.edit">✏️ Editar Producto</h2>
             <button onclick="document.getElementById('modal-editar-producto').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
@@ -1774,101 +1780,99 @@
             <input type="hidden" id="editProductId" name="Id" />
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre del Producto *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.product.name">Nombre del Producto *</label>
                 <input id="editProductNombre" name="Nombre" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
             
             <div style="display: flex; gap: 0.75rem;">
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Precio Regular *</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.product.price">Precio Regular *</label>
                     <input id="editProductPrecio" name="Precio" type="number" step="0.01" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Precio Descuento</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.product.discountprice">Precio Descuento</label>
                     <input id="editProductPrecioDescuento" name="PrecioDescuento" type="number" step="0.01" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
             </div>
             
             <div style="display: flex; gap: 0.75rem;">
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Categoría *</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.product.category">Categoría *</label>
                     <input id="editProductCategoria" name="Categoria" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Marca</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.product.brand">Marca</label>
                     <input id="editProductMarca" name="Marca" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
             </div>
             
             <div style="display: flex; gap: 0.75rem; align-items: center;">
                 <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Stock *</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="modal.sale.qty">Stock *</label>
                     <input id="editProductStock" name="Stock" type="number" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
                 <div style="flex: 1; padding-top: 1.25rem;">
                     <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">
                         <input id="editProductActivo" name="Activo" type="checkbox" value="true" />
-                        Activo
+                        <span data-i18n="admin.inv.active">Activo</span>
                     </label>
                 </div>
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">URL de la Imagen</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.product.imgurl">URL de la Imagen</label>
                 <input id="editProductImagenUrl" name="ImagenUrl" type="url" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
             
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Descripción</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.product.description">Descripción</label>
                 <textarea id="editProductDescripcion" name="Descripcion" class="form-input" rows="3" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);"></textarea>
             </div>
             
             <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
-                <button type="button" onclick="document.getElementById('modal-editar-producto').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
-                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Actualizar Producto</button>
+                <button type="button" onclick="document.getElementById('modal-editar-producto').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;" data-i18n="sales.modal.invoice.cancel">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;" data-i18n="admin.modal.product.update">Actualizar Producto</button>
             </div>
         </form>
     </div>
 </div>
-
-<!-- Modal para Crear Nuevo Proveedor -->
 <div id="modal-crear-proveedor" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
     <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
-            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">+ Nuevo Proveedor</h2>
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;" data-i18n="admin.modal.supplier.new">+ Nuevo Proveedor</h2>
             <button onclick="document.getElementById('modal-crear-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
         <form asp-controller="Supplier" asp-action="Create" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
             @Html.AntiForgeryToken()
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Código de Proveedor (Opcional, ej: PROV001)</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.supplier.code">Código de Proveedor (Opcional, ej: PROV001)</label>
                 <input name="Id" type="text" class="form-input" placeholder="Autogenerado si se deja en blanco" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Empresa / Proveedor *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.company">Empresa / Proveedor *</label>
                 <input name="Nombre" type="text" class="form-input" required placeholder="Ej: Óptica Global S.A." style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Tipo de Productos *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.producttype">Tipo de Productos *</label>
                 <input name="TipoProductos" type="text" class="form-input" required placeholder="Ej: Monturas / Lentes de contacto" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.phone">Teléfono *</label>
                 <input name="Telefono" type="text" class="form-input" required placeholder="555-1001" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Correo Electrónico *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.email">Correo Electrónico *</label>
                 <input name="Correo" type="email" class="form-input" required placeholder="ventas@proveedor.com" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
-                <button type="button" onclick="document.getElementById('modal-crear-proveedor').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
-                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Guardar Proveedor</button>
+                <button type="button" onclick="document.getElementById('modal-crear-proveedor').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;" data-i18n="sales.modal.invoice.cancel">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;" data-i18n="admin.modal.supplier.save">Guardar Proveedor</button>
             </div>
         </form>
     </div>
@@ -1878,7 +1882,7 @@
 <div id="modal-editar-proveedor" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
     <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
-            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✏️ Editar Proveedor</h2>
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;" data-i18n="admin.modal.supplier.edit">✏️ Editar Proveedor</h2>
             <button onclick="document.getElementById('modal-editar-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
@@ -1887,28 +1891,28 @@
             <input type="hidden" id="editSupplierId" name="Id" />
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Empresa / Proveedor *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.company">Empresa / Proveedor *</label>
                 <input id="editSupplierNombre" name="Nombre" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Tipo de Productos *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.producttype">Tipo de Productos *</label>
                 <input id="editSupplierTipoProductos" name="TipoProductos" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.phone">Teléfono *</label>
                 <input id="editSupplierTelefono" name="Telefono" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Correo Electrónico *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.email">Correo Electrónico *</label>
                 <input id="editSupplierCorreo" name="Correo" type="email" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
-                <button type="button" onclick="document.getElementById('modal-editar-proveedor').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
-                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Actualizar Proveedor</button>
+                <button type="button" onclick="document.getElementById('modal-editar-proveedor').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;" data-i18n="sales.modal.invoice.cancel">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;" data-i18n="admin.modal.supplier.update">Actualizar Proveedor</button>
             </div>
         </form>
     </div>
@@ -1918,16 +1922,16 @@
 <div id="modal-nuevo-movimiento" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
     <div class="card" style="width: 100%; max-width: 500px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
-            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">+ Registrar Movimiento de Inventario</h2>
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;" data-i18n="admin.modal.mov.title">+ Registrar Movimiento de Inventario</h2>
             <button onclick="document.getElementById('modal-nuevo-movimiento').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
         <form asp-controller="InventoryMovement" asp-action="Create" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
             @Html.AntiForgeryToken()
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem;">Producto *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem;" data-i18n="modal.sale.selectproduct">Producto *</label>
                 <select name="ProductId" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
-                    <option value="">-- Seleccionar Producto --</option>
+                    <option value="" data-i18n="admin.modal.mov.selectproduct">-- Seleccionar Producto --</option>
                     @foreach (var prod in Model.Productos)
                     {
                         <option value="@prod.Id">@prod.Nombre (Stock actual: @prod.Stock)</option>
@@ -1936,26 +1940,26 @@
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem;">Tipo de Movimiento *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem;" data-i18n="admin.inv.type">Tipo de Movimiento *</label>
                 <select name="Tipo" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
-                    <option value="Entrada" selected>Entrada (Sumar a Stock)</option>
-                    <option value="Salida">Salida (Restar de Stock)</option>
+                    <option value="Entrada" selected data-i18n="admin.modal.mov.inflowopt">Entrada (Sumar a Stock)</option>
+                    <option value="Salida" data-i18n="admin.modal.mov.outflowopt">Salida (Restar de Stock)</option>
                 </select>
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem;">Cantidad *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem;" data-i18n="admin.inv.qty">Cantidad *</label>
                 <input name="Cantidad" type="number" min="1" value="1" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Responsable (Opcional)</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.mov.responsible">Responsable (Opcional)</label>
                 <input name="Responsable" type="text" class="form-input" placeholder="Nombre de quien realiza el movimiento" value="@(User.Identity?.Name ?? "Administrador")" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
-                <button type="button" onclick="document.getElementById('modal-nuevo-movimiento').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
-                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Guardar Movimiento</button>
+                <button type="button" onclick="document.getElementById('modal-nuevo-movimiento').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;" data-i18n="sales.modal.invoice.cancel">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;" data-i18n="admin.modal.mov.save">Registrar Movimiento</button>
             </div>
         </form>
     </div>

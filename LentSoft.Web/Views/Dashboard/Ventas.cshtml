@@ -7,24 +7,24 @@
     <!-- Sidebar Navigation -->
     <aside style="width: 260px; background-color: var(--purple-900); color: white; padding: 1.5rem 1rem; flex-shrink: 0;">
         <div style="padding: 0 0.5rem 1.5rem 0.5rem; border-bottom: 1px solid var(--purple-700); margin-bottom: 1.5rem;">
-            <h2 style="color: white; font-size: 1.25rem; margin: 0;">Portal de Ventas</h2>
-            <p style="color: var(--purple-200); font-size: 0.85rem; margin: 0.25rem 0 0 0;">Gestión Comercial</p>
+            <h2 style="color: white; font-size: 1.25rem; margin: 0;" data-i18n="sales.portal">Portal de Ventas</h2>
+            <p style="color: var(--purple-200); font-size: 0.85rem; margin: 0.25rem 0 0 0;" data-i18n="sales.management">Gestión Comercial</p>
         </div>
 
         <nav style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <a href="?section=general" class="nav-item @(Model.ActiveSection == "general" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "general" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "general" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+            <a href="?section=general" class="nav-item @(Model.ActiveSection == "general" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "general" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "general" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="sales.nav.general">
                 📊 General
             </a>
-            <a href="?section=ventas" class="nav-item @(Model.ActiveSection == "ventas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "ventas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "ventas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+            <a href="?section=ventas" class="nav-item @(Model.ActiveSection == "ventas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "ventas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "ventas" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="sales.nav.sales">
                 💳 Ventas
             </a>
-            <a href="?section=facturas" class="nav-item @(Model.ActiveSection == "facturas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "facturas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "facturas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+            <a href="?section=facturas" class="nav-item @(Model.ActiveSection == "facturas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "facturas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "facturas" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="sales.nav.invoices">
                 🧾 Facturas
             </a>
-            <a href="?section=inventarios" class="nav-item @(Model.ActiveSection == "inventarios" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "inventarios" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "inventarios" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+            <a href="?section=inventarios" class="nav-item @(Model.ActiveSection == "inventarios" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "inventarios" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "inventarios" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="sales.nav.inventory">
                 📦 Inventarios
             </a>
-            <a href="?section=perfil" class="nav-item @(Model.ActiveSection == "perfil" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "perfil" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "perfil" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+            <a href="?section=perfil" class="nav-item @(Model.ActiveSection == "perfil" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "perfil" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "perfil" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="sales.nav.profile">
                 ⚙️ Mi Perfil
             </a>
         </nav>
@@ -36,42 +36,42 @@
         <!-- GENERAL / RESUMEN -->
         @if (Model.ActiveSection == "general")
         {
-            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem;">Resumen Comercial</h1>
+            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem;" data-i18n="sales.general.title">Resumen Comercial</h1>
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
                 <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--purple-600); background: white;">
-                    <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">Ventas del Mes</p>
+                    <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.monthly">Ventas del Mes</p>
                     <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.VentasDelMes.ToString("C")</h3>
                 </div>
 
                 <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--info); background: white;">
-                    <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">Pedidos Activos</p>
+                    <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.activeorders">Pedidos Activos</p>
                     <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.PedidosActivos</h3>
                 </div>
 
                 <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--success); background: white;">
-                    <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">Clientes Atendidos</p>
+                    <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.clients">Clientes Atendidos</p>
                     <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.ClientesAtendidos</h3>
                 </div>
 
                 <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--warning); background: white;">
-                    <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">Ticket Promedio</p>
+                    <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.averageticket">Ticket Promedio</p>
                     <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.TicketPromedio.ToString("C")</h3>
                 </div>
             </div>
 
             <!-- Últimas Ventas -->
             <div class="card" style="padding: 1.5rem; background: white;">
-                <h2 style="color: var(--purple-800); font-size: 1.25rem; margin-bottom: 1rem;">Últimas Ventas Registradas</h2>
+                <h2 style="color: var(--purple-800); font-size: 1.25rem; margin-bottom: 1rem;" data-i18n="sales.general.recentsales">Últimas Ventas Registradas</h2>
                 <div style="overflow-x: auto;">
                     <table style="width: 100%; border-collapse: collapse; text-align: left;">
                         <thead>
                             <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                <th style="padding: 0.75rem;">Pedido</th>
-                                <th style="padding: 0.75rem;">Cliente</th>
-                                <th style="padding: 0.75rem;">Fecha</th>
-                                <th style="padding: 0.75rem;">Total</th>
-                                <th style="padding: 0.75rem;">Estado</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.order">Pedido</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.client">Cliente</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.date">Fecha</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.total">Total</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.status">Estado</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -99,28 +99,28 @@
         @if (Model.ActiveSection == "ventas")
         {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;">Gestión de Ventas</h1>
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;" data-i18n="sales.management.title">Gestión de Ventas</h1>
                 <button type="button" onclick="document.getElementById('modal-venta').style.display='flex'" 
                         style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease;"
                         onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
-                    <span>+ Registrar Nueva Venta</span>
+                    <span data-i18n="sales.btn.new">+ Registrar Nueva Venta</span>
                 </button>
             </div>
 
             <div class="card" style="padding: 1.5rem; background: white;">
                 <div style="margin-bottom: 1rem;">
-                    <input type="text" id="searchVentasSales" placeholder="Buscar venta o cliente..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchVentasSales', 'tableVentasSales')" />
+                    <input type="text" id="searchVentasSales" placeholder="Buscar venta o cliente..." data-i18n-placeholder="sales.search.placeholder" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchVentasSales', 'tableVentasSales')" />
                 </div>
                 <div style="overflow-x: auto;">
                     <table id="tableVentasSales" style="width: 100%; border-collapse: collapse; text-align: left;">
                         <thead>
                             <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                <th style="padding: 0.75rem;">Venta</th>
-                                <th style="padding: 0.75rem;">Cliente</th>
-                                <th style="padding: 0.75rem;">Fecha</th>
-                                <th style="padding: 0.75rem;">Total</th>
-                                <th style="padding: 0.75rem;">Estado Actual</th>
-                                <th style="padding: 0.75rem;">Acción</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.order">Venta</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.client">Cliente</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.date">Fecha</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.total">Total</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.currentstatus">Estado Actual</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.action">Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -140,13 +140,13 @@
                                         <form asp-controller="Ventas" asp-action="UpdateOrderStatus" method="post" style="display:flex; gap:0.5rem; align-items:center;">
                                             <input type="hidden" name="id" value="@v.Id" />
                                             <select name="estado" style="padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.8rem;">
-                                                <option value="pendiente" selected="@(v.Estado == "pendiente")">Pendiente</option>
-                                                <option value="procesando" selected="@(v.Estado == "procesando")">Procesando</option>
-                                                <option value="enviado" selected="@(v.Estado == "enviado")">Enviado</option>
-                                                <option value="entregado" selected="@(v.Estado == "entregado")">Entregado</option>
-                                                <option value="cancelado" selected="@(v.Estado == "cancelado")">Cancelado</option>
+                                                <option value="pendiente" selected="@(v.Estado == "pendiente")" data-i18n="sales.status.pending">Pendiente</option>
+                                                <option value="procesando" selected="@(v.Estado == "procesando")" data-i18n="sales.status.processing">Procesando</option>
+                                                <option value="enviado" selected="@(v.Estado == "enviado")" data-i18n="sales.status.shipped">Enviado</option>
+                                                <option value="entregado" selected="@(v.Estado == "entregado")" data-i18n="sales.status.delivered">Entregado</option>
+                                                <option value="cancelado" selected="@(v.Estado == "cancelado")" data-i18n="sales.status.cancelled">Cancelado</option>
                                             </select>
-                                            <button type="submit" class="btn btn-primary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;">Actualizar</button>
+                                            <button type="submit" class="btn btn-primary" style="padding: 0.2rem 0.5rem; font-size: 0.75rem;" data-i18n="sales.btn.update">Actualizar</button>
                                         </form>
                                     </td>
                                 </tr>
@@ -161,18 +161,18 @@
         @if (Model.ActiveSection == "facturas")
         {
             <div style="margin-bottom: 1.5rem;">
-                <h1 style="color: var(--purple-900); font-size: 1.75rem; margin: 0;">Facturas</h1>
-                <p style="color: var(--gray-500); font-size: 0.9rem; margin-top: 0.25rem;">Gestiona tu negocio desde un solo lugar</p>
+                <h1 style="color: var(--purple-900); font-size: 1.75rem; margin: 0;" data-i18n="sales.invoices.title">Facturas</h1>
+                <p style="color: var(--gray-500); font-size: 0.9rem; margin-top: 0.25rem;" data-i18n="sales.invoices.subtitle">Gestiona tu negocio desde un solo lugar</p>
             </div>
 
             <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.75rem; box-shadow: var(--shadow-md);">
                 <!-- Header de la sección de la tabla con botón Nueva Factura -->
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-                    <h2 style="color: var(--purple-900); font-size: 1.35rem; font-weight: 700; margin: 0;">Gestión de Facturas</h2>
+                    <h2 style="color: var(--purple-900); font-size: 1.35rem; font-weight: 700; margin: 0;" data-i18n="sales.invoices.mgmt">Gestión de Facturas</h2>
                     <button type="button" onclick="document.getElementById('modal-factura').style.display='flex'" 
                             style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease;"
                             onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
-                        <span>+ Nueva Factura</span>
+                        <span data-i18n="sales.invoices.new">+ Nueva Factura</span>
                     </button>
                 </div>
 
@@ -183,7 +183,7 @@
 
                     <!-- Selector Registros por página -->
                     <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500;">
-                        <span>Mostrar</span>
+                        <span data-i18n="sales.invoices.show">Mostrar</span>
                         <select name="pageSize" style="background-color: white; color: var(--gray-900); border: 1px solid var(--purple-300); border-radius: 0.375rem; padding: 0.35rem 0.6rem; font-size: 0.875rem; cursor: pointer; font-weight: 600;" onchange="document.getElementById('facturasFilterForm').submit();">
                             @foreach (var size in new[] { 5, 10, 25, 50 })
                             {
@@ -197,17 +197,17 @@
                                 }
                             }
                         </select>
-                        <span>registros</span>
+                        <span data-i18n="sales.invoices.records">registros</span>
                     </div>
 
                     <!-- Búsqueda en tiempo real / envío -->
                     <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
-                        <label for="searchFacturasInput" style="font-weight: 500;">Buscar:</label>
+                        <label for="searchFacturasInput" style="font-weight: 500;" data-i18n="sales.invoices.searchlabel">Buscar:</label>
                         <input type="text" id="searchFacturasInput" name="searchTerm" value="@Model.FacturasSearchTerm" 
-                               placeholder="Buscar por número, cliente" 
+                               placeholder="Buscar por número, cliente" data-i18n-placeholder="sales.invoices.searchplaceholder"
                                style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.875rem; width: 240px; color: var(--gray-900);" 
                                onkeyup="filterClientSideFacturas(this.value)" />
-                        <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;">Filtrar</button>
+                        <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;" data-i18n="sales.invoices.filter">Filtrar</button>
                     </div>
                 </form>
 
@@ -216,12 +216,12 @@
                     <table id="tableFacturas" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
                         <thead>
                             <tr style="background-color: var(--purple-50); border-bottom: 2px solid var(--purple-200); color: var(--purple-900);">
-                                <th style="padding: 0.85rem 1rem; font-weight: 700;">Número</th>
-                                <th style="padding: 0.85rem 1rem; font-weight: 700;">Cliente</th>
-                                <th style="padding: 0.85rem 1rem; font-weight: 700;">Fecha</th>
-                                <th style="padding: 0.85rem 1rem; font-weight: 700;">Total</th>
-                                <th style="padding: 0.85rem 1rem; font-weight: 700;">Estado</th>
-                                <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;">Acciones</th>
+                                <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.invoices.number">Número</th>
+                                <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.table.client">Cliente</th>
+                                <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.table.date">Fecha</th>
+                                <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.table.total">Total</th>
+                                <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.table.status">Estado</th>
+                                <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;" data-i18n="sales.table.actions">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -242,6 +242,12 @@
                                         "cancelada" => "Cancelada",
                                         _ => "Pendiente"
                                     };
+                                    var estadoI18nKey = fac.Estado.ToLower() switch
+                                    {
+                                        "pagada" => "sales.invoices.paid",
+                                        "cancelada" => "sales.status.cancelled",
+                                        _ => "sales.status.pending"
+                                    };
 
                                     <tr style="border-bottom: 1px solid var(--purple-100); transition: background-color 0.15s ease;" onmouseover="this.style.backgroundColor='var(--purple-50)'" onmouseout="this.style.backgroundColor='transparent'">
                                         <td style="padding: 0.85rem 1rem; font-weight: 700; color: var(--purple-700);">@fac.NumeroFactura</td>
@@ -249,7 +255,7 @@
                                         <td style="padding: 0.85rem 1rem; color: var(--gray-600);">@fac.FechaEmision.ToLocalTime().ToString("dd/MM/yyyy")</td>
                                         <td style="padding: 0.85rem 1rem; font-weight: 700; color: var(--purple-900);">@fac.Total.ToString("C")</td>
                                         <td style="padding: 0.85rem 1rem;">
-                                            <span style="background-color: @badgeBg; color: white; padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; display: inline-block;">
+                                            <span style="background-color: @badgeBg; color: white; padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; display: inline-block;" data-i18n="@estadoI18nKey">
                                                 @estadoDisplay
                                             </span>
                                         </td>
@@ -259,14 +265,14 @@
                                                 <button type="button" 
                                                         onclick="confirmDeleteInvoice(@fac.Id, '@fac.NumeroFactura')"
                                                         style="background: transparent; color: var(--error); border: 1px solid var(--error); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;"
-                                                        onmouseover="this.style.backgroundColor='var(--error)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--error)';">
+                                                        onmouseover="this.style.backgroundColor='var(--error)'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='var(--error)';" data-i18n="sales.invoices.delete">
                                                     🗑️ Eliminar
                                                 </button>
 
                                                 <!-- Botón Descargar PDF -->
                                                 <a href="/Invoice/DownloadPdf/@fac.Id" target="_blank"
                                                    style="background-color: var(--purple-100); color: var(--purple-900); border: 1px solid var(--purple-300); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; transition: all 0.2s ease;"
-                                                   onmouseover="this.style.backgroundColor='var(--purple-700)'; this.style.color='white';" onmouseout="this.style.backgroundColor='var(--purple-100)'; this.style.color='var(--purple-900)';">
+                                                   onmouseover="this.style.backgroundColor='var(--purple-700)'; this.style.color='white';" onmouseout="this.style.backgroundColor='var(--purple-100)'; this.style.color='var(--purple-900)';" data-i18n="sales.invoices.pdf">
                                                     📄 PDF
                                                 </a>
                                             </div>
@@ -277,7 +283,7 @@
                             else
                             {
                                 <tr>
-                                    <td colspan="6" style="padding: 2rem; text-align: center; color: var(--gray-500); font-style: italic;">
+                                    <td colspan="6" style="padding: 2rem; text-align: center; color: var(--gray-500); font-style: italic;" data-i18n="sales.invoices.empty">
                                         No se encontraron facturas registradas o que coincidan con la búsqueda.
                                     </td>
                                 </tr>
@@ -293,7 +299,7 @@
                 }
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; flex-wrap: wrap; gap: 1rem; font-size: 0.875rem;">
                     <div style="color: var(--gray-600); font-weight: 500;">
-                        Mostrando registros del <strong>@inicioReg</strong> al <strong>@finReg</strong> de un total de <strong>@Model.FacturasTotalCount</strong> registros
+                        <span data-i18n="sales.invoices.showing">Mostrando registros del</span> <strong>@inicioReg</strong> <span data-i18n="sales.invoices.to">al</span> <strong>@finReg</strong> <span data-i18n="sales.invoices.of">de un total de</span> <strong>@Model.FacturasTotalCount</strong> <span data-i18n="sales.invoices.records">registros</span>
                     </div>
 
                     @if (Model.FacturasTotalPages > 1)
@@ -303,13 +309,13 @@
                             @if (Model.FacturasPage > 1)
                             {
                                 <a href="/Ventas?section=facturas&page=@(Model.FacturasPage - 1)&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
-                                   style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                   style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;" data-i18n="sales.invoices.prev">
                                     &laquo; Anterior
                                 </a>
                             }
                             else
                             {
-                                <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;" data-i18n="sales.invoices.prev">
                                     &laquo; Anterior
                                 </span>
                             }
@@ -336,13 +342,13 @@
                             @if (Model.FacturasPage < Model.FacturasTotalPages)
                             {
                                 <a href="/Ventas?section=facturas&page=@(Model.FacturasPage + 1)&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
-                                   style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                   style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;" data-i18n="sales.invoices.next">
                                     Siguiente &raquo;
                                 </a>
                             }
                             else
                             {
-                                <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;" data-i18n="sales.invoices.next">
                                     Siguiente &raquo;
                                 </span>
                             }
@@ -355,23 +361,23 @@
         <!-- INVENTARIOS (SOLO LECTURA) -->
         @if (Model.ActiveSection == "inventarios")
         {
-            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem;">Consulta de Inventario (Solo Lectura)</h1>
+            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem;" data-i18n="sales.inventory.title">Consulta de Inventario (Solo Lectura)</h1>
 
             <div class="card" style="padding: 1.5rem; background: white;">
                 <div style="margin-bottom: 1rem;">
-                    <input type="text" id="searchInvSales" placeholder="Buscar producto en inventario..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchInvSales', 'tableInvSales')" />
+                    <input type="text" id="searchInvSales" placeholder="Buscar producto en inventario..." data-i18n-placeholder="sales.inventory.searchplaceholder" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchInvSales', 'tableInvSales')" />
                 </div>
                 <div style="overflow-x: auto;">
                     <table id="tableInvSales" style="width: 100%; border-collapse: collapse; text-align: left;">
                         <thead>
                             <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
                                 <th style="padding: 0.75rem;">ID</th>
-                                <th style="padding: 0.75rem;">Producto</th>
-                                <th style="padding: 0.75rem;">Categoría</th>
-                                <th style="padding: 0.75rem;">Marca</th>
-                                <th style="padding: 0.75rem;">Precio</th>
-                                <th style="padding: 0.75rem;">Stock Disponible</th>
-                                <th style="padding: 0.75rem;">Estado</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.inventory.product">Producto</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.inventory.category">Categoría</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.inventory.brand">Marca</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.inventory.price">Precio</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.inventory.stock">Stock Disponible</th>
+                                <th style="padding: 0.75rem;" data-i18n="sales.table.status">Estado</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -387,7 +393,7 @@
                                         @prod.Stock
                                     </td>
                                     <td style="padding: 0.75rem;">
-                                        <span style="background-color: @(prod.Activo ? "var(--success)" : "var(--error)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
+                                        <span style="background-color: @(prod.Activo ? "var(--success)" : "var(--error)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;" data-i18n="@(prod.Activo ? "sales.inventory.available" : "sales.inventory.soldout")">
                                             @(prod.Activo ? "Disponible" : "Agotado/Inactivo")
                                         </span>
                                     </td>
@@ -402,7 +408,7 @@
         <!-- PERFIL -->
         @if (Model.ActiveSection == "perfil")
         {
-            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem;">Perfil Ejecutivo de Ventas</h1>
+            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem;" data-i18n="sales.profile.title">Perfil Ejecutivo de Ventas</h1>
 
             <div class="card" style="padding: 2rem; background: white; max-width: 600px;">
                 <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem;">
@@ -411,21 +417,21 @@
                     </div>
                     <div>
                         <h2 style="margin: 0; color: var(--purple-900); font-size: 1.5rem;">@Model.UsuarioActual?.Nombre</h2>
-                        <p style="margin: 0; color: var(--purple-600); font-weight: 600;">Asesor Comercial / Ventas</p>
+                        <p style="margin: 0; color: var(--purple-600); font-weight: 600;" data-i18n="sales.profile.advisor">Asesor Comercial / Ventas</p>
                     </div>
                 </div>
 
                 <div style="display: flex; flex-direction: column; gap: 1rem; border-top: 1px solid var(--purple-100); padding-top: 1.5rem;">
                     <div>
-                        <label style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600;">CORREO ELECTRÓNICO</label>
+                        <label style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600;" data-i18n="sales.profile.email">CORREO ELECTRÓNICO</label>
                         <p style="margin: 0; font-weight: 500;">@Model.UsuarioActual?.Email</p>
                     </div>
                     <div>
-                        <label style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600;">TELÉFONO</label>
-                        <p style="margin: 0; font-weight: 500;">@(Model.UsuarioActual?.Telefono ?? "No registrado")</p>
+                        <label style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600;" data-i18n="sales.profile.phone">TELÉFONO</label>
+                        <p style="margin: 0; font-weight: 500;" data-i18n="@(string.IsNullOrEmpty(Model.UsuarioActual?.Telefono) ? "sales.profile.nophone" : "")">@(Model.UsuarioActual?.Telefono ?? "No registrado")</p>
                     </div>
                     <div>
-                        <label style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600;">ROL DE ACCESO</label>
+                        <label style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600;" data-i18n="sales.profile.role">ROL DE ACCESO</label>
                         <p style="margin: 0; text-transform: capitalize; font-weight: 600; color: var(--purple-700);">@Model.UsuarioActual?.Role</p>
                     </div>
                 </div>
@@ -443,9 +449,9 @@
         <div style="background: linear-gradient(135deg, var(--purple-700), var(--purple-600)); color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
                 <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.2rem; font-weight: 700;">
-                    <span>📄</span> Factura Electrónica de Venta
+                    <span>📄</span> <span data-i18n="sales.modal.invoice.title">Factura Electrónica de Venta</span>
                 </div>
-                <div style="font-size: 0.78rem; color: var(--purple-100); margin-top: 0.25rem; font-weight: 500;">
+                <div style="font-size: 0.78rem; color: var(--purple-100); margin-top: 0.25rem; font-weight: 500;" data-i18n="sales.modal.invoice.resolution">
                     Resolución DIAN Nº 18764028920000 | Rango: FAC-0001 a FAC-5000
                 </div>
             </div>
@@ -459,12 +465,12 @@
             <!-- Seccion 1: Datos del Pedido -->
             <div>
                 <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
-                    <span>📋</span> DATOS DEL PEDIDO
+                    <span data-i18n="sales.modal.invoice.sec1">📋 DATOS DEL PEDIDO</span>
                 </div>
                 <div class="form-group">
-                    <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Pedido Asociado *</label>
+                    <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;" data-i18n="sales.modal.invoice.orderassoc">Pedido Asociado *</label>
                     <select name="OrderId" class="form-input" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" onchange="updateNewInvoiceAmounts(this)">
-                        <option value="">-- Seleccionar Pedido --</option>
+                        <option value="" data-i18n="sales.modal.invoice.selectorder">-- Seleccionar Pedido --</option>
                         @foreach (var ord in Model.PedidosDisponibles)
                         {
                             var usrName = ord.User != null ? ord.User.NombreCompleto : "Cliente";
@@ -477,23 +483,23 @@
             <!-- Seccion 2: Datos de Facturación -->
             <div>
                 <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
-                    <span>📑</span> DATOS DE FACTURACIÓN (NÚMERO AUTO-GENERADO)
+                    <span data-i18n="sales.modal.invoice.sec2">📑 DATOS DE FACTURACIÓN (NÚMERO AUTO-GENERADO)</span>
                 </div>
                 <div style="display: flex; gap: 1rem;">
                     <div style="flex: 1;">
-                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Estado *</label>
+                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;" data-i18n="sales.modal.invoice.status">Estado *</label>
                         <select name="Estado" class="form-input" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
-                            <option value="pendiente" selected>Pendiente</option>
-                            <option value="pagada">Pagada</option>
-                            <option value="cancelada">Cancelada</option>
+                            <option value="pendiente" selected data-i18n="sales.status.pending">Pendiente</option>
+                            <option value="pagada" data-i18n="sales.invoices.paid">Pagada</option>
+                            <option value="cancelada" data-i18n="sales.status.cancelled">Cancelada</option>
                         </select>
                     </div>
                     <div style="flex: 1;">
-                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Método de Pago *</label>
+                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;" data-i18n="sales.modal.invoice.paymentmethod">Método de Pago *</label>
                         <select name="MetodoPago" class="form-input" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
-                            <option value="Efectivo" selected>Efectivo</option>
-                            <option value="Tarjeta">Tarjeta Débito/Crédito</option>
-                            <option value="Transferencia">Transferencia / PSE</option>
+                            <option value="Efectivo" selected data-i18n="sales.modal.invoice.cash">Efectivo</option>
+                            <option value="Tarjeta" data-i18n="sales.modal.invoice.card">Tarjeta Débito/Crédito</option>
+                            <option value="Transferencia" data-i18n="sales.modal.invoice.transfer">Transferencia / PSE</option>
                         </select>
                     </div>
                 </div>
@@ -502,20 +508,20 @@
             <!-- Seccion 3: Valores -->
             <div>
                 <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
-                    <span>💰</span> VALORES (IVA 19% — ART. 468 E.T.)
+                    <span data-i18n="sales.modal.invoice.sec3">💰 VALORES (IVA 19% — ART. 468 E.T.)</span>
                 </div>
                 <div style="display: flex; gap: 0.75rem;">
                     <div style="flex: 1;">
-                        <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.35rem; display: block;">Subtotal</label>
-                        <input id="newInvoiceSubtotal" name="Subtotal" type="number" step="0.01" class="form-input" readonly placeholder="Auto-calculado" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--gray-300); background-color: var(--gray-50);" />
+                        <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.35rem; display: block;" data-i18n="sales.modal.invoice.subtotal">Subtotal</label>
+                        <input id="newInvoiceSubtotal" name="Subtotal" type="number" step="0.01" class="form-input" readonly placeholder="Auto-calculado" data-i18n-placeholder="sales.modal.invoice.autocalc" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--gray-300); background-color: var(--gray-50);" />
                     </div>
                     <div style="flex: 1;">
-                        <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.35rem; display: block;">IVA 19%</label>
-                        <input id="newInvoiceImpuestos" name="Impuestos" type="number" step="0.01" class="form-input" readonly placeholder="Auto-calculado" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--gray-300); background-color: var(--gray-50);" />
+                        <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.35rem; display: block;" data-i18n="sales.modal.invoice.tax">IVA 19%</label>
+                        <input id="newInvoiceImpuestos" name="Impuestos" type="number" step="0.01" class="form-input" readonly placeholder="Auto-calculado" data-i18n-placeholder="sales.modal.invoice.autocalc" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--gray-300); background-color: var(--gray-50);" />
                     </div>
                     <div style="flex: 1;">
-                        <label class="form-label" style="font-weight: 700; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.35rem; display: block;">TOTAL</label>
-                        <input id="newInvoiceTotal" name="Total" type="number" step="0.01" class="form-input" readonly placeholder="Auto-calculado" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--purple-50); font-weight: 700; color: var(--purple-900);" />
+                        <label class="form-label" style="font-weight: 700; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.35rem; display: block;" data-i18n="sales.modal.invoice.total">TOTAL</label>
+                        <input id="newInvoiceTotal" name="Total" type="number" step="0.01" class="form-input" readonly placeholder="Auto-calculado" data-i18n-placeholder="sales.modal.invoice.autocalc" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--purple-50); font-weight: 700; color: var(--purple-900);" />
                     </div>
                 </div>
             </div>
@@ -523,7 +529,7 @@
             <!-- Warning Box CUFE DIAN -->
             <div style="background-color: #FEFCE8; border: 1px solid #FDE047; color: #854D0E; padding: 0.75rem 1rem; border-radius: 0.5rem; font-size: 0.78rem; line-height: 1.4; display: flex; gap: 0.5rem; align-items: flex-start;">
                 <span style="font-size: 0.9rem;">⚠️</span>
-                <div>
+                <div data-i18n="sales.modal.invoice.warning">
                     Al crear esta factura se generará un <strong>CUFE</strong> (Código Único de Factura Electrónica) y estará disponible para descarga en formato PDF conforme a la Resolución DIAN.
                 </div>
             </div>
@@ -531,12 +537,12 @@
             <!-- Botones -->
             <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
                 <button type="button" onclick="document.getElementById('modal-factura').style.display='none'" 
-                        style="flex: 1; border: 2px solid var(--purple-600); color: var(--purple-600); background: transparent; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.88rem; cursor: pointer;">
+                        style="flex: 1; border: 2px solid var(--purple-600); color: var(--purple-600); background: transparent; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.88rem; cursor: pointer;" data-i18n="sales.modal.invoice.cancel">
                     Cancelar
                 </button>
                 <button type="submit" 
                         style="flex: 1.5; background-color: var(--purple-600); color: white; border: none; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
-                    <span>📄</span> Emitir Factura Electrónica
+                    <span data-i18n="sales.modal.invoice.emit">📄 Emitir Factura Electrónica</span>
                 </button>
             </div>
         </form>
