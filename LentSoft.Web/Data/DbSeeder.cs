@@ -9,18 +9,6 @@ public static class DbSeeder
 {
     public static void Seed(LentSoftDbContext context)
     {
-        // Asegurar que la columna PorcentajeIva exista en la tabla Products
-        try
-        {
-            context.Database.ExecuteSqlRaw(@"
-                IF NOT EXISTS (SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Products' AND COLUMN_NAME = 'PorcentajeIva')
-                BEGIN
-                    ALTER TABLE Products ADD PorcentajeIva decimal(5,2) NOT NULL DEFAULT 19.00;
-                END
-            ");
-        }
-        catch { }
-
         // 0. Convertir precios de productos y órdenes existentes a COP si están en formato viejo (< 10000)
         var oldProducts = context.Products.Where(p => p.Precio < 10000).ToList();
         foreach (var p in oldProducts)

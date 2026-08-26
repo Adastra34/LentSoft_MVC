@@ -17,7 +17,4 @@ public interface IProductService
     Task<List<Product>> GetBestSellersAsync(int count = 3);
     Task<List<Product>> GetFeaturedAsync();
     Task<List<Product>> GetGafasAsync();
-    Task<List<Product>> GetProductosBajoStockAsync();
-    Task<List<InventoryMovement>> GetKardexPorProductoAsync(int productId);
-    Task<List<Product>> GetProductosSinMovimientoAsync();
 }

@@ -13,11 +13,16 @@ public class VentasController : Controller
 {
     private readonly LentSoftDbContext _context;
     private readonly IInvoiceService _invoiceService;
+    private readonly ISaleConfirmationTokenService _saleConfirmationTokenService;
 
-    public VentasController(LentSoftDbContext context, IInvoiceService invoiceService)
+    public VentasController(
+        LentSoftDbContext context, 
+        IInvoiceService invoiceService, 
+        ISaleConfirmationTokenService saleConfirmationTokenService)
     {
         _context = context;
         _invoiceService = invoiceService;
+        _saleConfirmationTokenService = saleConfirmationTokenService;
     }
 
     public async Task<IActionResult> Index(string section = "general", string? searchTerm = null, int page = 1, int pageSize = 5)
@@ -108,5 +113,43 @@ public class VentasController : Controller
         }
 
         return RedirectToAction("Index", new { section = "ventas" });
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    public async Task<IActionResult> ConfirmarCompra(string token)
+    {
+        var viewModel = new SaleConfirmationViewModel();
+
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            viewModel.IsValid = false;
+            viewModel.ErrorMessage = "El token de confirmación de venta está ausente o no es válido.";
+            return View("~/Views/Ventas/ConfirmarCompra.cshtml", viewModel);
+        }
+
+        var saleId = _saleConfirmationTokenService.ValidateToken(token);
+        if (saleId == null)
+        {
+            viewModel.IsValid = false;
+            viewModel.ErrorMessage = "Este enlace ya no es válido o ha expirado.";
+            return View("~/Views/Ventas/ConfirmarCompra.cshtml", viewModel);
+        }
+
+        var order = await _context.Orders
+            .Include(o => o.User)
+            .Include(o => o.OrderItems).ThenInclude(oi => oi.Product)
+            .FirstOrDefaultAsync(o => o.Id == saleId.Value);
+
+        if (order == null || !order.Activo)
+        {
+            viewModel.IsValid = false;
+            viewModel.ErrorMessage = "La venta asociada no existe o ha sido dada de baja.";
+            return View("~/Views/Ventas/ConfirmarCompra.cshtml", viewModel);
+        }
+
+        viewModel.IsValid = true;
+        viewModel.Order = order;
+        return View("~/Views/Ventas/ConfirmarCompra.cshtml", viewModel);
     }
 }

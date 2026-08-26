@@ -15,7 +15,7 @@
             <section style="margin-bottom: 3rem;">
                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
                     <span style="font-size: 1.3rem;">📈</span>
-                    <h2 style="color: var(--purple-900); font-size: 1.5rem; font-weight: 700; margin: 0; font-family: var(--font-primary);">
+                    <h2 style="color: var(--purple-900); font-size: 1.5rem; font-weight: 700; margin: 0; font-family: var(--font-primary);" data-i18n="shop.bestsellers">
                         Más Vendidos
                     </h2>
                 </div>
@@ -36,7 +36,7 @@
         <!-- SECCIÓN: Todos los Productos                            -->
         <!-- ═══════════════════════════════════════════════════════ -->
         <section>
-            <h2 style="color: var(--purple-900); font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; font-family: var(--font-primary);">
+            <h2 style="color: var(--purple-900); font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; font-family: var(--font-primary);" data-i18n="shop.allproducts">
                 Todos los Productos
             </h2>
 
@@ -48,7 +48,7 @@
                        style="padding: 0.5rem 1.25rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; text-decoration: none; transition: all 0.2s;
                               @(string.IsNullOrEmpty(Model.Categoria)
                                   ? "background: var(--purple-700); color: white; box-shadow: 0 2px 8px rgba(126,34,206,0.3);"
-                                  : "background: white; color: var(--gray-700); border: 1.5px solid var(--gray-200);")">
+                                  : "background: white; color: var(--gray-700); border: 1.5px solid var(--gray-200);")" data-i18n="shop.all">
                         Todos
                     </a>
                     @foreach (var cat in Model.Categorias)
@@ -81,7 +81,7 @@
                     }
                     <select name="marca" class="form-select" onchange="this.form.submit()"
                             style="padding: 0.45rem 0.75rem; border-radius: 0.5rem; border: 1.5px solid var(--gray-200); font-size: 0.85rem; background: white; min-width: 140px;">
-                        <option value="">Todas las marcas</option>
+                        <option value="" data-i18n="shop.allbrands">Todas las marcas</option>
                         @foreach (var m in Model.Marcas)
                         {
                             <option value="@m" selected="@(Model.Marca == m)">@m</option>
@@ -89,14 +89,14 @@
                     </select>
                     <select name="rangoPrecio" class="form-select" onchange="this.form.submit()"
                             style="padding: 0.45rem 0.75rem; border-radius: 0.5rem; border: 1.5px solid var(--gray-200); font-size: 0.85rem; background: white; min-width: 140px;">
-                        <option value="">Todos los precios</option>
-                        <option value="menos-500000" selected="@(Model.RangoPrecio == "menos-500000")">Menos de COP $500.000</option>
-                        <option value="500000-1500000" selected="@(Model.RangoPrecio == "500000-1500000")">COP $500.000 - COP $1.500.000</option>
-                        <option value="mas-1500000" selected="@(Model.RangoPrecio == "mas-1500000")">Más de COP $1.500.000</option>
+                        <option value="" data-i18n="shop.allprices">Todos los precios</option>
+                        <option value="menos-500000" selected="@(Model.RangoPrecio == "menos-500000")" data-i18n="shop.lessthan">Menos de COP $500.000</option>
+                        <option value="500000-1500000" selected="@(Model.RangoPrecio == "500000-1500000")" data-i18n="shop.range">COP $500.000 - COP $1.500.000</option>
+                        <option value="mas-1500000" selected="@(Model.RangoPrecio == "mas-1500000")" data-i18n="shop.morethan">Más de COP $1.500.000</option>
                     </select>
                     @if (!string.IsNullOrEmpty(Model.Marca) || !string.IsNullOrEmpty(Model.RangoPrecio) || !string.IsNullOrEmpty(Model.Categoria))
                     {
-                        <a asp-action="Tienda" style="color: var(--purple-700); font-size: 0.8rem; font-weight: 600; white-space: nowrap;">✕ Limpiar</a>
+                        <a asp-action="Tienda" style="color: var(--purple-700); font-size: 0.8rem; font-weight: 600; white-space: nowrap;" data-i18n="shop.clear">✕ Limpiar</a>
                     }
                 </form>
             </div>
@@ -106,9 +106,9 @@
             {
                 <div style="text-align: center; padding: 4rem 0;">
                     <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
-                    <h3 style="color: var(--gray-600); margin-bottom: 0.5rem;">No se encontraron productos</h3>
-                    <p style="color: var(--gray-500);">Intenta cambiar los filtros de búsqueda.</p>
-                    <a asp-action="Tienda" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;">Ver todos los productos</a>
+                    <h3 style="color: var(--gray-600); margin-bottom: 0.5rem;" data-i18n="shop.noproducts">No se encontraron productos</h3>
+                    <p style="color: var(--gray-500);" data-i18n="shop.changefilters">Intenta cambiar los filtros de búsqueda.</p>
+                    <a asp-action="Tienda" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;" data-i18n="shop.viewall">Ver todos los productos</a>
                 </div>
             }
             else

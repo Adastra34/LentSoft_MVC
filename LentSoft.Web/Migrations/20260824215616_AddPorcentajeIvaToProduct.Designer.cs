@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LentSoft.Web.Migrations
 {
     [DbContext(typeof(LentSoftDbContext))]
-    [Migration("20260804212309_AddStockMinimoToProduct")]
-    partial class AddStockMinimoToProduct
+    [Migration("20260824215616_AddPorcentajeIvaToProduct")]
+    partial class AddPorcentajeIvaToProduct
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -221,7 +221,7 @@ namespace LentSoft.Web.Migrations
                             Nombre = "María García",
                             Puesto = "Optometrista",
                             Rol = "Trabajador",
-                            Salario = 25000.00m,
+                            Salario = 2500000.00m,
                             Telefono = "555-0101"
                         },
                         new
@@ -234,7 +234,7 @@ namespace LentSoft.Web.Migrations
                             Nombre = "Juan Pérez",
                             Puesto = "Vendedor",
                             Rol = "Trabajador",
-                            Salario = 18000.00m,
+                            Salario = 1800000.00m,
                             Telefono = "555-0102"
                         },
                         new
@@ -242,12 +242,12 @@ namespace LentSoft.Web.Migrations
                             Id = 3,
                             Activo = true,
                             Departamento = "Administración",
-                            Email = "ana.martinez@lentsoft.com",
+                            Email = "carlos.mendoza@lentsoft.com",
                             FechaContratacion = new DateTime(2024, 3, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            Nombre = "Ana Martínez",
+                            Nombre = "Carlos Mendoza",
                             Puesto = "Gerente",
                             Rol = "Trabajador",
-                            Salario = 35000.00m,
+                            Salario = 3500000.00m,
                             Telefono = "555-0103"
                         });
                 });
@@ -735,7 +735,7 @@ namespace LentSoft.Web.Migrations
                             DireccionEnvio = "Calle 123 #45-67",
                             Estado = "entregado",
                             FechaPedido = new DateTime(2026, 5, 15, 10, 0, 0, 0, DateTimeKind.Utc),
-                            Total = 2500.00m,
+                            Total = 2500000.00m,
                             UserId = 2
                         },
                         new
@@ -745,7 +745,7 @@ namespace LentSoft.Web.Migrations
                             DireccionEnvio = "Calle 123 #45-67",
                             Estado = "enviado",
                             FechaPedido = new DateTime(2026, 5, 20, 14, 30, 0, 0, DateTimeKind.Utc),
-                            Total = 1800.00m,
+                            Total = 1800000.00m,
                             UserId = 2
                         });
                 });
@@ -784,7 +784,7 @@ namespace LentSoft.Web.Migrations
                             Id = 1,
                             Cantidad = 1,
                             OrderId = 1,
-                            PrecioUnitario = 2500.00m,
+                            PrecioUnitario = 2500000.00m,
                             ProductId = 1
                         },
                         new
@@ -792,7 +792,7 @@ namespace LentSoft.Web.Migrations
                             Id = 2,
                             Cantidad = 1,
                             OrderId = 2,
-                            PrecioUnitario = 1800.00m,
+                            PrecioUnitario = 1800000.00m,
                             ProductId = 3
                         });
                 });
@@ -858,6 +858,11 @@ namespace LentSoft.Web.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<decimal>("PorcentajeIva")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(19.00m);
+
                     b.Property<decimal>("Precio")
                         .HasColumnType("decimal(10,2)");
 
@@ -882,11 +887,6 @@ namespace LentSoft.Web.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(0);
-
-                    b.Property<int>("StockMinimo")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(5);
 
                     b.Property<string>("Tamanio")
                         .HasMaxLength(100)
@@ -920,12 +920,12 @@ namespace LentSoft.Web.Migrations
                             Marca = "Ray-Ban",
                             Material = "Metal",
                             Nombre = "Lentes Ray-Ban Aviator",
-                            Precio = 2500.00m,
+                            PorcentajeIva = 19.00m,
+                            Precio = 2500000.00m,
                             Proteccion = "UV400",
                             Rating = 4.9m,
                             ReviewCount = 28,
                             Stock = 50,
-                            StockMinimo = 5,
                             Tamanio = "58-14-135"
                         },
                         new
@@ -938,12 +938,12 @@ namespace LentSoft.Web.Migrations
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Marca = "Acuvue",
                             Nombre = "Lentes de Contacto Acuvue",
-                            Precio = 450.00m,
-                            PrecioDescuento = 399.00m,
+                            PorcentajeIva = 19.00m,
+                            Precio = 450000.00m,
+                            PrecioDescuento = 399000.00m,
                             Rating = 4.7m,
                             ReviewCount = 42,
-                            Stock = 100,
-                            StockMinimo = 5
+                            Stock = 100
                         },
                         new
                         {
@@ -959,12 +959,12 @@ namespace LentSoft.Web.Migrations
                             Marca = "Oakley",
                             Material = "O-Matter (Plástico)",
                             Nombre = "Montura Oakley Sport",
-                            Precio = 1800.00m,
+                            PorcentajeIva = 19.00m,
+                            Precio = 1800000.00m,
                             Proteccion = "Filtro UV",
                             Rating = 4.8m,
                             ReviewCount = 15,
                             Stock = 30,
-                            StockMinimo = 5,
                             Tamanio = "55-18-140"
                         },
                         new
@@ -981,12 +981,12 @@ namespace LentSoft.Web.Migrations
                             Marca = "LentSoft",
                             Material = "Acetato",
                             Nombre = "Lentes Graduados Classic",
-                            Precio = 1200.00m,
+                            PorcentajeIva = 19.00m,
+                            Precio = 1200000.00m,
                             Proteccion = "Antirreflejo / Luz Azul",
                             Rating = 4.6m,
                             ReviewCount = 19,
                             Stock = 40,
-                            StockMinimo = 5,
                             Tamanio = "52-19-145"
                         },
                         new
@@ -999,12 +999,12 @@ namespace LentSoft.Web.Migrations
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Marca = "LentSoft",
                             Nombre = "Estuche Premium",
-                            Precio = 150.00m,
-                            PrecioDescuento = 99.00m,
+                            PorcentajeIva = 19.00m,
+                            Precio = 150000.00m,
+                            PrecioDescuento = 99000.00m,
                             Rating = 4.5m,
                             ReviewCount = 8,
-                            Stock = 200,
-                            StockMinimo = 5
+                            Stock = 200
                         },
                         new
                         {
@@ -1016,90 +1016,12 @@ namespace LentSoft.Web.Migrations
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Marca = "Opti-Free",
                             Nombre = "Líquido Limpiador",
-                            Precio = 120.00m,
+                            PorcentajeIva = 5.00m,
+                            Precio = 120000.00m,
                             Rating = 4.9m,
                             ReviewCount = 33,
-                            Stock = 150,
-                            StockMinimo = 5
+                            Stock = 150
                         });
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.PurchaseOrder", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Activo")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("Pendiente");
-
-                    b.Property<DateTime?>("FechaEstimadaEntrega")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("FechaPedido")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<string>("SupplierId")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<decimal>("Total")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Estado");
-
-                    b.HasIndex("FechaPedido")
-                        .IsDescending();
-
-                    b.HasIndex("SupplierId");
-
-                    b.ToTable("PurchaseOrders");
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.PurchaseOrderItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CantidadRecibida")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CantidadSolicitada")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("CostoUnitario")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PurchaseOrderId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("PurchaseOrderId");
-
-                    b.ToTable("PurchaseOrderItems");
                 });
 
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Supplier", b =>
@@ -1526,36 +1448,6 @@ namespace LentSoft.Web.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.PurchaseOrder", b =>
-                {
-                    b.HasOne("LentSoft.Web.Models.Entities.Supplier", "Supplier")
-                        .WithMany()
-                        .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Supplier");
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.PurchaseOrderItem", b =>
-                {
-                    b.HasOne("LentSoft.Web.Models.Entities.Product", "Product")
-                        .WithMany("PurchaseOrderItems")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("LentSoft.Web.Models.Entities.PurchaseOrder", "PurchaseOrder")
-                        .WithMany("PurchaseOrderItems")
-                        .HasForeignKey("PurchaseOrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("PurchaseOrder");
-                });
-
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Cart", b =>
                 {
                     b.Navigation("CartItems");
@@ -1573,13 +1465,6 @@ namespace LentSoft.Web.Migrations
                     b.Navigation("Favorites");
 
                     b.Navigation("OrderItems");
-
-                    b.Navigation("PurchaseOrderItems");
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.PurchaseOrder", b =>
-                {
-                    b.Navigation("PurchaseOrderItems");
                 });
 
             modelBuilder.Entity("LentSoft.Web.Models.Entities.User", b =>

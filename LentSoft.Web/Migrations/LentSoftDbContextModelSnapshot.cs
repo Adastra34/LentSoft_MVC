@@ -52,9 +52,6 @@ namespace LentSoft.Web.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<int?>("OptometraId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Servicio")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -63,18 +60,11 @@ namespace LentSoft.Web.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
-                    b.Property<int>("VecesReprogramada")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
                     b.HasKey("Id");
 
                     b.HasIndex("Estado");
 
                     b.HasIndex("FechaHora");
-
-                    b.HasIndex("OptometraId");
 
                     b.HasIndex("UserId");
 
@@ -88,10 +78,8 @@ namespace LentSoft.Web.Migrations
                             Estado = "confirmada",
                             FechaCreacion = new DateTime(2026, 5, 10, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaHora = new DateTime(2026, 5, 25, 10, 0, 0, 0, DateTimeKind.Utc),
-                            OptometraId = 3,
                             Servicio = "Examen de vista",
-                            UserId = 2,
-                            VecesReprogramada = 0
+                            UserId = 2
                         },
                         new
                         {
@@ -100,47 +88,9 @@ namespace LentSoft.Web.Migrations
                             Estado = "pendiente",
                             FechaCreacion = new DateTime(2026, 5, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaHora = new DateTime(2026, 6, 2, 14, 30, 0, 0, DateTimeKind.Utc),
-                            OptometraId = 3,
                             Servicio = "Ajuste de lentes",
-                            UserId = 2,
-                            VecesReprogramada = 0
+                            UserId = 2
                         });
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.AuditoriaCita", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AppointmentId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("EstadoAnterior")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("EstadoNuevo")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime>("FechaCambio")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AppointmentId");
-
-                    b.HasIndex("FechaCambio")
-                        .IsDescending();
-
-                    b.ToTable("AuditoriaCitas");
                 });
 
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Cart", b =>
@@ -625,17 +575,12 @@ namespace LentSoft.Web.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
-                    b.Property<int?>("WarehouseId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("Fecha")
                         .IsDescending();
 
                     b.HasIndex("ProductId");
-
-                    b.HasIndex("WarehouseId");
 
                     b.ToTable("InventoryMovements");
 
@@ -871,9 +816,6 @@ namespace LentSoft.Web.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
-                    b.Property<decimal>("CostoCompra")
-                        .HasColumnType("decimal(10,2)");
-
                     b.Property<string>("Descripcion")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -914,7 +856,9 @@ namespace LentSoft.Web.Migrations
                         .HasColumnType("nvarchar(200)");
 
                     b.Property<decimal>("PorcentajeIva")
-                        .HasColumnType("decimal(5,2)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("decimal(5,2)")
+                        .HasDefaultValue(19.00m);
 
                     b.Property<decimal>("Precio")
                         .HasColumnType("decimal(10,2)");
@@ -936,10 +880,10 @@ namespace LentSoft.Web.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(12);
 
-                    b.Property<int>("StockMinimo")
+                    b.Property<int>("Stock")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasDefaultValue(5);
+                        .HasDefaultValue(0);
 
                     b.Property<string>("Tamanio")
                         .HasMaxLength(100)
@@ -964,7 +908,6 @@ namespace LentSoft.Web.Migrations
                             Activo = true,
                             Categoria = "lentes-sol",
                             Color = "Negro / Verde G-15",
-                            CostoCompra = 0.00m,
                             Descripcion = "Lentes de sol clásicos estilo aviador",
                             EsDestacado = true,
                             Estilo = "Aviador",
@@ -979,7 +922,7 @@ namespace LentSoft.Web.Migrations
                             Proteccion = "UV400",
                             Rating = 4.9m,
                             ReviewCount = 28,
-                            StockMinimo = 5,
+                            Stock = 50,
                             Tamanio = "58-14-135"
                         },
                         new
@@ -987,7 +930,6 @@ namespace LentSoft.Web.Migrations
                             Id = 2,
                             Activo = true,
                             Categoria = "lentes-contacto",
-                            CostoCompra = 0.00m,
                             Descripcion = "Lentes de contacto mensuales",
                             EsDestacado = true,
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -998,7 +940,7 @@ namespace LentSoft.Web.Migrations
                             PrecioDescuento = 399000.00m,
                             Rating = 4.7m,
                             ReviewCount = 42,
-                            StockMinimo = 5
+                            Stock = 100
                         },
                         new
                         {
@@ -1006,7 +948,6 @@ namespace LentSoft.Web.Migrations
                             Activo = true,
                             Categoria = "monturas",
                             Color = "Negro Mate",
-                            CostoCompra = 0.00m,
                             Descripcion = "Montura deportiva ultraligera",
                             EsDestacado = true,
                             Estilo = "Deportivo",
@@ -1020,7 +961,7 @@ namespace LentSoft.Web.Migrations
                             Proteccion = "Filtro UV",
                             Rating = 4.8m,
                             ReviewCount = 15,
-                            StockMinimo = 5,
+                            Stock = 30,
                             Tamanio = "55-18-140"
                         },
                         new
@@ -1029,7 +970,6 @@ namespace LentSoft.Web.Migrations
                             Activo = true,
                             Categoria = "lentes-graduados",
                             Color = "Carey",
-                            CostoCompra = 0.00m,
                             Descripcion = "Lentes graduados con diseño clásico",
                             EsDestacado = true,
                             Estilo = "Wayfarer",
@@ -1043,7 +983,7 @@ namespace LentSoft.Web.Migrations
                             Proteccion = "Antirreflejo / Luz Azul",
                             Rating = 4.6m,
                             ReviewCount = 19,
-                            StockMinimo = 5,
+                            Stock = 40,
                             Tamanio = "52-19-145"
                         },
                         new
@@ -1051,7 +991,6 @@ namespace LentSoft.Web.Migrations
                             Id = 5,
                             Activo = true,
                             Categoria = "accesorios",
-                            CostoCompra = 0.00m,
                             Descripcion = "Estuche rígido para lentes",
                             EsDestacado = false,
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -1062,14 +1001,13 @@ namespace LentSoft.Web.Migrations
                             PrecioDescuento = 99000.00m,
                             Rating = 4.5m,
                             ReviewCount = 8,
-                            StockMinimo = 5
+                            Stock = 200
                         },
                         new
                         {
                             Id = 6,
                             Activo = true,
                             Categoria = "accesorios",
-                            CostoCompra = 0.00m,
                             Descripcion = "Solución limpiadora para lentes 360ml",
                             EsDestacado = false,
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
@@ -1079,159 +1017,8 @@ namespace LentSoft.Web.Migrations
                             Precio = 120000.00m,
                             Rating = 4.9m,
                             ReviewCount = 33,
-                            StockMinimo = 5
+                            Stock = 150
                         });
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.ProductStock", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Cantidad")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("WarehouseId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("WarehouseId");
-
-                    b.HasIndex("ProductId", "WarehouseId")
-                        .IsUnique();
-
-                    b.ToTable("ProductStocks");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Cantidad = 50,
-                            ProductId = 1,
-                            WarehouseId = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Cantidad = 100,
-                            ProductId = 2,
-                            WarehouseId = 1
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Cantidad = 30,
-                            ProductId = 3,
-                            WarehouseId = 1
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Cantidad = 40,
-                            ProductId = 4,
-                            WarehouseId = 1
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Cantidad = 200,
-                            ProductId = 5,
-                            WarehouseId = 1
-                        },
-                        new
-                        {
-                            Id = 6,
-                            Cantidad = 150,
-                            ProductId = 6,
-                            WarehouseId = 1
-                        });
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.PurchaseOrder", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Activo")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Estado")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)")
-                        .HasDefaultValue("Pendiente");
-
-                    b.Property<DateTime?>("FechaEstimadaEntrega")
-                        .HasColumnType("datetime2");
-
-                    b.Property<DateTime>("FechaPedido")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.Property<string>("SupplierId")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<decimal>("Total")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Estado");
-
-                    b.HasIndex("FechaPedido")
-                        .IsDescending();
-
-                    b.HasIndex("SupplierId");
-
-                    b.ToTable("PurchaseOrders");
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.PurchaseOrderItem", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("CantidadRecibida")
-                        .HasColumnType("int");
-
-                    b.Property<int>("CantidadSolicitada")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("CostoUnitario")
-                        .HasColumnType("decimal(10,2)");
-
-                    b.Property<int>("ProductId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PurchaseOrderId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProductId");
-
-                    b.HasIndex("PurchaseOrderId");
-
-                    b.ToTable("PurchaseOrderItems");
                 });
 
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Supplier", b =>
@@ -1489,80 +1276,15 @@ namespace LentSoft.Web.Migrations
                         });
                 });
 
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.Warehouse", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("Activo")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("bit")
-                        .HasDefaultValue(true);
-
-                    b.Property<string>("Direccion")
-                        .HasMaxLength(255)
-                        .HasColumnType("nvarchar(255)");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Activo");
-
-                    b.HasIndex("Nombre");
-
-                    b.ToTable("Warehouses");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Activo = true,
-                            Direccion = "Sede Principal LentSoft",
-                            Nombre = "Bodega Principal"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            Activo = true,
-                            Direccion = "Sucursal Norte",
-                            Nombre = "Bodega Norte"
-                        });
-                });
-
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Appointment", b =>
                 {
-                    b.HasOne("LentSoft.Web.Models.Entities.User", "Optometra")
-                        .WithMany()
-                        .HasForeignKey("OptometraId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
                     b.HasOne("LentSoft.Web.Models.Entities.User", "User")
                         .WithMany("Appointments")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Optometra");
-
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.AuditoriaCita", b =>
-                {
-                    b.HasOne("LentSoft.Web.Models.Entities.Appointment", "Appointment")
-                        .WithMany()
-                        .HasForeignKey("AppointmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Appointment");
                 });
 
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Cart", b =>
@@ -1679,14 +1401,7 @@ namespace LentSoft.Web.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("LentSoft.Web.Models.Entities.Warehouse", "Warehouse")
-                        .WithMany()
-                        .HasForeignKey("WarehouseId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
                     b.Navigation("Product");
-
-                    b.Navigation("Warehouse");
                 });
 
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Invoice", b =>
@@ -1730,55 +1445,6 @@ namespace LentSoft.Web.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.ProductStock", b =>
-                {
-                    b.HasOne("LentSoft.Web.Models.Entities.Product", "Product")
-                        .WithMany("ProductStocks")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("LentSoft.Web.Models.Entities.Warehouse", "Warehouse")
-                        .WithMany("ProductStocks")
-                        .HasForeignKey("WarehouseId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("Warehouse");
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.PurchaseOrder", b =>
-                {
-                    b.HasOne("LentSoft.Web.Models.Entities.Supplier", "Supplier")
-                        .WithMany()
-                        .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Supplier");
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.PurchaseOrderItem", b =>
-                {
-                    b.HasOne("LentSoft.Web.Models.Entities.Product", "Product")
-                        .WithMany("PurchaseOrderItems")
-                        .HasForeignKey("ProductId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("LentSoft.Web.Models.Entities.PurchaseOrder", "PurchaseOrder")
-                        .WithMany("PurchaseOrderItems")
-                        .HasForeignKey("PurchaseOrderId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Product");
-
-                    b.Navigation("PurchaseOrder");
-                });
-
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Cart", b =>
                 {
                     b.Navigation("CartItems");
@@ -1796,15 +1462,6 @@ namespace LentSoft.Web.Migrations
                     b.Navigation("Favorites");
 
                     b.Navigation("OrderItems");
-
-                    b.Navigation("ProductStocks");
-
-                    b.Navigation("PurchaseOrderItems");
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.PurchaseOrder", b =>
-                {
-                    b.Navigation("PurchaseOrderItems");
                 });
 
             modelBuilder.Entity("LentSoft.Web.Models.Entities.User", b =>
@@ -1814,11 +1471,6 @@ namespace LentSoft.Web.Migrations
                     b.Navigation("Favorites");
 
                     b.Navigation("Orders");
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.Warehouse", b =>
-                {
-                    b.Navigation("ProductStocks");
                 });
 #pragma warning restore 612, 618
         }
