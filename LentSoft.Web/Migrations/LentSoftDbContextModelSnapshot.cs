@@ -52,6 +52,9 @@ namespace LentSoft.Web.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<int?>("OptometraId")
+                        .HasColumnType("int");
+
                     b.Property<string>("Servicio")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -60,15 +63,29 @@ namespace LentSoft.Web.Migrations
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
+                    b.Property<int>("VecesReprogramada")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasDefaultValue(0);
+
                     b.HasKey("Id");
 
                     b.HasIndex("Estado");
 
                     b.HasIndex("FechaHora");
 
+                    b.HasIndex("OptometraId");
+
                     b.HasIndex("UserId");
 
-                    b.ToTable("Appointments");
+                    b.ToTable("Appointments", t =>
+                        {
+                            t.HasTrigger("trg_Appointment_Auditoria");
+
+                            t.HasTrigger("trg_Appointment_PreventOverlap");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
 
                     b.HasData(
                         new
@@ -78,8 +95,10 @@ namespace LentSoft.Web.Migrations
                             Estado = "confirmada",
                             FechaCreacion = new DateTime(2026, 5, 10, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaHora = new DateTime(2026, 5, 25, 10, 0, 0, 0, DateTimeKind.Utc),
+                            OptometraId = 3,
                             Servicio = "Examen de vista",
-                            UserId = 2
+                            UserId = 2,
+                            VecesReprogramada = 0
                         },
                         new
                         {
@@ -88,9 +107,47 @@ namespace LentSoft.Web.Migrations
                             Estado = "pendiente",
                             FechaCreacion = new DateTime(2026, 5, 15, 0, 0, 0, 0, DateTimeKind.Utc),
                             FechaHora = new DateTime(2026, 6, 2, 14, 30, 0, 0, DateTimeKind.Utc),
+                            OptometraId = 3,
                             Servicio = "Ajuste de lentes",
-                            UserId = 2
+                            UserId = 2,
+                            VecesReprogramada = 0
                         });
+                });
+
+            modelBuilder.Entity("LentSoft.Web.Models.Entities.AuditoriaCita", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AppointmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EstadoAnterior")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("EstadoNuevo")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("FechaCambio")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AppointmentId");
+
+                    b.HasIndex("FechaCambio")
+                        .IsDescending();
+
+                    b.ToTable("AuditoriaCitas");
                 });
 
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Cart", b =>
@@ -544,7 +601,12 @@ namespace LentSoft.Web.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("HistorialesClinicos");
+                    b.ToTable("HistorialesClinicos", t =>
+                        {
+                            t.HasTrigger("trg_HistorialClinico_PrevenirEliminacionConFormula");
+                        });
+
+                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
                 });
 
             modelBuilder.Entity("LentSoft.Web.Models.Entities.InventoryMovement", b =>
@@ -1021,6 +1083,90 @@ namespace LentSoft.Web.Migrations
                         });
                 });
 
+            modelBuilder.Entity("LentSoft.Web.Models.Entities.SalesOrder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ClienteNombre")
+                        .IsRequired()
+                        .HasMaxLength(150)
+                        .HasColumnType("nvarchar(150)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime>("Fecha")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Notas")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("NumeroPedido")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("PrecioUnitario")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("ProductoNombre")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NumeroPedido");
+
+                    b.ToTable("SalesOrders");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Activo = true,
+                            Cantidad = 2,
+                            ClienteNombre = "Carlos Ramírez",
+                            Estado = "entregado",
+                            Fecha = new DateTime(2026, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc),
+                            NumeroPedido = "PED-VENTA-001",
+                            PrecioUnitario = 350000.00m,
+                            ProductoNombre = "Gafas de Sol Polarizadas Especiales",
+                            Total = 700000.00m
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Activo = true,
+                            Cantidad = 1,
+                            ClienteNombre = "Ana María Torres",
+                            Estado = "enviado",
+                            Fecha = new DateTime(2026, 5, 22, 0, 0, 0, 0, DateTimeKind.Utc),
+                            NumeroPedido = "PED-VENTA-002",
+                            PrecioUnitario = 480000.00m,
+                            ProductoNombre = "Lentes de Contacto Toricos Custom",
+                            Total = 480000.00m
+                        });
+                });
+
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Supplier", b =>
                 {
                     b.Property<string>("Id")
@@ -1095,6 +1241,92 @@ namespace LentSoft.Web.Migrations
                             Nombre = "Distribuidora Visual",
                             Telefono = "555-1003",
                             TipoProductos = "Accesorios"
+                        });
+                });
+
+            modelBuilder.Entity("LentSoft.Web.Models.Entities.SupplierOrder", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("Activo")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime>("Fecha")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("Notas")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("NumeroPedido")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("PrecioUnitario")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SupplierId")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NumeroPedido");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("SupplierId");
+
+                    b.ToTable("SupplierOrders");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Activo = true,
+                            Cantidad = 15,
+                            Estado = "recibido",
+                            Fecha = new DateTime(2026, 5, 10, 0, 0, 0, 0, DateTimeKind.Utc),
+                            NumeroPedido = "PED-PROV-001",
+                            PrecioUnitario = 1200000.00m,
+                            ProductId = 1,
+                            SupplierId = "PROV001",
+                            Total = 18000000.00m
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Activo = true,
+                            Cantidad = 30,
+                            Estado = "pendiente",
+                            Fecha = new DateTime(2026, 5, 20, 0, 0, 0, 0, DateTimeKind.Utc),
+                            NumeroPedido = "PED-PROV-002",
+                            PrecioUnitario = 200000.00m,
+                            ProductId = 2,
+                            SupplierId = "PROV002",
+                            Total = 6000000.00m
                         });
                 });
 
@@ -1278,13 +1510,31 @@ namespace LentSoft.Web.Migrations
 
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Appointment", b =>
                 {
+                    b.HasOne("LentSoft.Web.Models.Entities.User", "Optometra")
+                        .WithMany()
+                        .HasForeignKey("OptometraId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("LentSoft.Web.Models.Entities.User", "User")
                         .WithMany("Appointments")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.Navigation("Optometra");
+
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("LentSoft.Web.Models.Entities.AuditoriaCita", b =>
+                {
+                    b.HasOne("LentSoft.Web.Models.Entities.Appointment", "Appointment")
+                        .WithMany()
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
                 });
 
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Cart", b =>
@@ -1443,6 +1693,25 @@ namespace LentSoft.Web.Migrations
                     b.Navigation("Order");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("LentSoft.Web.Models.Entities.SupplierOrder", b =>
+                {
+                    b.HasOne("LentSoft.Web.Models.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("LentSoft.Web.Models.Entities.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Product");
+
+                    b.Navigation("Supplier");
                 });
 
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Cart", b =>

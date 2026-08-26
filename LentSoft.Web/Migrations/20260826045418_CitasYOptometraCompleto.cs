@@ -3,26 +3,28 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
+#pragma warning disable CA1814 // Prefer jagged arrays over multidimensional
+
 namespace LentSoft.Web.Migrations
 {
     /// <inheritdoc />
-    public partial class AddSPsTriggersAuditoria : Migration
+    public partial class CitasYOptometraCompleto : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
-                name: "FK_Appointments_Users_OptometraId",
-                table: "Appointments");
+            migrationBuilder.AddColumn<int>(
+                name: "OptometraId",
+                table: "Appointments",
+                type: "int",
+                nullable: true);
 
-            migrationBuilder.AlterColumn<int>(
+            migrationBuilder.AddColumn<int>(
                 name: "VecesReprogramada",
                 table: "Appointments",
                 type: "int",
                 nullable: false,
-                defaultValue: 0,
-                oldClrType: typeof(int),
-                oldType: "int");
+                defaultValue: 0);
 
             migrationBuilder.CreateTable(
                 name: "AuditoriaCitas",
@@ -46,6 +48,99 @@ namespace LentSoft.Web.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "SalesOrders",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NumeroPedido = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    ClienteNombre = table.Column<string>(type: "nvarchar(150)", maxLength: 150, nullable: false),
+                    ProductoNombre = table.Column<string>(type: "nvarchar(200)", maxLength: 200, nullable: false),
+                    Cantidad = table.Column<int>(type: "int", nullable: false),
+                    PrecioUnitario = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    Total = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    Estado = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    Notas = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Activo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SalesOrders", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "SupplierOrders",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    NumeroPedido = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    SupplierId = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    ProductId = table.Column<int>(type: "int", nullable: false),
+                    Cantidad = table.Column<int>(type: "int", nullable: false),
+                    PrecioUnitario = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    Total = table.Column<decimal>(type: "decimal(10,2)", nullable: false),
+                    Estado = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    Fecha = table.Column<DateTime>(type: "datetime2", nullable: false, defaultValueSql: "GETUTCDATE()"),
+                    Notas = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: true),
+                    Activo = table.Column<bool>(type: "bit", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_SupplierOrders", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_SupplierOrders_Products_ProductId",
+                        column: x => x.ProductId,
+                        principalTable: "Products",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_SupplierOrders_Suppliers_SupplierId",
+                        column: x => x.SupplierId,
+                        principalTable: "Suppliers",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.UpdateData(
+                table: "Appointments",
+                keyColumn: "Id",
+                keyValue: 1,
+                column: "OptometraId",
+                value: 3);
+
+            migrationBuilder.UpdateData(
+                table: "Appointments",
+                keyColumn: "Id",
+                keyValue: 2,
+                column: "OptometraId",
+                value: 3);
+
+            migrationBuilder.InsertData(
+                table: "SalesOrders",
+                columns: new[] { "Id", "Activo", "Cantidad", "ClienteNombre", "Estado", "Fecha", "Notas", "NumeroPedido", "PrecioUnitario", "ProductoNombre", "Total" },
+                values: new object[,]
+                {
+                    { 1, true, 2, "Carlos Ram�rez", "entregado", new DateTime(2026, 5, 12, 0, 0, 0, 0, DateTimeKind.Utc), null, "PED-VENTA-001", 350000.00m, "Gafas de Sol Polarizadas Especiales", 700000.00m },
+                    { 2, true, 1, "Ana Mar�a Torres", "enviado", new DateTime(2026, 5, 22, 0, 0, 0, 0, DateTimeKind.Utc), null, "PED-VENTA-002", 480000.00m, "Lentes de Contacto Toricos Custom", 480000.00m }
+                });
+
+            migrationBuilder.InsertData(
+                table: "SupplierOrders",
+                columns: new[] { "Id", "Activo", "Cantidad", "Estado", "Fecha", "Notas", "NumeroPedido", "PrecioUnitario", "ProductId", "SupplierId", "Total" },
+                values: new object[,]
+                {
+                    { 1, true, 15, "recibido", new DateTime(2026, 5, 10, 0, 0, 0, 0, DateTimeKind.Utc), null, "PED-PROV-001", 1200000.00m, 1, "PROV001", 18000000.00m },
+                    { 2, true, 30, "pendiente", new DateTime(2026, 5, 20, 0, 0, 0, 0, DateTimeKind.Utc), null, "PED-PROV-002", 200000.00m, 2, "PROV002", 6000000.00m }
+                });
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Appointments_OptometraId",
+                table: "Appointments",
+                column: "OptometraId");
+
             migrationBuilder.CreateIndex(
                 name: "IX_AuditoriaCitas_AppointmentId",
                 table: "AuditoriaCitas",
@@ -57,13 +152,32 @@ namespace LentSoft.Web.Migrations
                 column: "FechaCambio",
                 descending: new bool[0]);
 
+            migrationBuilder.CreateIndex(
+                name: "IX_SalesOrders_NumeroPedido",
+                table: "SalesOrders",
+                column: "NumeroPedido");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SupplierOrders_NumeroPedido",
+                table: "SupplierOrders",
+                column: "NumeroPedido");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SupplierOrders_ProductId",
+                table: "SupplierOrders",
+                column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_SupplierOrders_SupplierId",
+                table: "SupplierOrders",
+                column: "SupplierId");
+
             migrationBuilder.AddForeignKey(
                 name: "FK_Appointments_Users_OptometraId",
                 table: "Appointments",
                 column: "OptometraId",
                 principalTable: "Users",
                 principalColumn: "Id");
-
             // ──────────────────────────────────────────────────────────
             // STORED PROCEDURES
             // ──────────────────────────────────────────────────────────
@@ -327,22 +441,24 @@ END;
             migrationBuilder.DropTable(
                 name: "AuditoriaCitas");
 
-            migrationBuilder.AlterColumn<int>(
-                name: "VecesReprogramada",
-                table: "Appointments",
-                type: "int",
-                nullable: false,
-                oldClrType: typeof(int),
-                oldType: "int",
-                oldDefaultValue: 0);
+            migrationBuilder.DropTable(
+                name: "SalesOrders");
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Appointments_Users_OptometraId",
-                table: "Appointments",
-                column: "OptometraId",
-                principalTable: "Users",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.Restrict);
+            migrationBuilder.DropTable(
+                name: "SupplierOrders");
+
+            migrationBuilder.DropIndex(
+                name: "IX_Appointments_OptometraId",
+                table: "Appointments");
+
+            migrationBuilder.DropColumn(
+                name: "OptometraId",
+                table: "Appointments");
+
+            migrationBuilder.DropColumn(
+                name: "VecesReprogramada",
+                table: "Appointments");
         }
     }
 }
+
