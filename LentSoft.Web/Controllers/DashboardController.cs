@@ -182,6 +182,7 @@ public class DashboardController : Controller
         var citas = await _context.Appointments
             .Where(a => a.Activo)
             .Include(a => a.User)
+            .Include(a => a.Optometra)
             .OrderByDescending(a => a.FechaHora)
             .ToListAsync();
 
@@ -242,6 +243,11 @@ public class DashboardController : Controller
             ActiveSubTab = subtab
         };
 
+        ViewBag.Optometras = await _context.Users
+            .Where(u => u.Role == "optometra" && u.Activo)
+            .OrderBy(u => u.Nombre)
+            .ToListAsync();
+
         return View(viewModel);
     }
 
@@ -277,7 +283,7 @@ public class DashboardController : Controller
             .ToListAsync();
 
         // Citas del usuario autenticado con filtrado y paginación
-        var citasQuery = _context.Appointments.Where(a => a.UserId == userId && a.Activo);
+        var citasQuery = _context.Appointments.Include(a => a.Optometra).Where(a => a.UserId == userId && a.Activo);
         if (!string.IsNullOrWhiteSpace(citasSearch))
         {
             var term = citasSearch.Trim().ToLower();
@@ -322,11 +328,37 @@ public class DashboardController : Controller
             return RedirectToAction("Usuario", new { section = "citas" });
         }
 
+        // 1. Validar horario laboral
+        if (!Appointment.EsHorarioLaboral(FechaHora))
+        {
+            TempData["ErrorMessage"] = "Las citas solo pueden agendarse de lunes a sábado, entre 8:00 a.m. y 6:00 p.m.";
+            return RedirectToAction("Usuario", new { section = "citas" });
+        }
+
         try
         {
+            // 2. Buscar primer optómetra disponible
+            var optometras = await _context.Users.Where(u => u.Role == "optometra" && u.Activo).ToListAsync();
+            User? optDisponible = null;
+            foreach (var opt in optometras)
+            {
+                if (await Appointment.HayDisponibilidad(_context, opt.Id, FechaHora))
+                {
+                    optDisponible = opt;
+                    break;
+                }
+            }
+
+            if (optDisponible == null)
+            {
+                TempData["ErrorMessage"] = "No hay optómetras disponibles en ese horario. Por favor elige otro horario.";
+                return RedirectToAction("Usuario", new { section = "citas" });
+            }
+
             var appointment = new Appointment
             {
                 UserId = userId,
+                OptometraId = optDisponible.Id,
                 Servicio = Servicio.Trim(),
                 FechaHora = FechaHora,
                 Notas = Notas?.Trim(),
@@ -406,13 +438,59 @@ public class DashboardController : Controller
                 return RedirectToAction("Usuario", new { section = "citas" });
             }
 
+            // 1. Limitar a 1 reprogramación
+            if (cita.VecesReprogramada >= 1)
+            {
+                TempData["ErrorMessage"] = "Esta cita ya fue reprogramada una vez. Si necesitas otro cambio, por favor cancela la cita y agenda una nueva.";
+                return RedirectToAction("Usuario", new { section = "citas" });
+            }
+
             if (NuevaFechaHora <= DateTime.UtcNow)
             {
                 TempData["ErrorMessage"] = "La nueva fecha y hora debe ser a futuro.";
                 return RedirectToAction("Usuario", new { section = "citas" });
             }
 
+            // 2. Validar horario laboral
+            if (!Appointment.EsHorarioLaboral(NuevaFechaHora))
+            {
+                TempData["ErrorMessage"] = "Las citas solo pueden agendarse de lunes a sábado, entre 8:00 a.m. y 6:00 p.m.";
+                return RedirectToAction("Usuario", new { section = "citas" });
+            }
+
+            // 3. Buscar primer optómetra disponible para la nueva fecha
+            var optometras = await _context.Users.Where(u => u.Role == "optometra" && u.Activo).ToListAsync();
+            User? optDisponible = null;
+            if (cita.OptometraId.HasValue)
+            {
+                var currentOpt = optometras.FirstOrDefault(o => o.Id == cita.OptometraId.Value);
+                if (currentOpt != null && await Appointment.HayDisponibilidad(_context, currentOpt.Id, NuevaFechaHora, cita.Id))
+                {
+                    optDisponible = currentOpt;
+                }
+            }
+
+            if (optDisponible == null)
+            {
+                foreach (var opt in optometras)
+                {
+                    if (await Appointment.HayDisponibilidad(_context, opt.Id, NuevaFechaHora, cita.Id))
+                    {
+                        optDisponible = opt;
+                        break;
+                    }
+                }
+            }
+
+            if (optDisponible == null)
+            {
+                TempData["ErrorMessage"] = "No hay optómetras disponibles en ese horario. Por favor elige otro horario.";
+                return RedirectToAction("Usuario", new { section = "citas" });
+            }
+
             cita.FechaHora = NuevaFechaHora;
+            cita.OptometraId = optDisponible.Id;
+            cita.VecesReprogramada += 1;
             cita.Estado = "pendiente";
             await _context.SaveChangesAsync();
 
@@ -493,13 +571,40 @@ public class DashboardController : Controller
     [HttpPost]
     [Authorize(Roles = "admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateAppointment(int UserId, string Servicio, DateTime FechaHora, string? Notas)
+    public async Task<IActionResult> CreateAppointment(int UserId, string Servicio, DateTime FechaHora, string? Notas, int? OptometraId)
     {
+        if (FechaHora <= DateTime.UtcNow)
+        {
+            TempData["ErrorMessage"] = "La fecha y hora de la cita debe ser futura.";
+            return RedirectToAction("Admin", new { section = "citas" });
+        }
+
+        // 1. Validar horario laboral
+        if (!Appointment.EsHorarioLaboral(FechaHora))
+        {
+            TempData["ErrorMessage"] = "Las citas solo pueden agendarse de lunes a sábado, entre 8:00 a.m. y 6:00 p.m.";
+            return RedirectToAction("Admin", new { section = "citas" });
+        }
+
+        // 2. Validar optómetra
+        if (!OptometraId.HasValue)
+        {
+            TempData["ErrorMessage"] = "Debe seleccionar un optómetra.";
+            return RedirectToAction("Admin", new { section = "citas" });
+        }
+
+        if (!await Appointment.HayDisponibilidad(_context, OptometraId.Value, FechaHora))
+        {
+            TempData["ErrorMessage"] = "El optómetra ya tiene una cita agendada en ese horario. Por favor elige otro horario.";
+            return RedirectToAction("Admin", new { section = "citas" });
+        }
+
         try
         {
             var appointment = new Appointment
             {
                 UserId = UserId,
+                OptometraId = OptometraId,
                 Servicio = Servicio,
                 FechaHora = FechaHora,
                 Notas = Notas,

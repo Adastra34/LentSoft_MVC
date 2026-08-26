@@ -17,6 +17,7 @@ public class LentSoftDbContext : DbContext
     public DbSet<Employee> Employees => Set<Employee>();
     public DbSet<Invoice> Invoices => Set<Invoice>();
     public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<AuditoriaCita> AuditoriaCitas => Set<AuditoriaCita>();
     public DbSet<Favorite> Favorites => Set<Favorite>();
     public DbSet<Cart> Carts => Set<Cart>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
@@ -252,21 +253,49 @@ public class LentSoftDbContext : DbContext
         // ── Appointments ──
         modelBuilder.Entity<Appointment>(entity =>
         {
+            entity.ToTable(tb => 
+            {
+                tb.HasTrigger("trg_Appointment_PreventOverlap");
+                tb.HasTrigger("trg_Appointment_Auditoria");
+            });
+
             entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.OptometraId);
             entity.HasIndex(e => e.FechaHora);
             entity.HasIndex(e => e.Estado);
             entity.Property(e => e.Estado).HasDefaultValue("pendiente");
             entity.Property(e => e.FechaCreacion).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.VecesReprogramada).HasDefaultValue(0);
 
             entity.HasOne(e => e.User)
                   .WithMany(u => u.Appointments)
                   .HasForeignKey(e => e.UserId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Optometra)
+                  .WithMany()
+                  .HasForeignKey(e => e.OptometraId)
+                  .OnDelete(DeleteBehavior.NoAction);
+        });
+
+        // ── AuditoriaCitas ──
+        modelBuilder.Entity<AuditoriaCita>(entity =>
+        {
+            entity.HasIndex(e => e.AppointmentId);
+            entity.HasIndex(e => e.FechaCambio).IsDescending();
+            entity.Property(e => e.FechaCambio).HasDefaultValueSql("GETUTCDATE()");
+
+            entity.HasOne(e => e.Appointment)
+                  .WithMany()
+                  .HasForeignKey(e => e.AppointmentId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
         // ── HistorialesClinicos ──
         modelBuilder.Entity<HistorialClinico>(entity =>
         {
+            entity.ToTable(tb => tb.HasTrigger("trg_HistorialClinico_PrevenirEliminacionConFormula"));
+
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.OptometraId);
             entity.Property(e => e.FechaCreacion).HasDefaultValueSql("GETUTCDATE()");
@@ -604,7 +633,8 @@ public class LentSoftDbContext : DbContext
                 Servicio = "Examen de vista",
                 FechaHora = new DateTime(2026, 5, 25, 10, 0, 0, DateTimeKind.Utc),
                 Estado = "confirmada",
-                FechaCreacion = new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc)
+                FechaCreacion = new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc),
+                OptometraId = 3
             },
             new Appointment
             {
@@ -613,7 +643,8 @@ public class LentSoftDbContext : DbContext
                 Servicio = "Ajuste de lentes",
                 FechaHora = new DateTime(2026, 6, 2, 14, 30, 0, DateTimeKind.Utc),
                 Estado = "pendiente",
-                FechaCreacion = new DateTime(2026, 5, 15, 0, 0, 0, DateTimeKind.Utc)
+                FechaCreacion = new DateTime(2026, 5, 15, 0, 0, 0, DateTimeKind.Utc),
+                OptometraId = 3
             }
         );
 

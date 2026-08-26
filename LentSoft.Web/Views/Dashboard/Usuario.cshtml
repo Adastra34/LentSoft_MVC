@@ -401,6 +401,7 @@
                                         <thead>
                                             <tr style="background-color: var(--purple-50); color: var(--purple-900); border-bottom: 2px solid var(--purple-200);">
                                                 <th style="padding: 0.75rem; font-weight: 700;">Servicio</th>
+                                                <th style="padding: 0.75rem; font-weight: 700;">Optómetra</th>
                                                 <th style="padding: 0.75rem; font-weight: 700;">Fecha y Hora</th>
                                                 <th style="padding: 0.75rem; font-weight: 700;">Estado</th>
                                                 <th style="padding: 0.75rem; font-weight: 700; text-align: center;">Acciones</th>
@@ -410,7 +411,7 @@
                                             @if (Model.Citas == null || Model.Citas.Count == 0)
                                             {
                                                 <tr>
-                                                    <td colspan="4" style="text-align: center; padding: 2rem; color: var(--gray-500);">
+                                                    <td colspan="5" style="text-align: center; padding: 2rem; color: var(--gray-500);">
                                                         No tienes citas programadas actualmente.
                                                     </td>
                                                 </tr>
@@ -432,6 +433,9 @@
                                                             @cita.Servicio
                                                         </td>
                                                         <td style="padding: 0.75rem; color: var(--gray-700);">
+                                                            @(cita.Optometra?.NombreCompleto ?? "Por asignar")
+                                                        </td>
+                                                        <td style="padding: 0.75rem; color: var(--gray-700);">
                                                             📅 @cita.FechaHora.ToString("dd/MM/yyyy HH:mm") hrs
                                                         </td>
                                                         <td style="padding: 0.75rem;">
@@ -440,7 +444,7 @@
                                                             </span>
                                                         </td>
                                                         <td style="padding: 0.75rem; text-align: center;">
-                                                            <div style="display: flex; gap: 0.4rem; justify-content: center;">
+                                                            <div style="display: flex; gap: 0.4rem; justify-content: center; align-items: center;">
                                                                 @if (cita.Estado.ToLower() == "pendiente" || cita.Estado.ToLower() == "confirmada")
                                                                 {
                                                                     <button type="button" onclick="confirmCancelCita(@cita.Id, '@cita.Servicio')" style="background: white; color: var(--error); border: 1px solid var(--error); padding: 0.3rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
@@ -450,9 +454,16 @@
 
                                                                 @if (cita.Estado.ToLower() != "completada" && cita.Estado.ToLower() != "cancelada")
                                                                 {
-                                                                    <button type="button" onclick="openRescheduleModal(@cita.Id, '@cita.FechaHora.ToString("yyyy-MM-ddTHH:mm")')" style="background: white; color: var(--purple-700); border: 1px solid var(--purple-400); padding: 0.3rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
-                                                                        Reprogramar
-                                                                    </button>
+                                                                    @if (cita.VecesReprogramada >= 1)
+                                                                    {
+                                                                        <span style="background: #f3f4f6; color: #4b5563; border: 1px solid #d1d5db; padding: 0.25rem 0.5rem; border-radius: 0.25rem; font-size: 0.75rem; font-weight: 600; cursor: not-allowed; display: inline-block;">Ya reprogramada</span>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <button type="button" onclick="openRescheduleModal(@cita.Id, '@cita.FechaHora.ToString("yyyy-MM-ddTHH:mm")', '@cita.Servicio')" style="background: white; color: var(--purple-700); border: 1px solid var(--purple-400); padding: 0.3rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+                                                                            Reprogramar
+                                                                        </button>
+                                                                    }
                                                                 }
                                                             </div>
                                                         </td>
@@ -602,60 +613,65 @@
             <button type="button" onclick="document.getElementById('modal-agendar-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
-        <form action="/Dashboard/UserScheduleAppointment" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-            @Html.AntiForgeryToken()
-            <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Servicio *</label>
-                <select name="Servicio" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
-                    <option value="">-- Selecciona un servicio --</option>
-                    <option value="Examen visual completo">Examen visual completo</option>
-                    <option value="Control de lentes">Control de lentes</option>
-                    <option value="Primera consulta">Primera consulta</option>
-                    <option value="Adaptación de lentes de contacto">Adaptación de lentes de contacto</option>
-                    <option value="Ajuste y mantenimiento de lentes">Ajuste y mantenimiento de lentes</option>
-                </select>
-            </div>
+        <form action="/Dashboard/UserScheduleAppointment" method="post" onsubmit="return validateCitaForm(this);" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                                            @Html.AntiForgeryToken()
+                                            <div>
+                                                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Servicio *</label>
+                                                <select name="Servicio" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                                                    <option value="">-- Selecciona un servicio --</option>
+                                                    <option value="Examen visual completo">Examen visual completo</option>
+                                                    <option value="Control de lentes">Control de lentes</option>
+                                                    <option value="Primera consulta">Primera consulta</option>
+                                                    <option value="Adaptación de lentes de contacto">Adaptación de lentes de contacto</option>
+                                                    <option value="Ajuste y mantenimiento de lentes">Ajuste y mantenimiento de lentes</option>
+                                                </select>
+                                            </div>
 
-            <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Fecha y Hora *</label>
-                <input name="FechaHora" id="agendarFechaHora" type="datetime-local" class="form-input" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
-            </div>
+                                            <div>
+                                                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Fecha y Hora *</label>
+                                                <input name="FechaHora" id="agendarFechaHora" type="datetime-local" class="form-input" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                                            </div>
 
-            <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Notas adicionales (Opcional)</label>
-                <textarea name="Notas" class="form-input" rows="3" placeholder="Ej: Presento dolor de cabeza o molestia en ojo derecho..." style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);"></textarea>
-            </div>
+                                            <div>
+                                                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Notas adicionales (Opcional)</label>
+                                                <textarea name="Notas" class="form-input" rows="3" placeholder="Ej: Presento dolor de cabeza o molestia en ojo derecho..." style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);"></textarea>
+                                            </div>
 
-            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
-                <button type="button" onclick="document.getElementById('modal-agendar-cita').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
-                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Confirmar Cita</button>
-            </div>
-        </form>
-    </div>
-</div>
+                                            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                                                <button type="button" onclick="document.getElementById('modal-agendar-cita').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                                                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Confirmar Cita</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
 
-<!-- Modal para Reprogramar Cita -->
-<div id="modal-reprogramar-cita" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
-    <div class="card" style="width: 100%; max-width: 450px; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
-            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.2rem; font-weight: 700;">🗓️ Reprogramar Cita</h2>
-            <button type="button" onclick="document.getElementById('modal-reprogramar-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
-        </div>
-        
-        <form action="/Dashboard/UserRescheduleAppointment" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-            @Html.AntiForgeryToken()
-            <input type="hidden" id="rescheduleCitaId" name="id" />
+                                <!-- Modal para Reprogramar Cita -->
+                                <div id="modal-reprogramar-cita" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                                    <div class="card" style="width: 100%; max-width: 450px; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+                                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+                                            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.2rem; font-weight: 700;">🗓️ Reprogramar Cita</h2>
+                                            <button type="button" onclick="document.getElementById('modal-reprogramar-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                                        </div>
+                                        
+                                        <form action="/Dashboard/UserRescheduleAppointment" method="post" onsubmit="return validateCitaForm(this);" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" id="rescheduleCitaId" name="id" />
 
-            <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nueva Fecha y Hora *</label>
-                <input id="rescheduleFechaHora" name="NuevaFechaHora" type="datetime-local" class="form-input" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
-            </div>
+                                            <div>
+                                                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Servicio</label>
+                                                <div id="rescheduleCitaServicio" style="padding: 0.5rem 0.75rem; background: var(--gray-50); border: 1px solid var(--purple-200); border-radius: 0.375rem; font-size: 0.9rem; color: var(--gray-700); font-weight: 500; margin-bottom: 0.5rem;"></div>
+                                            </div>
 
-            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
-                <button type="button" onclick="document.getElementById('modal-reprogramar-cita').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
-                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Guardar Cambio</button>
-            </div>
-        </form>
+                                            <div>
+                                                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nueva Fecha y Hora *</label>
+                                                <input id="rescheduleFechaHora" name="NuevaFechaHora" type="datetime-local" class="form-input" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                                            </div>
+
+                                            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                                                <button type="button" onclick="document.getElementById('modal-reprogramar-cita').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                                                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Guardar Cambio</button>
+                                            </div>
+                                        </form>
     </div>
 </div>
 
@@ -698,12 +714,43 @@
         form.submit();
     }
 
-    function openRescheduleModal(id, currentFechaHora) {
+    function openRescheduleModal(id, currentFechaHora, servicio) {
         document.getElementById('rescheduleCitaId').value = id;
         if (currentFechaHora) {
             document.getElementById('rescheduleFechaHora').value = currentFechaHora;
         }
+        document.getElementById('rescheduleCitaServicio').innerText = servicio;
         document.getElementById('modal-reprogramar-cita').style.display = 'flex';
+    }
+
+    function validateCitaForm(form) {
+        const input = form.querySelector('input[type="datetime-local"]');
+        if (!input) return true;
+        const datetimeVal = input.value;
+        if (!datetimeVal) return true;
+        
+        const dt = new Date(datetimeVal);
+        if (dt.getDay() === 0) {
+            if (typeof alertify !== 'undefined') {
+                alertify.error("Las citas solo pueden agendarse de lunes a sábado.");
+            } else {
+                alert("Las citas solo pueden agendarse de lunes a sábado.");
+            }
+            return false;
+        }
+        
+        const hours = dt.getHours();
+        const minutes = dt.getMinutes();
+        const decimalHour = hours + minutes / 60.0;
+        if (decimalHour < 8.0 || decimalHour > 18.0) {
+            if (typeof alertify !== 'undefined') {
+                alertify.error("El horario de citas es de 8:00 a.m. a 6:00 p.m.");
+            } else {
+                alert("El horario de citas es de 8:00 a.m. a 6:00 p.m.");
+            }
+            return false;
+        }
+        return true;
     }
 
     function filterClientSideCitas(filterVal) {

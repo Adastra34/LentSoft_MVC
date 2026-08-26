@@ -4,6 +4,7 @@ using LentSoft.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LentSoft.Web.Migrations
 {
     [DbContext(typeof(LentSoftDbContext))]
-    partial class LentSoftDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260812210710_CitasReglasNegocio")]
+    partial class CitasReglasNegocio
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -64,9 +67,7 @@ namespace LentSoft.Web.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("VecesReprogramada")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
@@ -105,42 +106,6 @@ namespace LentSoft.Web.Migrations
                             UserId = 2,
                             VecesReprogramada = 0
                         });
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.AuditoriaCita", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AppointmentId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("EstadoAnterior")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("EstadoNuevo")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<DateTime>("FechaCambio")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AppointmentId");
-
-                    b.HasIndex("FechaCambio")
-                        .IsDescending();
-
-                    b.ToTable("AuditoriaCitas");
                 });
 
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Cart", b =>
@@ -1541,7 +1506,7 @@ namespace LentSoft.Web.Migrations
                     b.HasOne("LentSoft.Web.Models.Entities.User", "Optometra")
                         .WithMany()
                         .HasForeignKey("OptometraId")
-                        .OnDelete(DeleteBehavior.NoAction);
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("LentSoft.Web.Models.Entities.User", "User")
                         .WithMany("Appointments")
@@ -1552,17 +1517,6 @@ namespace LentSoft.Web.Migrations
                     b.Navigation("Optometra");
 
                     b.Navigation("User");
-                });
-
-            modelBuilder.Entity("LentSoft.Web.Models.Entities.AuditoriaCita", b =>
-                {
-                    b.HasOne("LentSoft.Web.Models.Entities.Appointment", "Appointment")
-                        .WithMany()
-                        .HasForeignKey("AppointmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Appointment");
                 });
 
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Cart", b =>

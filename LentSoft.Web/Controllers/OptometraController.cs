@@ -34,6 +34,7 @@ public class OptometraController : Controller
         var citas = await _context.Appointments
             .Where(a => a.Activo)
             .Include(a => a.User)
+            .Include(a => a.Optometra)
             .OrderByDescending(a => a.FechaHora)
             .ToListAsync();
 
@@ -94,6 +95,10 @@ public class OptometraController : Controller
         };
 
         ViewBag.DetalleId = detalleId;
+        ViewBag.Optometras = await _context.Users
+            .Where(u => u.Role == "optometra" && u.Activo)
+            .OrderBy(u => u.Nombre)
+            .ToListAsync();
         return View("~/Views/Dashboard/Optometra.cshtml", viewModel);
     }
 
@@ -128,9 +133,12 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateHistorial(HistorialClinico model)
     {
+        ModelState.Remove("User");
+        ModelState.Remove("Optometra");
         if (!ModelState.IsValid)
         {
-            TempData["ErrorMessage"] = "Error al crear el historial clínico. Por favor verifica los datos.";
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Error al crear el historial clínico. Por favor verifica los datos.";
+            TempData["ErrorMessage"] = firstError;
             return RedirectToAction("Index", new { section = "historial" });
         }
 
@@ -155,6 +163,8 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditHistorial(HistorialClinico model)
     {
+        ModelState.Remove("User");
+        ModelState.Remove("Optometra");
         if (!ModelState.IsValid)
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos del historial no válidos.";
@@ -577,9 +587,19 @@ public class OptometraController : Controller
             return RedirectToAction("Index", new { section = "citas" });
         }
 
-        if (model.FechaHora <= DateTime.UtcNow)
+        // 1. Validar horario laboral
+        if (!Appointment.EsHorarioLaboral(model.FechaHora))
         {
-            TempData["ErrorMessage"] = "La fecha y hora de la cita debe ser futura.";
+            TempData["ErrorMessage"] = "Las citas solo pueden agendarse de lunes a sábado, entre 8:00 a.m. y 6:00 p.m.";
+            return RedirectToAction("Index", new { section = "citas" });
+        }
+
+        var optId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+
+        // 2. Validar disponibilidad del optómetra
+        if (!await Appointment.HayDisponibilidad(_context, optId, model.FechaHora))
+        {
+            TempData["ErrorMessage"] = "El optómetra ya tiene una cita agendada en ese horario. Por favor elige otro horario.";
             return RedirectToAction("Index", new { section = "citas" });
         }
 
@@ -588,6 +608,7 @@ public class OptometraController : Controller
             var appointment = new Appointment
             {
                 UserId = model.UserId,
+                OptometraId = optId,
                 Servicio = model.Servicio.Trim(),
                 FechaHora = DateTime.SpecifyKind(model.FechaHora, DateTimeKind.Utc),
                 Notas = model.Notas?.Trim(),
@@ -618,16 +639,32 @@ public class OptometraController : Controller
             return RedirectToAction("Index", new { section = "citas" });
         }
 
+        // 1. Validar horario laboral
+        if (!Appointment.EsHorarioLaboral(model.FechaHora))
+        {
+            TempData["ErrorMessage"] = "Las citas solo pueden agendarse de lunes a sábado, entre 8:00 a.m. y 6:00 p.m.";
+            return RedirectToAction("Index", new { section = "citas" });
+        }
+
         try
         {
             var appointment = await _context.Appointments.FindAsync(model.Id);
             if (appointment != null)
             {
+                // 2. Validar disponibilidad del optómetra
+                var optId = appointment.OptometraId ?? int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                if (!await Appointment.HayDisponibilidad(_context, optId, model.FechaHora, appointment.Id))
+                {
+                    TempData["ErrorMessage"] = "El optómetra ya tiene una cita agendada en ese horario. Por favor elige otro horario.";
+                    return RedirectToAction("Index", new { section = "citas" });
+                }
+
                 appointment.UserId = model.UserId;
                 appointment.Servicio = model.Servicio.Trim();
                 appointment.FechaHora = DateTime.SpecifyKind(model.FechaHora, DateTimeKind.Utc);
                 appointment.Notas = model.Notas?.Trim();
                 appointment.Estado = model.Estado;
+                appointment.OptometraId = optId;
 
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Cita actualizada exitosamente.";
@@ -719,6 +756,101 @@ public class OptometraController : Controller
     public IActionResult HistorialDetalle(int id)
     {
         return RedirectToAction("Index", new { section = "historial", detalleId = id });
+    }
+
+    // ── Reporte de Citas por Estado (Parte 4) ──
+    [HttpGet]
+    public async Task<IActionResult> ReporteCitas(DateTime? desde, DateTime? hasta)
+    {
+        var optometraId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var fechaInicio = desde ?? DateTime.UtcNow.AddMonths(-1);
+        var fechaFin = hasta ?? DateTime.UtcNow;
+
+        var resultados = new List<ReporteCitasEstadoDto>();
+        try
+        {
+            resultados = await _context.Database
+                .SqlQueryRaw<ReporteCitasEstadoDto>(
+                    "EXEC sp_ReporteCitasPorEstado @FechaInicio = {0}, @FechaFin = {1}, @OptometraId = {2}",
+                    fechaInicio, fechaFin, optometraId)
+                .ToListAsync();
+        }
+        catch
+        {
+            // Si el SP aún no existe, hacer la consulta LINQ equivalente
+            var grupos = await _context.Appointments
+                .Where(a => a.Activo
+                         && a.OptometraId == optometraId
+                         && a.FechaHora >= fechaInicio
+                         && a.FechaHora <= fechaFin)
+                .GroupBy(a => a.Estado)
+                .Select(g => new ReporteCitasEstadoDto { Estado = g.Key, Total = g.Count() })
+                .ToListAsync();
+            resultados = grupos;
+        }
+
+        ViewBag.ReporteCitas = resultados;
+        ViewBag.ReporteDesde = fechaInicio;
+        ViewBag.ReporteHasta = fechaFin;
+        return RedirectToAction("Index", new { section = "reportes" });
+    }
+
+    // ── Historial Completo del Paciente (Parte 4) ──
+    [HttpGet]
+    public async Task<IActionResult> HistorialCompleto(int pacienteId)
+    {
+        var resultados = new List<HistorialCompletoDto>();
+        try
+        {
+            resultados = await _context.Database
+                .SqlQueryRaw<HistorialCompletoDto>(
+                    "EXEC sp_HistorialCompletoPaciente @PacienteId = {0}",
+                    pacienteId)
+                .ToListAsync();
+        }
+        catch
+        {
+            // Fallback LINQ si el SP aún no existe
+            var historiales = await _context.HistorialesClinicos
+                .Where(h => h.UserId == pacienteId && h.Activo)
+                .Select(h => new HistorialCompletoDto
+                {
+                    TipoRegistro = "Historial",
+                    Fecha = h.Fecha,
+                    Descripcion = h.Diagnostico ?? "Sin diagnóstico",
+                    Detalles = h.Observaciones
+                }).ToListAsync();
+
+            var examenes = await _context.ExamenesVisuales
+                .Where(e => e.UserId == pacienteId && e.Activo)
+                .Select(e => new HistorialCompletoDto
+                {
+                    TipoRegistro = "Examen",
+                    Fecha = e.Fecha,
+                    Descripcion = e.TipoExamen ?? "Examen visual",
+                    Detalles = e.Resultado
+                }).ToListAsync();
+
+            var formulas = await _context.FormulasOpticas
+                .Where(f => f.UserId == pacienteId && f.Activo)
+                .Select(f => new HistorialCompletoDto
+                {
+                    TipoRegistro = "Formula",
+                    Fecha = f.Fecha,
+                    Descripcion = f.TipoLente ?? "Fórmula óptica",
+                    Detalles = f.Observaciones
+                }).ToListAsync();
+
+            resultados = historiales
+                .Concat(examenes)
+                .Concat(formulas)
+                .OrderByDescending(r => r.Fecha)
+                .ToList();
+        }
+
+        ViewBag.HistorialCompleto = resultados;
+        ViewBag.PacienteId = pacienteId;
+        return RedirectToAction("Index", new { section = "historial", detalleId = pacienteId });
     }
 
     // ── Descargar PDF de Fórmula Óptica (QuestPDF) ──

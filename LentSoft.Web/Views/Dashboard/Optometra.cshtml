@@ -738,7 +738,7 @@
                         <button onclick="document.getElementById('modal-nueva-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
                     </div>
 
-                    <form asp-controller="Optometra" asp-action="CreateAppointment" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+                    <form asp-controller="Optometra" asp-action="CreateAppointment" method="post" onsubmit="return validateCitaForm(this);" style="display:flex; flex-direction:column; gap:1rem;">
                         <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                             <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Seleccionar Paciente</label>
                             <select name="UserId" class="searchable-select" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
@@ -794,7 +794,7 @@
                         <button onclick="document.getElementById('modal-editar-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
                     </div>
 
-                    <form asp-controller="Optometra" asp-action="EditAppointment" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+                    <form asp-controller="Optometra" asp-action="EditAppointment" method="post" onsubmit="return validateCitaForm(this);" style="display:flex; flex-direction:column; gap:1rem;">
                         <input type="hidden" name="id" id="edit-cita-id" />
 
                         <div style="display: flex; flex-direction: column; gap: 0.25rem;">
@@ -2599,6 +2599,36 @@
         if (main) {
             main.appendChild(modal);
         }
+    }
+
+    function validateCitaForm(form) {
+        const input = form.querySelector('input[type="datetime-local"]');
+        if (!input) return true;
+        const datetimeVal = input.value;
+        if (!datetimeVal) return true;
+        
+        const dt = new Date(datetimeVal);
+        if (dt.getDay() === 0) {
+            if (typeof alertify !== 'undefined') {
+                alertify.error("Las citas solo pueden agendarse de lunes a sábado.");
+            } else {
+                alert("Las citas solo pueden agendarse de lunes a sábado.");
+            }
+            return false;
+        }
+        
+        const hours = dt.getHours();
+        const minutes = dt.getMinutes();
+        const decimalHour = hours + minutes / 60.0;
+        if (decimalHour < 8.0 || decimalHour > 18.0) {
+            if (typeof alertify !== 'undefined') {
+                alertify.error("El horario de citas es de 8:00 a.m. a 6:00 p.m.");
+            } else {
+                alert("El horario de citas es de 8:00 a.m. a 6:00 p.m.");
+            }
+            return false;
+        }
+        return true;
     }
 </script>
 

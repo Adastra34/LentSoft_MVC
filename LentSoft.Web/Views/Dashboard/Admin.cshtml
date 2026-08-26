@@ -462,6 +462,7 @@
                             <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
                                 <th style="padding: 0.75rem;">ID</th>
                                 <th style="padding: 0.75rem;">Paciente</th>
+                                <th style="padding: 0.75rem;">Optómetra</th>
                                 <th style="padding: 0.75rem;">Servicio</th>
                                 <th style="padding: 0.75rem;">Fecha y Hora</th>
                                 <th style="padding: 0.75rem;">Estado</th>
@@ -474,6 +475,7 @@
                                 <tr style="border-bottom: 1px solid var(--purple-100);">
                                     <td style="padding: 0.75rem; color: var(--gray-500);">#CITA-@c.Id</td>
                                     <td style="padding: 0.75rem; font-weight: 500;">@(c.User?.Nombre ?? "Paciente")</td>
+                                    <td style="padding: 0.75rem;">@(c.Optometra?.NombreCompleto ?? "Por asignar")</td>
                                     <td style="padding: 0.75rem;">@c.Servicio</td>
                                     <td style="padding: 0.75rem; color: var(--gray-600);">@c.FechaHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                     <td style="padding: 0.75rem;">
@@ -1210,13 +1212,27 @@
             <button onclick="document.getElementById('modal-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
 
-        <form asp-controller="Dashboard" asp-action="CreateAppointment" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+        <form asp-controller="Dashboard" asp-action="CreateAppointment" method="post" onsubmit="return validateCitaForm(this);" style="display:flex; flex-direction:column; gap:1rem;">
             <div class="form-group">
                 <label class="form-label">Seleccionar Paciente</label>
                 <select name="UserId" class="form-input searchable-select" required>
                     @foreach (var cli in Model.Clientes)
                     {
                         <option value="@cli.Id">@cli.Nombre (@cli.Email)</option>
+                    }
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Seleccionar Optómetra *</label>
+                <select name="OptometraId" class="form-input" required>
+                    <option value="">-- Seleccionar Optómetra --</option>
+                    @if (ViewBag.Optometras != null)
+                    {
+                        @foreach (var opt in (List<User>)ViewBag.Optometras)
+                        {
+                            <option value="@opt.Id">@opt.NombreCompleto</option>
+                        }
                     }
                 </select>
             </div>
@@ -2549,6 +2565,36 @@
             infoDiv.innerHTML = '<span style="color:var(--error);">Error al cargar los detalles del pedido.</span>';
             body.innerHTML = '';
         }
+    }
+
+    function validateCitaForm(form) {
+        const input = form.querySelector('input[type="datetime-local"]');
+        if (!input) return true;
+        const datetimeVal = input.value;
+        if (!datetimeVal) return true;
+        
+        const dt = new Date(datetimeVal);
+        if (dt.getDay() === 0) {
+            if (typeof alertify !== 'undefined') {
+                alertify.error("Las citas solo pueden agendarse de lunes a sábado.");
+            } else {
+                alert("Las citas solo pueden agendarse de lunes a sábado.");
+            }
+            return false;
+        }
+        
+        const hours = dt.getHours();
+        const minutes = dt.getMinutes();
+        const decimalHour = hours + minutes / 60.0;
+        if (decimalHour < 8.0 || decimalHour > 18.0) {
+            if (typeof alertify !== 'undefined') {
+                alertify.error("El horario de citas es de 8:00 a.m. a 6:00 p.m.");
+            } else {
+                alert("El horario de citas es de 8:00 a.m. a 6:00 p.m.");
+            }
+            return false;
+        }
+        return true;
     }
 </script>
 

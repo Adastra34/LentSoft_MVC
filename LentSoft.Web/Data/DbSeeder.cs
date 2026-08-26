@@ -142,35 +142,38 @@ public static class DbSeeder
         if (context.Appointments.Count() <= 2)
         {
             var now = DateTime.UtcNow;
+            var optId = context.Users.FirstOrDefault(u => u.Role == "optometra")?.Id;
             var appointments = new[]
             {
+                // Citas en horario laboral (L-S, 8-18h), sin solapamiento (≥60 min entre sí)
                 new Appointment
                 {
-                    UserId = pValentina.Id, Servicio = "Examen visual completo", FechaHora = now.Date.AddDays(1).AddHours(9), Estado = "confirmada", Notas = "Paciente refiere fatiga ocular", FechaCreacion = now
+                    UserId = pValentina.Id, Servicio = "Examen visual completo", FechaHora = now.Date.AddDays(1).AddHours(9), Estado = "confirmada", Notas = "Paciente refiere fatiga ocular", FechaCreacion = now, OptometraId = optId
                 },
                 new Appointment
                 {
-                    UserId = pSantiago.Id, Servicio = "Control de lentes", FechaHora = now.Date.AddDays(2).AddHours(10).AddMinutes(30), Estado = "pendiente", Notas = "Ajuste de montura progresiva", FechaCreacion = now
+                    UserId = pSantiago.Id, Servicio = "Control de lentes", FechaHora = now.Date.AddDays(1).AddHours(10).AddMinutes(30), Estado = "pendiente", Notas = "Ajuste de montura progresiva", FechaCreacion = now, OptometraId = optId
                 },
                 new Appointment
                 {
-                    UserId = pSofia.Id, Servicio = "Primera consulta", FechaHora = now.Date.AddDays(3).AddHours(14), Estado = "en proceso", Notas = "Examen de agudeza para colegio", FechaCreacion = now
+                    UserId = pSofia.Id, Servicio = "Primera consulta", FechaHora = now.Date.AddDays(1).AddHours(12), Estado = "en proceso", Notas = "Examen de agudeza para colegio", FechaCreacion = now, OptometraId = optId
                 },
                 new Appointment
                 {
-                    UserId = pAndres.Id, Servicio = "Seguimiento glaucoma", FechaHora = now.Date.AddDays(-1).AddHours(11), Estado = "atendida", Notas = "Medición de presión intraocular", FechaCreacion = now
+                    UserId = pAndres.Id, Servicio = "Seguimiento glaucoma", FechaHora = now.Date.AddDays(1).AddHours(13).AddMinutes(30), Estado = "atendida", Notas = "Medición de presión intraocular", FechaCreacion = now, OptometraId = optId
                 },
                 new Appointment
                 {
-                    UserId = pMaria.Id, Servicio = "Adaptación lentes contacto", FechaHora = now.Date.AddDays(-5).AddHours(15), Estado = "cancelada", Notas = "No pudo asistir por trabajo", FechaCreacion = now
+                    UserId = pMaria.Id, Servicio = "Adaptación lentes contacto", FechaHora = now.Date.AddDays(2).AddHours(9), Estado = "cancelada", Notas = "No pudo asistir por trabajo", FechaCreacion = now, OptometraId = optId
                 },
                 new Appointment
                 {
-                    UserId = pCamilo.Id, Servicio = "Ajuste de lentes", FechaHora = now.Date.AddHours(2), Estado = "pendiente", Notas = "Traer montura rota", FechaCreacion = now
+                    // Corregido: era 2am (fuera de horario). Ahora es 10am del día siguiente.
+                    UserId = pCamilo.Id, Servicio = "Ajuste de lentes", FechaHora = now.Date.AddDays(2).AddHours(10), Estado = "pendiente", Notas = "Traer montura rota", FechaCreacion = now, OptometraId = optId
                 },
                 new Appointment
                 {
-                    UserId = pDaniela.Id, Servicio = "Examen visual completo", FechaHora = now.Date.AddDays(4).AddHours(16), Estado = "confirmada", Notas = "Chequeo anual", FechaCreacion = now
+                    UserId = pDaniela.Id, Servicio = "Examen visual completo", FechaHora = now.Date.AddDays(2).AddHours(11).AddMinutes(30), Estado = "confirmada", Notas = "Chequeo anual", FechaCreacion = now, OptometraId = optId
                 }
             };
             context.Appointments.AddRange(appointments);
