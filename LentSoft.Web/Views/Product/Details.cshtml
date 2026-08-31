@@ -1,0 +1,287 @@
+@model LentSoft.Web.Models.ViewModels.ProductDetailsViewModel
+@{
+    ViewData["Title"] = Model.Product.Nombre;
+    var isAuthenticated = Model.IsAuthenticated;
+    var isFavorite = Model.IsFavorite;
+
+    // Rating calculations
+    var fullStars = (int)Math.Floor(Model.Product.Rating);
+    var hasHalf = (Model.Product.Rating - fullStars) >= 0.5m;
+    var emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
+}
+
+<main style="padding: 2.5rem 0; min-height: 80vh; background: var(--purple-50); font-family: var(--font-secondary);">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 1.5rem;">
+        
+        <!-- Breadcrumbs -->
+        <nav aria-label="breadcrumb" style="margin-bottom: 2rem; font-size: 0.9rem;">
+            <ol style="display: flex; list-style: none; padding: 0; margin: 0; gap: 0.5rem; flex-wrap: wrap; align-items: center;">
+                <li><a asp-controller="Home" asp-action="Index" style="color: var(--purple-600); font-weight: 500; transition: color 0.2s;" data-i18n="nav.home">Inicio</a></li>
+                <li style="color: var(--gray-400); font-size: 0.8rem;">/</li>
+                <li><a asp-controller="Product" asp-action="Tienda" style="color: var(--purple-600); font-weight: 500; transition: color 0.2s;" data-i18n="nav.shop">Tienda</a></li>
+                <li style="color: var(--gray-400); font-size: 0.8rem;">/</li>
+                <li style="color: var(--gray-600); font-weight: 600;" data-i18n-product-name="@Model.Product.Nombre">@Model.Product.Nombre</li>
+            </ol>
+        </nav>
+
+        <!-- Main Content (2 Columns) -->
+        <div style="display: grid; grid-template-columns: 1.1fr 1fr; gap: 3rem; align-items: start;">
+            
+            <!-- Left Column: Image Area -->
+            <div>
+                <!-- Main Image -->
+                <div style="background: white; border-radius: 1.25rem; overflow: hidden; box-shadow: var(--shadow-md); margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: center; aspect-ratio: 4/3; border: 1px solid var(--gray-100);">
+                    @if (Model.Product.ImagenUrl != null)
+                    {
+                        <img id="mainProductImage" src="@Model.Product.ImagenUrl" alt="@Model.Product.Nombre" style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 1.5rem; transition: transform 0.3s;" />
+                    }
+                    else
+                    {
+                        <span style="font-size: 5rem;">👓</span>
+                    }
+                </div>
+
+                <!-- Thumbnails Carousel -->
+                <div style="display: flex; gap: 1rem; justify-content: center; overflow-x: auto; padding: 0.25rem 0;">
+                    @if (Model.Product.ImagenUrl != null)
+                    {
+                        <button type="button" onclick="changeImage('@Model.Product.ImagenUrl', this)" 
+                                style="border: 2.5px solid var(--purple-600); background: white; border-radius: 0.75rem; width: 80px; height: 80px; padding: 0.25rem; cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none; transition: border-color 0.2s; box-shadow: var(--shadow-sm);">
+                            <img src="@Model.Product.ImagenUrl" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 0.35rem;" />
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" style="border: 2.5px solid var(--purple-600); background: white; border-radius: 0.75rem; width: 80px; height: 80px; padding: 0.25rem; cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none;">
+                            <span style="font-size: 2rem;">👓</span>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Right Column: Specs & Purchase Actions -->
+            <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                
+                <!-- Brand & Name -->
+                <div>
+                    <span style="color: var(--purple-700); font-weight: 700; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px; display: inline-block; margin-bottom: 0.25rem;">
+                        @(Model.Product.Marca ?? "LentSoft")
+                    </span>
+                    <h1 style="color: var(--purple-900); font-size: 2.25rem; font-weight: 800; line-height: 1.25; font-family: var(--font-primary); margin: 0;" data-i18n-product-name="@Model.Product.Nombre">
+                        @Model.Product.Nombre
+                    </h1>
+                </div>
+
+                <!-- Rating -->
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="color: #fbbf24; font-size: 1.15rem; letter-spacing: 1px;">
+                        @for (int i = 0; i < fullStars; i++) { <text>★</text> }
+                        @if (hasHalf) { <text>★</text> }
+                        @for (int i = 0; i < emptyStars; i++) { <text>☆</text> }
+                    </span>
+                    <span style="color: var(--gray-600); font-size: 0.9rem; font-weight: 500;">
+                        (@Model.Product.ReviewCount <span data-i18n="product.reviews">reseñas</span>)
+                    </span>
+                </div>
+
+                <!-- Price Box -->
+                <div style="background: white; border-radius: 1rem; padding: 1.25rem 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: var(--shadow-sm); border: 1px solid var(--gray-100); width: fit-content;">
+                    @if (Model.Product.PrecioDescuento.HasValue && Model.Product.PrecioDescuento < Model.Product.Precio)
+                    {
+                        <div style="display: flex; align-items: baseline; gap: 0.5rem;">
+                            <span style="font-size: 2.25rem; font-weight: 800; color: var(--purple-700); line-height: 1;">
+                                @Model.Product.PrecioDescuento.Value.ToString("C")
+                            </span>
+                            <span style="font-size: 1.2rem; text-decoration: line-through; color: var(--gray-400); font-weight: 500;">
+                                @Model.Product.Precio.ToString("C")
+                            </span>
+                        </div>
+                        <span style="background: var(--success); color: white; padding: 0.35rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 700; text-transform: uppercase;">
+                            @Model.Product.GetDiscountPercentage()% OFF
+                        </span>
+                    }
+                    else
+                    {
+                        <span style="font-size: 2.25rem; font-weight: 800; color: var(--purple-700); line-height: 1;">
+                            @Model.Product.Precio.ToString("C")
+                        </span>
+                    }
+                </div>
+
+                <!-- Description -->
+                <div>
+                    <h3 style="color: var(--purple-900); font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; font-family: var(--font-primary);" data-i18n="product.description">
+                        Descripción
+                    </h3>
+                    <p style="color: var(--gray-600); font-size: 0.95rem; line-height: 1.6; margin: 0;" data-i18n-product-desc="@Model.Product.Descripcion">
+                        @(string.IsNullOrEmpty(Model.Product.Descripcion) 
+                            ? "Descubre la calidad y el diseño excepcional de este producto seleccionado por LentSoft para tu cuidado visual." 
+                            : Model.Product.Descripcion)
+                    </p>
+                </div>
+
+                <!-- Benefits Blocks -->
+                <div style="display: flex; flex-direction: column; gap: 0.85rem; background: rgba(255,255,255,0.7); border-radius: 1rem; padding: 1.25rem; border: 1px solid var(--gray-200);">
+                    <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                        <span style="font-size: 1.25rem; line-height: 1;">🛡️</span>
+                        <div>
+                            <strong style="color: var(--purple-900); font-size: 0.875rem; display: block; font-family: var(--font-primary); margin-bottom: 0.15rem;" data-i18n="product.benefit.warranty.title">Garantía incluida</strong>
+                            <span style="color: var(--gray-500); font-size: 0.8rem; line-height: 1.3; display: block;" data-i18n="product.benefit.warranty.desc">Cobertura de 12 meses ante defectos de fábrica en todas tus monturas.</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                        <span style="font-size: 1.25rem; line-height: 1;">🚚</span>
+                        <div>
+                            <strong style="color: var(--purple-900); font-size: 0.875rem; display: block; font-family: var(--font-primary); margin-bottom: 0.15rem;" data-i18n="product.benefit.shipping.title">Envío gratis</strong>
+                            <span style="color: var(--gray-500); font-size: 0.8rem; line-height: 1.3; display: block;" data-i18n="product.benefit.shipping.desc">Recibe tu pedido a domicilio en un plazo de 3 a 5 días hábiles sin costo.</span>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
+                        <span style="font-size: 1.25rem; line-height: 1;">✨</span>
+                        <div>
+                            <strong style="color: var(--purple-900); font-size: 0.875rem; display: block; font-family: var(--font-primary); margin-bottom: 0.15rem;" data-i18n="product.benefit.quality.title">Calidad garantizada</strong>
+                            <span style="color: var(--gray-500); font-size: 0.8rem; line-height: 1.3; display: block;" data-i18n="product.benefit.quality.desc">Materiales duraderos, cómodos y avalados por profesionales de la salud visual.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Purchase Buttons -->
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <!-- Add to Cart -->
+                    <button type="button" onclick="addToCart(@Model.Product.Id)" @(Model.Product.HasStock() ? "" : "disabled")
+                            style="flex: 1; background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white; border: none; border-radius: 0.75rem; padding: 0.9rem; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: transform 0.2s, opacity 0.2s; box-shadow: 0 4px 12px rgba(124,58,237,0.3); @(!Model.Product.HasStock() ? "opacity: 0.5; cursor: not-allowed;" : "")"
+                            onmouseover="@(Model.Product.HasStock() ? "this.style.transform='translateY(-2px)'" : "")"
+                            onmouseout="this.style.transform='translateY(0)'">
+                        @if (Model.Product.HasStock())
+                        {
+                            <text><span data-i18n="product.addcart">🛒 Añadir al Carrito</span></text>
+                        }
+                        else
+                        {
+                            <text><span data-i18n="product.soldout.temp">Agotado temporalmente</span></text>
+                        }
+                    </button>
+
+                    <!-- Favorite Circular Button -->
+                    <button type="button" onclick="toggleFavoriteDetails(@Model.Product.Id, this)"
+                            title="@(isFavorite ? "Quitar de favoritos" : "Agregar a favoritos")"
+                            style="background: white; border: 2px solid var(--gray-200); border-radius: 50%; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.5rem; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; padding: 0;"
+                            onmouseover="this.style.transform='scale(1.1)'; this.style.borderColor='var(--purple-300)'; this.style.boxShadow='var(--shadow-md)';"
+                            onmouseout="this.style.transform='scale(1)'; this.style.borderColor='var(--gray-200)'; this.style.boxShadow='none';">
+                        @(isFavorite ? "❤️" : "🤍")
+                    </button>
+                </div>
+
+                <!-- Muestra de Montura -->
+                <a asp-action="MuestraMontura" asp-route-id="@Model.Product.Id"
+                   style="width: 100%; background: var(--purple-700); color: white; border: none; border-radius: 0.75rem; padding: 0.9rem; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 12px rgba(147,51,234,0.3); text-align: center; text-decoration: none;"
+                   onmouseover="this.style.background='var(--purple-800)'; this.style.transform='translateY(-2px)';"
+                   onmouseout="this.style.background='var(--purple-700)'; this.style.transform='translateY(0)';">
+                    <span data-i18n="product.frametryon">👓 MUESTRA DE MONTURA</span>
+                </a>
+
+                <!-- Collapsible "Detalles de la Montura" -->
+                <details style="border: 1px solid var(--gray-200); border-radius: 0.75rem; background: white; overflow: hidden; transition: all 0.2s;"
+                         onfocus="this.style.borderColor='var(--purple-300)'">
+                    <summary style="font-weight: 700; color: var(--purple-900); cursor: pointer; padding: 1rem; font-family: var(--font-primary); list-style: none; display: flex; justify-content: space-between; align-items: center; outline: none; background: var(--gray-50); user-select: none;">
+                        <span data-i18n="product.specs.title">Detalles de la Montura</span>
+                        <span id="detailsChevron" style="transition: transform 0.2s; font-size: 0.8rem;">▼</span>
+                    </summary>
+                    <div style="padding: 1.25rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; border-top: 1px solid var(--gray-200); font-size: 0.9rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.15rem;">
+                            <span style="color: var(--gray-400); font-size: 0.75rem; font-weight: 600; text-transform: uppercase;" data-i18n="product.specs.material">Material</span>
+                            <span style="color: var(--gray-800); font-weight: 500;" data-i18n-spec-val="@Model.Product.Material">@(Model.Product.Material ?? "No especificado")</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.15rem;">
+                            <span style="color: var(--gray-400); font-size: 0.75rem; font-weight: 600; text-transform: uppercase;" data-i18n="product.specs.category">Categoría</span>
+                            <span style="color: var(--gray-800); font-weight: 500; text-transform: capitalize;" data-i18n-spec-val="@Model.Product.Categoria">@Model.Product.Categoria.Replace("-", " ")</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.15rem;">
+                            <span style="color: var(--gray-400); font-size: 0.75rem; font-weight: 600; text-transform: uppercase;" data-i18n="product.specs.color">Color</span>
+                            <span style="color: var(--gray-800); font-weight: 500;" data-i18n-spec-val="@Model.Product.Color">@(Model.Product.Color ?? "No especificado")</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.15rem;">
+                            <span style="color: var(--gray-400); font-size: 0.75rem; font-weight: 600; text-transform: uppercase;" data-i18n="product.specs.protection">Protección</span>
+                            <span style="color: var(--gray-800); font-weight: 500;" data-i18n-spec-val="@Model.Product.Proteccion">@(Model.Product.Proteccion ?? "No especificado")</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.15rem;">
+                            <span style="color: var(--gray-400); font-size: 0.75rem; font-weight: 600; text-transform: uppercase;" data-i18n="product.specs.style">Estilo</span>
+                            <span style="color: var(--gray-800); font-weight: 500;" data-i18n-spec-val="@Model.Product.Estilo">@(Model.Product.Estilo ?? "No especificado")</span>
+                        </div>
+                        <div style="display: flex; flex-direction: column; gap: 0.15rem;">
+                            <span style="color: var(--gray-400); font-size: 0.75rem; font-weight: 600; text-transform: uppercase;" data-i18n="product.specs.size">Tamaño (Montura)</span>
+                            <span style="color: var(--gray-800); font-weight: 500;" data-i18n-spec-val="@Model.Product.Tamanio">@(Model.Product.Tamanio ?? "No especificado")</span>
+                        </div>
+                    </div>
+                </details>
+
+            </div>
+
+        </div>
+
+    </div>
+</main>
+
+@section Scripts {
+    <script>
+        // Change image in thumbnail carousel
+        function changeImage(imgUrl, buttonEl) {
+            document.getElementById('mainProductImage').src = imgUrl;
+            // Remove border from other buttons
+            buttonEl.parentNode.querySelectorAll('button').forEach(btn => {
+                btn.style.borderColor = 'transparent';
+                btn.style.boxShadow = 'none';
+            });
+            // Apply border to active
+            buttonEl.style.borderColor = 'var(--purple-600)';
+            buttonEl.style.boxShadow = 'var(--shadow-sm)';
+        }
+
+        // Toggle Details rotate chevron animation
+        const detailsEl = document.querySelector('details');
+        const chevronEl = document.getElementById('detailsChevron');
+        if (detailsEl && chevronEl) {
+            detailsEl.addEventListener('toggle', () => {
+                if (detailsEl.open) {
+                    chevronEl.style.transform = 'rotate(180deg)';
+                } else {
+                    chevronEl.style.transform = 'rotate(0deg)';
+                }
+            });
+        }
+
+        // Favorite logic
+        async function toggleFavoriteDetails(productId, heartEl) {
+            var isAuth = @(isAuthenticated ? "true" : "false");
+            var lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'es';
+            if (!isAuth) {
+                var loginMsg = lang === 'en' ? 'Sign in to save favorites' : 'Inicia sesión para guardar favoritos';
+                alertify.error(loginMsg);
+                setTimeout(() => {
+                    window.location.href = '/Auth/Login';
+                }, 1000);
+                return;
+            }
+
+            try {
+                const resp = await fetch('/Product/ToggleFavorite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'productId=' + productId
+                });
+                const data = await resp.json();
+                if (data.isFavorite) {
+                    heartEl.textContent = '❤️';
+                    heartEl.title = lang === 'en' ? 'Remove from favorites' : 'Quitar de favoritos';
+                    alertify.success(lang === 'en' ? '❤️ Added to favorites' : '❤️ Añadido a favoritos');
+                } else {
+                    heartEl.textContent = '🤍';
+                    heartEl.title = lang === 'en' ? 'Add to favorites' : 'Agregar a favoritos';
+                    alertify.message(lang === 'en' ? '🤍 Removed from favorites' : '🤍 Quitado de favoritos');
+                }
+            } catch (e) {
+                console.error('Error toggling favorite', e);
+            }
+        }
+    </script>
+}

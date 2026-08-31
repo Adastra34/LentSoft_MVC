@@ -1,0 +1,169 @@
+@model ProductListViewModel
+@{
+    ViewData["Title"] = "Tienda";
+    var isAuthenticated = User.Identity?.IsAuthenticated == true;
+}
+
+<main style="padding: 2.5rem 0; min-height: 70vh; background: var(--purple-50);">
+    <div class="container">
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- SECCIÓN: Más Vendidos                                   -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        @if (Model.FeaturedProducts.Count > 0)
+        {
+            <section style="margin-bottom: 3rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+                    <span style="font-size: 1.3rem;">📈</span>
+                    <h2 style="color: var(--purple-900); font-size: 1.5rem; font-weight: 700; margin: 0; font-family: var(--font-primary);" data-i18n="shop.bestsellers">
+                        Más Vendidos
+                    </h2>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;">
+                    @foreach (var product in Model.FeaturedProducts)
+                    {
+                        @await Html.PartialAsync("_ProductCard", product, new ViewDataDictionary(ViewData) {
+                            { "IsFavorite", Model.FavoriteProductIds.Contains(product.Id) },
+                            { "IsAuthenticated", isAuthenticated }
+                        })
+                    }
+                </div>
+            </section>
+        }
+
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <!-- SECCIÓN: Todos los Productos                            -->
+        <!-- ═══════════════════════════════════════════════════════ -->
+        <section>
+            <h2 style="color: var(--purple-900); font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; font-family: var(--font-primary);" data-i18n="shop.allproducts">
+                Todos los Productos
+            </h2>
+
+            <!-- Category Pills + Filters Bar -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+                <!-- Category Pill Tabs -->
+                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <a asp-action="Tienda"
+                       style="padding: 0.5rem 1.25rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; text-decoration: none; transition: all 0.2s;
+                              @(string.IsNullOrEmpty(Model.Categoria)
+                                  ? "background: var(--purple-700); color: white; box-shadow: 0 2px 8px rgba(126,34,206,0.3);"
+                                  : "background: white; color: var(--gray-700); border: 1.5px solid var(--gray-200);")" data-i18n="shop.all">
+                        Todos
+                    </a>
+                    @foreach (var cat in Model.Categorias)
+                    {
+                        var isActive = Model.Categoria == cat;
+                        var displayName = cat switch {
+                            "lentes-sol" => "Gafas de Sol",
+                            "lentes-contacto" => "Lentes de Contacto",
+                            "lentes-graduados" => "Lentes Graduados",
+                            "monturas" => "Monturas",
+                            "accesorios" => "Accesorios",
+                            _ => char.ToUpper(cat[0]) + cat.Substring(1).Replace("-", " ")
+                        };
+                        var catI18nKey = cat switch {
+                            "lentes-sol" => "shop.cat.sun",
+                            "lentes-contacto" => "shop.cat.contact",
+                            "lentes-graduados" => "shop.cat.grad",
+                            "monturas" => "shop.cat.frames",
+                            "accesorios" => "shop.cat.accessories",
+                            _ => ""
+                        };
+                        <a asp-action="Tienda" asp-route-categoria="@cat"
+                           asp-route-marca="@Model.Marca" asp-route-rangoPrecio="@Model.RangoPrecio"
+                           style="padding: 0.5rem 1.25rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600; text-decoration: none; transition: all 0.2s;
+                                  @(isActive
+                                      ? "background: var(--purple-700); color: white; box-shadow: 0 2px 8px rgba(126,34,206,0.3);"
+                                      : "background: white; color: var(--gray-700); border: 1.5px solid var(--gray-200);")"
+                           data-i18n-spec-val="@cat">
+                            @displayName
+                        </a>
+                    }
+                </div>
+
+                <!-- Secondary Filters (Marca + Precio) -->
+                <form asp-action="Tienda" method="get" style="display: flex; gap: 0.75rem; align-items: center;">
+                    @if (!string.IsNullOrEmpty(Model.Categoria))
+                    {
+                        <input type="hidden" name="categoria" value="@Model.Categoria" />
+                    }
+                    <select name="marca" class="form-select" onchange="this.form.submit()"
+                            style="padding: 0.45rem 0.75rem; border-radius: 0.5rem; border: 1.5px solid var(--gray-200); font-size: 0.85rem; background: white; min-width: 140px;">
+                        <option value="" data-i18n="shop.allbrands">Todas las marcas</option>
+                        @foreach (var m in Model.Marcas)
+                        {
+                            <option value="@m" selected="@(Model.Marca == m)">@m</option>
+                        }
+                    </select>
+                    <select name="rangoPrecio" class="form-select" onchange="this.form.submit()"
+                            style="padding: 0.45rem 0.75rem; border-radius: 0.5rem; border: 1.5px solid var(--gray-200); font-size: 0.85rem; background: white; min-width: 140px;">
+                        <option value="" data-i18n="shop.allprices">Todos los precios</option>
+                        <option value="menos-500000" selected="@(Model.RangoPrecio == "menos-500000")" data-i18n="shop.lessthan">Menos de COP $500.000</option>
+                        <option value="500000-1500000" selected="@(Model.RangoPrecio == "500000-1500000")" data-i18n="shop.range">COP $500.000 - COP $1.500.000</option>
+                        <option value="mas-1500000" selected="@(Model.RangoPrecio == "mas-1500000")" data-i18n="shop.morethan">Más de COP $1.500.000</option>
+                    </select>
+                    @if (!string.IsNullOrEmpty(Model.Marca) || !string.IsNullOrEmpty(Model.RangoPrecio) || !string.IsNullOrEmpty(Model.Categoria))
+                    {
+                        <a asp-action="Tienda" style="color: var(--purple-700); font-size: 0.8rem; font-weight: 600; white-space: nowrap;" data-i18n="shop.clear">✕ Limpiar</a>
+                    }
+                </form>
+            </div>
+
+            <!-- Product Grid -->
+            @if (Model.Products.Count == 0)
+            {
+                <div style="text-align: center; padding: 4rem 0;">
+                    <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+                    <h3 style="color: var(--gray-600); margin-bottom: 0.5rem;" data-i18n="shop.noproducts">No se encontraron productos</h3>
+                    <p style="color: var(--gray-500);" data-i18n="shop.changefilters">Intenta cambiar los filtros de búsqueda.</p>
+                    <a asp-action="Tienda" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;" data-i18n="shop.viewall">Ver todos los productos</a>
+                </div>
+            }
+            else
+            {
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;">
+                    @foreach (var product in Model.Products)
+                    {
+                        @await Html.PartialAsync("_ProductCard", product, new ViewDataDictionary(ViewData) {
+                            { "IsFavorite", Model.FavoriteProductIds.Contains(product.Id) },
+                            { "IsAuthenticated", isAuthenticated }
+                        })
+                    }
+                </div>
+            }
+        </section>
+
+    </div>
+</main>
+
+@section Scripts {
+    <script>
+        async function toggleFavorite(productId, heartEl) {
+            var isAuth = @(isAuthenticated ? "true" : "false");
+            if (!isAuth) {
+                alert('Inicia sesión para guardar favoritos');
+                window.location.href = '/Auth/Login';
+                return;
+            }
+
+            try {
+                const resp = await fetch('/Product/ToggleFavorite', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: 'productId=' + productId
+                });
+                const data = await resp.json();
+                if (data.isFavorite) {
+                    heartEl.textContent = '❤️';
+                    heartEl.title = 'Quitar de favoritos';
+                } else {
+                    heartEl.textContent = '🤍';
+                    heartEl.title = 'Agregar a favoritos';
+                }
+            } catch (e) {
+                console.error('Error toggling favorite', e);
+            }
+        }
+    </script>
+}

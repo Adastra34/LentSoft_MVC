@@ -1,0 +1,113 @@
+@model LentSoft.Web.Models.Entities.Product
+@{
+    var isFavorite = (bool)(ViewData["IsFavorite"] ?? false);
+    var isAuthenticated = (bool)(ViewData["IsAuthenticated"] ?? false);
+
+    // Build star rating display
+    var fullStars = (int)Math.Floor(Model.Rating);
+    var hasHalf = (Model.Rating - fullStars) >= 0.5m;
+    var emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
+}
+
+<a href="/Product/Details/@Model.Id" style="background: white; border-radius: 1rem; overflow: hidden; box-shadow: var(--shadow-md); display: flex; flex-direction: column; transition: transform 0.2s, box-shadow 0.2s; text-decoration: none; color: inherit;"
+   onmouseover="this.style.transform='translateY(-4px)'; this.style.boxShadow='var(--shadow-xl)';"
+   onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='var(--shadow-md)';">
+    
+    <!-- Image Container -->
+    <div style="position: relative; height: 200px; overflow: hidden;">
+        @if (Model.ImagenUrl != null)
+        {
+            <div style="width: 100%; height: 100%; background-image: url('@Model.ImagenUrl'); background-size: cover; background-position: center; transition: transform 0.3s;"
+                 onmouseover="this.style.transform='scale(1.05)'"
+                 onmouseout="this.style.transform='scale(1)'"></div>
+        }
+        else
+        {
+            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--purple-100), var(--purple-200)); display: flex; align-items: center; justify-content: center;">
+                <span style="font-size: 2.5rem;">👓</span>
+            </div>
+        }
+
+        <!-- Favorite Heart (top-left) -->
+        <button onclick="event.stopPropagation(); toggleFavorite(@Model.Id, this)" type="button"
+                title="@(isFavorite ? "Quitar de favoritos" : "Agregar a favoritos")"
+                style="position: absolute; top: 0.75rem; left: 0.75rem; background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.1); transition: transform 0.2s;"
+                onmouseover="this.style.transform='scale(1.15)'"
+                onmouseout="this.style.transform='scale(1)'">@(isFavorite ? "❤️" : "🤍")</button>
+
+        <!-- "Top" Badge (top-right) -->
+        @if (Model.EsDestacado)
+        {
+            <span style="position: absolute; top: 0.75rem; right: 0.75rem; background: var(--purple-700); color: white; padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; box-shadow: 0 2px 6px rgba(126,34,206,0.3);">
+                ⭐ TOP
+            </span>
+        }
+
+        <!-- Discount Badge -->
+        @if (Model.PrecioDescuento.HasValue && Model.PrecioDescuento < Model.Precio)
+        {
+            <span style="position: absolute; bottom: 0.75rem; right: 0.75rem; background: var(--error); color: white; padding: 0.2rem 0.5rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 700;">
+                -@Model.GetDiscountPercentage()%
+            </span>
+        }
+    </div>
+
+    <!-- Card Body -->
+    <div style="padding: 1rem 1.25rem; display: flex; flex-direction: column; flex-grow: 1; gap: 0.35rem;">
+        <!-- Product Name -->
+        <h4 style="color: var(--purple-900); font-size: 1rem; font-weight: 700; margin: 0; line-height: 1.3;" data-i18n-product-name="@Model.Nombre">
+            @Model.Nombre
+        </h4>
+
+        <!-- Description -->
+        <p style="color: var(--purple-400); font-size: 0.8rem; margin: 0; line-height: 1.3;" data-i18n-product-desc="@(Model.Descripcion ?? Model.Marca)" data-truncate="50">
+            @(Model.Descripcion?.Length > 50 ? Model.Descripcion.Substring(0, 50) + "…" : Model.Descripcion ?? Model.Marca)
+        </p>
+
+        <!-- Star Rating -->
+        <div style="display: flex; align-items: center; gap: 0.25rem; margin-top: 0.25rem;">
+            <span style="color: #f59e0b; font-size: 0.85rem; letter-spacing: 1px;">
+                @for (int i = 0; i < fullStars; i++) { <text>★</text> }
+                @if (hasHalf) { <text>★</text> }
+                @for (int i = 0; i < emptyStars; i++) { <text>☆</text> }
+            </span>
+            <span style="color: var(--gray-500); font-size: 0.75rem;">(@Model.ReviewCount)</span>
+        </div>
+
+        <!-- Price -->
+        <div style="margin-top: auto; padding-top: 0.5rem;">
+            @if (Model.PrecioDescuento.HasValue && Model.PrecioDescuento < Model.Precio)
+            {
+                <span style="text-decoration: line-through; color: var(--gray-400); font-size: 0.8rem; display: block;">
+                    @Model.Precio.ToString("C")
+                </span>
+                <span style="font-size: 1.25rem; font-weight: 700; color: var(--purple-700);">
+                    @Model.PrecioDescuento.Value.ToString("C")
+                </span>
+            }
+            else
+            {
+                <span style="font-size: 1.25rem; font-weight: 700; color: var(--purple-700);">
+                    @Model.Precio.ToString("C")
+                </span>
+            }
+        </div>
+    </div>
+
+    <!-- Add to Cart Button -->
+    <div style="padding: 0 1.25rem 1.25rem;">
+        <button class="btn" onclick="event.stopPropagation(); addToCart(@Model.Id);" @(Model.HasStock() ? "" : "disabled")
+                style="width: 100%; background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white; border: none; border-radius: 0.75rem; padding: 0.65rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: opacity 0.2s; @(!Model.HasStock() ? "opacity: 0.5; cursor: not-allowed;" : "")"
+                onmouseover="@(Model.HasStock() ? "this.style.opacity='0.9'" : "")"
+                onmouseout="this.style.opacity='1'">
+            @if (Model.HasStock())
+            {
+                <text><span data-i18n="product.addcart">🛒 Añadir al Carrito</span></text>
+            }
+            else
+            {
+                <text><span data-i18n="product.soldout">Agotado</span></text>
+            }
+        </button>
+    </div>
+</a>

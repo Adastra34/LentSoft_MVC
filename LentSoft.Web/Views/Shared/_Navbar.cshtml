@@ -1,0 +1,106 @@
+<nav style="background: white; padding: 0.75rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 1000;">
+    <div class="container" style="display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;">
+        <!-- Logo -->
+        <a asp-controller="Home" asp-action="Index" style="font-size: 1.6rem; font-weight: 800; color: var(--purple-700); letter-spacing: -0.5px; flex-shrink: 0;">
+             LentSoft
+        </a>
+
+        <!-- Nav Links -->
+        <div style="display: flex; align-items: center; gap: 1.75rem; flex-shrink: 0;">
+            <a asp-controller="Home" asp-action="Index" style="color: var(--gray-700); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;" data-i18n="nav.home">Inicio</a>
+            <a asp-controller="Product" asp-action="Tienda" style="color: var(--gray-700); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;" data-i18n="nav.shop">Tienda</a>
+            <a asp-controller="Home" asp-action="About" style="color: var(--gray-700); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;" data-i18n="nav.about">Nosotros</a>
+        </div>
+
+        <!-- Search Bar -->
+        <div style="flex: 1; max-width: 380px; position: relative;">
+            <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--gray-400); font-size: 1rem;">🔍</span>
+            <input type="text" placeholder="Buscar gafas, lentes..." data-i18n-placeholder="nav.search" style="width: 100%; padding: 0.55rem 0.75rem 0.55rem 2.25rem; border: 2px solid var(--gray-200); border-radius: 9999px; font-size: 0.9rem; background: var(--gray-50); outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--purple-400)'" onblur="this.style.borderColor='var(--gray-200)'" />
+        </div>
+
+        <!-- Right Section -->
+        <div style="display: flex; align-items: center; gap: 1rem; flex-shrink: 0;">
+
+            <!-- Language Switcher -->
+            <div id="language-switcher" style="position: relative;">
+                <button onclick="toggleLangDropdown()" type="button"
+                        style="background: transparent; border: none; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; padding: 0.3rem 0.5rem; border-radius: 0.5rem; transition: background 0.2s;"
+                        onmouseover="this.style.background='var(--gray-100)'" onmouseout="this.style.background='transparent'"
+                        title="Cambiar idioma" data-i18n-title="lang.change">
+                    <!-- Globe SVG Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--gray-600)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M2 12h20"/>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10A15.3 15.3 0 0 1 12 2z"/>
+                        <!-- Arrows around the globe -->
+                        <path d="M19.07 4.93A10 10 0 0 0 12 2" stroke="var(--gray-600)" stroke-width="1.5" fill="none"/>
+                        <path d="M4.93 19.07A10 10 0 0 0 12 22" stroke="var(--gray-600)" stroke-width="1.5" fill="none"/>
+                    </svg>
+                    <span id="lang-current" style="font-size: 0.8rem; font-weight: 700; color: var(--gray-700);">ES</span>
+                </button>
+                <!-- Language Dropdown -->
+                <div id="lang-dropdown" style="display: none; position: absolute; top: calc(100% + 8px); right: 0; background: white; border-radius: 0.75rem; box-shadow: 0 8px 24px rgba(0,0,0,0.15); border: 1px solid var(--gray-200); padding: 0.75rem 0; min-width: 200px; z-index: 9999;">
+                    <div style="padding: 0.25rem 1rem 0.5rem; font-size: 0.75rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="lang.change">Cambiar idioma</div>
+                    <button onclick="setLanguage('en')" type="button"
+                            style="width: 100%; padding: 0.6rem 1rem; display: flex; align-items: center; gap: 0.75rem; border: none; background: transparent; cursor: pointer; font-size: 0.9rem; color: var(--gray-700); transition: background 0.15s;"
+                            onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'">
+                        <span class="lang-radio" data-lang="en" style="width: 16px; height: 16px; border-radius: 50%; border: 2px solid #d1d5db; background: white; flex-shrink: 0; transition: all 0.2s;"></span>
+                        English - EN
+                    </button>
+                    <button onclick="setLanguage('es')" type="button"
+                            style="width: 100%; padding: 0.6rem 1rem; display: flex; align-items: center; gap: 0.75rem; border: none; background: transparent; cursor: pointer; font-size: 0.9rem; color: var(--gray-700); transition: background 0.15s;"
+                            onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background='transparent'">
+                        <span class="lang-radio" data-lang="es" style="width: 16px; height: 16px; border-radius: 50%; border: 2px solid #f97316; background: #f97316; flex-shrink: 0; transition: all 0.2s;"></span>
+                        español - ES
+                    </button>
+                </div>
+            </div>
+
+            <!-- Cart Icon -->
+            <a asp-controller="Cart" asp-action="Index" style="color: var(--gray-600); font-size: 1.3rem; position: relative; transition: color 0.2s;" title="Carrito de compras" data-i18n-title="nav.cart">
+                🛒
+            </a>
+
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <!-- Dashboard Link -->
+                @if (User.IsInRole("admin"))
+                {
+                    <a asp-controller="Dashboard" asp-action="Admin" style="color: var(--purple-700); font-weight: 600; font-size: 0.875rem; white-space: nowrap;" data-i18n="nav.dashboard.admin">Dashboard Admin</a>
+                }
+                else if (User.IsInRole("optometra"))
+                {
+                    <a asp-controller="Optometra" asp-action="Index" style="color: var(--purple-700); font-weight: 600; font-size: 0.875rem; white-space: nowrap;" data-i18n="nav.dashboard.optometria">Dashboard Optometría</a>
+                }
+                else if (User.IsInRole("ventas"))
+                {
+                    <a asp-controller="Ventas" asp-action="Index" style="color: var(--purple-700); font-weight: 600; font-size: 0.875rem; white-space: nowrap;" data-i18n="nav.dashboard.ventas">Dashboard Ventas</a>
+                }
+                else
+                {
+                    <a asp-controller="Dashboard" asp-action="Usuario" style="color: var(--purple-700); font-weight: 600; font-size: 0.875rem; white-space: nowrap;" data-i18n="nav.dashboard.cuenta">Mi Cuenta</a>
+                }
+
+                <!-- Greeting -->
+                <span style="color: var(--gray-600); font-size: 0.85rem; white-space: nowrap;">
+                    <span data-i18n="nav.greeting">Hola,</span> @User.Identity.Name
+                    <span style="color: var(--purple-500); font-size: 0.75rem;">(@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value)</span>
+                </span>
+
+                <!-- Logout -->
+                <form asp-controller="Auth" asp-action="Logout" method="post" style="display: inline; margin: 0;">
+                    <button type="submit" style="background: transparent; color: var(--purple-700); border: 2px solid var(--purple-500); padding: 0.4rem 0.9rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 0.2s; white-space: nowrap;" data-i18n="nav.logout">
+                        Cerrar Sesión
+                    </button>
+                </form>
+            }
+            else
+            {
+                <!-- Login Button -->
+                <a asp-controller="Auth" asp-action="Login" style="display: inline-flex; align-items: center; gap: 0.4rem; background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white; padding: 0.5rem 1.25rem; border-radius: 9999px; font-size: 0.9rem; font-weight: 600; transition: all 0.2s; box-shadow: 0 2px 8px rgba(126,34,206,0.3); white-space: nowrap;" data-i18n="nav.login">
+                    👤 Ingresar
+                </a>
+            }
+        </div>
+    </div>
+</nav>

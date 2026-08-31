@@ -1,0 +1,279 @@
+@model LentSoft.Web.Models.ViewModels.HomeViewModel
+@{
+    ViewData["Title"] = "Inicio";
+}
+
+<main id="inicio">
+
+    <!-- ==================== HERO SECTION (Two Columns) ==================== -->
+    <section style="padding: 2rem 0 2.5rem 0; background-color: var(--gray-50);">
+        <div class="container">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: stretch;">
+
+                <!-- Left Column: Promo Card -->
+                <div style="background: linear-gradient(135deg, var(--purple-700), var(--purple-900)); border-radius: 1.5rem; padding: 2.5rem; position: relative; overflow: hidden; display: flex; flex-direction: column; justify-content: flex-end; min-height: 350px;">
+                    <!-- Decorative circles -->
+                    <div style="position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,0.06);"></div>
+                    <div style="position: absolute; bottom: -60px; left: -30px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,0.04);"></div>
+                    <!-- Glasses emoji as visual -->
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%); font-size: 6rem; opacity: 0.2;">👓</div>
+                    <div style="position: relative; z-index: 1;">
+                        <p style="color: var(--purple-200); font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.25rem;" data-i18n="home.hero.badge">Oferta especial</p>
+                        <h2 style="color: white; font-size: 1.75rem; font-weight: 800; margin-bottom: 0.5rem;" data-i18n="home.hero.title">GAFAS FORMULADAS</h2>
+                        <div style="display: flex; align-items: baseline; gap: 0.5rem; margin-bottom: 1rem;">
+                            <span style="color: #fbbf24; font-size: 3.5rem; font-weight: 900; line-height: 1;">40%</span>
+                            <span style="color: #fbbf24; font-size: 1.75rem; font-weight: 700;">OFF</span>
+                        </div>
+                        <a asp-controller="Product" asp-action="Tienda" style="display: inline-block; background: white; color: var(--purple-800); padding: 0.6rem 1.5rem; border-radius: 9999px; font-weight: 700; font-size: 0.9rem; transition: transform 0.2s;" data-i18n="home.hero.cta">
+                            Ver ofertas →
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Right Column: CTA -->
+                <div style="display: flex; flex-direction: column; justify-content: center; gap: 1.5rem;">
+                    <div>
+                        <span style="display: inline-block; background: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="home.hero.services">Servicios Ópticos</span>
+                        <h1 style="color: var(--purple-900); font-size: 2rem; font-weight: 800; line-height: 1.2; margin-bottom: 0;" data-i18n="home.hero.exam">
+                            PROGRAMA TU EXAMEN VISUAL PARA TI Y TU FAMILIA
+                        </h1>
+                    </div>
+
+                    <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                        <a asp-controller="Auth" asp-action="Login" style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--success); color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(16,185,129,0.3); transition: transform 0.2s;" data-i18n="home.hero.appointment">
+                            📅 Agendar cita ahora
+                        </a>
+                        <a asp-controller="Product" asp-action="Tienda" style="display: inline-flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, var(--purple-600), var(--purple-700)); color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(126,34,206,0.3); transition: transform 0.2s;" data-i18n="home.hero.frames">
+                            👓 Muestra de montura
+                        </a>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                        <span style="color: var(--gray-500); font-size: 0.85rem;" data-i18n="home.hero.personalized">Atención personalizada</span>
+                        <span style="color: var(--purple-300);">·</span>
+                        <span style="color: var(--gray-500); font-size: 0.85rem;" data-i18n="home.hero.modern">Equipos modernos</span>
+                        <span style="color: var(--purple-300);">·</span>
+                        <span style="color: var(--gray-500); font-size: 0.85rem;" data-i18n="home.hero.certified">Profesionales certificados</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== BANNER DE REGISTRO ==================== -->
+    @if (User.Identity?.IsAuthenticated != true)
+    {
+        <section style="background: linear-gradient(135deg, var(--purple-700), var(--purple-900)); padding: 1.75rem 0;">
+            <div class="container" style="display: flex; align-items: center; justify-content: space-between; gap: 2rem; flex-wrap: wrap;">
+                <div style="flex: 1;">
+                    <p style="color: white; font-size: 1.2rem; font-weight: 700; margin-bottom: 0.25rem;">
+                        <span data-i18n="home.banner.new">¿Nuevo en LentSoft?</span>
+                        <span style="font-weight: 400;" data-i18n="home.banner.noaccount">Si no tienes cuenta, </span>
+                        <a asp-controller="Auth" asp-action="Register" style="color: #fbbf24; font-weight: 700; text-decoration: underline; text-underline-offset: 3px;" data-i18n="home.banner.register">regístrate aquí</a>
+                    </p>
+                    <p style="color: var(--purple-200); font-size: 0.9rem; margin: 0;" data-i18n="home.banner.benefits">
+                        Accede a descuentos exclusivos, historial de citas y mucho más
+                    </p>
+                </div>
+                <a asp-controller="Auth" asp-action="Register" style="display: inline-flex; align-items: center; gap: 0.5rem; background: white; color: var(--purple-800); padding: 0.7rem 1.5rem; border-radius: 9999px; font-weight: 700; font-size: 0.95rem; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: transform 0.2s;" data-i18n="home.banner.signup">
+                    ➕ Registrarse →
+                </a>
+            </div>
+        </section>
+    }
+
+    <!-- ==================== TECNOLOGÍA INNOVADORA ==================== -->
+    <section style="padding: 3.5rem 0; background: white;">
+        <div class="container" style="text-align: center; max-width: 800px;">
+            <span style="display: inline-block; background: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem;" data-i18n="home.tech.badge">TECNOLOGÍA INNOVADORA</span>
+            <h2 style="color: var(--purple-900); margin-bottom: 1rem; font-size: 1.75rem;" data-i18n="home.tech.title">Previsualización de Marcos con Realidad Aumentada</h2>
+            <p style="color: var(--gray-500); font-size: 1rem; line-height: 1.7; margin-bottom: 1.5rem;" data-i18n="home.tech.desc">
+                Utiliza nuestra tecnología de realidad aumentada para probarte monturas desde la comodidad de tu hogar. 
+                Sube tu foto o activa tu cámara y visualiza cómo lucen nuestros marcos en tu rostro antes de comprar.
+            </p>
+            <div style="background: linear-gradient(135deg, var(--purple-50), var(--purple-100)); border-radius: 1rem; padding: 3rem; display: flex; align-items: center; justify-content: center; gap: 1rem; flex-direction: column;">
+                <span style="font-size: 4rem;">📸</span>
+                <p style="color: var(--purple-700); font-weight: 600; margin: 0;" data-i18n="home.tech.soon">Prueba virtual disponible próximamente</p>
+                <span style="color: var(--gray-400); font-size: 0.85rem;" data-i18n="home.tech.camera">Activa tu cámara para probarte monturas al instante</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== CATEGORÍAS POPULARES ==================== -->
+    <section style="padding: 3.5rem 0; background-color: var(--gray-50);">
+        <div class="container">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <span style="display: inline-block; background: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="home.cat.badge">Explora</span>
+                <h2 style="color: var(--purple-900);" data-i18n="home.cat.title">Categorías Populares</h2>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                <!-- Lentes de Sol -->
+                <div class="card" style="text-align: center; padding: 2rem 1.5rem;">
+                    <div style="width: 64px; height: 64px; border-radius: 1rem; background: linear-gradient(135deg, var(--purple-100), var(--purple-200)); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.75rem;">🕶️</div>
+                    <h3 style="color: var(--purple-800); font-size: 1.2rem; margin-bottom: 0.5rem;" data-i18n="home.cat.sun">Lentes de Sol</h3>
+                    <p style="color: var(--gray-500); font-size: 0.9rem; margin-bottom: 1rem;" data-i18n="home.cat.sun.desc">Protección y estilo para tus ojos</p>
+                    <a asp-controller="Product" asp-action="Tienda" asp-route-categoria="lentes-sol" class="btn btn-outline" style="padding: 0.5rem 1.25rem; font-size: 0.875rem;" data-i18n="home.cat.viewmore">Ver Más</a>
+                </div>
+                <!-- Lentes Graduados -->
+                <div class="card" style="text-align: center; padding: 2rem 1.5rem;">
+                    <div style="width: 64px; height: 64px; border-radius: 1rem; background: linear-gradient(135deg, var(--purple-100), var(--purple-200)); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.75rem;">👓</div>
+                    <h3 style="color: var(--purple-800); font-size: 1.2rem; margin-bottom: 0.5rem;" data-i18n="home.cat.grad">Lentes Graduados</h3>
+                    <p style="color: var(--gray-500); font-size: 0.9rem; margin-bottom: 1rem;" data-i18n="home.cat.grad.desc">Claridad y comodidad garantizada</p>
+                    <a asp-controller="Product" asp-action="Tienda" asp-route-categoria="lentes-graduados" class="btn btn-outline" style="padding: 0.5rem 1.25rem; font-size: 0.875rem;" data-i18n="home.cat.viewmore">Ver Más</a>
+                </div>
+                <!-- Lentes de Contacto -->
+                <div class="card" style="text-align: center; padding: 2rem 1.5rem;">
+                    <div style="width: 64px; height: 64px; border-radius: 1rem; background: linear-gradient(135deg, var(--purple-100), var(--purple-200)); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.75rem;">👁️</div>
+                    <h3 style="color: var(--purple-800); font-size: 1.2rem; margin-bottom: 0.5rem;" data-i18n="home.cat.contact">Lentes de Contacto</h3>
+                    <p style="color: var(--gray-500); font-size: 0.9rem; margin-bottom: 1rem;" data-i18n="home.cat.contact.desc">Libertad y visión perfecta</p>
+                    <a asp-controller="Product" asp-action="Tienda" asp-route-categoria="lentes-contacto" class="btn btn-outline" style="padding: 0.5rem 1.25rem; font-size: 0.875rem;" data-i18n="home.cat.viewmore">Ver Más</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== PRODUCTOS MÁS VENDIDOS ==================== -->
+    <section style="padding: 3.5rem 0; background: white;">
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <span style="display: inline-block; background: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem;" data-i18n="home.best.badge">Top ventas</span>
+                    <h2 style="color: var(--purple-900); margin: 0;" data-i18n="home.best.title">Productos Más Vendidos</h2>
+                </div>
+                <a asp-controller="Product" asp-action="Tienda" style="color: var(--purple-700); font-weight: 600; font-size: 0.9rem;" data-i18n="home.best.viewall">Ver todos →</a>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
+                @foreach (var product in Model.BestSellers)
+                {
+                    <div class="card" style="text-align: center; padding: 1.5rem;">
+                        <!-- Product image placeholder -->
+                        <div style="background: linear-gradient(135deg, var(--purple-50), var(--purple-100)); border-radius: 0.75rem; padding: 2rem; margin-bottom: 1rem; display: flex; align-items: center; justify-content: center;">
+                            @if (!string.IsNullOrEmpty(product.ImagenUrl))
+                            {
+                                <img src="@product.ImagenUrl" alt="@product.Nombre" style="max-height: 120px; object-fit: contain;" />
+                            }
+                            else
+                            {
+                                <span style="font-size: 3.5rem;">👓</span>
+                            }
+                        </div>
+                        <p style="color: var(--gray-400); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">@(product.Marca ?? "LentSoft")</p>
+                        <h4 style="color: var(--purple-900); margin-bottom: 0.5rem; font-size: 1.1rem;" data-i18n-product-name="@product.Nombre">@product.Nombre</h4>
+                        @if (product.PrecioDescuento.HasValue && product.PrecioDescuento < product.Precio)
+                        {
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; margin-bottom: 1rem;">
+                                <span style="text-decoration: line-through; color: var(--gray-400); font-size: 0.9rem;">@product.Precio.ToString("C")</span>
+                                <span style="font-size: 1.3rem; font-weight: 700; color: var(--purple-700);">@product.PrecioDescuento.Value.ToString("C")</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <p style="font-size: 1.3rem; font-weight: 700; color: var(--purple-700); margin: 0.5rem 0 1rem 0;">
+                                @product.Precio.ToString("C")
+                            </p>
+                        }
+                        <a asp-controller="Product" asp-action="Tienda" class="btn btn-primary" style="padding: 0.5rem 1.5rem; font-size: 0.875rem;" data-i18n="home.best.details">
+                            Ver Detalles
+                        </a>
+                    </div>
+                }
+            </div>
+        </div>
+    </section>
+
+    <!-- ==================== PRODUCTOS CON DESCUENTO ==================== -->
+    @if (Model.ProductosDescuento.Any())
+    {
+        <section style="padding: 3.5rem 0; background-color: var(--gray-50);">
+            <div class="container">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                    <div>
+                        <span style="display: inline-block; background: #fef3c7; color: #b45309; padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem;" data-i18n="home.disc.badge">🔥 Ofertas</span>
+                        <h2 style="color: var(--purple-900); margin: 0;" data-i18n="home.disc.title">Productos con Descuento</h2>
+                    </div>
+                    <a asp-controller="Product" asp-action="Tienda" style="color: var(--purple-700); font-weight: 600; font-size: 0.9rem;" data-i18n="home.best.viewall">Ver todos →</a>
+                </div>
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+                    @foreach (var product in Model.ProductosDescuento)
+                    {
+                        var descuento = product.PrecioDescuento.HasValue
+                            ? Math.Round((1 - (double)product.PrecioDescuento.Value / (double)product.Precio) * 100)
+                            : 0;
+                        <div class="card" style="padding: 1.5rem; position: relative;">
+                            <!-- Discount Badge -->
+                            <span style="position: absolute; top: 1rem; right: 1rem; background: var(--error); color: white; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700;">-@descuento%</span>
+                            <div style="background: linear-gradient(135deg, var(--purple-50), var(--purple-100)); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1rem; text-align: center;">
+                                @if (!string.IsNullOrEmpty(product.ImagenUrl))
+                                {
+                                    <img src="@product.ImagenUrl" alt="@product.Nombre" style="max-height: 100px; object-fit: contain;" />
+                                }
+                                else
+                                {
+                                    <span style="font-size: 3rem;">🕶️</span>
+                                }
+                            </div>
+                            <p style="color: var(--gray-400); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">@(product.Marca ?? "LentSoft")</p>
+                            <h4 style="color: var(--purple-900); font-size: 1rem; margin-bottom: 0.5rem;" data-i18n-product-name="@product.Nombre">@product.Nombre</h4>
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                                <span style="text-decoration: line-through; color: var(--gray-400); font-size: 0.85rem;">@product.Precio.ToString("C")</span>
+                                <span style="font-size: 1.2rem; font-weight: 700; color: var(--error);">@product.PrecioDescuento!.Value.ToString("C")</span>
+                            </div>
+                            <a asp-controller="Product" asp-action="Tienda" class="btn btn-primary" style="padding: 0.4rem 1.25rem; font-size: 0.85rem; width: 100%; text-align: center;" data-i18n="home.disc.buy">
+                                Comprar Ahora
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+    }
+
+    <!-- ==================== LENTES DE CONTACTO ==================== -->
+    <section style="padding: 3.5rem 0; background: white;">
+        <div class="container">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <span style="display: inline-block; background: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem;" data-i18n="home.contact.badge">👁️ Especialidad</span>
+                    <h2 style="color: var(--purple-900); margin: 0;" data-i18n="home.contact.title">Lentes de Contacto</h2>
+                </div>
+                <a asp-controller="Product" asp-action="Tienda" asp-route-categoria="lentes-contacto" style="color: var(--purple-700); font-weight: 600; font-size: 0.9rem;" data-i18n="home.best.viewall">Ver todos →</a>
+            </div>
+
+            @if (Model.LentesContacto.Any())
+            {
+                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem;">
+                    @foreach (var product in Model.LentesContacto)
+                    {
+                        <div class="card" style="padding: 1.5rem; text-align: center;">
+                            <div style="background: linear-gradient(135deg, var(--purple-50), var(--purple-100)); border-radius: 0.75rem; padding: 1.5rem; margin-bottom: 1rem;">
+                                @if (!string.IsNullOrEmpty(product.ImagenUrl))
+                                {
+                                    <img src="@product.ImagenUrl" alt="@product.Nombre" style="max-height: 100px; object-fit: contain;" />
+                                }
+                                else
+                                {
+                                    <span style="font-size: 3rem;">👁️</span>
+                                }
+                            </div>
+                            <p style="color: var(--gray-400); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">@(product.Marca ?? "LentSoft")</p>
+                            <h4 style="color: var(--purple-900); font-size: 1rem; margin-bottom: 0.5rem;" data-i18n-product-name="@product.Nombre">@product.Nombre</h4>
+                            <p style="font-size: 1.2rem; font-weight: 700; color: var(--purple-700); margin-bottom: 1rem;">@product.Precio.ToString("C")</p>
+                            <a asp-controller="Product" asp-action="Tienda" class="btn btn-outline" style="padding: 0.4rem 1.25rem; font-size: 0.85rem;" data-i18n="home.best.details">
+                                Ver Detalles
+                            </a>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div style="background: var(--purple-50); border-radius: 1rem; padding: 3rem; text-align: center;">
+                    <span style="font-size: 3rem;">👁️</span>
+                    <p style="color: var(--purple-700); font-weight: 600; margin-top: 1rem;" data-i18n="home.contact.soon">Próximamente — Lentes de contacto de las mejores marcas</p>
+                    <p style="color: var(--gray-500); font-size: 0.9rem;" data-i18n="home.contact.catalog">Estamos preparando un catálogo completo para ti.</p>
+                </div>
+            }
+        </div>
+    </section>
+
+</main>

@@ -1,0 +1,434 @@
+@model LentSoft.Web.Models.ViewModels.MuestraMonturaViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Catálogo y Vista de Marcos";
+    var defaultProduct = Model.PreselectedProduct ?? Model.Gafas.FirstOrDefault();
+    var defaultId = defaultProduct?.Id ?? 0;
+
+    // Combine Gafas and PreselectedProduct if not already in the list so details can be shown/selected
+    var allProductsList = Model.Gafas.ToList();
+    if (Model.PreselectedProduct != null && !allProductsList.Any(p => p.Id == Model.PreselectedProduct.Id))
+    {
+        allProductsList.Add(Model.PreselectedProduct);
+    }
+}
+
+<main style="padding: 2.5rem 0; min-height: 85vh; background: var(--purple-50); font-family: var(--font-secondary);">
+    <div class="container" style="max-width: 1200px; margin: 0 auto; padding: 0 1.5rem;">
+        
+        <!-- Header Section -->
+        <div style="margin-bottom: 2.5rem; text-align: center;">
+            <h1 style="color: var(--purple-900); font-size: 2.25rem; font-weight: 800; font-family: var(--font-primary); margin-bottom: 0.5rem;" data-i18n="montura.title">
+                Catálogo y Vista de Marcos
+            </h1>
+            <p style="color: var(--purple-600); font-size: 1.1rem; font-weight: 500; margin: 0;" data-i18n="montura.subtitle">
+                Prueba virtual con realidad aumentada - Encuentra el marco perfecto para ti
+            </p>
+        </div>
+
+        <!-- 2 Column Layout -->
+        <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 3rem; align-items: start;">
+            
+            <!-- Left Column: Interactive Preview + Selected Frame -->
+            <div style="display: flex; flex-direction: column; gap: 2rem; position: sticky; top: 120px;">
+                
+                <!-- Interactive Preview Box (Camera) -->
+                <div>
+                    <h3 style="color: var(--purple-900); font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; font-family: var(--font-primary);" data-i18n="montura.preview.title">
+                        Vista Previa Interactiva
+                    </h3>
+                    
+                    <div id="cameraPreviewContainer" style="background: var(--purple-900); border-radius: 1.25rem; height: 340px; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: var(--shadow-lg); border: 2px solid var(--purple-700);">
+                        
+                        <!-- Camera Placeholder -->
+                        <div id="cameraPlaceholder" style="text-align: center; color: white; padding: 2rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; z-index: 2;">
+                            <span style="font-size: 4.5rem; animation: pulse 2s infinite; display: inline-block;">📸</span>
+                            <div>
+                                <p style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.25rem; font-family: var(--font-primary);" data-i18n="montura.preview.instant">Prueba virtual instantánea</p>
+                                <p style="font-size: 0.85rem; color: var(--purple-200); max-width: 280px; margin: 0;" data-i18n="montura.preview.desc">Activa tu cámara web para ver cómo lucen los marcos en tu rostro.</p>
+                            </div>
+                            <button type="button" id="startCameraBtn" onclick="startCamera()" style="background: white; color: var(--purple-900); border: none; border-radius: 0.75rem; padding: 0.7rem 1.5rem; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.15);"
+                                    onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 14px rgba(0,0,0,0.2)';"
+                                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.15)';" data-i18n="montura.camera.start">
+                                Activar Cámara 📸
+                            </button>
+                        </div>
+
+                        <!-- Live Video Element (Hidden initially) -->
+                        <video id="webcamVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; display: none; transform: scaleX(-1);"></video>
+
+                        <!-- Canvas Overlay (Espejado y posicionado igual que el video) -->
+                        <canvas id="webcamCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; pointer-events: none; transform: scaleX(-1);"></canvas>
+
+                        <!-- No Face Warning Overlay -->
+                        <div id="noFaceWarning" style="position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); background: rgba(220, 38, 38, 0.85); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.2); color: white; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; display: none; z-index: 4; text-align: center; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: opacity 0.2s ease;">
+                            ⚠️ Rostro no detectado. Acércate o mejora la iluminación.
+                        </div>
+
+                        <!-- Error Message Container (Hidden initially) -->
+                        <div id="cameraError" style="position: absolute; inset: 0; background: rgba(15, 10, 25, 0.95); display: none; align-items: center; justify-content: center; flex-direction: column; padding: 2rem; text-align: center; color: white; z-index: 3;">
+                            <span style="font-size: 3rem; margin-bottom: 1rem;">⚠️</span>
+                            <h4 style="font-weight: 700; font-family: var(--font-primary); color: #fca5a5; margin-bottom: 0.5rem;" data-i18n="montura.camera.errortitle">Error de Acceso a la Cámara</h4>
+                            <p id="cameraErrorMessage" style="font-size: 0.85rem; color: var(--gray-300); max-width: 320px; margin-bottom: 1.5rem; line-height: 1.4;" data-i18n="montura.camera.errordesc">
+                                No se pudo acceder a la cámara. Asegúrate de dar los permisos correspondientes.
+                            </p>
+                            <button type="button" onclick="retryCamera()" style="background: var(--purple-700); color: white; border: none; border-radius: 0.5rem; padding: 0.5rem 1.25rem; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;" data-i18n="montura.camera.retry">
+                                Reintentar
+                            </button>
+                        </div>
+
+                        <!-- Camera controls (Visible only when video is active) -->
+                        <div id="cameraControls" style="position: absolute; bottom: 1rem; right: 1rem; display: none; z-index: 2;">
+                            <button type="button" onclick="stopCamera()" style="background: rgba(239, 68, 68, 0.85); color: white; border: none; border-radius: 0.5rem; padding: 0.4rem 0.8rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: background 0.2s;"
+                                    onmouseover="this.style.background='rgb(239, 68, 68)'"
+                                    onmouseout="this.style.background='rgba(239, 68, 68, 0.85)'" data-i18n="montura.camera.stop">
+                                Apagar Cámara
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Marco Seleccionado Details Card -->
+                <div style="background: white; border-radius: 1.25rem; padding: 1.5rem; box-shadow: var(--shadow-md); border: 1px solid var(--gray-100);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                        <span style="background: var(--purple-100); color: var(--purple-700); font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="montura.selected.badge">
+                            Marco Seleccionado
+                        </span>
+                        <span id="selectedPrice" style="font-size: 1.35rem; font-weight: 800; color: var(--purple-900);">
+                            $0.00
+                        </span>
+                    </div>
+
+                    <h4 id="selectedName" style="color: var(--purple-900); font-size: 1.25rem; font-weight: 800; margin: 0 0 0.5rem 0; font-family: var(--font-primary);" data-i18n="montura.loading">
+                        Cargando...
+                    </h4>
+
+                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem; font-size: 0.85rem; color: var(--gray-600); flex-wrap: wrap;">
+                        <div><strong data-i18n="montura.selected.style">Estilo:</strong> <span id="selectedStyle">-</span></div>
+                        <div style="color: var(--gray-300);">|</div>
+                        <div><strong data-i18n="montura.selected.size">Medidas:</strong> <span id="selectedSize">-</span></div>
+                    </div>
+
+                    <!-- AR Preview Availability Notice -->
+                    <div id="arUnavailableNotice" style="display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); color: #d97706; padding: 0.6rem 0.85rem; border-radius: 0.75rem; font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem; align-items: center; gap: 0.4rem;">
+                        ⚠️ Este marco aún no tiene vista previa en AR disponible
+                    </div>
+
+                    <p id="selectedDesc" style="color: var(--gray-500); font-size: 0.85rem; line-height: 1.5; margin: 0 0 1.25rem 0; min-height: 45px;">
+                        -
+                    </p>
+
+                    <button type="button" id="selectedAddToCartBtn" onclick="addSelectedToCart()"
+                            style="width: 100%; background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white; border: none; border-radius: 0.75rem; padding: 0.75rem; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(124,58,237,0.2);"
+                            onmouseover="this.style.transform='translateY(-2px)'"
+                            onmouseout="this.style.transform='translateY(0)'" data-i18n="product.addcart">
+                        🛒 Agregar al Carrito
+                    </button>
+                </div>
+
+            </div>
+
+            <!-- Right Column: Gallery list -->
+            <div>
+                <h3 style="color: var(--purple-900); font-size: 1.2rem; font-weight: 700; margin-bottom: 1rem; font-family: var(--font-primary);">
+                    <span data-i18n="montura.gallery.title">Galería de Marcos</span> (@Model.Gafas.Count)
+                </h3>
+                
+                <div style="max-height: 640px; overflow-y: auto; padding-right: 0.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;" class="gallery-scroll">
+                    @foreach (var item in Model.Gafas)
+                    {
+                        var isPreselected = item.Id == defaultId;
+                        <div id="product-card-@item.Id" onclick="selectProduct(@item.Id)" 
+                             style="background: white; border-radius: 1rem; overflow: hidden; cursor: pointer; transition: all 0.2s; border: 2.5px solid @(isPreselected ? "var(--purple-600)" : "var(--gray-100)"); box-shadow: @(isPreselected ? "var(--shadow-lg)" : "var(--shadow-sm)"); display: flex; flex-direction: column;"
+                             onmouseover="if(currentSelectedId !== @item.Id) { this.style.borderColor='var(--purple-300)'; this.style.transform='translateY(-2px)'; }"
+                             onmouseout="if(currentSelectedId !== @item.Id) { this.style.borderColor='var(--gray-100)'; this.style.transform='translateY(0)'; }">
+                            
+                            <!-- Thumbnail Image -->
+                            <div style="height: 130px; background: var(--gray-50); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
+                                @if (item.ImagenUrl != null)
+                                {
+                                    <img src="@item.ImagenUrl" alt="@item.Nombre" style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 0.5rem;" />
+                                }
+                                else
+                                {
+                                    <span style="font-size: 2.5rem;">👓</span>
+                                }
+
+                                @if (item.PrecioDescuento.HasValue && item.PrecioDescuento < item.Precio)
+                                {
+                                    <span style="position: absolute; top: 0.5rem; right: 0.5rem; background: var(--success); color: white; padding: 0.15rem 0.4rem; border-radius: 9999px; font-size: 0.65rem; font-weight: 700;">
+                                        -@item.GetDiscountPercentage()%
+                                    </span>
+                                }
+                            </div>
+
+                            <!-- Spec info -->
+                            <div style="padding: 0.85rem; flex-grow: 1; display: flex; flex-direction: column; gap: 0.25rem;">
+                                <h5 style="color: var(--purple-900); font-size: 0.9rem; font-weight: 700; margin: 0; line-height: 1.3;" data-i18n-product-name="@item.Nombre">
+                                    @item.Nombre
+                                </h5>
+                                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: auto; padding-top: 0.5rem;">
+                                    <span style="font-size: 0.8rem; color: var(--gray-500);" data-i18n-spec-val="@(item.Estilo ?? "Clásico")">
+                                        @(item.Estilo ?? "Clásico")
+                                    </span>
+                                    <span style="font-weight: 700; color: var(--purple-700); font-size: 0.95rem;">
+                                        @(item.PrecioDescuento.HasValue && item.PrecioDescuento < item.Precio ? item.PrecioDescuento.Value.ToString("C") : item.Precio.ToString("C"))
+                                    </span>
+                                </div>
+                                <div style="font-size: 0.75rem; color: var(--gray-400);">
+                                    <span data-i18n="montura.selected.size">Medidas</span>: <span data-i18n-spec-val="@(item.Tamanio ?? "Estándar")">@(item.Tamanio ?? "Estándar")</span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+</main>
+
+<style>
+    @@keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.08); }
+        100% { transform: scale(1); }
+    }
+    .gallery-scroll::-webkit-scrollbar {
+        width: 6px;
+    }
+    .gallery-scroll::-webkit-scrollbar-track {
+        background: var(--purple-50);
+        border-radius: 8px;
+    }
+    .gallery-scroll::-webkit-scrollbar-thumb {
+        background: var(--purple-200);
+        border-radius: 8px;
+    }
+    .gallery-scroll::-webkit-scrollbar-thumb:hover {
+        background: var(--purple-300);
+    }
+</style>
+
+@section Scripts {
+    <script type="module" src="~/js/face-tracking.js"></script>
+    <script>
+        // Embed the products JSON safely
+        const productsData = @Html.Raw(JsonSerializer.Serialize(allProductsList.Select(p => new {
+            id = p.Id,
+            nombre = p.Nombre,
+            estilo = p.Estilo ?? "No especificado",
+            tamanio = p.Tamanio ?? "No especificado",
+            precioStr = p.PrecioDescuento.HasValue && p.PrecioDescuento < p.Precio 
+                ? p.PrecioDescuento.Value.ToString("C") 
+                : p.Precio.ToString("C"),
+            descripcion = p.Descripcion ?? "Excelente diseño y materiales de alta calidad, seleccionados para garantizar tu bienestar visual.",
+            imagenUrl = p.ImagenUrl ?? "",
+            imagenOverlayUrl = p.ImagenOverlayUrl ?? "",
+            hasStock = p.HasStock(1)
+        })));
+
+        let currentSelectedId = @defaultId;
+        let cameraStream = null;
+
+        // Wait for window.faceTracking to be defined and assigned
+        function ensureFaceTracking() {
+            if (window.faceTracking) return Promise.resolve(window.faceTracking);
+            return new Promise(resolve => {
+                window.addEventListener('faceTrackingModuleLoaded', () => {
+                    resolve(window.faceTracking);
+                }, { once: true });
+            });
+        }
+
+        // Initialize display with default/preselected product
+        document.addEventListener('DOMContentLoaded', async () => {
+            if (currentSelectedId !== 0) {
+                selectProduct(currentSelectedId);
+                
+                // Set initial overlay once tracking module is loaded
+                try {
+                    const tracking = await ensureFaceTracking();
+                    const product = productsData.find(p => p.id === currentSelectedId);
+                    if (product) {
+                        tracking.cambiarMontura(product.imagenOverlayUrl);
+                    }
+                } catch (err) {
+                    console.warn("Failed to set initial frame overlay on load:", err);
+                }
+            }
+        });
+
+        // Function to select product in gallery
+        function selectProduct(id) {
+            // Find in JSON data
+            const product = productsData.find(p => p.id === id);
+            if (!product) return;
+
+            currentSelectedId = id;
+            const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'es';
+            const translate = typeof translateProductText === 'function' ? translateProductText : (t => t);
+
+            // Remove highlighted borders
+            productsData.forEach(p => {
+                const card = document.getElementById('product-card-' + p.id);
+                if (card) {
+                    card.style.borderColor = 'var(--gray-100)';
+                    card.style.boxShadow = 'var(--shadow-sm)';
+                }
+            });
+
+            // Highlight new selected
+            const selectedCard = document.getElementById('product-card-' + id);
+            if (selectedCard) {
+                selectedCard.style.borderColor = 'var(--purple-600)';
+                selectedCard.style.boxShadow = 'var(--shadow-lg)';
+            }
+
+            // Update details card on the left
+            document.getElementById('selectedName').textContent = translate(product.nombre, lang);
+            document.getElementById('selectedPrice').textContent = product.precioStr;
+            document.getElementById('selectedStyle').textContent = translate(product.estilo, lang);
+            document.getElementById('selectedSize').textContent = translate(product.tamanio, lang);
+            document.getElementById('selectedDesc').textContent = translate(product.descripcion, lang);
+
+            // Update AR availability notice
+            const arNotice = document.getElementById('arUnavailableNotice');
+            if (arNotice) {
+                if (product.imagenOverlayUrl) {
+                    arNotice.style.display = 'none';
+                } else {
+                    arNotice.style.display = 'flex';
+                }
+            }
+
+            // Update Add to Cart Button state
+            const cartBtn = document.getElementById('selectedAddToCartBtn');
+            if (cartBtn) {
+                if (product.hasStock) {
+                    cartBtn.disabled = false;
+                    cartBtn.style.opacity = '1';
+                    cartBtn.style.cursor = 'pointer';
+                    cartBtn.textContent = lang === 'en' ? '🛒 Add to Cart' : '🛒 Agregar al Carrito';
+                } else {
+                    cartBtn.disabled = true;
+                    cartBtn.style.opacity = '0.5';
+                    cartBtn.style.cursor = 'not-allowed';
+                    cartBtn.textContent = lang === 'en' ? 'Sold Out' : 'Agotado';
+                }
+            }
+
+            // Update frame overlay dynamically in real-time
+            if (window.faceTracking) {
+                window.faceTracking.cambiarMontura(product.imagenOverlayUrl);
+            }
+        }
+
+        // Listen for global language switch events
+        window.addEventListener('languageChanged', () => {
+            if (currentSelectedId) {
+                selectProduct(currentSelectedId);
+            }
+        });
+
+        // Add selected to cart
+        function addSelectedToCart() {
+            addToCart(currentSelectedId);
+        }
+
+        // Camera Activation (getUserMedia)
+        async function startCamera() {
+            const placeholder = document.getElementById('cameraPlaceholder');
+            const video = document.getElementById('webcamVideo');
+            const errorContainer = document.getElementById('cameraError');
+            const controls = document.getElementById('cameraControls');
+            const canvas = document.getElementById('webcamCanvas');
+
+            errorContainer.style.display = 'none';
+
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showCameraError('Tu navegador no soporta el acceso a la cámara. Por favor utiliza un navegador moderno.');
+                return;
+            }
+
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { 
+                        facingMode: "user",
+                        width: { ideal: 640 },
+                        height: { ideal: 480 }
+                    } 
+                });
+
+                video.srcObject = cameraStream;
+                video.style.display = 'block';
+                placeholder.style.display = 'none';
+                controls.style.display = 'block';
+
+                // Try-On AR initialization and detection start
+                try {
+                    const tracking = await ensureFaceTracking();
+                    if (!tracking.isReady()) {
+                        await tracking.init();
+                    }
+                    
+                    // Set active product overlay frame before starting detection
+                    const product = productsData.find(p => p.id === currentSelectedId);
+                    if (product) {
+                        tracking.cambiarMontura(product.imagenOverlayUrl);
+                    }
+
+                    tracking.iniciarDeteccion(video, canvas);
+                    canvas.style.display = 'block';
+                } catch (trackErr) {
+                    console.error("Error starting face tracking:", trackErr);
+                    stopCamera();
+                    showCameraError('No se pudo inicializar el detector de rostro (AR). Inténtalo de nuevo.');
+                }
+            } catch (err) {
+                console.error("Camera access error:", err);
+                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
+                    showCameraError('Acceso denegado. Permite el uso de la cámara en la barra de direcciones y vuelve a intentarlo.');
+                } else {
+                    showCameraError('No se encontró ningún dispositivo de cámara o el dispositivo está en uso.');
+                }
+            }
+        }
+
+        function stopCamera() {
+            const placeholder = document.getElementById('cameraPlaceholder');
+            const video = document.getElementById('webcamVideo');
+            const controls = document.getElementById('cameraControls');
+            const canvas = document.getElementById('webcamCanvas');
+
+            if (window.faceTracking) {
+                window.faceTracking.detenerDeteccion();
+            }
+
+            if (canvas) {
+                canvas.style.display = 'none';
+            }
+
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+
+            video.srcObject = null;
+            video.style.display = 'none';
+            placeholder.style.display = 'flex';
+            controls.style.display = 'none';
+        }
+
+        function showCameraError(msg) {
+            document.getElementById('cameraErrorMessage').textContent = msg;
+            document.getElementById('cameraError').style.display = 'flex';
+        }
+
+        function retryCamera() {
+            document.getElementById('cameraError').style.display = 'none';
+            startCamera();
+        }
+    </script>
+}
