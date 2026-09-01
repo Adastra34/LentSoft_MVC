@@ -45,7 +45,6 @@ public class DashboardController : Controller
     public async Task<IActionResult> Admin(
         string section = "general",
         string subtab = "productos",
-        string pedidosView = "proveedores",
         string? searchTerm = null,
         int page = 1,
         int pageSize = 5,
@@ -55,8 +54,7 @@ public class DashboardController : Controller
         string? trabajadoresSearch = null,
         int trabajadoresPage = 1,
         int trabajadoresPageSize = 5,
-        bool includeInactive = false,
-        int? warehouseId = null)
+        bool includeInactive = false)
     {
         ViewBag.IncludeInactive = includeInactive;
         var now = DateTime.UtcNow;
@@ -81,9 +79,7 @@ public class DashboardController : Controller
         var clientesTotales = await _context.Users.CountAsync(u => u.Role == "usuario" && u.Activo);
         var clientesAnterior = Math.Max(1, clientesTotales - 1); // mock
 
-        var productosEnStock = await _context.Products
-            .Include(p => p.ProductStocks)
-            .CountAsync(p => p.Activo && p.ProductStocks.Sum(ps => ps.Cantidad) > 0);
+        var productosEnStock = await _context.Products.CountAsync(p => p.Activo && p.Stock > 0);
         var productosAnterior = Math.Max(1, productosEnStock); // mock estable
 
         // ── Datos para las secciones ──
@@ -95,12 +91,8 @@ public class DashboardController : Controller
             .Take(10)
             .ToListAsync();
 
-        var productosQuery = _context.Products.Include(p => p.ProductStocks).AsQueryable();
+        var productosQuery = _context.Products.AsQueryable();
         if (!includeInactive) productosQuery = productosQuery.Where(p => p.Activo);
-        if (warehouseId.HasValue && warehouseId.Value > 0)
-        {
-            productosQuery = productosQuery.Where(p => p.ProductStocks.Any(ps => ps.WarehouseId == warehouseId.Value && ps.Cantidad > 0));
-        }
         var productos = await productosQuery.OrderBy(p => p.Nombre).ToListAsync();
 
         // ── Clientes (Paginados y Filtrados) ──
@@ -210,7 +202,7 @@ public class DashboardController : Controller
 
             // Clientes
             Clientes = clientesList,
-            TodosLosClientes = await _context.Users.Where(u => u.Activo && u.Role == "usuario").OrderBy(u => u.Nombre).ThenBy(u => u.Apellido).ToListAsync(),
+            TodosLosClientes = await _context.Users.Where(u => u.Activo).OrderBy(u => u.Nombre).ThenBy(u => u.Apellido).ToListAsync(),
             ClientesSearchTerm = clientesSearch,
             ClientesPage = clientesPage,
             ClientesPageSize = clientesPageSize,
@@ -231,19 +223,14 @@ public class DashboardController : Controller
             FacturasTotalCount = facturasTotalCount,
             PedidosDisponibles = pedidosDisponibles,
 
-            // Bodegas, Proveedores, Pedidos a Proveedores e Historial de Movimientos reales
-            Bodegas = await _context.Warehouses.Where(w => w.Activo).OrderBy(w => w.Nombre).ToListAsync(),
-            SelectedWarehouseId = warehouseId,
+            // Proveedores y Historial de Movimientos reales
             Proveedores = await _context.Suppliers.Where(s => s.Activo).OrderBy(s => s.Nombre).ToListAsync(),
-            PedidosProveedores = await _context.PurchaseOrders.Include(p => p.Supplier).Include(p => p.PurchaseOrderItems).ThenInclude(i => i.Product).OrderByDescending(p => p.FechaPedido).ToListAsync(),
-            HistorialMovimientos = await _context.InventoryMovements.Include(m => m.Product).Include(m => m.Warehouse).OrderByDescending(m => m.Fecha).ToListAsync(),
+            HistorialMovimientos = await _context.InventoryMovements.Include(m => m.Product).OrderByDescending(m => m.Fecha).ToListAsync(),
 
             // Navigation
             ActiveSection = section,
-            ActiveSubTab = subtab,
-            ActivePedidosView = pedidosView
+            ActiveSubTab = subtab
         };
-
 
         return View(viewModel);
     }

@@ -20,9 +20,6 @@ public class DashboardAdminViewModel
     // ── Inventario ──
     public List<Product> Productos { get; set; } = new();
     public List<Supplier> Proveedores { get; set; } = new();
-    public List<PurchaseOrder> PedidosProveedores { get; set; } = new();
-    public List<Warehouse> Bodegas { get; set; } = new();
-    public int? SelectedWarehouseId { get; set; }
     public List<InventoryMovement> HistorialMovimientos { get; set; } = new();
 
     // ── Ventas ──
@@ -59,7 +56,6 @@ public class DashboardAdminViewModel
     // Active section + sub-tab
     public string ActiveSection { get; set; } = "general";
     public string ActiveSubTab { get; set; } = "productos";
-    public string ActivePedidosView { get; set; } = "proveedores";
 
     // Helper: calcular % de variación
     public static string GetVariacion(decimal actual, decimal anterior)

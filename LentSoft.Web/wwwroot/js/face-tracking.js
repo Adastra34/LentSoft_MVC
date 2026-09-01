@@ -1,4 +1,4 @@
-import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/vision_bundle.js";
+import { FaceLandmarker, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/vision_bundle.mjs";
 
 let faceLandmarker = null;
 let activeLoop = false;
@@ -60,7 +60,19 @@ function iniciarDeteccion(video, canvas) {
                 // Clear canvas
                 ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
 
-                if (results && results.faceLandmarks && results.faceLandmarks.length > 0 && currentMonturaUrl) {
+                const hasFace = results && results.faceLandmarks && results.faceLandmarks.length > 0;
+
+                // Show/hide warning overlay safely
+                const warningEl = document.getElementById('noFaceWarning');
+                if (warningEl) {
+                    const currentDisplay = warningEl.style.display;
+                    const targetDisplay = hasFace ? 'none' : 'block';
+                    if (currentDisplay !== targetDisplay) {
+                        warningEl.style.display = targetDisplay;
+                    }
+                }
+
+                if (hasFace && currentMonturaUrl) {
                     // Extract landmarks for eyes (468: left iris center, 473: right iris center)
                     const landmarks = results.faceLandmarks[0];
                     if (landmarks[468] && landmarks[473]) {
@@ -130,6 +142,10 @@ function detenerDeteccion() {
     if (ctx && canvasEl) {
         ctx.clearRect(0, 0, canvasEl.width, canvasEl.height);
     }
+    const warningEl = document.getElementById('noFaceWarning');
+    if (warningEl) {
+        warningEl.style.display = 'none';
+    }
 }
 
 // Change active glasses overlay image
@@ -164,3 +180,6 @@ window.faceTracking = {
     cambiarMontura: cambiarMontura,
     isReady: () => faceLandmarker !== null
 };
+
+// Dispatch event when module is fully loaded and window.faceTracking is assigned
+window.dispatchEvent(new CustomEvent('faceTrackingModuleLoaded'));

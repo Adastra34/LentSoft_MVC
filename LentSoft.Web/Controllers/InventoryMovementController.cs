@@ -30,47 +30,28 @@ public class InventoryMovementController : Controller
             return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "historial" });
         }
 
-        movement.WarehouseId ??= 1;
-
-        var product = await _context.Products
-            .Include(p => p.ProductStocks)
-            .FirstOrDefaultAsync(p => p.Id == movement.ProductId);
-
+        var product = await _context.Products.FindAsync(movement.ProductId);
         if (product == null)
         {
             TempData["ErrorMessage"] = "El producto seleccionado no existe.";
             return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "historial" });
         }
 
-        var productStock = await _context.ProductStocks
-            .FirstOrDefaultAsync(ps => ps.ProductId == movement.ProductId && ps.WarehouseId == movement.WarehouseId.Value);
-
-        if (productStock == null)
-        {
-            productStock = new ProductStock
-            {
-                ProductId = movement.ProductId,
-                WarehouseId = movement.WarehouseId.Value,
-                Cantidad = 0
-            };
-            _context.ProductStocks.Add(productStock);
-        }
-
         var tipo = movement.Tipo?.Trim();
         if (string.Equals(tipo, "Salida", StringComparison.OrdinalIgnoreCase))
         {
             tipo = "Salida";
-            if (productStock.Cantidad < movement.Cantidad)
+            if (product.Stock < movement.Cantidad)
             {
-                TempData["ErrorMessage"] = $"Stock insuficiente en la bodega seleccionada. Stock actual de {product.Nombre}: {productStock.Cantidad}, intentó retirar: {movement.Cantidad}.";
+                TempData["ErrorMessage"] = $"Stock insuficiente. Stock actual de {product.Nombre}: {product.Stock}, intentó retirar: {movement.Cantidad}.";
                 return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "historial" });
             }
-            productStock.Cantidad -= movement.Cantidad;
+            product.Stock -= movement.Cantidad;
         }
         else
         {
             tipo = "Entrada";
-            productStock.Cantidad += movement.Cantidad;
+            product.Stock += movement.Cantidad;
         }
 
         movement.Tipo = tipo;
@@ -85,14 +66,16 @@ public class InventoryMovementController : Controller
         try
         {
             _context.InventoryMovements.Add(movement);
+            _context.Products.Update(product);
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = $"Movimiento de {tipo} registrado exitosamente. Nuevo stock en bodega: {productStock.Cantidad}.";
+            TempData["SuccessMessage"] = $"Movimiento de {tipo} registrado exitosamente. Nuevo stock: {product.Stock}.";
         }
         catch (Exception ex)
         {
             TempData["ErrorMessage"] = $"Error al registrar el movimiento de inventario: {ex.Message}";
         }
+
         return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "historial" });
     }
 }

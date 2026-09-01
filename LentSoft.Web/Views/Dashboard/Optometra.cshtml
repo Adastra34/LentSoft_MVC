@@ -362,9 +362,9 @@
                                                 class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Editar">
                                             ✏️
                                         </button>
-                                        <form asp-controller="Optometra" asp-action="DeletePaciente" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de desactivar a este paciente? (Su estado cambiará a Inactivo)')">
+                                        <form id="form-delete-paciente-@p.Id" asp-controller="Optometra" asp-action="DeletePaciente" method="post" style="display:inline;">
                                             <input type="hidden" name="id" value="@p.Id" />
-                                            <button type="submit" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Desactivar Paciente">🗑️</button>
+                                            <button type="button" onclick="confirmDeactivatePaciente(@p.Id, '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(p.NombreCompleto))')" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Desactivar Paciente">🗑️</button>
                                         </form>
                                     </td>
                                 </tr>
@@ -691,9 +691,9 @@
                                                 class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Editar">
                                             ✏️
                                         </button>
-                                        <form asp-controller="Optometra" asp-action="DeleteAppointment" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar esta cita?')">
+                                        <form id="form-delete-appointment-@c.Id" asp-controller="Optometra" asp-action="DeleteAppointment" method="post" style="display:inline;">
                                             <input type="hidden" name="id" value="@c.Id" />
-                                            <button type="submit" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar cita">🗑️</button>
+                                            <button type="button" onclick="confirmDeleteAppointment(@c.Id)" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar cita">🗑️</button>
                                         </form>
                                     </td>
                                 </tr>
@@ -741,7 +741,7 @@
                     <form asp-controller="Optometra" asp-action="CreateAppointment" method="post" style="display:flex; flex-direction:column; gap:1rem;">
                         <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                             <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Seleccionar Paciente</label>
-                            <select name="UserId" class="searchable-select" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                            <select name="UserId" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
                                 @foreach (var cli in Model.Pacientes)
                                 {
                                     <option value="@cli.Id">@cli.NombreCompleto (@cli.Email)</option>
@@ -753,24 +753,17 @@
                             <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Servicio</label>
                             <select name="Servicio" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
                                 <option value="Examen visual completo">Examen visual completo</option>
-                                <option value="Examen de vista">Examen de vista básico</option>
-                                <option value="Control de lentes">Control de lentes</option>
-                                <option value="Primera consulta">Primera consulta</option>
-                                <option value="Seguimiento glaucoma">Seguimiento de glaucoma / presión</option>
-                                <option value="Adaptación lentes contacto">Adaptación de lentes de contacto</option>
-                                <option value="Ajuste de lentes">Ajuste y reparación de monturas</option>
+                                <option value="Ajuste de lentes">Ajuste de lentes</option>
                                 <option value="Consulta por lentes de contacto">Consulta por lentes de contacto</option>
-                                <option value="Control optometría">Control de optometría general</option>
-                                <option value="Examen de agudeza visual (Certificado)">Examen de agudeza visual (Certificado)</option>
-                                <option value="Terapia visual / Ortóptica">Terapia visual / Ortóptica</option>
-                                <option value="Examen de fondo de ojo / Retinoscopia">Examen de fondo de ojo / Retinoscopia</option>
-                                <option value="Consulta de urgencia ocular leve">Consulta de urgencia ocular leve</option>
+                                <option value="Control optometría">Control optometría</option>
+                                <option value="Seguimiento glaucoma">Seguimiento glaucoma</option>
+                                <option value="Adaptación lentes contacto">Adaptación lentes contacto</option>
                             </select>
                         </div>
 
                         <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                             <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha y Hora</label>
-                            <input name="FechaHora" type="datetime-local" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            <input name="FechaHora" type="datetime-local" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
                         </div>
 
                         <div style="display: flex; flex-direction: column; gap: 0.25rem;">
@@ -799,7 +792,7 @@
 
                         <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                             <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Seleccionar Paciente</label>
-                            <select name="UserId" id="edit-cita-userid" class="searchable-select" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                            <select name="UserId" id="edit-cita-userid" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
                                 @foreach (var cli in Model.Pacientes)
                                 {
                                     <option value="@cli.Id">@cli.NombreCompleto (@cli.Email)</option>
@@ -811,24 +804,17 @@
                             <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Servicio</label>
                             <select name="Servicio" id="edit-cita-servicio" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
                                 <option value="Examen visual completo">Examen visual completo</option>
-                                <option value="Examen de vista">Examen de vista básico</option>
-                                <option value="Control de lentes">Control de lentes</option>
-                                <option value="Primera consulta">Primera consulta</option>
-                                <option value="Seguimiento glaucoma">Seguimiento de glaucoma / presión</option>
-                                <option value="Adaptación lentes contacto">Adaptación de lentes de contacto</option>
-                                <option value="Ajuste de lentes">Ajuste y reparación de monturas</option>
+                                <option value="Ajuste de lentes">Ajuste de lentes</option>
                                 <option value="Consulta por lentes de contacto">Consulta por lentes de contacto</option>
-                                <option value="Control optometría">Control de optometría general</option>
-                                <option value="Examen de agudeza visual (Certificado)">Examen de agudeza visual (Certificado)</option>
-                                <option value="Terapia visual / Ortóptica">Terapia visual / Ortóptica</option>
-                                <option value="Examen de fondo de ojo / Retinoscopia">Examen de fondo de ojo / Retinoscopia</option>
-                                <option value="Consulta de urgencia ocular leve">Consulta de urgencia ocular leve</option>
+                                <option value="Control optometría">Control optometría</option>
+                                <option value="Seguimiento glaucoma">Seguimiento glaucoma</option>
+                                <option value="Adaptación lentes contacto">Adaptación lentes contacto</option>
                             </select>
                         </div>
 
                         <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                             <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha y Hora</label>
-                            <input name="FechaHora" id="edit-cita-fechahora" type="datetime-local" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            <input name="FechaHora" id="edit-cita-fechahora" type="datetime-local" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
                         </div>
 
                         <div style="display: flex; flex-direction: column; gap: 0.25rem;">
@@ -1008,9 +994,9 @@
                                                     class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Editar">
                                                 ✏️
                                             </button>
-                                            <form asp-controller="Optometra" asp-action="DeleteHistorial" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar este registro?')">
+                                            <form id="form-delete-historial-@h.Id" asp-controller="Optometra" asp-action="DeleteHistorial" method="post" style="display:inline;">
                                                 <input type="hidden" name="id" value="@h.Id" />
-                                                <button type="submit" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar registro">🗑️</button>
+                                                <button type="button" onclick="confirmDeleteHistorial(@h.Id)" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar registro">🗑️</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -1033,7 +1019,7 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
-                                <select name="UserId" class="searchable-select" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                <select name="UserId" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
                                     @foreach (var cli in Model.Pacientes)
                                     {
                                         <option value="@cli.Id">@cli.NombreCompleto</option>
@@ -1093,7 +1079,7 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
-                                <select name="UserId" id="edit-historial-userid" class="searchable-select" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                <select name="UserId" id="edit-historial-userid" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
                                     @foreach (var cli in Model.Pacientes)
                                     {
                                         <option value="@cli.Id">@cli.NombreCompleto</option>
@@ -1242,9 +1228,9 @@
                                                     class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Editar">
                                                 ✏️
                                             </button>
-                                            <form asp-controller="Optometra" asp-action="DeleteExamen" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar este examen?')">
+                                            <form id="form-delete-examen-@ex.Id" asp-controller="Optometra" asp-action="DeleteExamen" method="post" style="display:inline;">
                                                 <input type="hidden" name="id" value="@ex.Id" />
-                                                <button type="submit" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar examen">🗑️</button>
+                                                <button type="button" onclick="confirmDeleteExamen(@ex.Id)" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar examen">🗑️</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -1365,7 +1351,7 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.8rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
-                                <select name="UserId" class="searchable-select" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                <select name="UserId" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
                                     @foreach (var cli in Model.Pacientes)
                                     {
                                         <option value="@cli.Id">@cli.NombreCompleto</option>
@@ -1487,7 +1473,7 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.8rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
-                                <select name="UserId" id="edit-examen-userid" class="searchable-select" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                <select name="UserId" id="edit-examen-userid" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
                                     @foreach (var cli in Model.Pacientes)
                                     {
                                         <option value="@cli.Id">@cli.NombreCompleto</option>
@@ -1685,9 +1671,9 @@
                                                     class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Editar">
                                                 ✏️
                                             </button>
-                                            <form asp-controller="Optometra" asp-action="DeleteFormula" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar esta fórmula?')">
+                                            <form id="form-delete-formula-@f.Id" asp-controller="Optometra" asp-action="DeleteFormula" method="post" style="display:inline;">
                                                 <input type="hidden" name="id" value="@f.Id" />
-                                                <button type="submit" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar fórmula">🗑️</button>
+                                                <button type="button" onclick="confirmDeleteFormula(@f.Id)" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar fórmula">🗑️</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -1761,7 +1747,11 @@
                         </div>
 
                         <!-- Firmas -->
-                        <div style="display: flex; justify-content: flex-end; align-items: flex-end; font-size: 0.8rem; border-top: 1px solid var(--purple-200); padding-top: 2rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 0.8rem; border-top: 1px solid var(--purple-200); padding-top: 2rem;">
+                            <div style="text-align: center; width: 45%;">
+                                <div style="border-bottom: 1px solid var(--gray-400); width: 100%; height: 35px; margin-bottom: 0.25rem;"></div>
+                                <span>Firma del Paciente</span>
+                            </div>
                             <div style="text-align: center; width: 45%;">
                                 <p style="font-weight:600; margin:0;" id="ver-formula-optometra"></p>
                                 <p style="margin:0; font-size:0.75rem; color:var(--gray-600);">Optómetra Especialista</p>
@@ -1773,8 +1763,8 @@
                     <!-- Botones de Acción (Ocultar al Imprimir en CSS) -->
                     <div style="display: flex; gap: 1rem; margin-top: 1.5rem;" class="no-print">
                         <button type="button" onclick="document.getElementById('modal-ver-formula').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer; font-weight:600;">Cerrar</button>
-                        <button type="button" onclick="descargarFormulaPdf()" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-100); color: var(--purple-800); cursor: pointer; font-weight:600;">📄 Descargar PDF</button>
-                        <button type="button" onclick="imprimirFormula()" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight:600;">🖨️ Imprimir</button>
+                        <button type="button" onclick="alertify.success('Generando archivo PDF... (Procesando descarga de receta médica)')" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-100); color: var(--purple-800); cursor: pointer; font-weight:600;">📄 Descargar PDF</button>
+                        <button type="button" onclick="window.print()" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight:600;">🖨️ Imprimir</button>
                     </div>
                 </div>
             </div>
@@ -1787,24 +1777,11 @@
                         <button onclick="document.getElementById('modal-nueva-formula').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
                     </div>
 
-                    <form asp-controller="Optometra" asp-action="CreateFormula" method="post" id="form-nueva-formula" style="display:flex; flex-direction:column; gap:1rem;">
-                        <!-- Selector de Plantilla Rápida -->
-                        <div style="display: flex; flex-direction: column; gap: 0.25rem; background-color: var(--purple-50); padding: 0.75rem; border-radius: 0.375rem; border: 1px dashed var(--purple-300);">
-                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--purple-950); margin-bottom: 0.25rem;">✨ Cargar Plantilla Rápida</label>
-                            <select id="select-plantilla-rapida" onchange="aplicarPlantillaFormula(this.value)" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem; background: white; cursor: pointer;">
-                                <option value="">-- Seleccionar diagnóstico (Manual) --</option>
-                                <option value="miopia-leve">Miopía Leve (OD/OI: -1.00, Monofocal)</option>
-                                <option value="miopia-moderada">Miopía Moderada (OD/OI: -3.00, Filtro Azul)</option>
-                                <option value="astigmatismo">Astigmatismo Común (Cilindro: -1.00, Eje: 180)</option>
-                                <option value="presbicia">Presbicia Inicial (OD/OI: +1.00, Progresivo)</option>
-                                <option value="ojo-sano">Examen de Control (OD/OI: 0.00, Monofocal)</option>
-                            </select>
-                        </div>
-
+                    <form asp-controller="Optometra" asp-action="CreateFormula" method="post" style="display:flex; flex-direction:column; gap:1rem;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
-                                <select name="UserId" class="searchable-select" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                <select name="UserId" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
                                     @foreach (var cli in Model.Pacientes)
                                     {
                                         <option value="@cli.Id">@cli.NombreCompleto</option>
@@ -1895,7 +1872,7 @@
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
-                                <select name="UserId" id="edit-formula-userid" class="searchable-select" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                <select name="UserId" id="edit-formula-userid" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
                                     @foreach (var cli in Model.Pacientes)
                                     {
                                         <option value="@cli.Id">@cli.NombreCompleto</option>
@@ -2496,108 +2473,68 @@
         document.getElementById('modal-editar-formula').style.display = 'flex';
     }
 
-    function descargarFormulaPdf() {
-        var id = document.getElementById('ver-formula-id').textContent;
-        if (id) {
-            alertify.success('Descargando receta médica...');
-            setTimeout(function() {
-                window.location.href = '/Optometra/DownloadFormulaPdf/' + id;
-            }, 500);
+    function confirmDeactivatePaciente(id, nombre) {
+        if (typeof alertify !== 'undefined') {
+            alertify.confirm(
+                'Desactivar Paciente',
+                '¿Está seguro de desactivar a <strong>' + nombre + '</strong>? Su estado cambiará a Inactivo.',
+                function () { document.getElementById('form-delete-paciente-' + id).submit(); },
+                function () { alertify.message('Eliminación cancelada'); }
+            ).set('labels', { ok: 'Aceptar', cancel: 'Cancelar' });
+        } else if (confirm('¿Está seguro de desactivar a ' + nombre + '?')) {
+            document.getElementById('form-delete-paciente-' + id).submit();
         }
     }
 
-    function aplicarPlantillaFormula(value) {
-        var form = document.getElementById('form-nueva-formula');
-        if (!form) return;
-
-        var presets = {
-            'miopia-leve': {
-                esferaOD: '-1.00', cilindroOD: '0.00', ejeOD: '0',
-                esferaOI: '-1.00', cilindroOI: '0.00', ejeOI: '0',
-                tipoLente: 'Monofocal - Antirreflejo',
-                distDP: '62',
-                obs: 'Filtro antirreflejo básico. Uso para pantallas y conducción nocturna. Control en 12 meses.'
-            },
-            'miopia-moderada': {
-                esferaOD: '-3.00', cilindroOD: '-0.50', ejeOD: '180',
-                esferaOI: '-3.25', cilindroOI: '-0.25', ejeOI: '175',
-                tipoLente: 'Monofocal - Filtro Azul',
-                distDP: '63',
-                obs: 'Protección filtro azul obligatoria por alta exposición a pantallas. Uso permanente.'
-            },
-            'astigmatismo': {
-                esferaOD: '0.00', cilindroOD: '-1.00', ejeOD: '180',
-                esferaOI: '0.00', cilindroOI: '-1.00', ejeOI: '180',
-                tipoLente: 'Monofocal - Antirreflejo',
-                distDP: '64',
-                obs: 'Astigmatismo regular bilateral. Uso para lectura, lectura en computador y estudio.'
-            },
-            'presbicia': {
-                esferaOD: '+1.00', cilindroOD: '0.00', ejeOD: '0',
-                esferaOI: '+1.00', cilindroOI: '0.00', ejeOI: '0',
-                tipoLente: 'Progresivo',
-                distDP: '64',
-                obs: 'Presbicia inicial. Se recomiendan lentes progresivos para uso intermitente en tareas de cerca.'
-            },
-            'ojo-sano': {
-                esferaOD: '0.00', cilindroOD: '0.00', ejeOD: '0',
-                esferaOI: '0.00', cilindroOI: '0.00', ejeOI: '0',
-                tipoLente: 'Monofocal - Antirreflejo',
-                distDP: '62',
-                obs: 'Examen de control. Agudeza visual 20/20. No requiere corrección óptica de momento. Control preventivo en un año.'
-            }
-        };
-
-        if (value && presets[value]) {
-            var p = presets[value];
-            form.querySelector('[name="EsferaOD"]').value = p.esferaOD;
-            form.querySelector('[name="CilindroOD"]').value = p.cilindroOD;
-            form.querySelector('[name="EjeOD"]').value = p.ejeOD;
-            form.querySelector('[name="EsferaOI"]').value = p.esferaOI;
-            form.querySelector('[name="CilindroOI"]').value = p.cilindroOI;
-            form.querySelector('[name="EjeOI"]').value = p.ejeOI;
-            form.querySelector('[name="TipoLente"]').value = p.tipoLente;
-            form.querySelector('[name="DistanciaPupilar"]').value = p.distDP;
-            form.querySelector('[name="Observaciones"]').value = p.obs;
-            alertify.success('Plantilla cargada correctamente');
+    function confirmDeleteAppointment(id) {
+        if (typeof alertify !== 'undefined') {
+            alertify.confirm(
+                'Eliminar Cita',
+                '¿Está seguro de eliminar esta cita? Esta acción no se puede deshacer.',
+                function () { document.getElementById('form-delete-appointment-' + id).submit(); },
+                function () { alertify.message('Eliminación cancelada'); }
+            ).set('labels', { ok: 'Aceptar', cancel: 'Cancelar' });
+        } else if (confirm('¿Está seguro de eliminar esta cita?')) {
+            document.getElementById('form-delete-appointment-' + id).submit();
         }
     }
 
-    // Parchear abridores de modal para reiniciar filtros de búsqueda
-    var originalAbrirEditarCita = abrirModalEditarCita;
-    abrirModalEditarCita = function(btn) {
-        resetSearchableSelects();
-        originalAbrirEditarCita(btn);
-    };
-    var originalAbrirEditarHistorial = abrirModalEditarHistorial;
-    abrirModalEditarHistorial = function(btn) {
-        resetSearchableSelects();
-        originalAbrirEditarHistorial(btn);
-    };
-    var originalAbrirEditarExamen = abrirModalEditarExamen;
-    abrirModalEditarExamen = function(btn) {
-        resetSearchableSelects();
-        originalAbrirEditarExamen(btn);
-    };
-    var originalAbrirEditarFormula = abrirModalEditarFormula;
-    abrirModalEditarFormula = function(btn) {
-        resetSearchableSelects();
-        originalAbrirEditarFormula(btn);
-    };
+    function confirmDeleteHistorial(id) {
+        if (typeof alertify !== 'undefined') {
+            alertify.confirm(
+                'Eliminar Registro Clínico',
+                '¿Está seguro de eliminar este registro del historial clínico?',
+                function () { document.getElementById('form-delete-historial-' + id).submit(); },
+                function () { alertify.message('Eliminación cancelada'); }
+            ).set('labels', { ok: 'Aceptar', cancel: 'Cancelar' });
+        } else if (confirm('¿Está seguro de eliminar este registro?')) {
+            document.getElementById('form-delete-historial-' + id).submit();
+        }
+    }
 
-    function imprimirFormula() {
-        var modal = document.getElementById('modal-ver-formula');
-        var main = document.querySelector('main');
-        
-        // Move modal to body so print media query works
-        document.body.appendChild(modal);
-        
-        // Print
-        window.print();
-        
-        // Return modal back to main container
-        if (main) {
-            main.appendChild(modal);
+    function confirmDeleteExamen(id) {
+        if (typeof alertify !== 'undefined') {
+            alertify.confirm(
+                'Eliminar Examen Visual',
+                '¿Está seguro de eliminar este examen visual?',
+                function () { document.getElementById('form-delete-examen-' + id).submit(); },
+                function () { alertify.message('Eliminación cancelada'); }
+            ).set('labels', { ok: 'Aceptar', cancel: 'Cancelar' });
+        } else if (confirm('¿Está seguro de eliminar este examen?')) {
+            document.getElementById('form-delete-examen-' + id).submit();
+        }
+    }
+
+    function confirmDeleteFormula(id) {
+        if (typeof alertify !== 'undefined') {
+            alertify.confirm(
+                'Eliminar Fórmula Óptica',
+                '¿Está seguro de eliminar esta fórmula óptica? Esta acción no se puede deshacer.',
+                function () { document.getElementById('form-delete-formula-' + id).submit(); },
+                function () { alertify.message('Eliminación cancelada'); }
+            ).set('labels', { ok: 'Aceptar', cancel: 'Cancelar' });
+        } else if (confirm('¿Está seguro de eliminar esta fórmula?')) {
+            document.getElementById('form-delete-formula-' + id).submit();
         }
     }
 </script>
@@ -2635,3 +2572,7 @@
         }
     }
 </style>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

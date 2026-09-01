@@ -85,14 +85,11 @@ public class CheckoutController : Controller
 
             foreach (var item in cart.CartItems)
             {
-                // Reduce stock from available warehouse
-                var pStock = await _context.ProductStocks
-                    .FirstOrDefaultAsync(ps => ps.ProductId == item.ProductId && ps.WarehouseId == 1)
-                    ?? await _context.ProductStocks.FirstOrDefaultAsync(ps => ps.ProductId == item.ProductId);
-
-                if (pStock != null)
+                // Reduce stock
+                var product = await _context.Products.FindAsync(item.ProductId);
+                if (product != null)
                 {
-                    pStock.Cantidad = Math.Max(0, pStock.Cantidad - item.Cantidad);
+                    product.Stock = Math.Max(0, product.Stock - item.Cantidad);
                 }
 
                 order.OrderItems.Add(new OrderItem
