@@ -133,28 +133,26 @@
         <!-- ==================== SECCIÓN INVENTARIO ==================== -->
         @if (Model.ActiveSection == "inventario")
         {
+            var initialTab = string.IsNullOrEmpty(Model.ActiveSubTab) ? "productos" : Model.ActiveSubTab;
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;" data-i18n="admin.inv.title">Gestión de Inventario</h1>
-                @if (Model.ActiveSubTab == "productos")
-                {
+                
+                <div id="top-btn-productos" style="display: @(initialTab == "productos" ? "inline-block" : "none");">
                     <button class="btn btn-primary" onclick="document.getElementById('modal-producto').style.display='flex'" data-i18n="admin.inv.newproduct">
                         + Nuevo Producto
                     </button>
-                }
-                else if (Model.ActiveSubTab == "proveedores")
-                {
+                </div>
+                <div id="top-btn-proveedores" style="display: @(initialTab == "proveedores" ? "inline-block" : "none");">
                     <button class="btn btn-primary" onclick="document.getElementById('modal-crear-proveedor').style.display='flex'" data-i18n="admin.inv.newsupplier">
                         + Nuevo Proveedor
                     </button>
-                }
-                else if (Model.ActiveSubTab == "historial")
-                {
+                </div>
+                <div id="top-btn-historial" style="display: @(initialTab == "historial" ? "inline-block" : "none");">
                     <button type="button" onclick="exportMovimientosToExcel()" style="background-color: #10B981; color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
                         📥 Exportar a Excel
                     </button>
-                }
-                else if (Model.ActiveSubTab == "pedidos")
-                {
+                </div>
+                <div id="top-btn-pedidos" style="display: @(initialTab == "pedidos" ? "inline-block" : "none");">
                     <div style="display: flex; gap: 0.5rem;">
                         <button id="btn-top-nuevo-pedido-venta" class="btn btn-primary" onclick="document.getElementById('modal-crear-pedido-venta').style.display='flex'">
                             + Nuevo Pedido Venta
@@ -163,30 +161,30 @@
                             + Nuevo Pedido Proveedor
                         </button>
                     </div>
-                }
+                </div>
             </div>
 
             <!-- Sub-tabs -->
             <div style="display: flex; border-bottom: 2px solid var(--purple-200); margin-bottom: 1.5rem;">
-                <a href="?section=inventario&subtab=productos" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "productos" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "productos" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;" data-i18n="admin.inv.tab.products">
+                <button id="nav-subtab-productos" type="button" onclick="switchInventorySubTab('productos')" style="padding: 0.75rem 1.5rem; font-weight: 600; background: none; border: none; cursor: pointer; color: @(initialTab == "productos" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(initialTab == "productos" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;" data-i18n="admin.inv.tab.products">
                     Productos
-                </a>
-                <a href="?section=inventario&subtab=proveedores" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "proveedores" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "proveedores" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;" data-i18n="admin.inv.tab.suppliers">
+                </button>
+                <button id="nav-subtab-proveedores" type="button" onclick="switchInventorySubTab('proveedores')" style="padding: 0.75rem 1.5rem; font-weight: 600; background: none; border: none; cursor: pointer; color: @(initialTab == "proveedores" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(initialTab == "proveedores" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;" data-i18n="admin.inv.tab.suppliers">
                     Proveedores
-                </a>
-                <a href="?section=inventario&subtab=historial" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "historial" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "historial" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;" data-i18n="admin.inv.tab.history">
+                </button>
+                <button id="nav-subtab-historial" type="button" onclick="switchInventorySubTab('historial')" style="padding: 0.75rem 1.5rem; font-weight: 600; background: none; border: none; cursor: pointer; color: @(initialTab == "historial" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(initialTab == "historial" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;" data-i18n="admin.inv.tab.history">
                     Historial de Movimientos
-                </a>
-                <a href="?section=inventario&subtab=pedidos" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "pedidos" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "pedidos" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;">
+                </button>
+                <button id="nav-subtab-pedidos" type="button" onclick="switchInventorySubTab('pedidos')" style="padding: 0.75rem 1.5rem; font-weight: 600; background: none; border: none; cursor: pointer; color: @(initialTab == "pedidos" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(initialTab == "pedidos" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;">
                     📋 Pedidos
-                </a>
+                </button>
             </div>
 
-            @if (Model.ActiveSubTab == "productos")
-            {
+            <!-- CONTENIDO PESTAÑA PRODUCTOS -->
+            <div id="subtab-content-productos" style="display: @(initialTab == "productos" ? "block" : "none");">
                 <div class="card" style="padding: 1.5rem; background: white;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <input type="text" id="searchProducts" placeholder="Buscar producto..." data-i18n-placeholder="admin.inv.searchproduct" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchProducts', 'tableProducts')" />
+                        <input type="text" id="searchProducts" placeholder="Buscar producto..." data-i18n-placeholder="admin.inv.searchproduct" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchProducts', 'tableProducts')" oninput="filterTable('searchProducts', 'tableProducts')" />
                     </div>
                     <div style="overflow-x: auto;">
                         <table id="tableProducts" style="width: 100%; border-collapse: collapse; text-align: left;">
@@ -206,16 +204,18 @@
                                 {
                                     <tr style="border-bottom: 1px solid var(--purple-100);">
                                         <td style="padding: 0.75rem; color: var(--gray-500);">#@prod.Id</td>
-                                        <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@prod.Nombre</td>
+                                        <td style="padding: 0.75rem; font-weight: 500;">
+                                            <a href="/Product/Details/@prod.Id" style="color: var(--purple-700); font-weight: 600; text-decoration: underline;">@prod.Nombre</a>
+                                        </td>
                                         <td style="padding: 0.75rem; color: var(--gray-600);">@prod.Categoria</td>
                                         <td style="padding: 0.75rem; color: var(--gray-600);">@prod.Precio.ToString("C")</td>
                                         <td style="padding: 0.75rem; color: @(prod.Stock < 10 ? "var(--error)" : "var(--gray-600)"); font-weight: @(prod.Stock < 10 ? "bold" : "normal");">
                                             @prod.Stock
                                         </td>
                                         <td style="padding: 0.75rem;">
-                                            <span style="background-color: @(prod.Activo ? "var(--success)" : "var(--error)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;" data-i18n="@(prod.Activo ? "admin.inv.active" : "admin.inv.inactive")">
+                                            <button type="button" onclick="toggleProductStatus(@prod.Id, this)" style="background-color: @(prod.Activo ? "var(--success)" : "var(--error)"); color: white; border: none; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; cursor: pointer; font-weight: 600;" data-i18n="@(prod.Activo ? "admin.inv.active" : "admin.inv.inactive")">
                                                 @(prod.Activo ? "Activo" : "Inactivo")
-                                            </span>
+                                            </button>
                                         </td>
                                         <td style="padding: 0.75rem;">
                                             <div class="table-actions-wrapper">
@@ -231,12 +231,13 @@
                         </table>
                     </div>
                 </div>
-            }
-            else if (Model.ActiveSubTab == "proveedores")
-            {
+            </div>
+
+            <!-- CONTENIDO PESTAÑA PROVEEDORES -->
+            <div id="subtab-content-proveedores" style="display: @(initialTab == "proveedores" ? "block" : "none");">
                 <div class="card" style="padding: 1.5rem; background: white;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <input type="text" id="searchProveedores" placeholder="Buscar proveedor..." data-i18n-placeholder="admin.inv.searchsupplier" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchProveedores', 'tableProveedores')" />
+                        <input type="text" id="searchProveedores" placeholder="Buscar proveedor..." data-i18n-placeholder="admin.inv.searchsupplier" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchProveedores', 'tableProveedores')" oninput="filterTable('searchProveedores', 'tableProveedores')" />
                     </div>
                     <div style="overflow-x: auto;">
                         <table id="tableProveedores" style="width: 100%; border-collapse: collapse; text-align: left;">
@@ -261,9 +262,9 @@
                                         <td style="padding: 0.75rem;">@prov.Telefono</td>
                                         <td style="padding: 0.75rem;">@prov.Correo</td>
                                         <td style="padding: 0.75rem;">
-                                            <span style="background-color: @(prov.Activo ? "var(--success)" : "var(--gray-400)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;" data-i18n="@(prov.Activo ? "admin.inv.active" : "admin.inv.inactive")">
+                                            <button type="button" onclick="toggleSupplierStatus('@prov.Id', this)" style="background-color: @(prov.Activo ? "var(--success)" : "var(--gray-400)"); color: white; border: none; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; cursor: pointer; font-weight: 600;" data-i18n="@(prov.Activo ? "admin.inv.active" : "admin.inv.inactive")">
                                                 @(prov.Activo ? "Activo" : "Inactivo")
-                                            </span>
+                                            </button>
                                         </td>
                                         <td style="padding: 0.75rem;">
                                             <div class="table-actions-wrapper">
@@ -279,12 +280,13 @@
                         </table>
                     </div>
                 </div>
-            }
-            else if (Model.ActiveSubTab == "historial")
-            {
+            </div>
+
+            <!-- CONTENIDO PESTAÑA HISTORIAL -->
+            <div id="subtab-content-historial" style="display: @(initialTab == "historial" ? "block" : "none");">
                 <div class="card" style="padding: 1.5rem; background: white;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <input type="text" id="searchHistorial" placeholder="Buscar en historial..." data-i18n-placeholder="admin.inv.searchhistory" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchHistorial', 'tableHistorial')" />
+                        <input type="text" id="searchHistorial" placeholder="Buscar en historial..." data-i18n-placeholder="admin.inv.searchhistory" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchHistorial', 'tableHistorial')" oninput="filterTable('searchHistorial', 'tableHistorial')" />
                         
                         <div style="display: flex; gap: 0.75rem; align-items: center;">
                             <label style="font-weight: 600; font-size: 0.85rem; color: var(--purple-900);">Orden por Fecha:</label>
@@ -312,7 +314,9 @@
                                     var tipoKey = mov.Tipo?.ToLower() == "entrada" ? "admin.inv.inflow" : "admin.inv.outflow";
                                     <tr style="border-bottom: 1px solid var(--purple-100);">
                                         <td style="padding: 0.75rem; color: var(--gray-500);">#MOV-@mov.Id</td>
-                                        <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@(mov.Product?.Nombre ?? "Producto #" + mov.ProductId)</td>
+                                        <td style="padding: 0.75rem; font-weight: 500;">
+                                            <a href="/Product/Details/@mov.ProductId" style="color: var(--purple-700); font-weight: 600; text-decoration: underline;">@(mov.Product?.Nombre ?? "Producto #" + mov.ProductId)</a>
+                                        </td>
                                         <td style="padding: 0.75rem;">
                                             <span style="background-color: @(mov.Tipo?.ToLower() == "entrada" ? "var(--success)" : "var(--warning)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; text-transform: uppercase;" data-i18n="@tipoKey">
                                                 @mov.Tipo
@@ -327,9 +331,10 @@
                         </table>
                     </div>
                 </div>
-            }
-            else if (Model.ActiveSubTab == "pedidos")
-            {
+            </div>
+
+            <!-- CONTENIDO PESTAÑA PEDIDOS -->
+            <div id="subtab-content-pedidos" style="display: @(initialTab == "pedidos" ? "block" : "none");">
                 <!-- Pestañas internas de Pedidos: Ventas vs Proveedores (Sin recarga de página) -->
                 <div style="display: flex; gap: 0.5rem; margin-bottom: 1.25rem; background: var(--purple-100); padding: 0.35rem; border-radius: 0.5rem; width: fit-content;">
                     <button id="tab-btn-pedidos-ventas" type="button" onclick="switchPedidosTab('ventas')" style="padding: 0.5rem 1.25rem; font-weight: 600; font-size: 0.9rem; border-radius: 0.375rem; border: none; cursor: pointer; background: var(--purple-700); color: white; transition: all 0.2s ease;">
@@ -343,7 +348,7 @@
                 <!-- CONTENIDO PESTAÑA VENTAS (Independiente) -->
                 <div id="content-pedidos-ventas" class="card" style="padding: 1.5rem; background: white;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <input type="text" id="searchPedidosVentas" placeholder="Buscar pedido de venta..." class="form-input" style="width: 320px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchPedidosVentas', 'tablePedidosVentas')" />
+                        <input type="text" id="searchPedidosVentas" placeholder="Buscar pedido de venta..." class="form-input" style="width: 320px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchPedidosVentas', 'tablePedidosVentas')" oninput="filterTable('searchPedidosVentas', 'tablePedidosVentas')" />
                         <span style="font-size: 0.85rem; color: var(--gray-500);">* Manejo independiente sin acoplamiento al inventario</span>
                     </div>
                     <div style="overflow-x: auto;">
@@ -366,8 +371,8 @@
                                 {
                                     <tr style="border-bottom: 1px solid var(--purple-100);">
                                         <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-900);">@p.NumeroPedido</td>
-                                        <td style="padding: 0.75rem;">@p.ClienteNombre</td>
-                                        <td style="padding: 0.75rem; font-weight: 500;">@p.ProductoNombre</td>
+                                        <td style="padding: 0.75rem; color: var(--purple-900); font-weight: 500;">@p.ClienteNombre</td>
+                                        <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-700);">@p.ProductoNombre</td>
                                         <td style="padding: 0.75rem; font-weight: 600;">@p.Cantidad</td>
                                         <td style="padding: 0.75rem;">$@p.PrecioUnitario.ToString("N0")</td>
                                         <td style="padding: 0.75rem; font-weight: 700; color: var(--purple-800);">$@p.Total.ToString("N0")</td>
@@ -379,7 +384,7 @@
                                         </td>
                                         <td style="padding: 0.75rem; text-align: right;">
                                             <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;" onclick="openEditSalesOrderModal(@p.Id, '@p.NumeroPedido', '@p.ClienteNombre', '@p.ProductoNombre', @p.Cantidad, @p.PrecioUnitario, '@p.Estado', '@p.Notas')">✏️ Editar</button>
-                                            <form asp-action="DeleteSalesOrder" asp-controller="Dashboard" method="post" style="display: inline;" onsubmit="return confirm('¿Seguro que deseas eliminar este pedido de venta?');">
+                                            <form asp-action="DeleteSalesOrder" asp-controller="Dashboard" method="post" style="display: inline;" onsubmit="confirmDelete(event, '¿Seguro que deseas eliminar este pedido de venta?', this);">
                                                 <input type="hidden" name="id" value="@p.Id" />
                                                 <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">🗑️</button>
                                             </form>
@@ -394,7 +399,7 @@
                 <!-- CONTENIDO PESTAÑA PROVEEDORES (Conectado a DB Inventario) -->
                 <div id="content-pedidos-proveedores" class="card" style="padding: 1.5rem; background: white; display: none;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <input type="text" id="searchPedidosProveedores" placeholder="Buscar pedido a proveedor..." class="form-input" style="width: 320px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchPedidosProveedores', 'tablePedidosProveedores')" />
+                        <input type="text" id="searchPedidosProveedores" placeholder="Buscar pedido a proveedor..." class="form-input" style="width: 320px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchPedidosProveedores', 'tablePedidosProveedores')" oninput="filterTable('searchPedidosProveedores', 'tablePedidosProveedores')" />
                         <span style="font-size: 0.85rem; color: var(--purple-700); font-weight: 600;">⚡ Conectado a la base de datos de Proveedores y Productos</span>
                     </div>
                     <div style="overflow-x: auto;">
@@ -417,8 +422,10 @@
                                 {
                                     <tr style="border-bottom: 1px solid var(--purple-100);">
                                         <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-900);">@p.NumeroPedido</td>
-                                        <td style="padding: 0.75rem; font-weight: 500;">@(p.Supplier?.Nombre ?? "Proveedor ID: " + p.SupplierId)</td>
-                                        <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-800);">@(p.Product?.Nombre ?? "Producto ID: " + p.ProductId)</td>
+                                        <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@(p.Supplier?.Nombre ?? "Proveedor ID: " + p.SupplierId)</td>
+                                        <td style="padding: 0.75rem; font-weight: 500;">
+                                            <a href="/Product/Details/@p.ProductId" style="color: var(--purple-700); font-weight: 600; text-decoration: underline;">@(p.Product?.Nombre ?? "Producto ID: " + p.ProductId)</a>
+                                        </td>
                                         <td style="padding: 0.75rem; font-weight: 600;">@p.Cantidad</td>
                                         <td style="padding: 0.75rem;">$@p.PrecioUnitario.ToString("N0")</td>
                                         <td style="padding: 0.75rem; font-weight: 700; color: var(--purple-900);">$@p.Total.ToString("N0")</td>
@@ -430,7 +437,7 @@
                                         </td>
                                         <td style="padding: 0.75rem; text-align: right;">
                                             <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;" onclick="openEditSupplierOrderModal(@p.Id, '@p.NumeroPedido', '@p.SupplierId', @p.ProductId, @p.Cantidad, @p.PrecioUnitario, '@p.Estado', '@p.Notas')">✏️ Editar</button>
-                                            <form asp-action="DeleteSupplierOrder" asp-controller="Dashboard" method="post" style="display: inline;" onsubmit="return confirm('¿Seguro que deseas eliminar este pedido a proveedor?');">
+                                            <form asp-action="DeleteSupplierOrder" asp-controller="Dashboard" method="post" style="display: inline;" onsubmit="confirmDelete(event, '¿Seguro que deseas eliminar este pedido a proveedor?', this);">
                                                 <input type="hidden" name="id" value="@p.Id" />
                                                 <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">🗑️</button>
                                             </form>
@@ -441,7 +448,7 @@
                         </table>
                     </div>
                 </div>
-            }
+            </div>
         }
 
         <!-- ==================== SECCIÓN VENTAS ==================== -->
@@ -1198,7 +1205,7 @@
             <button onclick="document.getElementById('modal-producto').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
-        <form asp-controller="Product" asp-action="Create" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+        <form id="form-crear-producto" asp-controller="Product" asp-action="Create" method="post" style="display:flex; flex-direction:column; gap:1rem;">
             <div class="form-group">
                 <label class="form-label" data-i18n="admin.modal.product.name">Nombre del Producto</label>
                 <input name="Nombre" type="text" class="form-input" required />
@@ -1925,7 +1932,7 @@
             <button onclick="document.getElementById('modal-editar-producto').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
-        <form asp-controller="Product" asp-action="Edit" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <form id="form-editar-producto" asp-controller="Product" asp-action="Edit" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
             @Html.AntiForgeryToken()
             <input type="hidden" id="editProductId" name="Id" />
 
@@ -1993,7 +2000,7 @@
             <button onclick="document.getElementById('modal-crear-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
-        <form asp-controller="Supplier" asp-action="Create" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <form id="form-crear-proveedor" asp-controller="Supplier" asp-action="Create" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
             @Html.AntiForgeryToken()
             <div>
                 <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.modal.supplier.code">Código de Proveedor (Opcional, ej: PROV001)</label>
@@ -2036,7 +2043,7 @@
             <button onclick="document.getElementById('modal-editar-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
-        <form asp-controller="Supplier" asp-action="Edit" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <form id="form-editar-proveedor" asp-controller="Supplier" asp-action="Edit" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
             @Html.AntiForgeryToken()
             <input type="hidden" id="editSupplierId" name="Id" />
 
@@ -2119,6 +2126,197 @@
     <partial name="_ValidationScriptsPartial" />
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script>
+        function showToast(msg, type = 'info') {
+            if (typeof alertify !== 'undefined') {
+                if (type === 'success') alertify.success(msg);
+                else if (type === 'error') alertify.error(msg);
+                else alertify.message(msg);
+            } else {
+                alert(msg);
+            }
+        }
+
+        function switchInventorySubTab(subtabName) {
+            const tabs = ['productos', 'proveedores', 'historial', 'pedidos'];
+            tabs.forEach(t => {
+                const content = document.getElementById('subtab-content-' + t);
+                const btnNav = document.getElementById('nav-subtab-' + t);
+                const topBtn = document.getElementById('top-btn-' + t);
+
+                if (t === subtabName) {
+                    if (content) content.style.display = 'block';
+                    if (btnNav) {
+                        btnNav.style.color = 'var(--purple-700)';
+                        btnNav.style.borderBottom = '3px solid var(--purple-600)';
+                    }
+                    if (topBtn) topBtn.style.display = 'inline-block';
+                } else {
+                    if (content) content.style.display = 'none';
+                    if (btnNav) {
+                        btnNav.style.color = 'var(--gray-500)';
+                        btnNav.style.borderBottom = 'none';
+                    }
+                    if (topBtn) topBtn.style.display = 'none';
+                }
+            });
+
+            if (window.history && window.history.pushState) {
+                const newUrl = '?section=inventario&subtab=' + subtabName;
+                window.history.pushState({ path: newUrl }, '', newUrl);
+            }
+        }
+
+        async function toggleProductStatus(id, btnElem) {
+            try {
+                const res = await fetch('/Product/ToggleStatus/' + id, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    btnElem.innerText = data.active ? 'Activo' : 'Inactivo';
+                    btnElem.style.backgroundColor = data.active ? 'var(--success)' : 'var(--error)';
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message || 'Error al cambiar estado', 'error');
+                }
+            } catch (e) {
+                showToast('Error de comunicación con el servidor', 'error');
+            }
+        }
+
+        async function toggleSupplierStatus(id, btnElem) {
+            try {
+                const res = await fetch('/Supplier/ToggleStatus/' + id, {
+                    method: 'POST',
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    btnElem.innerText = data.active ? 'Activo' : 'Inactivo';
+                    btnElem.style.backgroundColor = data.active ? 'var(--success)' : 'var(--gray-400)';
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message || 'Error al cambiar estado', 'error');
+                }
+            } catch (e) {
+                showToast('Error de comunicación con el servidor', 'error');
+            }
+        }
+
+        async function confirmDelete(event, message, formElem) {
+            if (event) event.preventDefault();
+
+            const executeDelete = async () => {
+                const submitBtn = formElem.querySelector('button[type="submit"]');
+                if (submitBtn) submitBtn.disabled = true;
+
+                try {
+                    const formData = new FormData(formElem);
+                    const actionUrl = formElem.getAttribute('action') || formElem.action;
+                    const resp = await fetch(actionUrl, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                        body: formData
+                    });
+
+                    const data = await resp.json();
+                    if (data.success) {
+                        showToast(data.message || 'Registro eliminado correctamente', 'success');
+                        const row = formElem.closest('tr');
+                        if (row) {
+                            row.style.transition = 'all 0.3s ease';
+                            row.style.opacity = '0';
+                            setTimeout(() => row.remove(), 300);
+                        } else {
+                            setTimeout(() => window.location.reload(), 500);
+                        }
+                    } else {
+                        showToast(data.message || 'No se pudo eliminar el registro', 'error');
+                        if (submitBtn) submitBtn.disabled = false;
+                    }
+                } catch (e) {
+                    showToast('Error de comunicación con el servidor', 'error');
+                    if (submitBtn) submitBtn.disabled = false;
+                }
+            };
+
+            if (typeof alertify !== 'undefined') {
+                alertify.confirm('Confirmar Eliminación', message,
+                    function () { executeDelete(); },
+                    function () { showToast('Eliminación cancelada', 'info'); }
+                ).set('labels', { ok: 'Sí, eliminar', cancel: 'Cancelar' });
+            } else if (confirm(message)) {
+                executeDelete();
+            }
+        }
+
+        function setupAjaxForms() {
+            const ajaxForms = [
+                { id: 'form-crear-producto', modalId: 'modal-producto' },
+                { id: 'form-editar-producto', modalId: 'modal-editar-producto' },
+                { id: 'form-crear-proveedor', modalId: 'modal-crear-proveedor' },
+                { id: 'form-editar-proveedor', modalId: 'modal-editar-proveedor' },
+                { id: 'form-crear-pedido-venta', modalId: 'modal-crear-pedido-venta' },
+                { id: 'form-editar-pedido-venta', modalId: 'modal-editar-pedido-venta' },
+                { id: 'form-crear-pedido-proveedor', modalId: 'modal-crear-pedido-proveedor' },
+                { id: 'form-editar-pedido-proveedor', modalId: 'modal-editar-pedido-proveedor' }
+            ];
+
+            ajaxForms.forEach(item => {
+                const formElem = document.getElementById(item.id);
+                if (!formElem) return;
+
+                formElem.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+
+                    if (!formElem.checkValidity()) {
+                        formElem.reportValidity();
+                        return;
+                    }
+
+                    const submitBtn = formElem.querySelector('button[type="submit"]');
+                    const origText = submitBtn ? submitBtn.innerText : '';
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerText = 'Guardando...';
+                    }
+
+                    try {
+                        const formData = new FormData(formElem);
+                        const actionUrl = formElem.getAttribute('action') || window.location.href;
+                        const resp = await fetch(actionUrl, {
+                            method: 'POST',
+                            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                            body: formData
+                        });
+
+                        const data = await resp.json();
+
+                        if (data.success) {
+                            showToast(data.message || 'Operación realizada con éxito', 'success');
+                            if (item.modalId) {
+                                const modal = document.getElementById(item.modalId);
+                                if (modal) modal.style.display = 'none';
+                            }
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 500);
+                        } else {
+                            showToast(data.message || 'Ocurrió un error al procesar la solicitud.', 'error');
+                        }
+                    } catch (err) {
+                        showToast('Error de conexión al procesar la solicitud.', 'error');
+                    } finally {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerText = origText;
+                        }
+                    }
+                });
+            });
+        }
+
         function switchPedidosTab(tabName) {
             const contentVentas = document.getElementById('content-pedidos-ventas');
             const contentProveedores = document.getElementById('content-pedidos-proveedores');
@@ -2192,7 +2390,12 @@
         }
 
         document.addEventListener("DOMContentLoaded", function() {
+            setupAjaxForms();
             const urlParams = new URLSearchParams(window.location.search);
+            const subtab = urlParams.get('subtab');
+            if (subtab && ['productos', 'proveedores', 'historial', 'pedidos'].includes(subtab)) {
+                switchInventorySubTab(subtab);
+            }
             const innerTab = urlParams.get('innerTab');
             if (innerTab === 'proveedores') {
                 switchPedidosTab('proveedores');
@@ -2211,7 +2414,7 @@
             <button onclick="document.getElementById('modal-crear-pedido-venta').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
-        <form asp-controller="Dashboard" asp-action="CreateSalesOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <form id="form-crear-pedido-venta" asp-controller="Dashboard" asp-action="CreateSalesOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
             @Html.AntiForgeryToken()
             <div>
                 <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Número de Pedido *</label>
@@ -2269,7 +2472,7 @@
             <button onclick="document.getElementById('modal-editar-pedido-venta').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
-        <form asp-controller="Dashboard" asp-action="EditSalesOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <form id="form-editar-pedido-venta" asp-controller="Dashboard" asp-action="EditSalesOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
             @Html.AntiForgeryToken()
             <input type="hidden" id="editSalesOrderId" name="Id" />
             <div>
@@ -2328,7 +2531,7 @@
             <button onclick="document.getElementById('modal-crear-pedido-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
-        <form asp-controller="Dashboard" asp-action="CreateSupplierOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <form id="form-crear-pedido-proveedor" asp-controller="Dashboard" asp-action="CreateSupplierOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
             @Html.AntiForgeryToken()
             <div>
                 <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Número de Pedido *</label>
@@ -2397,7 +2600,7 @@
             <button onclick="document.getElementById('modal-editar-pedido-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
-        <form asp-controller="Dashboard" asp-action="EditSupplierOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <form id="form-editar-pedido-proveedor" asp-controller="Dashboard" asp-action="EditSupplierOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
             @Html.AntiForgeryToken()
             <input type="hidden" id="editSupplierOrderId" name="Id" />
             <div>

@@ -681,6 +681,8 @@ public class DashboardController : Controller
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> CreateSalesOrder(SalesOrder model)
     {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
         if (ModelState.IsValid)
         {
             model.Total = model.Cantidad * model.PrecioUnitario;
@@ -708,11 +710,14 @@ public class DashboardController : Controller
             }
 
             await _context.SaveChangesAsync();
+            if (isAjax) return Json(new { success = true, message = "Pedido de venta registrado correctamente.", data = model });
             TempData["SuccessMessage"] = "Pedido de venta registrado correctamente.";
         }
         else
         {
-            TempData["ErrorMessage"] = "Verifique los campos ingresados para el pedido de venta.";
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Verifique los campos ingresados para el pedido de venta.";
+            if (isAjax) return Json(new { success = false, message = firstError });
+            TempData["ErrorMessage"] = firstError;
         }
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
     }
@@ -721,6 +726,8 @@ public class DashboardController : Controller
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> EditSalesOrder(SalesOrder model)
     {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
         var existing = await _context.SalesOrders.FindAsync(model.Id);
         if (existing != null)
         {
@@ -733,10 +740,12 @@ public class DashboardController : Controller
             existing.Estado = model.Estado;
             existing.Notas = model.Notas;
             await _context.SaveChangesAsync();
+            if (isAjax) return Json(new { success = true, message = "Pedido de venta actualizado correctamente.", data = existing });
             TempData["SuccessMessage"] = "Pedido de venta actualizado correctamente.";
         }
         else
         {
+            if (isAjax) return Json(new { success = false, message = "No se encontró el pedido de venta especificado." });
             TempData["ErrorMessage"] = "No se encontró el pedido de venta especificado.";
         }
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
@@ -746,12 +755,19 @@ public class DashboardController : Controller
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> DeleteSalesOrder(int id)
     {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
         var existing = await _context.SalesOrders.FindAsync(id);
         if (existing != null)
         {
             existing.Activo = false;
             await _context.SaveChangesAsync();
+            if (isAjax) return Json(new { success = true, message = "Pedido de venta eliminado correctamente.", id });
             TempData["SuccessMessage"] = "Pedido de venta eliminado correctamente.";
+        }
+        else
+        {
+            if (isAjax) return Json(new { success = false, message = "No se encontró el pedido de venta especificado." });
         }
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
     }
@@ -761,6 +777,8 @@ public class DashboardController : Controller
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> CreateSupplierOrder(SupplierOrder model)
     {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
         if (ModelState.IsValid)
         {
             model.Total = model.Cantidad * model.PrecioUnitario;
@@ -780,11 +798,14 @@ public class DashboardController : Controller
             _context.InventoryMovements.Add(movement);
 
             await _context.SaveChangesAsync();
+            if (isAjax) return Json(new { success = true, message = "Pedido a proveedor registrado correctamente.", data = model });
             TempData["SuccessMessage"] = "Pedido a proveedor registrado correctamente.";
         }
         else
         {
-            TempData["ErrorMessage"] = "Verifique los datos del pedido a proveedor.";
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Verifique los datos del pedido a proveedor.";
+            if (isAjax) return Json(new { success = false, message = firstError });
+            TempData["ErrorMessage"] = firstError;
         }
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "proveedores" });
     }
@@ -793,6 +814,8 @@ public class DashboardController : Controller
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> EditSupplierOrder(SupplierOrder model)
     {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
         var existing = await _context.SupplierOrders.FindAsync(model.Id);
         if (existing != null)
         {
@@ -805,10 +828,12 @@ public class DashboardController : Controller
             existing.Estado = model.Estado;
             existing.Notas = model.Notas;
             await _context.SaveChangesAsync();
+            if (isAjax) return Json(new { success = true, message = "Pedido a proveedor actualizado correctamente.", data = existing });
             TempData["SuccessMessage"] = "Pedido a proveedor actualizado correctamente.";
         }
         else
         {
+            if (isAjax) return Json(new { success = false, message = "No se encontró el pedido a proveedor especificado." });
             TempData["ErrorMessage"] = "No se encontró el pedido a proveedor especificado.";
         }
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "proveedores" });
@@ -818,12 +843,19 @@ public class DashboardController : Controller
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> DeleteSupplierOrder(int id)
     {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
         var existing = await _context.SupplierOrders.FindAsync(id);
         if (existing != null)
         {
             existing.Activo = false;
             await _context.SaveChangesAsync();
+            if (isAjax) return Json(new { success = true, message = "Pedido a proveedor eliminado correctamente.", id });
             TempData["SuccessMessage"] = "Pedido a proveedor eliminado correctamente.";
+        }
+        else
+        {
+            if (isAjax) return Json(new { success = false, message = "No se encontró el pedido a proveedor especificado." });
         }
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "proveedores" });
     }
