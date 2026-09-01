@@ -86,19 +86,25 @@ public class ProductController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Product product)
     {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
         if (!ModelState.IsValid)
         {
-            TempData["ErrorMessage"] = "Datos del producto no válidos.";
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos del producto no válidos.";
+            if (isAjax) return Json(new { success = false, message = firstError });
+            TempData["ErrorMessage"] = firstError;
             return RedirectToAction("Admin", "Dashboard");
         }
 
         try
         {
-            await _productService.CreateAsync(product);
+            var created = await _productService.CreateAsync(product);
+            if (isAjax) return Json(new { success = true, message = "Producto creado exitosamente.", data = created });
             TempData["SuccessMessage"] = "Producto creado exitosamente.";
         }
         catch (Exception ex)
         {
+            if (isAjax) return Json(new { success = false, message = $"Error al crear el producto: {ex.Message}" });
             TempData["ErrorMessage"] = $"Error al crear el producto: {ex.Message}";
         }
 
@@ -113,20 +119,25 @@ public class ProductController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
         try
         {
             var deleted = await _productService.DeleteAsync(id);
             if (deleted)
             {
+                if (isAjax) return Json(new { success = true, message = "Producto eliminado exitosamente.", id });
                 TempData["SuccessMessage"] = "Producto eliminado exitosamente.";
             }
             else
             {
+                if (isAjax) return Json(new { success = false, message = "Producto no encontrado." });
                 TempData["ErrorMessage"] = "Producto no encontrado.";
             }
         }
         catch (Exception ex)
         {
+            if (isAjax) return Json(new { success = false, message = $"Error al eliminar el producto: {ex.Message}" });
             TempData["ErrorMessage"] = $"Error al eliminar el producto: {ex.Message}";
         }
 
@@ -156,9 +167,13 @@ public class ProductController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(Product product)
     {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
         if (!ModelState.IsValid)
         {
-            TempData["ErrorMessage"] = "Datos del producto no válidos.";
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos del producto no válidos.";
+            if (isAjax) return Json(new { success = false, message = firstError });
+            TempData["ErrorMessage"] = firstError;
             return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "productos" });
         }
 
@@ -167,19 +182,46 @@ public class ProductController : Controller
             var updated = await _productService.UpdateAsync(product.Id, product);
             if (updated == null)
             {
+                if (isAjax) return Json(new { success = false, message = "Producto no encontrado." });
                 TempData["ErrorMessage"] = "Producto no encontrado.";
             }
             else
             {
+                if (isAjax) return Json(new { success = true, message = "Producto actualizado exitosamente.", data = updated });
                 TempData["SuccessMessage"] = "Producto actualizado exitosamente.";
             }
         }
         catch (Exception ex)
         {
+            if (isAjax) return Json(new { success = false, message = $"Error al actualizar el producto: {ex.Message}" });
             TempData["ErrorMessage"] = $"Error al actualizar el producto: {ex.Message}";
         }
 
         return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "productos" });
+    }
+
+    /// <summary>
+    /// Admin: Toggle product active status (POST)
+    /// </summary>
+    [HttpPost]
+    [Authorize(Roles = "admin")]
+    public async Task<IActionResult> ToggleStatus(int id)
+    {
+        try
+        {
+            var product = await _productService.GetByIdAsync(id);
+            if (product == null)
+            {
+                return Json(new { success = false, message = "Producto no encontrado." });
+            }
+            product.Activo = !product.Activo;
+            var updated = await _productService.UpdateAsync(id, product);
+            return Json(new { success = true, active = product.Activo, message = $"Estado del producto actualizado a {(product.Activo ? "Activo" : "Inactivo")}." });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = $"Error al actualizar estado: {ex.Message}" });
+        }
     }
 
     /// <summary>

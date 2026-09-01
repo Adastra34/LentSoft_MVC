@@ -23,6 +23,8 @@ public class SupplierController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(Supplier supplier)
     {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
         if (string.IsNullOrWhiteSpace(supplier.Id))
         {
             var count = await _context.Suppliers.CountAsync();
@@ -35,13 +37,16 @@ public class SupplierController : Controller
 
         if (await _context.Suppliers.AnyAsync(s => s.Id == supplier.Id))
         {
-            TempData["ErrorMessage"] = $"El código de proveedor {supplier.Id} ya existe.";
+            var msg = $"El código de proveedor {supplier.Id} ya existe.";
+            if (isAjax) return Json(new { success = false, message = msg });
+            TempData["ErrorMessage"] = msg;
             return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
         }
 
         if (!ModelState.IsValid)
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos del proveedor no válidos.";
+            if (isAjax) return Json(new { success = false, message = firstError });
             TempData["ErrorMessage"] = firstError;
             return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
         }
@@ -54,10 +59,12 @@ public class SupplierController : Controller
             _context.Suppliers.Add(supplier);
             await _context.SaveChangesAsync();
 
+            if (isAjax) return Json(new { success = true, message = "Proveedor creado exitosamente.", data = supplier });
             TempData["SuccessMessage"] = "Proveedor creado exitosamente.";
         }
         catch (Exception ex)
         {
+            if (isAjax) return Json(new { success = false, message = $"Error al crear el proveedor: {ex.Message}" });
             TempData["ErrorMessage"] = $"Error al crear el proveedor: {ex.Message}";
         }
 
@@ -71,9 +78,12 @@ public class SupplierController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(Supplier supplier)
     {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
         if (!ModelState.IsValid)
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos del proveedor no válidos.";
+            if (isAjax) return Json(new { success = false, message = firstError });
             TempData["ErrorMessage"] = firstError;
             return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
         }
@@ -83,6 +93,7 @@ public class SupplierController : Controller
             var existing = await _context.Suppliers.FindAsync(supplier.Id);
             if (existing == null)
             {
+                if (isAjax) return Json(new { success = false, message = "Proveedor no encontrado." });
                 TempData["ErrorMessage"] = "Proveedor no encontrado.";
                 return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
             }
@@ -94,10 +105,12 @@ public class SupplierController : Controller
 
             await _context.SaveChangesAsync();
 
+            if (isAjax) return Json(new { success = true, message = "Proveedor actualizado exitosamente.", data = existing });
             TempData["SuccessMessage"] = "Proveedor actualizado exitosamente.";
         }
         catch (Exception ex)
         {
+            if (isAjax) return Json(new { success = false, message = $"Error al actualizar el proveedor: {ex.Message}" });
             TempData["ErrorMessage"] = $"Error al actualizar el proveedor: {ex.Message}";
         }
 
@@ -111,6 +124,8 @@ public class SupplierController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(string id)
     {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
         try
         {
             var supplier = await _context.Suppliers.FindAsync(id);
@@ -119,18 +134,45 @@ public class SupplierController : Controller
                 supplier.Activo = false;
                 _context.Suppliers.Update(supplier);
                 await _context.SaveChangesAsync();
+                if (isAjax) return Json(new { success = true, message = "Proveedor eliminado exitosamente.", id });
                 TempData["SuccessMessage"] = "Proveedor eliminado exitosamente.";
             }
             else
             {
+                if (isAjax) return Json(new { success = false, message = "Proveedor no encontrado." });
                 TempData["ErrorMessage"] = "Proveedor no encontrado.";
             }
         }
         catch (Exception ex)
         {
+            if (isAjax) return Json(new { success = false, message = $"Error al eliminar el proveedor: {ex.Message}" });
             TempData["ErrorMessage"] = $"Error al eliminar el proveedor: {ex.Message}";
         }
 
         return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
+    }
+
+    /// <summary>
+    /// Admin: Toggle supplier active status (POST)
+    /// </summary>
+    [HttpPost]
+    public async Task<IActionResult> ToggleStatus(string id)
+    {
+        try
+        {
+            var supplier = await _context.Suppliers.FindAsync(id);
+            if (supplier == null)
+            {
+                return Json(new { success = false, message = "Proveedor no encontrado." });
+            }
+            supplier.Activo = !supplier.Activo;
+            _context.Suppliers.Update(supplier);
+            await _context.SaveChangesAsync();
+            return Json(new { success = true, active = supplier.Activo, message = $"Estado del proveedor actualizado a {(supplier.Activo ? "Activo" : "Inactivo")}." });
+        }
+        catch (Exception ex)
+        {
+            return Json(new { success = false, message = $"Error al actualizar estado: {ex.Message}" });
+        }
     }
 }
