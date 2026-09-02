@@ -956,6 +956,75 @@ label, .form-label {
   opacity: 0.45;
 }
 
+/* ── Input de texto libre ── */
+.morgana-input-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  border-top: 1px solid var(--border);
+  background: var(--white);
+  flex-shrink: 0;
+}
+
+.morgana-input {
+  flex: 1;
+  border: 1px solid var(--purple-200);
+  border-radius: 9999px;
+  padding: 0.5rem 0.85rem;
+  font-family: var(--font-secondary);
+  font-size: 0.82rem;
+  color: var(--gray-900);
+  background: var(--gray-50);
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.morgana-input::placeholder {
+  color: var(--gray-400);
+}
+
+.morgana-input:focus {
+  border-color: var(--purple-500);
+  box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.1);
+  background: var(--white);
+}
+
+.morgana-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.morgana-send-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, var(--purple-600), var(--purple-800));
+  color: var(--white);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.morgana-send-btn:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);
+}
+
+.morgana-send-btn:active {
+  transform: scale(0.95);
+}
+
+.morgana-send-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
 /* ── Responsive ── */
 @media (max-width: 480px) {
   #morgana-widget {

@@ -10,6 +10,7 @@
   // ── Estado ──────────────────────────────────────────────────────────────────
   let isOpen = false;
   let hasGreeted = false;
+  let conversationHistory = [];
 
   // ── Crear estructura HTML del widget ────────────────────────────────────────
   function crearWidget() {
@@ -44,6 +45,17 @@
 
         <!-- Chips de preguntas sugeridas (como lista seleccionable) -->
         <div id="morgana-chips" class="morgana-chips"></div>
+
+        <!-- Input de texto libre -->
+        <div class="morgana-input-bar">
+          <input type="text" id="morgana-input" class="morgana-input" placeholder="Escribe tu mensaje…" autocomplete="off" />
+          <button id="morgana-send-btn" class="morgana-send-btn" aria-label="Enviar mensaje">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="22" y1="2" x2="11" y2="13"></line>
+              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+            </svg>
+          </button>
+        </div>
       </div>
 
       <!-- Botón flotante (el SVG del stickman se agrega vía JS más abajo) -->
@@ -164,41 +176,71 @@
     }
   }
 
-  // ── Procesar consulta del usuario ────────────────────────────────────────────
+  // ── Obtener respuesta local (fallback FAQ) ──────────────────────────────────
+  function obtenerRespuestaLocal(textoPregunta) {
+    if (window.morganaBuscarRespuesta) {
+      const resultado = morganaBuscarRespuesta(textoPregunta);
+      return resultado
+        ? resultado.respuesta
+        : 'No tengo una respuesta para eso todavía 🤔 pero puedes explorar la <strong>Tienda</strong> o escribirnos por soporte.';
+    }
+    return 'Lo siento, el módulo de respuestas no está disponible.';
+  }
+
+  // ── Procesar consulta del usuario (IA con fallback a FAQ) ───────────────────
   function procesarConsulta(textoPregunta, textoBurbuja) {
     // Mostrar pregunta del usuario
     agregarMensaje(textoBurbuja || textoPregunta, 'user');
 
-    // Deshabilitar selección de preguntas mientras procesa
+    // Deshabilitar interacciones mientras procesa
     const chipsContainer = document.getElementById('morgana-chips');
-    if (chipsContainer) {
-      chipsContainer.classList.add('morgana-chips--disabled');
-    }
+    const inputEl = document.getElementById('morgana-input');
+    const sendBtn = document.getElementById('morgana-send-btn');
+    if (chipsContainer) chipsContainer.classList.add('morgana-chips--disabled');
+    if (inputEl) inputEl.disabled = true;
+    if (sendBtn) sendBtn.disabled = true;
 
-    // Typing simulado
     mostrarTyping();
 
-    setTimeout(function () {
+    // Llamar al backend de IA
+    fetch('/Chat/Ask', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        mensaje: textoPregunta,
+        historial: conversationHistory
+      })
+    })
+    .then(function (res) {
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    })
+    .then(function (data) {
       ocultarTyping();
-
-      // Buscar respuesta
-      let respuesta;
-      if (window.morganaBuscarRespuesta) {
-        const resultado = morganaBuscarRespuesta(textoPregunta);
-        respuesta = resultado
-          ? resultado.respuesta
-          : 'No tengo una respuesta para eso todavía 🤔 pero puedes explorar la <strong>Tienda</strong> o escribirnos por soporte.';
-      } else {
-        respuesta = 'Lo siento, el módulo de respuestas no está disponible.';
-      }
-
+      var respuesta = data.respuesta || obtenerRespuestaLocal(textoPregunta);
       agregarMensaje(respuesta, 'bot');
 
-      // Volver a habilitar selección de preguntas
-      if (chipsContainer) {
-        chipsContainer.classList.remove('morgana-chips--disabled');
+      // Actualizar historial en memoria
+      conversationHistory.push({ role: 'user', content: textoPregunta });
+      conversationHistory.push({ role: 'assistant', content: respuesta });
+
+      // Mantener máximo 20 mensajes (los más recientes)
+      if (conversationHistory.length > 20) {
+        conversationHistory = conversationHistory.slice(-20);
       }
-    }, Math.random() * 250 + 300); // 300–550 ms de delay
+    })
+    .catch(function () {
+      ocultarTyping();
+      // Fallback a FAQ local si la API falla
+      var respuestaLocal = obtenerRespuestaLocal(textoPregunta);
+      agregarMensaje(respuestaLocal, 'bot');
+    })
+    .finally(function () {
+      // Rehabilitar interacciones
+      if (chipsContainer) chipsContainer.classList.remove('morgana-chips--disabled');
+      if (inputEl) { inputEl.disabled = false; inputEl.focus(); }
+      if (sendBtn) sendBtn.disabled = false;
+    });
   }
 
   // ── Manejadores de eventos ────────────────────────────────────────────────────

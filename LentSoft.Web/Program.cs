@@ -1,6 +1,8 @@
 using System.Security.Claims;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using LentSoft.Web.Data;
 using LentSoft.Web.Services;
@@ -33,6 +35,12 @@ if (string.IsNullOrEmpty(jwtSaleKey) ||
     throw new InvalidOperationException("La clave secreta para SaleConfirmationJwt no está configurada o es demasiado corta.");
 }
 
+var geminiApiKey = builder.Configuration["Gemini:ApiKey"];
+if (string.IsNullOrEmpty(geminiApiKey) || geminiApiKey == "CONFIGURAR_TU_API_KEY_DE_GEMINI")
+{
+    throw new InvalidOperationException("La API key de Gemini no está configurada. Establece 'Gemini:ApiKey' en appsettings.Development.json o en variables de entorno.");
+}
+
 // ── Database ──
 builder.Services.AddDbContext<LentSoftDbContext>(options =>
 {
@@ -53,6 +61,7 @@ builder.Services.AddScoped<IPdfInvoiceService, PdfInvoiceService>();
 builder.Services.AddSingleton<IPasswordResetTokenService, PasswordResetTokenService>();
 builder.Services.AddSingleton<ISaleConfirmationTokenService, SaleConfirmationTokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IChatAgentService, ChatAgentService>();
 
 // ── Authentication (Cookie-based, standard MVC pattern) ──
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -68,6 +77,25 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddAuthorization();
+
+// ── HTTP Clients ──
+builder.Services.AddHttpClient("Gemini");
+
+// ── Rate Limiting (protección del endpoint /Chat/Ask) ──
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("chat", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 2
+            }));
+});
 
 // ── MVC ──
 builder.Services.AddControllersWithViews();
@@ -86,6 +114,7 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseRateLimiter();
 
 // ── Routes ──
 app.MapControllerRoute(
