@@ -69,6 +69,10 @@ public class Product : IValidatableObject
     [StringLength(255)]
     public string? ImagenOverlayUrl { get; set; }
 
+    [StringLength(20)]
+    public string? SupplierId { get; set; }
+    public Supplier? Supplier { get; set; }
+
     // Navigation properties
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();

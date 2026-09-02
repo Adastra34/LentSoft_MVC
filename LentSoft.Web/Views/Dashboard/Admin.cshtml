@@ -244,7 +244,9 @@
                             <thead>
                                 <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
                                     <th style="padding: 0.75rem;">ID</th>
+                                    <th style="padding: 0.75rem;">Logo</th>
                                     <th style="padding: 0.75rem;" data-i18n="admin.inv.company">Empresa</th>
+                                    <th style="padding: 0.75rem;">Contacto</th>
                                     <th style="padding: 0.75rem;" data-i18n="admin.inv.producttype">Tipo Productos</th>
                                     <th style="padding: 0.75rem;" data-i18n="admin.inv.phone">Teléfono</th>
                                     <th style="padding: 0.75rem;" data-i18n="admin.inv.email">Email</th>
@@ -257,7 +259,18 @@
                                 {
                                     <tr style="border-bottom: 1px solid var(--purple-100);">
                                         <td style="padding: 0.75rem; color: var(--gray-500); font-weight: 600;">@prov.Id</td>
+                                        <td style="padding: 0.75rem;">
+                                            @if (!string.IsNullOrEmpty(prov.LogoUrl))
+                                            {
+                                                <img src="@prov.LogoUrl" alt="@prov.Nombre" style="width: 32px; height: 32px; object-fit: cover; border-radius: 50%;" />
+                                            }
+                                            else
+                                            {
+                                                <span style="display:inline-block; width:32px; height:32px; background:var(--purple-100); color:var(--purple-700); border-radius:50%; text-align:center; line-height:32px; font-weight:bold; font-size:0.8rem;">🏢</span>
+                                            }
+                                        </td>
                                         <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@prov.Nombre</td>
+                                        <td style="padding: 0.75rem;">@(prov.Contacto ?? "N/A")</td>
                                         <td style="padding: 0.75rem;">@prov.TipoProductos</td>
                                         <td style="padding: 0.75rem;">@prov.Telefono</td>
                                         <td style="padding: 0.75rem;">@prov.Correo</td>
@@ -268,7 +281,7 @@
                                         </td>
                                         <td style="padding: 0.75rem;">
                                             <div class="table-actions-wrapper">
-                                                <button type="button" class="btn-action-edit" aria-label="Editar" onclick="openEditSupplierModal('@prov.Id', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Nombre)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.TipoProductos)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Telefono)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Correo)')" data-i18n="admin.inv.edit">✏️ Editar</button>
+                                                <button type="button" class="btn-action-edit" aria-label="Editar" onclick="openEditSupplierModal('@prov.Id', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Nombre)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Contacto ?? "")', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.TipoProductos)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Telefono)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Correo)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.LogoUrl ?? "")')" data-i18n="admin.inv.edit">✏️ Editar</button>
                                                 <form asp-controller="Supplier" asp-action="Delete" asp-route-id="@prov.Id" method="post" style="display:inline;" onsubmit="confirmDelete(event, '¿Deseas eliminar al proveedor @prov.Nombre?', this)">
                                                     <button type="submit" class="btn-action-delete" aria-label="Eliminar" data-i18n="admin.inv.delete">🗑️ Eliminar</button>
                                                 </form>
@@ -315,7 +328,7 @@
                                     <tr style="border-bottom: 1px solid var(--purple-100);">
                                         <td style="padding: 0.75rem; color: var(--gray-500);">#MOV-@mov.Id</td>
                                         <td style="padding: 0.75rem; font-weight: 500;">
-                                            <a href="/Product/Details/@mov.ProductId" style="color: var(--purple-700); font-weight: 600; text-decoration: underline;">@(mov.Product?.Nombre ?? "Producto #" + mov.ProductId)</a>
+                                            <a href="/Product/Details/@mov.ProductId" style="color: var(--purple-700); font-weight: 600; text-decoration: underline;">@(mov.NombreProducto ?? mov.Product?.Nombre ?? ("Producto #" + mov.ProductId))</a>
                                         </td>
                                         <td style="padding: 0.75rem;">
                                             <span style="background-color: @(mov.Tipo?.ToLower() == "entrada" ? "var(--success)" : "var(--warning)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; text-transform: uppercase;" data-i18n="@tipoKey">
@@ -1683,12 +1696,14 @@
         document.getElementById('modal-editar-producto').style.display = 'flex';
     }
 
-    function openEditSupplierModal(id, nombre, tipoProductos, telefono, correo) {
+    function openEditSupplierModal(id, nombre, contacto, tipoProductos, telefono, correo, logoUrl) {
         document.getElementById('editSupplierId').value = id;
         document.getElementById('editSupplierNombre').value = nombre;
+        document.getElementById('editSupplierContacto').value = contacto || '';
         document.getElementById('editSupplierTipoProductos').value = tipoProductos;
         document.getElementById('editSupplierTelefono').value = telefono;
         document.getElementById('editSupplierCorreo').value = correo;
+        document.getElementById('editSupplierLogoUrl').value = logoUrl || '';
         document.getElementById('modal-editar-proveedor').style.display = 'flex';
     }
 </script>
@@ -2013,6 +2028,11 @@
             </div>
 
             <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Persona de Contacto</label>
+                <input name="Contacto" type="text" class="form-input" placeholder="Ej: Juan Pérez" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
                 <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.producttype">Tipo de Productos *</label>
                 <input name="TipoProductos" type="text" class="form-input" required placeholder="Ej: Monturas / Lentes de contacto" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
@@ -2025,6 +2045,11 @@
             <div>
                 <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.email">Correo Electrónico *</label>
                 <input name="Correo" type="email" class="form-input" required placeholder="ventas@proveedor.com" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">URL del Logo (Opcional)</label>
+                <input name="LogoUrl" type="url" class="form-input" placeholder="https://..." style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
@@ -2053,6 +2078,11 @@
             </div>
 
             <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Persona de Contacto</label>
+                <input id="editSupplierContacto" name="Contacto" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
                 <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.producttype">Tipo de Productos *</label>
                 <input id="editSupplierTipoProductos" name="TipoProductos" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
@@ -2065,6 +2095,11 @@
             <div>
                 <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="admin.inv.email">Correo Electrónico *</label>
                 <input id="editSupplierCorreo" name="Correo" type="email" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">URL del Logo (Opcional)</label>
+                <input id="editSupplierLogoUrl" name="LogoUrl" type="url" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">

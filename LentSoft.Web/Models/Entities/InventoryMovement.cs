@@ -12,6 +12,9 @@ public class InventoryMovement
 
     public Product? Product { get; set; }
 
+    [StringLength(200)]
+    public string? NombreProducto { get; set; }
+
     [Required(ErrorMessage = "El tipo de movimiento es obligatorio")]
     [StringLength(20)]
     public string Tipo { get; set; } = "Entrada"; // "Entrada" o "Salida"

@@ -600,18 +600,18 @@ public class LentSoftDbContext : DbContext
             }
         );
 
-        // Seed Suppliers
+        // ── Seed Suppliers ──
         modelBuilder.Entity<Supplier>().HasData(
-            new Supplier { Id = "PROV001", Nombre = "Óptica Global S.A.", TipoProductos = "Monturas", Telefono = "555-1001", Correo = "ventas@opticaglobal.com", Activo = true, FechaRegistro = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Supplier { Id = "PROV002", Nombre = "LensTech Colombia", TipoProductos = "Lentes de contacto", Telefono = "555-1002", Correo = "contacto@lenstech.co", Activo = true, FechaRegistro = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
-            new Supplier { Id = "PROV003", Nombre = "Distribuidora Visual", TipoProductos = "Accesorios", Telefono = "555-1003", Correo = "info@distvisual.com", Activo = true, FechaRegistro = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
+            new Supplier { Id = "PROV001", Nombre = "Óptica Global S.A.", Contacto = "Carlos Gómez", TipoProductos = "Monturas", Telefono = "555-1001", Correo = "ventas@opticaglobal.com", LogoUrl = "https://images.unsplash.com/photo-1560179707-f14e90ef3623", Activo = true, FechaRegistro = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Supplier { Id = "PROV002", Nombre = "LensTech Colombia", Contacto = "Ana Martínez", TipoProductos = "Lentes de contacto", Telefono = "555-1002", Correo = "contacto@lenstech.co", LogoUrl = "https://images.unsplash.com/photo-1572021335469-31706a17aaef", Activo = true, FechaRegistro = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) },
+            new Supplier { Id = "PROV003", Nombre = "Distribuidora Visual", Contacto = "Roberto Díaz", TipoProductos = "Accesorios", Telefono = "555-1003", Correo = "info@distvisual.com", LogoUrl = "https://images.unsplash.com/photo-1556761175-5973dc0f32e7", Activo = true, FechaRegistro = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) }
         );
 
         // Seed Inventory Movements
         modelBuilder.Entity<InventoryMovement>().HasData(
-            new InventoryMovement { Id = 1, ProductId = 1, Tipo = "Entrada", Cantidad = 20, Fecha = new DateTime(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc), Responsable = "Administrador" },
-            new InventoryMovement { Id = 2, ProductId = 2, Tipo = "Salida", Cantidad = 5, Fecha = new DateTime(2026, 5, 2, 14, 0, 0, DateTimeKind.Utc), Responsable = "Administrador" },
-            new InventoryMovement { Id = 3, ProductId = 3, Tipo = "Entrada", Cantidad = 10, Fecha = new DateTime(2026, 5, 3, 11, 30, 0, DateTimeKind.Utc), Responsable = "Administrador" }
+            new InventoryMovement { Id = 1, ProductId = 1, NombreProducto = "Lentes Ray-Ban Aviator", Tipo = "Entrada", Cantidad = 20, Fecha = new DateTime(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc), Responsable = "Administrador" },
+            new InventoryMovement { Id = 2, ProductId = 2, NombreProducto = "Lentes de Contacto Acuvue", Tipo = "Salida", Cantidad = 5, Fecha = new DateTime(2026, 5, 2, 14, 0, 0, DateTimeKind.Utc), Responsable = "Administrador" },
+            new InventoryMovement { Id = 3, ProductId = 3, NombreProducto = "Montura Oakley Sport", Tipo = "Entrada", Cantidad = 10, Fecha = new DateTime(2026, 5, 3, 11, 30, 0, DateTimeKind.Utc), Responsable = "Administrador" }
         );
 
         // Seed Supplier Orders

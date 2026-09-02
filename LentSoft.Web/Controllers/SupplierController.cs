@@ -53,6 +53,10 @@ public class SupplierController : Controller
 
         try
         {
+            supplier.Contacto = supplier.Contacto?.Trim();
+            if (string.IsNullOrWhiteSpace(supplier.TipoProductos) && !string.IsNullOrWhiteSpace(supplier.TipoProducto)) supplier.TipoProductos = supplier.TipoProducto;
+            if (string.IsNullOrWhiteSpace(supplier.Correo) && !string.IsNullOrWhiteSpace(supplier.Email)) supplier.Correo = supplier.Email;
+            supplier.LogoUrl = supplier.LogoUrl?.Trim();
             supplier.FechaRegistro = DateTime.UtcNow;
             supplier.Activo = true;
 
@@ -99,9 +103,11 @@ public class SupplierController : Controller
             }
 
             existing.Nombre = supplier.Nombre.Trim();
-            existing.TipoProductos = supplier.TipoProductos.Trim();
+            existing.Contacto = supplier.Contacto?.Trim();
+            existing.TipoProductos = (string.IsNullOrWhiteSpace(supplier.TipoProductos) ? supplier.TipoProducto : supplier.TipoProductos)?.Trim() ?? string.Empty;
             existing.Telefono = supplier.Telefono.Trim();
-            existing.Correo = supplier.Correo.Trim().ToLower();
+            existing.Correo = (string.IsNullOrWhiteSpace(supplier.Correo) ? supplier.Email : supplier.Correo)?.Trim().ToLower() ?? string.Empty;
+            existing.LogoUrl = supplier.LogoUrl?.Trim();
 
             await _context.SaveChangesAsync();
 

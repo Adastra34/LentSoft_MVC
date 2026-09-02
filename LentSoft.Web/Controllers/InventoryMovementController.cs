@@ -55,6 +55,7 @@ public class InventoryMovementController : Controller
         }
 
         movement.Tipo = tipo;
+        movement.NombreProducto = product.Nombre;
         movement.Fecha = DateTime.UtcNow;
 
         if (string.IsNullOrWhiteSpace(movement.Responsable))
