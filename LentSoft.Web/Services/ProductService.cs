@@ -102,6 +102,20 @@ public class ProductService : IProductService
         try
         {
             await _context.SaveChangesAsync();
+
+            // Registro automático en Historial de Movimientos de Inventario
+            var movement = new InventoryMovement
+            {
+                ProductId = product.Id,
+                NombreProducto = product.Nombre,
+                Tipo = "Alta",
+                Cantidad = product.Stock > 0 ? product.Stock : 1,
+                Fecha = DateTime.UtcNow,
+                Responsable = "Sistema / Admin"
+            };
+            _context.InventoryMovements.Add(movement);
+            await _context.SaveChangesAsync();
+
             return product;
         }
         catch (DbUpdateException ex)
@@ -115,6 +129,8 @@ public class ProductService : IProductService
         var product = await _context.Products.FindAsync(id);
         if (product == null) return null;
 
+        int stockDelta = updated.Stock - product.Stock;
+
         product.Nombre = updated.Nombre;
         product.Descripcion = updated.Descripcion;
         product.Precio = updated.Precio;
@@ -124,9 +140,23 @@ public class ProductService : IProductService
         product.Stock = updated.Stock;
         product.ImagenUrl = updated.ImagenUrl;
         product.Activo = updated.Activo;
+        if (!string.IsNullOrEmpty(updated.SupplierId)) product.SupplierId = updated.SupplierId;
 
         try
         {
+            var movementTipo = stockDelta > 0 ? "Entrada" : (stockDelta < 0 ? "Salida" : "Edición");
+            var movementCantidad = Math.Abs(stockDelta) > 0 ? Math.Abs(stockDelta) : (product.Stock > 0 ? product.Stock : 1);
+            var movement = new InventoryMovement
+            {
+                ProductId = product.Id,
+                NombreProducto = product.Nombre,
+                Tipo = movementTipo,
+                Cantidad = movementCantidad,
+                Fecha = DateTime.UtcNow,
+                Responsable = "Sistema / Admin"
+            };
+            _context.InventoryMovements.Add(movement);
+
             await _context.SaveChangesAsync();
             return product;
         }
@@ -148,6 +178,17 @@ public class ProductService : IProductService
         product.Activo = false;
         _context.Products.Update(product);
 
+        var movement = new InventoryMovement
+        {
+            ProductId = product.Id,
+            NombreProducto = product.Nombre,
+            Tipo = "Baja",
+            Cantidad = product.Stock > 0 ? product.Stock : 1,
+            Fecha = DateTime.UtcNow,
+            Responsable = "Sistema / Admin"
+        };
+        _context.InventoryMovements.Add(movement);
+
         try
         {
             await _context.SaveChangesAsync();
@@ -166,6 +207,17 @@ public class ProductService : IProductService
 
         product.Activo = true;
         _context.Products.Update(product);
+
+        var movement = new InventoryMovement
+        {
+            ProductId = product.Id,
+            NombreProducto = product.Nombre,
+            Tipo = "Reactivación",
+            Cantidad = product.Stock > 0 ? product.Stock : 1,
+            Fecha = DateTime.UtcNow,
+            Responsable = "Sistema / Admin"
+        };
+        _context.InventoryMovements.Add(movement);
 
         try
         {

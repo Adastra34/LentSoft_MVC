@@ -701,9 +701,10 @@ public class DashboardController : Controller
                 var movement = new InventoryMovement
                 {
                     ProductId = targetProduct.Id,
+                    NombreProducto = targetProduct.Nombre,
                     Tipo = "Salida",
                     Cantidad = model.Cantidad,
-                    Fecha = model.Fecha,
+                    Fecha = DateTime.UtcNow,
                     Responsable = User.Identity?.Name ?? $"Pedido Venta ({model.ClienteNombre})"
                 };
                 _context.InventoryMovements.Add(movement);
@@ -787,12 +788,14 @@ public class DashboardController : Controller
             _context.SupplierOrders.Add(model);
 
             // Registro automático en Historial de Movimientos (ENTRADA)
+            var targetProd = await _context.Products.FindAsync(model.ProductId);
             var movement = new InventoryMovement
             {
                 ProductId = model.ProductId,
+                NombreProducto = targetProd?.Nombre,
                 Tipo = "Entrada",
                 Cantidad = model.Cantidad,
-                Fecha = model.Fecha,
+                Fecha = DateTime.UtcNow,
                 Responsable = User.Identity?.Name ?? $"Pedido Proveedor ({model.NumeroPedido})"
             };
             _context.InventoryMovements.Add(movement);
