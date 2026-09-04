@@ -1,10 +1,13 @@
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
+using LentSoft.Web.Data;
 
 #nullable disable
 
 namespace LentSoft.Web.Migrations
 {
-    /// <inheritdoc />
+    [DbContext(typeof(LentSoftDbContext))]
+    [Migration("20260902213000_UpdateInventoryAndSupplierSchema")]
     public partial class UpdateInventoryAndSupplierSchema : Migration
     {
         /// <inheritdoc />
