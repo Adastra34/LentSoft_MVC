@@ -1304,4 +1304,92 @@
         }
         return true;
     }
+
+    // Funciones específicas para Citas en Admin
+    function filterAdminCitasByEstado(estado, btn) {
+        document.querySelectorAll('#admin-citas-filters .filter-tab').forEach(b => b.classList.remove('active', 'selected-tab'));
+        document.querySelectorAll('#admin-citas-filters .filter-tab').forEach(b => {
+            b.style.backgroundColor = 'var(--purple-50)';
+            b.style.color = 'var(--purple-700)';
+            b.style.border = '1px solid var(--purple-200)';
+        });
+        
+        btn.classList.add('active', 'selected-tab');
+        btn.style.backgroundColor = 'var(--purple-600)';
+        btn.style.color = 'white';
+        btn.style.border = 'none';
+
+        window.currentAdminCitaEstado = estado.toLowerCase();
+        filterAdminCitasCombo();
+    }
+
+    function filterAdminCitasCombo() {
+        var input = document.getElementById("searchAdminCitas");
+        var filter = input.value.toLowerCase();
+        var table = document.getElementById("tableAdminCitas");
+        if (!table) return;
+        var tr = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+        var targetEstado = window.currentAdminCitaEstado || 'todos';
+
+        for (var i = 0; i < tr.length; i++) {
+            if (tr[i].getElementsByTagName("td").length > 1) {
+                var textContent = tr[i].textContent || tr[i].innerText;
+                var rowEstado = tr[i].getAttribute("data-estado");
+                var matchText = textContent.toLowerCase().indexOf(filter) > -1;
+                var matchEstado = (targetEstado === 'todos' || rowEstado === targetEstado);
+                
+                if (matchText && matchEstado) {
+                    tr[i].style.display = "";
+                } else {
+                    tr[i].style.display = "none";
+                }
+            }
+        }
+    }
+
+    function abrirModalAdminVerCita(btn) {
+        document.getElementById('admin-ver-cita-paciente').textContent = btn.getAttribute('data-paciente');
+        document.getElementById('admin-ver-cita-optometra').textContent = btn.getAttribute('data-optometranombre');
+        document.getElementById('admin-ver-cita-servicio').textContent = btn.getAttribute('data-servicio');
+        
+        const rawDate = btn.getAttribute('data-fechahora');
+        if (rawDate) {
+            const dateObj = new Date(rawDate);
+            document.getElementById('admin-ver-cita-fecha').textContent = dateObj.toLocaleString();
+        }
+        
+        document.getElementById('admin-ver-cita-estado').textContent = btn.getAttribute('data-estado').toUpperCase();
+        document.getElementById('admin-ver-cita-reprog').textContent = btn.getAttribute('data-vecesreprogramada');
+        document.getElementById('admin-ver-cita-notas').textContent = btn.getAttribute('data-notas') || 'Ninguna';
+        
+        // Colores de estado
+        const statusVal = btn.getAttribute('data-estado').toLowerCase();
+        const estSpan = document.getElementById('admin-ver-cita-estado');
+        if (statusVal === 'confirmada' || statusVal === 'completada') {
+            estSpan.style.color = '#065F46';
+        } else if (statusVal === 'pendiente') {
+            estSpan.style.color = '#92400E';
+        } else {
+            estSpan.style.color = '#991B1B';
+        }
+
+        window.currentAdminCitaBtn = btn;
+        document.getElementById('modal-admin-ver-cita').style.display = 'flex';
+    }
+
+    function abrirModalAdminEditarCitaDesdeVer() {
+        document.getElementById('modal-admin-ver-cita').style.display = 'none';
+        if (window.currentAdminCitaBtn) {
+            const btn = window.currentAdminCitaBtn;
+            document.getElementById('admin-edit-cita-id').value = btn.getAttribute('data-id');
+            document.getElementById('admin-edit-cita-userid').value = btn.getAttribute('data-userid');
+            document.getElementById('admin-edit-cita-paciente-nombre').value = btn.getAttribute('data-paciente');
+            document.getElementById('admin-edit-cita-servicio').value = btn.getAttribute('data-servicio');
+            document.getElementById('admin-edit-cita-fechahora').value = btn.getAttribute('data-fechahora');
+            document.getElementById('admin-edit-cita-notas').value = btn.getAttribute('data-notas');
+            document.getElementById('admin-edit-cita-optometraid').value = btn.getAttribute('data-optometra');
+        }
+        document.getElementById('modal-admin-editar-cita').style.display = 'flex';
+    }
+
 </script>
