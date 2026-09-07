@@ -111,9 +111,19 @@ public class AppointmentsApiController : ControllerBase
             fechaLocal = request.FechaHora;
         }
 
+        if (fechaLocal.Date < ahoraLocal.Date)
+        {
+            return BadRequest(new { message = "No se pueden seleccionar fechas pasadas para la cita." });
+        }
+
         if (fechaLocal <= ahoraLocal)
         {
-            return BadRequest(new { message = "La fecha y hora de la cita debe ser a futuro." });
+            return BadRequest(new { message = "Para citas el día de hoy, la hora seleccionada debe ser posterior a la hora actual." });
+        }
+
+        if (fechaLocal.DayOfWeek == DayOfWeek.Sunday)
+        {
+            return BadRequest(new { message = "La clínica atiende de lunes a sábado. No hay citas disponibles los domingos." });
         }
 
         // 1. Validar horario laboral en hora local (Colombia)
@@ -234,9 +244,19 @@ public class AppointmentsApiController : ControllerBase
             fechaLocal = request.NuevaFechaHora;
         }
 
+        if (fechaLocal.Date < ahoraLocal.Date)
+        {
+            return BadRequest(new { message = "No se pueden seleccionar fechas pasadas para reprogramar la cita." });
+        }
+
         if (fechaLocal <= ahoraLocal)
         {
-            return BadRequest(new { message = "La nueva fecha y hora debe ser a futuro." });
+            return BadRequest(new { message = "Para citas el día de hoy, la nueva hora seleccionada debe ser posterior a la hora actual." });
+        }
+
+        if (fechaLocal.DayOfWeek == DayOfWeek.Sunday)
+        {
+            return BadRequest(new { message = "La clínica atiende de lunes a sábado. No hay citas disponibles los domingos." });
         }
 
         if (!Appointment.EsHorarioLaboral(fechaLocal))
