@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:LentSoft.Mobile.ViewModels"
+             xmlns:models="clr-namespace:LentSoft.Mobile.Models"
+             x:Class="LentSoft.Mobile.Views.FacturasPage"
+             x:DataType="vm:FacturasViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource Lavender}">
+
+    <Grid RowDefinitions="Auto,*" VerticalOptions="FillAndExpand">
+
+        <!-- Custom AppBar with Purple Gradient & Golden Glow -->
+        <Border Grid.Row="0"
+                HeightRequest="100"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 0,0,24,24">
+            <Border.Background>
+                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                    <GradientStop Color="{StaticResource Purple}" Offset="0.0"/>
+                    <GradientStop Color="{StaticResource PurpleDeep}" Offset="1.0"/>
+                </LinearGradientBrush>
+            </Border.Background>
+
+            <Grid Padding="20,16">
+                <!-- Radial Glow decoration -->
+                <Ellipse WidthRequest="100" HeightRequest="100"
+                         HorizontalOptions="End" VerticalOptions="Start"
+                         TranslationX="20" TranslationY="-20"
+                         Opacity="0.2">
+                    <Ellipse.Fill>
+                        <RadialGradientBrush Center="0.5,0.5" Radius="0.5">
+                            <GradientStop Color="{StaticResource Gold}" Offset="0.0"/>
+                            <GradientStop Color="Transparent" Offset="1.0"/>
+                        </RadialGradientBrush>
+                    </Ellipse.Fill>
+                </Ellipse>
+
+                <VerticalStackLayout VerticalOptions="Center" Spacing="2">
+                    <Label Text="Mis Facturas"
+                           FontSize="22"
+                           FontAttributes="Bold"
+                           TextColor="White"/>
+                    <Label Text="Comprobantes y recibos de pago"
+                           FontSize="13"
+                           TextColor="{StaticResource Line}"/>
+                </VerticalStackLayout>
+            </Grid>
+        </Border>
+
+        <!-- Invoice List -->
+        <RefreshView Grid.Row="1"
+                     IsRefreshing="{Binding IsRefreshing}"
+                     Command="{Binding LoadInvoicesCommand}">
+            <CollectionView ItemsSource="{Binding Invoices}"
+                            Margin="16,16,16,16">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout Orientation="Vertical" ItemSpacing="12"/>
+                </CollectionView.ItemsLayout>
+
+                <CollectionView.ItemTemplate>
+                    <DataTemplate x:DataType="models:InvoiceDto">
+                        <Border Style="{StaticResource LentSoftCard}"
+                                Padding="16">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:FacturasViewModel}}, Path=InvoiceSelectedCommand}"
+                                                      CommandParameter="{Binding .}"/>
+                            </Border.GestureRecognizers>
+
+                            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="14" VerticalOptions="Center">
+                                <!-- Document icon with lens touch -->
+                                <Border Grid.Column="0"
+                                        WidthRequest="46" HeightRequest="46"
+                                        StrokeShape="RoundRectangle 12"
+                                        BackgroundColor="{StaticResource PurpleLight}"
+                                        Stroke="{StaticResource Purple}"
+                                        StrokeThickness="1"
+                                        VerticalOptions="Center">
+                                    <Label Text="📄"
+                                           FontSize="20"
+                                           HorizontalOptions="Center"
+                                           VerticalOptions="Center"/>
+                                </Border>
+
+                                <!-- Number & Date -->
+                                <VerticalStackLayout Grid.Column="1" Spacing="4" VerticalOptions="Center">
+                                    <Label Text="{Binding NumeroFactura}"
+                                           FontSize="15"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource Ink}"/>
+                                    <Label Text="{Binding DisplayFecha}"
+                                           FontSize="12"
+                                           TextColor="{StaticResource Muted}"/>
+                                    <Label Text="{Binding DisplayTotal}"
+                                           FontSize="14"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource Purple}"/>
+                                </VerticalStackLayout>
+
+                                <!-- Status Badge (Green: Pagada, Amber: Pendiente) -->
+                                <Border Grid.Column="2"
+                                        StrokeShape="RoundRectangle 12"
+                                        StrokeThickness="0"
+                                        BackgroundColor="{Binding BadgeBackgroundColor}"
+                                        Padding="12,6"
+                                        VerticalOptions="Center">
+                                    <Label Text="{Binding Estado}"
+                                           TextColor="{Binding BadgeTextColor}"
+                                           FontSize="11"
+                                           FontAttributes="Bold"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+
+                <CollectionView.EmptyView>
+                    <VerticalStackLayout Spacing="8" HorizontalOptions="Center" VerticalOptions="Center" Padding="40">
+                        <Label Text="🧾" FontSize="44" HorizontalOptions="Center"/>
+                        <Label Text="Sin facturas registradas"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Ink}"
+                               HorizontalOptions="Center"/>
+                        <Label Text="Cuando realices compras o pagos, tus facturas aparecerán aquí."
+                               FontSize="13"
+                               TextColor="{StaticResource Muted}"
+                               HorizontalTextAlignment="Center"
+                               HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </CollectionView.EmptyView>
+            </CollectionView>
+        </RefreshView>
+
+    </Grid>
+
+</ContentPage>

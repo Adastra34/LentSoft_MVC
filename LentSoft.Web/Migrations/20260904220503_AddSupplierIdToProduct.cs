@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -10,54 +10,22 @@ namespace LentSoft.Web.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<string>(
-                name: "Contacto",
-                table: "Suppliers",
-                type: "nvarchar(100)",
-                maxLength: 100,
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "Email",
-                table: "Suppliers",
-                type: "nvarchar(max)",
-                nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.AddColumn<string>(
-                name: "Estado",
-                table: "Suppliers",
-                type: "nvarchar(max)",
-                nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.AddColumn<string>(
-                name: "LogoUrl",
-                table: "Suppliers",
-                type: "nvarchar(500)",
-                maxLength: 500,
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "TipoProducto",
-                table: "Suppliers",
-                type: "nvarchar(max)",
-                nullable: false,
-                defaultValue: "");
-
-            migrationBuilder.AddColumn<string>(
-                name: "SupplierId",
-                table: "Products",
-                type: "nvarchar(20)",
-                maxLength: 20,
-                nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "NombreProducto",
-                table: "InventoryMovements",
-                type: "nvarchar(200)",
-                maxLength: 200,
-                nullable: true);
+            migrationBuilder.Sql(@"
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Suppliers') AND name = 'Contacto')
+    ALTER TABLE [Suppliers] ADD [Contacto] nvarchar(100) NULL;
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Suppliers') AND name = 'Email')
+    ALTER TABLE [Suppliers] ADD [Email] nvarchar(max) NOT NULL DEFAULT '';
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Suppliers') AND name = 'Estado')
+    ALTER TABLE [Suppliers] ADD [Estado] nvarchar(max) NOT NULL DEFAULT '';
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Suppliers') AND name = 'LogoUrl')
+    ALTER TABLE [Suppliers] ADD [LogoUrl] nvarchar(500) NULL;
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Suppliers') AND name = 'TipoProducto')
+    ALTER TABLE [Suppliers] ADD [TipoProducto] nvarchar(max) NOT NULL DEFAULT '';
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('Products') AND name = 'SupplierId')
+    ALTER TABLE [Products] ADD [SupplierId] nvarchar(20) NULL;
+IF NOT EXISTS (SELECT * FROM sys.columns WHERE object_id = OBJECT_ID('InventoryMovements') AND name = 'NombreProducto')
+    ALTER TABLE [InventoryMovements] ADD [NombreProducto] nvarchar(200) NULL;
+");
 
             migrationBuilder.UpdateData(
                 table: "InventoryMovements",
@@ -143,17 +111,13 @@ namespace LentSoft.Web.Migrations
                 columns: new[] { "Contacto", "Email", "Estado", "LogoUrl", "TipoProducto" },
                 values: new object[] { "Roberto Díaz", "info@distvisual.com", "Activo", "https://images.unsplash.com/photo-1556761175-5973dc0f32e7", "Accesorios" });
 
-            migrationBuilder.CreateIndex(
-                name: "IX_Products_SupplierId",
-                table: "Products",
-                column: "SupplierId");
+            migrationBuilder.Sql(@"
+IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_Products_SupplierId' AND object_id = OBJECT_ID('Products'))
+    CREATE INDEX [IX_Products_SupplierId] ON [Products] ([SupplierId]);
 
-            migrationBuilder.AddForeignKey(
-                name: "FK_Products_Suppliers_SupplierId",
-                table: "Products",
-                column: "SupplierId",
-                principalTable: "Suppliers",
-                principalColumn: "Id");
+IF NOT EXISTS (SELECT * FROM sys.foreign_keys WHERE name = 'FK_Products_Suppliers_SupplierId')
+    ALTER TABLE [Products] ADD CONSTRAINT [FK_Products_Suppliers_SupplierId] FOREIGN KEY ([SupplierId]) REFERENCES [Suppliers] ([Id]);
+");
         }
 
         /// <inheritdoc />

@@ -1,0 +1,225 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:LentSoft.Mobile.ViewModels"
+             xmlns:models="clr-namespace:LentSoft.Mobile.Models"
+             x:Class="LentSoft.Mobile.Views.CitasPage"
+             x:DataType="vm:CitasViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource Lavender}">
+
+    <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadAppointmentsCommand}">
+        <ScrollView>
+            <VerticalStackLayout Spacing="16" Padding="0,0,0,30">
+
+                <!-- Custom AppBar with Purple Gradient & Golden Glow -->
+                <Border HeightRequest="100"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 0,0,24,24">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="{StaticResource Purple}" Offset="0.0"/>
+                            <GradientStop Color="{StaticResource PurpleDeep}" Offset="1.0"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+
+                    <Grid Padding="20,16">
+                        <Ellipse WidthRequest="100" HeightRequest="100"
+                                 HorizontalOptions="End" VerticalOptions="Start"
+                                 TranslationX="20" TranslationY="-20"
+                                 Opacity="0.2">
+                            <Ellipse.Fill>
+                                <RadialGradientBrush Center="0.5,0.5" Radius="0.5">
+                                    <GradientStop Color="{StaticResource Gold}" Offset="0.0"/>
+                                    <GradientStop Color="Transparent" Offset="1.0"/>
+                                </RadialGradientBrush>
+                            </Ellipse.Fill>
+                        </Ellipse>
+
+                        <VerticalStackLayout VerticalOptions="Center" Spacing="2">
+                            <Label Text="Citas y Consulta"
+                                   FontSize="22"
+                                   FontAttributes="Bold"
+                                   TextColor="White"/>
+                            <Label Text="Atención clínica con optómetra"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Line}"/>
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+                <VerticalStackLayout Spacing="16" Padding="16,0,16,0">
+
+                    <!-- TARJETA DESTACADA: Próxima Cita (borde morado) -->
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="PRÓXIMA CITA"
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Purple}"/>
+
+                        <Border Style="{StaticResource LentSoftCardHighlight}"
+                                IsVisible="{Binding HasProximaCita}">
+                            <VerticalStackLayout Spacing="12">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Grid.Column="0"
+                                           Text="{Binding ProximaCita.Servicio}"
+                                           FontSize="17"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource Ink}"/>
+
+                                    <!-- Status Badge (Amber or Green) -->
+                                    <Border Grid.Column="1"
+                                            StrokeShape="RoundRectangle 12"
+                                            StrokeThickness="0"
+                                            BackgroundColor="{Binding ProximaCita.BadgeBackgroundColor}"
+                                            Padding="10,4">
+                                        <Label Text="{Binding ProximaCita.Estado}"
+                                               TextColor="{Binding ProximaCita.BadgeTextColor}"
+                                               FontSize="11"
+                                               FontAttributes="Bold"/>
+                                    </Border>
+                                </Grid>
+
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                    <Label Grid.Column="0" Text="📅" FontSize="16" VerticalOptions="Center"/>
+                                    <Label Grid.Column="1"
+                                           Text="{Binding ProximaCita.DisplayFechaHora}"
+                                           FontSize="13"
+                                           TextColor="{StaticResource Ink}"
+                                           VerticalOptions="Center"/>
+                                </Grid>
+
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                    <Label Grid.Column="0" Text="👨‍⚕️" FontSize="16" VerticalOptions="Center"/>
+                                    <Label Grid.Column="1"
+                                           Text="{Binding ProximaCita.OptometraNombre}"
+                                           FontSize="13"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource Purple}"
+                                           VerticalOptions="Center"/>
+                                </Grid>
+
+                                <!-- Acciones para Próxima Cita -->
+                                <BoxView HeightRequest="1" Color="{StaticResource Line}" Margin="0,4"/>
+
+                                <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                                    <Button Grid.Column="0"
+                                            Text="🔄 Reprogramar"
+                                            Command="{Binding ReprogramarProximaCitaCommand}"
+                                            BackgroundColor="{StaticResource PurpleLight}"
+                                            TextColor="{StaticResource Purple}"
+                                            FontAttributes="Bold"
+                                            FontSize="13"
+                                            CornerRadius="10"
+                                            HeightRequest="40"
+                                            Padding="0"/>
+
+                                    <Button Grid.Column="1"
+                                            Text="❌ Cancelar"
+                                            Command="{Binding CancelarProximaCitaCommand}"
+                                            BackgroundColor="{StaticResource CoralLight}"
+                                            TextColor="{StaticResource Coral}"
+                                            FontAttributes="Bold"
+                                            FontSize="13"
+                                            CornerRadius="10"
+                                            HeightRequest="40"
+                                            Padding="0"/>
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <!-- Empty state if no upcoming appointment -->
+                        <Border Style="{StaticResource LentSoftCard}"
+                                IsVisible="{Binding NoProximaCita}">
+                            <VerticalStackLayout Spacing="6" Padding="10">
+                                <Label Text="No tienes citas pendientes"
+                                       FontSize="14"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource Ink}"/>
+                                <Label Text="Programa tu examen visual o control con nuestro equipo de optometría."
+                                       FontSize="12"
+                                       TextColor="{StaticResource Muted}"/>
+                            </VerticalStackLayout>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Botón "+ Agendar nueva cita" -->
+                    <Button Text="+ Agendar nueva cita"
+                            Command="{Binding OpenAgendarModalCommand}"
+                            Style="{StaticResource PrimaryButton}"/>
+
+                    <!-- HISTORIAL DE CITAS PASADAS (con badge "Asistió") -->
+                    <VerticalStackLayout Spacing="10" Margin="0,8,0,0">
+                        <Label Text="HISTORIAL DE CONSULTAS"
+                               FontSize="12"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Muted}"/>
+
+                        <VerticalStackLayout BindableLayout.ItemsSource="{Binding Historial}"
+                                             Spacing="10"
+                                             IsVisible="{Binding HasHistorial}">
+                            <BindableLayout.ItemTemplate>
+                                <DataTemplate x:DataType="models:AppointmentDto">
+                                    <Border Style="{StaticResource LentSoftCard}"
+                                            Padding="14">
+                                        <Border.GestureRecognizers>
+                                            <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:CitasViewModel}}, Path=AppointmentSelectedCommand}"
+                                                                  CommandParameter="{Binding .}"/>
+                                        </Border.GestureRecognizers>
+                                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12" VerticalOptions="Center">
+                                            <!-- Lens icon circle -->
+                                            <Border Grid.Column="0"
+                                                    WidthRequest="40" HeightRequest="40"
+                                                    StrokeShape="RoundRectangle 20"
+                                                    BackgroundColor="{StaticResource Lavender}"
+                                                    Stroke="{StaticResource Line}"
+                                                    StrokeThickness="1">
+                                                <Label Text="👁️" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                            </Border>
+
+                                            <!-- Appointment info -->
+                                            <VerticalStackLayout Grid.Column="1" Spacing="3" VerticalOptions="Center">
+                                                <Label Text="{Binding Servicio}"
+                                                       FontSize="14"
+                                                       FontAttributes="Bold"
+                                                       TextColor="{StaticResource Ink}"/>
+                                                <Label Text="{Binding DisplayFechaCorta}"
+                                                       FontSize="12"
+                                                       TextColor="{StaticResource Muted}"/>
+                                                <Label Text="{Binding OptometraNombre}"
+                                                       FontSize="11"
+                                                       TextColor="{StaticResource Purple}"/>
+                                            </VerticalStackLayout>
+
+                                            <!-- Badge (Verde "Asistió" o estado) -->
+                                            <Border Grid.Column="2"
+                                                    StrokeShape="RoundRectangle 12"
+                                                    StrokeThickness="0"
+                                                    BackgroundColor="{Binding BadgeBackgroundColor}"
+                                                    Padding="10,4"
+                                                    VerticalOptions="Center">
+                                                <Label Text="{Binding Estado}"
+                                                       TextColor="{Binding BadgeTextColor}"
+                                                       FontSize="11"
+                                                       FontAttributes="Bold"/>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </BindableLayout.ItemTemplate>
+                        </VerticalStackLayout>
+
+                        <Label Text="No hay registros en el historial de citas."
+                               FontSize="13"
+                               TextColor="{StaticResource Muted}"
+                               IsVisible="{Binding NoHistorial}"
+                               Padding="0,10"/>
+                    </VerticalStackLayout>
+
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+    </RefreshView>
+
+</ContentPage>

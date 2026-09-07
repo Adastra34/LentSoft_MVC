@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:LentSoft.Mobile.ViewModels"
+             x:Class="LentSoft.Mobile.Views.AgendarCitaModal"
+             x:DataType="vm:AgendarCitaViewModel"
+             Shell.PresentationMode="ModalAnimated"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource Lavender}">
+
+    <ScrollView>
+        <Grid RowDefinitions="Auto,*" VerticalOptions="FillAndExpand">
+
+            <!-- Modal Header -->
+            <Border Grid.Row="0"
+                    HeightRequest="120"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 0,0,24,24">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="{StaticResource Purple}" Offset="0.0"/>
+                        <GradientStop Color="{StaticResource PurpleDeep}" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+
+                <Grid Padding="20,16" VerticalOptions="Center">
+                    <VerticalStackLayout Spacing="2">
+                        <Label Text="{Binding PageTitle}"
+                               FontSize="20"
+                               FontAttributes="Bold"
+                               TextColor="White"/>
+                        <Label Text="{Binding PageSubtitle}"
+                               FontSize="13"
+                               TextColor="{StaticResource Line}"/>
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <!-- Form Card -->
+            <Border Grid.Row="1"
+                    Style="{StaticResource LentSoftCard}"
+                    Margin="16,-16,16,24"
+                    Padding="20">
+                <VerticalStackLayout Spacing="16">
+
+                    <!-- Error message banner -->
+                    <Border BackgroundColor="{StaticResource CoralLight}"
+                            Stroke="{StaticResource Coral}"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="12,8"
+                            IsVisible="{Binding HasError}">
+                        <Label Text="{Binding ErrorMessage}"
+                               TextColor="{StaticResource Coral}"
+                               FontSize="12"/>
+                    </Border>
+
+                    <!-- Servicio (Modo Agendar) -->
+                    <VerticalStackLayout Spacing="4" IsVisible="{Binding IsNotRescheduling}">
+                        <Label Text="Servicio Requerido"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Ink}"/>
+                        <Border Style="{StaticResource InputContainer}">
+                            <Picker ItemsSource="{Binding Servicios}"
+                                    SelectedItem="{Binding SelectedServicio}"
+                                    TextColor="{StaticResource Ink}"
+                                    Title="Selecciona un servicio"
+                                    VerticalOptions="Center"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Servicio (Modo Reprogramar - solo lectura) -->
+                    <VerticalStackLayout Spacing="4" IsVisible="{Binding IsRescheduling}">
+                        <Label Text="Servicio a Reprogramar"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Ink}"/>
+                        <Border BackgroundColor="{StaticResource PurpleLight}"
+                                Stroke="{StaticResource Line}"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="14,12">
+                            <Label Text="{Binding SelectedServicio}"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource PurpleDeep}"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Fecha -->
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Fecha de la Cita"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Ink}"/>
+                        <Border Style="{StaticResource InputContainer}">
+                            <DatePicker Date="{Binding SelectedDate}"
+                                        TextColor="{StaticResource Ink}"
+                                        VerticalOptions="Center"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Hora -->
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Hora de Atención"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Ink}"/>
+                        <Border Style="{StaticResource InputContainer}">
+                            <TimePicker Time="{Binding SelectedTime}"
+                                        TextColor="{StaticResource Ink}"
+                                        VerticalOptions="Center"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Horario info note -->
+                    <Border BackgroundColor="{StaticResource PurpleLight}"
+                            Stroke="{StaticResource Line}"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="10,8">
+                        <Label Text="ℹ️ Horario: Lunes a Sábado de 8:00 a.m. a 6:00 p.m. Asignaremos automáticamente un optómetra disponible."
+                               FontSize="11"
+                               TextColor="{StaticResource PurpleDeep}"/>
+                    </Border>
+
+                    <!-- Notas -->
+                    <VerticalStackLayout Spacing="4" IsVisible="{Binding IsNotRescheduling}">
+                        <Label Text="Motivo de Consulta o Síntomas (Opcional)"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Ink}"/>
+                        <Border StrokeShape="RoundRectangle 12"
+                                Stroke="{StaticResource Line}"
+                                StrokeThickness="1"
+                                BackgroundColor="White"
+                                HeightRequest="80"
+                                Padding="10">
+                            <Editor Text="{Binding Notas}"
+                                    Placeholder="Ej: molestia en ojo derecho, control anual..."
+                                    TextColor="{StaticResource Ink}"
+                                    FontSize="13"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Actions -->
+                    <Button Text="{Binding ConfirmButtonText}"
+                            Command="{Binding ConfirmarCitaCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            Margin="0,6,0,0"/>
+
+                    <Button Text="Cancelar"
+                            Command="{Binding CancelarCommand}"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource Muted}"
+                            FontSize="14"/>
+
+                    <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                       IsVisible="{Binding IsBusy}"
+                                       Color="{StaticResource Purple}"
+                                       HorizontalOptions="Center"/>
+
+                </VerticalStackLayout>
+            </Border>
+
+        </Grid>
+    </ScrollView>
+
+</ContentPage>
