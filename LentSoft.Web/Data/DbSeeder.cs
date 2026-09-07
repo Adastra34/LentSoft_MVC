@@ -148,7 +148,7 @@ public static class DbSeeder
                 },
                 new Appointment
                 {
-                    UserId = pAndres.Id, Servicio = "Seguimiento glaucoma", FechaHora = now.Date.AddDays(1).AddHours(13).AddMinutes(30), Estado = "atendida", Notas = "Medición de presión intraocular", FechaCreacion = now, OptometraId = optId
+                    UserId = pAndres.Id, Servicio = "Seguimiento glaucoma", FechaHora = now.Date.AddDays(1).AddHours(13).AddMinutes(30), Estado = "completada", Notas = "Medición de presión intraocular", FechaCreacion = now, OptometraId = optId
                 },
                 new Appointment
                 {
