@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -248,7 +248,7 @@ public class DashboardController : Controller
     }
 
     /// <summary>
-    /// User dashboard â€” solo lectura de datos propios y gestiÃ³n de sus citas/perfil/favoritos
+    /// User dashboard â€” solo lectura de datos propios y gestión de sus citas/perfil/favoritos
     /// </summary>
     public async Task<IActionResult> Usuario(
         string section = "perfil",
@@ -265,7 +265,7 @@ public class DashboardController : Controller
         var pedidos = await _orderService.GetByUserIdAsync(userId);
         var favoritos = await _favoriteService.GetFavoritesByUserIdAsync(userId);
 
-        // Cargar Historial ClÃ­nico y FÃ³rmulas Ã“pticas estrictamente del usuario autenticado
+        // Cargar Historial Clínico y Fórmulas Ópticas estrictamente del usuario autenticado
         var historiales = await _context.HistorialesClinicos
             .Include(h => h.Optometra)
             .Where(h => h.UserId == userId && h.Activo)
@@ -278,7 +278,7 @@ public class DashboardController : Controller
             .OrderByDescending(f => f.Fecha)
             .ToListAsync();
 
-        // Citas del usuario autenticado con filtrado y paginaciÃ³n
+        // Citas del usuario autenticado con filtrado y paginación
         var citasQuery = _context.Appointments.Include(a => a.Optometra).Where(a => a.UserId == userId && a.Activo);
         if (!string.IsNullOrWhiteSpace(citasSearch))
         {
@@ -320,20 +320,20 @@ public class DashboardController : Controller
 
         if (string.IsNullOrWhiteSpace(Servicio) || FechaHora <= DateTime.UtcNow)
         {
-            TempData["ErrorMessage"] = "Por favor selecciona un servicio y una fecha/hora vÃ¡lida a futuro.";
+            TempData["ErrorMessage"] = "Por favor selecciona un servicio y una fecha/hora válida a futuro.";
             return RedirectToAction("Usuario", new { section = "citas" });
         }
 
         // 1. Validar horario laboral
         if (!Appointment.EsHorarioLaboral(FechaHora))
         {
-            TempData["ErrorMessage"] = "Las citas solo pueden agendarse de lunes a sÃ¡bado, entre 8:00 a.m. y 6:00 p.m.";
+            TempData["ErrorMessage"] = "Las citas solo pueden agendarse de lunes a sábado, entre 8:00 a.m. y 6:00 p.m.";
             return RedirectToAction("Usuario", new { section = "citas" });
         }
 
         try
         {
-            // 2. Buscar primer optÃ³metra disponible
+            // 2. Buscar primer optómetra disponible
             var optometras = await _context.Users.Where(u => u.Role == "optometra" && u.Activo).ToListAsync();
             User? optDisponible = null;
             foreach (var opt in optometras)
@@ -347,7 +347,7 @@ public class DashboardController : Controller
 
             if (optDisponible == null)
             {
-                TempData["ErrorMessage"] = "No hay optÃ³metras disponibles en ese horario. Por favor elige otro horario.";
+                TempData["ErrorMessage"] = "No hay optómetras disponibles en ese horario. Por favor elige otro horario.";
                 return RedirectToAction("Usuario", new { section = "citas" });
             }
 
@@ -434,7 +434,7 @@ public class DashboardController : Controller
                 return RedirectToAction("Usuario", new { section = "citas" });
             }
 
-            // 1. Limitar a 1 reprogramaciÃ³n
+            // 1. Limitar a 1 reprogramación
             if (cita.VecesReprogramada >= 1)
             {
                 TempData["ErrorMessage"] = "Esta cita ya fue reprogramada una vez. Si necesitas otro cambio, por favor cancela la cita y agenda una nueva.";
@@ -450,11 +450,11 @@ public class DashboardController : Controller
             // 2. Validar horario laboral
             if (!Appointment.EsHorarioLaboral(NuevaFechaHora))
             {
-                TempData["ErrorMessage"] = "Las citas solo pueden agendarse de lunes a sÃ¡bado, entre 8:00 a.m. y 6:00 p.m.";
+                TempData["ErrorMessage"] = "Las citas solo pueden agendarse de lunes a sábado, entre 8:00 a.m. y 6:00 p.m.";
                 return RedirectToAction("Usuario", new { section = "citas" });
             }
 
-            // 3. Buscar primer optÃ³metra disponible para la nueva fecha
+            // 3. Buscar primer optómetra disponible para la nueva fecha
             var optometras = await _context.Users.Where(u => u.Role == "optometra" && u.Activo).ToListAsync();
             User? optDisponible = null;
             if (cita.OptometraId.HasValue)
@@ -480,7 +480,7 @@ public class DashboardController : Controller
 
             if (optDisponible == null)
             {
-                TempData["ErrorMessage"] = "No hay optÃ³metras disponibles en ese horario. Por favor elige otro horario.";
+                TempData["ErrorMessage"] = "No hay optómetras disponibles en ese horario. Por favor elige otro horario.";
                 return RedirectToAction("Usuario", new { section = "citas" });
             }
 
@@ -509,7 +509,7 @@ public class DashboardController : Controller
     {
         if (!ModelState.IsValid)
         {
-            TempData["ErrorMessage"] = "Datos no vÃ¡lidos.";
+            TempData["ErrorMessage"] = "Datos no válidos.";
             return RedirectToAction("Usuario", new { section = "perfil" });
         }
 
@@ -538,7 +538,7 @@ public class DashboardController : Controller
         if (!ModelState.IsValid)
         {
             var errors = string.Join(" | ", ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage));
-            TempData["ErrorMessage"] = string.IsNullOrWhiteSpace(errors) ? "Datos no vÃ¡lidos." : errors;
+            TempData["ErrorMessage"] = string.IsNullOrWhiteSpace(errors) ? "Datos no válidos." : errors;
             return RedirectToAction("Usuario", new { section = "configuracion" });
         }
 
@@ -549,15 +549,15 @@ public class DashboardController : Controller
 
             if (!success)
             {
-                TempData["ErrorMessage"] = "La contraseÃ±a actual es incorrecta.";
+                TempData["ErrorMessage"] = "La contraseña actual es incorrecta.";
                 return RedirectToAction("Usuario", new { section = "configuracion" });
             }
 
-            TempData["SuccessMessage"] = "ContraseÃ±a actualizada exitosamente.";
+            TempData["SuccessMessage"] = "contraseña actualizada exitosamente.";
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al cambiar la contraseÃ±a: {ex.Message}";
+            TempData["ErrorMessage"] = $"Error al cambiar la contraseña: {ex.Message}";
         }
 
         return RedirectToAction("Usuario", new { section = "configuracion" });
@@ -578,20 +578,20 @@ public class DashboardController : Controller
         // 1. Validar horario laboral
         if (!Appointment.EsHorarioLaboral(FechaHora))
         {
-            TempData["ErrorMessage"] = "Las citas solo pueden agendarse de lunes a sÃ¡bado, entre 8:00 a.m. y 6:00 p.m.";
+            TempData["ErrorMessage"] = "Las citas solo pueden agendarse de lunes a sábado, entre 8:00 a.m. y 6:00 p.m.";
             return RedirectToAction("Admin", new { section = "citas" });
         }
 
-        // 2. Validar optÃ³metra
+        // 2. Validar optómetra
         if (!OptometraId.HasValue)
         {
-            TempData["ErrorMessage"] = "Debe seleccionar un optÃ³metra.";
+            TempData["ErrorMessage"] = "Debe seleccionar un optómetra.";
             return RedirectToAction("Admin", new { section = "citas" });
         }
 
         if (!await Appointment.HayDisponibilidad(_context, OptometraId.Value, FechaHora))
         {
-            TempData["ErrorMessage"] = "El optÃ³metra ya tiene una cita agendada en ese horario. Por favor elige otro horario.";
+            TempData["ErrorMessage"] = "El optómetra ya tiene una cita agendada en ese horario. Por favor elige otro horario.";
             return RedirectToAction("Admin", new { section = "citas" });
         }
 
@@ -690,25 +690,20 @@ public class DashboardController : Controller
 
         if (OptometraId == null)
         {
-            TempData["ErrorMessage"] = "Debe seleccionar un optÃ³metra.";
+            TempData["ErrorMessage"] = "Debe seleccionar un optómetra.";
             return RedirectToAction("Admin", new { section = "citas" });
         }
 
         if (!LentSoft.Web.Models.Entities.Appointment.EsHorarioLaboral(FechaHora))
         {
-            TempData["ErrorMessage"] = "La hora seleccionada estÃ¡ fuera del horario de atenciÃ³n (8:00 AM a 6:00 PM) o no es un dÃ­a hÃ¡bil.";
+            TempData["ErrorMessage"] = "La hora seleccionada está fuera del horario de atención (8:00 AM a 6:00 PM) o no es un día hábil.";
             return RedirectToAction("Admin", new { section = "citas" });
         }
 
         if (!await LentSoft.Web.Models.Entities.Appointment.HayDisponibilidad(_context, OptometraId.Value, FechaHora, Id))
         {
-            TempData["ErrorMessage"] = "El optÃ³metra ya tiene una cita programada a esa hora (requiere 1 hora de margen).";
+            TempData["ErrorMessage"] = "El optómetra ya tiene una cita programada a esa hora (requiere 1 hora de margen).";
             return RedirectToAction("Admin", new { section = "citas" });
-        }
-
-        if (cita.FechaHora != FechaHora || cita.OptometraId != OptometraId)
-        {
-            cita.VecesReprogramada += 1;
         }
 
         cita.UserId = UserId;
@@ -724,7 +719,7 @@ public class DashboardController : Controller
         return RedirectToAction("Admin", new { section = "citas" });
     }
 
-    // â”€â”€ GESTIÃ“N DE PEDIDOS DE VENTAS (INDEPENDIENTES) â”€â”€
+    // ── GESTIÓN DE PEDIDOS DE VENTAS (INDEPENDIENTES) ──
     [HttpPost]
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> CreateSalesOrder(SalesOrder model)
@@ -738,7 +733,7 @@ public class DashboardController : Controller
             model.Activo = true;
             _context.SalesOrders.Add(model);
 
-            // Registro automÃ¡tico en Historial de Movimientos (SALIDA)
+            // Registro automático en Historial de Movimientos (SALIDA)
             var targetProduct = await _context.Products.FirstOrDefaultAsync(p => p.Nombre.ToLower() == model.ProductoNombre.ToLower() || p.Nombre.ToLower().Contains(model.ProductoNombre.ToLower()));
             if (targetProduct == null)
             {
@@ -794,8 +789,8 @@ public class DashboardController : Controller
         }
         else
         {
-            if (isAjax) return Json(new { success = false, message = "No se encontrÃ³ el pedido de venta especificado." });
-            TempData["ErrorMessage"] = "No se encontrÃ³ el pedido de venta especificado.";
+            if (isAjax) return Json(new { success = false, message = "No se encontró el pedido de venta especificado." });
+            TempData["ErrorMessage"] = "No se encontró el pedido de venta especificado.";
         }
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
     }
@@ -816,12 +811,12 @@ public class DashboardController : Controller
         }
         else
         {
-            if (isAjax) return Json(new { success = false, message = "No se encontrÃ³ el pedido de venta especificado." });
+            if (isAjax) return Json(new { success = false, message = "No se encontró el pedido de venta especificado." });
         }
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
     }
 
-    // â”€â”€ GESTIÃ“N DE PEDIDOS A PROVEEDORES (VINCULADOS A INVENTARIO DB) â”€â”€
+    // ── GESTIÓN DE PEDIDOS A PROVEEDORES (VINCULADOS A INVENTARIO DB) ──
     [HttpPost]
     [Authorize(Roles = "admin")]
     public async Task<IActionResult> CreateSupplierOrder(SupplierOrder model)
@@ -835,7 +830,7 @@ public class DashboardController : Controller
             model.Activo = true;
             _context.SupplierOrders.Add(model);
 
-            // Registro automÃ¡tico en Historial de Movimientos (ENTRADA)
+            // Registro automático en Historial de Movimientos (ENTRADA)
             var targetProd = await _context.Products.FindAsync(model.ProductId);
             var movement = new InventoryMovement
             {
@@ -884,8 +879,8 @@ public class DashboardController : Controller
         }
         else
         {
-            if (isAjax) return Json(new { success = false, message = "No se encontrÃ³ el pedido a proveedor especificado." });
-            TempData["ErrorMessage"] = "No se encontrÃ³ el pedido a proveedor especificado.";
+            if (isAjax) return Json(new { success = false, message = "No se encontró el pedido a proveedor especificado." });
+            TempData["ErrorMessage"] = "No se encontró el pedido a proveedor especificado.";
         }
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "proveedores" });
     }
@@ -906,28 +901,28 @@ public class DashboardController : Controller
         }
         else
         {
-            if (isAjax) return Json(new { success = false, message = "No se encontrÃ³ el pedido a proveedor especificado." });
+            if (isAjax) return Json(new { success = false, message = "No se encontró el pedido a proveedor especificado." });
         }
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "proveedores" });
     }
 
-    // â”€â”€ Mock data â”€â”€
+    // ── Mock data ──
     private static List<ProveedorMock> GetMockProveedores() => new()
     {
-        new() { Id = 1, Nombre = "Ã“ptica Global S.A.", Contacto = "Carlos Ruiz", Telefono = "555-1001", Email = "ventas@opticaglobal.com", Categoria = "Monturas", Estado = "activo" },
-        new() { Id = 2, Nombre = "LensTech Colombia", Contacto = "Ana LÃ³pez", Telefono = "555-1002", Email = "contacto@lenstech.co", Categoria = "Lentes de contacto", Estado = "activo" },
-        new() { Id = 3, Nombre = "Distribuidora Visual", Contacto = "Pedro GÃ³mez", Telefono = "555-1003", Email = "info@distvisual.com", Categoria = "Accesorios", Estado = "activo" },
-        new() { Id = 4, Nombre = "Ray-Ban Distribuidor", Contacto = "MarÃ­a FernÃ¡ndez", Telefono = "555-1004", Email = "dist@rayban.co", Categoria = "Lentes de sol", Estado = "activo" },
-        new() { Id = 5, Nombre = "Oakley Partner", Contacto = "JosÃ© MartÃ­nez", Telefono = "555-1005", Email = "partner@oakley.co", Categoria = "Monturas deportivas", Estado = "inactivo" }
+        new() { Id = 1, Nombre = "Óptica Global S.A.", Contacto = "Carlos Ruiz", Telefono = "555-1001", Email = "ventas@opticaglobal.com", Categoria = "Monturas", Estado = "activo" },
+        new() { Id = 2, Nombre = "LensTech Colombia", Contacto = "Ana López", Telefono = "555-1002", Email = "contacto@lenstech.co", Categoria = "Lentes de contacto", Estado = "activo" },
+        new() { Id = 3, Nombre = "Distribuidora Visual", Contacto = "Pedro Gómez", Telefono = "555-1003", Email = "info@distvisual.com", Categoria = "Accesorios", Estado = "activo" },
+        new() { Id = 4, Nombre = "Ray-Ban Distribuidor", Contacto = "María Fernández", Telefono = "555-1004", Email = "dist@rayban.co", Categoria = "Lentes de sol", Estado = "activo" },
+        new() { Id = 5, Nombre = "Oakley Partner", Contacto = "José Martínez", Telefono = "555-1005", Email = "partner@oakley.co", Categoria = "Monturas deportivas", Estado = "inactivo" }
     };
 
     private static List<MovimientoInventarioMock> GetMockMovimientos() => new()
     {
-        new() { Id = 1, Producto = "Lentes Ray-Ban Aviator", Tipo = "entrada", Cantidad = 20, Fecha = DateTime.UtcNow.AddDays(-2), Responsable = "Ana MartÃ­nez" },
-        new() { Id = 2, Producto = "Lentes de Contacto Acuvue", Tipo = "salida", Cantidad = 5, Fecha = DateTime.UtcNow.AddDays(-1), Responsable = "Juan PÃ©rez" },
-        new() { Id = 3, Producto = "Montura Oakley Sport", Tipo = "entrada", Cantidad = 10, Fecha = DateTime.UtcNow.AddDays(-3), Responsable = "Ana MartÃ­nez" },
-        new() { Id = 4, Producto = "Estuche Premium", Tipo = "salida", Cantidad = 15, Fecha = DateTime.UtcNow.AddDays(-1), Responsable = "Juan PÃ©rez" },
-        new() { Id = 5, Producto = "LÃ­quido Limpiador", Tipo = "entrada", Cantidad = 50, Fecha = DateTime.UtcNow.AddDays(-5), Responsable = "Ana MartÃ­nez" }
+        new() { Id = 1, Producto = "Lentes Ray-Ban Aviator", Tipo = "entrada", Cantidad = 20, Fecha = DateTime.UtcNow.AddDays(-2), Responsable = "Ana Martínez" },
+        new() { Id = 2, Producto = "Lentes de Contacto Acuvue", Tipo = "salida", Cantidad = 5, Fecha = DateTime.UtcNow.AddDays(-1), Responsable = "Juan Pérez" },
+        new() { Id = 3, Producto = "Montura Oakley Sport", Tipo = "entrada", Cantidad = 10, Fecha = DateTime.UtcNow.AddDays(-3), Responsable = "Ana Martínez" },
+        new() { Id = 4, Producto = "Estuche Premium", Tipo = "salida", Cantidad = 15, Fecha = DateTime.UtcNow.AddDays(-1), Responsable = "Juan Pérez" },
+        new() { Id = 5, Producto = "Líquido Limpiador", Tipo = "entrada", Cantidad = 50, Fecha = DateTime.UtcNow.AddDays(-5), Responsable = "Ana Martínez" }
     };
 }
 

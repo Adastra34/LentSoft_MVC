@@ -630,8 +630,7 @@
                 <button class="filter-tab active" onclick="filterCitasByEstado('Todos', this)" style="background-color: var(--purple-600); color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Todos</button>
                 <button class="filter-tab" onclick="filterCitasByEstado('pendiente', this)" style="background-color: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Pendientes</button>
                 <button class="filter-tab" onclick="filterCitasByEstado('confirmada', this)" style="background-color: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Confirmadas</button>
-                <button class="filter-tab" onclick="filterCitasByEstado('en proceso', this)" style="background-color: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">En Proceso</button>
-                <button class="filter-tab" onclick="filterCitasByEstado('atendida', this)" style="background-color: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Atendidas</button>
+                <button class="filter-tab" onclick="filterCitasByEstado('completada', this)" style="background-color: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Completadas</button>
                 <button class="filter-tab" onclick="filterCitasByEstado('cancelada', this)" style="background-color: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Canceladas</button>
             </div>
 
@@ -663,8 +662,8 @@
                                     <td style="padding: 0.75rem;">
                                         @{
                                             var st = c.Estado?.ToLower() ?? "pendiente";
-                                            var bg = st == "confirmada" ? "#D1FAE5" : st == "pendiente" ? "#FEF3C7" : st == "en proceso" ? "#DBEAFE" : st == "atendida" ? "var(--purple-100)" : "#FEE2E2";
-                                            var fg = st == "confirmada" ? "#065F46" : st == "pendiente" ? "#92400E" : st == "en proceso" ? "#1E40AF" : st == "atendida" ? "var(--purple-800)" : "#991B1B";
+                                            var bg = st == "confirmada" ? "#D1FAE5" : st == "pendiente" ? "#FEF3C7" : st == "completada" ? "#DBEAFE" : "#FEE2E2";
+                                            var fg = st == "confirmada" ? "#065F46" : st == "pendiente" ? "#92400E" : st == "completada" ? "#1E40AF" : "#991B1B";
                                         }
                                         <span style="background-color: @bg; color: @fg; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize;">
                                             @c.Estado
@@ -822,8 +821,7 @@
                             <select name="Estado" id="edit-cita-estado" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
                                 <option value="pendiente">Pendiente</option>
                                 <option value="confirmada">Confirmada</option>
-                                <option value="en proceso">En proceso</option>
-                                <option value="atendida">Atendida</option>
+                                <option value="completada">Completada</option>
                                 <option value="cancelada">Cancelada</option>
                             </select>
                         </div>
@@ -2349,9 +2347,9 @@
         const statusVal = btn.getAttribute('data-estado').toLowerCase();
         const estSpan = document.getElementById('ver-cita-estado');
         if (estSpan) {
-            if (statusVal === 'confirmada' || statusVal === 'atendida') {
+            if (statusVal === 'confirmada' || statusVal === 'completada') {
                 estSpan.style.color = '#065F46';
-            } else if (statusVal === 'pendiente' || statusVal === 'en proceso') {
+            } else if (statusVal === 'pendiente') {
                 estSpan.style.color = '#92400E';
             } else {
                 estSpan.style.color = '#991B1B';
