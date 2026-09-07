@@ -94,9 +94,15 @@
                                TextColor="{StaticResource Ink}"/>
                         <Border Style="{StaticResource InputContainer}">
                             <DatePicker Date="{Binding SelectedDate}"
+                                        MinimumDate="{Binding MinimumDate}"
+                                        MaximumDate="{Binding MaximumDate}"
                                         TextColor="{StaticResource Ink}"
                                         VerticalOptions="Center"/>
                         </Border>
+                        <Label Text="{Binding DateValidationHint}"
+                               TextColor="{Binding DateHintColor}"
+                               FontSize="11"
+                               Margin="2,0,0,0"/>
                     </VerticalStackLayout>
 
                     <!-- Hora -->
@@ -110,6 +116,10 @@
                                         TextColor="{StaticResource Ink}"
                                         VerticalOptions="Center"/>
                         </Border>
+                        <Label Text="{Binding TimeValidationHint}"
+                               TextColor="{Binding TimeHintColor}"
+                               FontSize="11"
+                               Margin="2,0,0,0"/>
                     </VerticalStackLayout>
 
                     <!-- Horario info note -->

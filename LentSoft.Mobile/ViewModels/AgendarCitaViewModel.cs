@@ -48,13 +48,31 @@ public partial class AgendarCitaViewModel : ObservableObject
     private string _selectedServicio = "Examen visual general";
 
     [ObservableProperty]
-    private DateTime _selectedDate = DateTime.Today.AddDays(1);
+    private DateTime _minimumDate = DateTime.Today;
 
     [ObservableProperty]
-    private TimeSpan _selectedTime = new(10, 0, 0); // 10:00 AM
+    private DateTime _maximumDate = DateTime.Today.AddMonths(6);
+
+    [ObservableProperty]
+    private DateTime _selectedDate;
+
+    [ObservableProperty]
+    private TimeSpan _selectedTime;
 
     [ObservableProperty]
     private string? _notas;
+
+    [ObservableProperty]
+    private string? _dateValidationHint;
+
+    [ObservableProperty]
+    private string _dateHintColor = "#77708A";
+
+    [ObservableProperty]
+    private string? _timeValidationHint;
+
+    [ObservableProperty]
+    private string _timeHintColor = "#77708A";
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotBusy))]
@@ -70,6 +88,94 @@ public partial class AgendarCitaViewModel : ObservableObject
     public AgendarCitaViewModel(IApiService apiService)
     {
         _apiService = apiService;
+        InitializeDates();
+    }
+
+    private void InitializeDates()
+    {
+        MinimumDate = DateTime.Today;
+        MaximumDate = DateTime.Today.AddMonths(6);
+
+        var now = DateTime.Now;
+        // Si hoy es domingo o ya pasaron las 5:00 PM, pasar al siguiente día hábil
+        if (now.DayOfWeek == DayOfWeek.Sunday || now.Hour >= 17)
+        {
+            var next = now.Date.AddDays(1);
+            while (next.DayOfWeek == DayOfWeek.Sunday)
+            {
+                next = next.AddDays(1);
+            }
+            SelectedDate = next;
+            SelectedTime = new TimeSpan(10, 0, 0); // 10:00 AM
+        }
+        else
+        {
+            SelectedDate = now.Date;
+            int nextHour = Math.Max(8, now.Hour + 1);
+            if (nextHour >= 18) nextHour = 17;
+            SelectedTime = new TimeSpan(nextHour, 0, 0);
+        }
+
+        UpdateValidationHints();
+    }
+
+    partial void OnSelectedDateChanged(DateTime value)
+    {
+        UpdateValidationHints();
+    }
+
+    partial void OnSelectedTimeChanged(TimeSpan value)
+    {
+        UpdateValidationHints();
+    }
+
+    private void UpdateValidationHints()
+    {
+        var now = DateTime.Now;
+
+        // Validación de Fecha
+        if (SelectedDate.Date < DateTime.Today)
+        {
+            DateValidationHint = "❌ No puedes seleccionar una fecha anterior al día de hoy.";
+            DateHintColor = "#DC2626";
+        }
+        else if (SelectedDate.DayOfWeek == DayOfWeek.Sunday)
+        {
+            DateValidationHint = "❌ Los domingos no hay atención (Atendemos de Lunes a Sábado).";
+            DateHintColor = "#DC2626";
+        }
+        else if (SelectedDate.Date == DateTime.Today && now.Hour >= 18)
+        {
+            DateValidationHint = "❌ La clínica ya cerró por el día de hoy (horario hasta 6:00 p.m.).";
+            DateHintColor = "#DC2626";
+        }
+        else if (SelectedDate.Date == DateTime.Today)
+        {
+            DateValidationHint = $"📅 Cita para hoy (debe ser posterior a las {now:hh:mm tt})";
+            DateHintColor = "#D97706";
+        }
+        else
+        {
+            DateValidationHint = $"✔️ {SelectedDate:dddd, dd MMMM yyyy}";
+            DateHintColor = "#2FBF71";
+        }
+
+        // Validación de Hora
+        if (SelectedTime.Hours < 8 || SelectedTime.Hours > 18 || (SelectedTime.Hours == 18 && SelectedTime.Minutes > 0))
+        {
+            TimeValidationHint = "❌ Horario fuera de servicio (Atención: 8:00 a.m. a 6:00 p.m.)";
+            TimeHintColor = "#DC2626";
+        }
+        else if (SelectedDate.Date == DateTime.Today && SelectedTime <= now.TimeOfDay)
+        {
+            TimeValidationHint = $"❌ Hora ya pasada hoy. Debe ser posterior a las {now:hh:mm tt}.";
+            TimeHintColor = "#DC2626";
+        }
+        else
+        {
+            TimeValidationHint = "✔️ Horario disponible para atención";
+            TimeHintColor = "#2FBF71";
+        }
     }
 
     partial void OnCitaIdStrChanged(string? value)
@@ -90,6 +196,7 @@ public partial class AgendarCitaViewModel : ObservableObject
             PageSubtitle = "Selecciona el servicio y fecha deseada";
             ConfirmButtonText = "Confirmar y Agendar Cita";
         }
+        UpdateValidationHints();
     }
 
     partial void OnServicioParamChanged(string? value)
@@ -105,29 +212,63 @@ public partial class AgendarCitaViewModel : ObservableObject
     {
         if (IsBusy) return;
 
+        ErrorMessage = null;
+        var now = DateTime.Now;
+
+        // 1. Validar servicio
         if (string.IsNullOrWhiteSpace(SelectedServicio))
         {
             ErrorMessage = "Por favor selecciona un servicio.";
+            await Shell.Current.DisplayAlert("Validación", ErrorMessage, "Entendido");
             return;
         }
 
+        // 2. Validar que la fecha no sea anterior a hoy
+        if (SelectedDate.Date < DateTime.Today)
+        {
+            ErrorMessage = "No puedes agendar citas en fechas pasadas. Selecciona una fecha a partir de hoy.";
+            await Shell.Current.DisplayAlert("Fecha no válida", ErrorMessage, "Entendido");
+            return;
+        }
+
+        // 3. Validar domingo
+        if (SelectedDate.DayOfWeek == DayOfWeek.Sunday)
+        {
+            ErrorMessage = "La clínica atiende de lunes a sábado. No es posible agendar citas los domingos.";
+            await Shell.Current.DisplayAlert("Día no hábil", ErrorMessage, "Entendido");
+            return;
+        }
+
+        // 4. Validar si hoy ya cerró
+        if (SelectedDate.Date == DateTime.Today && now.Hour >= 18)
+        {
+            ErrorMessage = "La clínica ya cerró su jornada por el día de hoy (horario hasta las 6:00 p.m.). Por favor selecciona una fecha a partir de mañana.";
+            await Shell.Current.DisplayAlert("Clínica cerrada hoy", ErrorMessage, "Entendido");
+            return;
+        }
+
+        // 5. Validar horario de atención (8:00 a.m. a 6:00 p.m.)
+        if (SelectedTime.Hours < 8 || SelectedTime.Hours > 18 || (SelectedTime.Hours == 18 && SelectedTime.Minutes > 0))
+        {
+            ErrorMessage = "El horario de atención es únicamente de lunes a sábado, entre 8:00 a.m. y 6:00 p.m.";
+            await Shell.Current.DisplayAlert("Horario no permitido", ErrorMessage, "Entendido");
+            return;
+        }
+
+        // 6. Validar que si es hoy, la hora sea estrictamente posterior a la hora actual
         var fechaHora = SelectedDate.Date + SelectedTime;
-
-        if (fechaHora <= DateTime.Now)
+        if (fechaHora <= now)
         {
-            ErrorMessage = "La cita debe ser programada para una fecha y hora futura.";
+            ErrorMessage = $"La hora seleccionada ({SelectedTime:hh\\:mm}) ya pasó el día de hoy. Debe ser posterior a las {now:hh:mm tt}.";
+            await Shell.Current.DisplayAlert("Hora no válida", ErrorMessage, "Entendido");
             return;
         }
 
-        if (fechaHora.DayOfWeek == DayOfWeek.Sunday)
+        // 7. Validar longitud de notas
+        if (!string.IsNullOrWhiteSpace(Notas) && Notas.Length > 500)
         {
-            ErrorMessage = "La clínica atiende de lunes a sábado.";
-            return;
-        }
-
-        if (SelectedTime.Hours < 8 || SelectedTime.Hours >= 18)
-        {
-            ErrorMessage = "El horario de atención es de 8:00 a.m. a 6:00 p.m.";
+            ErrorMessage = "El motivo de consulta u observaciones no puede superar los 500 caracteres.";
+            await Shell.Current.DisplayAlert("Validación de notas", ErrorMessage, "Entendido");
             return;
         }
 
@@ -164,6 +305,7 @@ public partial class AgendarCitaViewModel : ObservableObject
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
+            await Shell.Current.DisplayAlert("Error", ex.Message, "Aceptar");
         }
         finally
         {
