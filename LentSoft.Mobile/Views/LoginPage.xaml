@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:LentSoft.Mobile.ViewModels"
+             x:Class="LentSoft.Mobile.Views.LoginPage"
+             x:DataType="vm:LoginViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource Lavender}">
+
+    <ScrollView>
+        <Grid RowDefinitions="Auto,*" VerticalOptions="FillAndExpand">
+            
+            <!-- Header with Purple Gradient & Glow -->
+            <Border Grid.Row="0"
+                    HeightRequest="220"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 0,0,32,32">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="{StaticResource Purple}" Offset="0.0"/>
+                        <GradientStop Color="{StaticResource PurpleDeep}" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+
+                <Grid>
+                    <!-- Golden Glow decoration in top right corner -->
+                    <Ellipse WidthRequest="180" HeightRequest="180"
+                             HorizontalOptions="End" VerticalOptions="Start"
+                             TranslationX="40" TranslationY="-40"
+                             Opacity="0.18">
+                        <Ellipse.Fill>
+                            <RadialGradientBrush Center="0.5,0.5" Radius="0.5">
+                                <GradientStop Color="{StaticResource Gold}" Offset="0.0"/>
+                                <GradientStop Color="Transparent" Offset="1.0"/>
+                            </RadialGradientBrush>
+                        </Ellipse.Fill>
+                    </Ellipse>
+
+                    <!-- Branding and Logo -->
+                    <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="8">
+                        <!-- Oval Lens Icon Motif -->
+                        <Border StrokeShape="RoundRectangle 24"
+                                Stroke="{StaticResource Gold}"
+                                StrokeThickness="2.5"
+                                BackgroundColor="White"
+                                WidthRequest="68" HeightRequest="48"
+                                HorizontalOptions="Center">
+                            <Grid HorizontalOptions="Center" VerticalOptions="Center">
+                                <Ellipse WidthRequest="22" HeightRequest="22" Fill="{StaticResource Purple}"/>
+                                <Ellipse WidthRequest="7" HeightRequest="7" Fill="White" TranslationX="-3" TranslationY="-3"/>
+                                <Ellipse WidthRequest="5" HeightRequest="5" Fill="{StaticResource Gold}" TranslationX="4" TranslationY="4"/>
+                            </Grid>
+                        </Border>
+
+                        <Label Text="LentSoft"
+                               FontSize="30"
+                               FontAttributes="Bold"
+                               TextColor="White"
+                               HorizontalOptions="Center"/>
+
+                        <Label Text="Óptica · Tienda y clínica"
+                               FontSize="14"
+                               TextColor="{StaticResource Line}"
+                               HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
+
+            <!-- Login Card Form -->
+            <Border Grid.Row="1"
+                    Style="{StaticResource LentSoftCard}"
+                    Margin="20,-24,20,30"
+                    VerticalOptions="Start"
+                    Padding="24">
+                <VerticalStackLayout Spacing="18">
+
+                    <Label Text="Bienvenido de nuevo"
+                           FontSize="20"
+                           FontAttributes="Bold"
+                           TextColor="{StaticResource Ink}"/>
+
+                    <Label Text="Ingresa a tu cuenta para gestionar tus citas, compras y fórmulas."
+                           FontSize="13"
+                           TextColor="{StaticResource Muted}"/>
+
+                    <!-- Error Message Banner -->
+                    <Border BackgroundColor="{StaticResource CoralLight}"
+                            Stroke="{StaticResource Coral}"
+                            StrokeShape="RoundRectangle 8"
+                            Padding="12,8"
+                            IsVisible="{Binding HasError}">
+                        <Label Text="{Binding ErrorMessage}"
+                               TextColor="{StaticResource Coral}"
+                               FontSize="12"/>
+                    </Border>
+
+                    <!-- Email Field -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Correo Electrónico"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Ink}"/>
+                        <Border Style="{StaticResource InputContainer}">
+                            <Entry Text="{Binding Email}"
+                                   Placeholder="ejemplo@correo.com"
+                                   Keyboard="Email"
+                                   TextColor="{StaticResource Ink}"
+                                   VerticalOptions="Center"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Password Field -->
+                    <VerticalStackLayout Spacing="6">
+                        <Label Text="Contraseña"
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Ink}"/>
+                        <Border Style="{StaticResource InputContainer}">
+                            <Entry Text="{Binding Password}"
+                                   Placeholder="Tu contraseña"
+                                   IsPassword="True"
+                                   TextColor="{StaticResource Ink}"
+                                   VerticalOptions="Center"/>
+                        </Border>
+                    </VerticalStackLayout>
+
+                    <!-- Forgot Password Link -->
+                    <Button Text="¿Olvidaste tu contraseña?"
+                            Command="{Binding ForgotPasswordCommand}"
+                            BackgroundColor="Transparent"
+                            TextColor="{StaticResource Purple}"
+                            FontSize="13"
+                            HorizontalOptions="End"
+                            Padding="0"
+                            HeightRequest="30"/>
+
+                    <!-- Submit Button -->
+                    <Button Text="Iniciar sesión"
+                            Command="{Binding LoginCommand}"
+                            Style="{StaticResource PrimaryButton}"
+                            IsEnabled="{Binding IsNotBusy}"/>
+
+                    <ActivityIndicator IsRunning="{Binding IsBusy}"
+                                       IsVisible="{Binding IsBusy}"
+                                       Color="{StaticResource Purple}"
+                                       HorizontalOptions="Center"/>
+
+                    <!-- Register Link -->
+                    <HorizontalStackLayout HorizontalOptions="Center" Spacing="4" Margin="0,10,0,0">
+                        <Label Text="¿No tienes una cuenta?"
+                               FontSize="14"
+                               TextColor="{StaticResource Muted}"
+                               VerticalOptions="Center"/>
+                        <Button Text="Crear cuenta"
+                                Command="{Binding GoToRegisterCommand}"
+                                BackgroundColor="Transparent"
+                                TextColor="{StaticResource Purple}"
+                                FontAttributes="Bold"
+                                FontSize="14"
+                                Padding="0"/>
+                    </HorizontalStackLayout>
+
+                </VerticalStackLayout>
+            </Border>
+
+        </Grid>
+    </ScrollView>
+
+</ContentPage>

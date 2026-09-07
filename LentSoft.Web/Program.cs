@@ -1,9 +1,12 @@
 using System.Security.Claims;
+using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using LentSoft.Web.Data;
 using LentSoft.Web.Services;
 
@@ -62,10 +65,20 @@ builder.Services.AddSingleton<IPasswordResetTokenService, PasswordResetTokenServ
 builder.Services.AddSingleton<ISaleConfirmationTokenService, SaleConfirmationTokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IChatAgentService, ChatAgentService>();
+builder.Services.AddScoped<IMobileJwtService, MobileJwtService>();
 
-// ── Authentication (Cookie-based, standard MVC pattern) ──
-builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-    .AddCookie(options =>
+// ── Authentication (Cookie-based for Web, JWT Bearer for Mobile API) ──
+var mobileJwtSettings = builder.Configuration.GetSection("MobileJwt");
+var mobileJwtKey = mobileJwtSettings["SecretKey"] ?? "dev-secret-key-lentsoft-mobile-jwt-api-minimum-32-chars";
+var mobileJwtIssuer = mobileJwtSettings["Issuer"] ?? "LentSoft.Api";
+var mobileJwtAudience = mobileJwtSettings["Audience"] ?? "LentSoft.Mobile";
+
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    })
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
     {
         options.LoginPath = "/Auth/Login";
         options.LogoutPath = "/Auth/Logout";
@@ -74,6 +87,22 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.Cookie.HttpOnly = true;
         options.ExpireTimeSpan = TimeSpan.FromHours(24);
         options.SlidingExpiration = true;
+    })
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+    {
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = mobileJwtIssuer,
+            ValidateAudience = true,
+            ValidAudience = mobileJwtAudience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(mobileJwtKey)),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
     });
 
 builder.Services.AddAuthorization();

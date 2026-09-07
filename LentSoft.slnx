@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="LentSoft.Mobile/LentSoft.Mobile.csproj" />
+  <Project Path="LentSoft.Web/LentSoft.Web.csproj" />
+</Solution>
