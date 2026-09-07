@@ -83,28 +83,6 @@ public class DashboardAdminViewModel
     }
 }
 
-/// <summary>Mock: Proveedor (no tiene tabla en DB)</summary>
-public class ProveedorMock
-{
-    public int Id { get; set; }
-    public string Nombre { get; set; } = string.Empty;
-    public string Contacto { get; set; } = string.Empty;
-    public string Telefono { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
-    public string Categoria { get; set; } = string.Empty;
-    public string Estado { get; set; } = "activo";
-}
-
-/// <summary>Mock: Movimiento de inventario (no tiene tabla en DB)</summary>
-public class MovimientoInventarioMock
-{
-    public int Id { get; set; }
-    public string Producto { get; set; } = string.Empty;
-    public string Tipo { get; set; } = string.Empty; // "entrada" / "salida"
-    public int Cantidad { get; set; }
-    public DateTime Fecha { get; set; }
-    public string Responsable { get; set; } = string.Empty;
-}
 
 public class TrabajadorItemViewModel
 {

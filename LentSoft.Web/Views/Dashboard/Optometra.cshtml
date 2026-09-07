@@ -599,7 +599,7 @@
         }
 
         <!-- CITAS CON VISTA CALENDARIO -->
-        @if (Model.ActiveSection == "citas")
+        @if (Model.ActiveSection == "citas" || Model.ActiveSection == "reportes")
         {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Agenda de Citas</h1>
@@ -630,8 +630,7 @@
                 <button class="filter-tab active" onclick="filterCitasByEstado('Todos', this)" style="background-color: var(--purple-600); color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Todos</button>
                 <button class="filter-tab" onclick="filterCitasByEstado('pendiente', this)" style="background-color: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Pendientes</button>
                 <button class="filter-tab" onclick="filterCitasByEstado('confirmada', this)" style="background-color: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Confirmadas</button>
-                <button class="filter-tab" onclick="filterCitasByEstado('en proceso', this)" style="background-color: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">En Proceso</button>
-                <button class="filter-tab" onclick="filterCitasByEstado('atendida', this)" style="background-color: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Atendidas</button>
+                <button class="filter-tab" onclick="filterCitasByEstado('completada', this)" style="background-color: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Completadas</button>
                 <button class="filter-tab" onclick="filterCitasByEstado('cancelada', this)" style="background-color: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Canceladas</button>
             </div>
 
@@ -663,8 +662,8 @@
                                     <td style="padding: 0.75rem;">
                                         @{
                                             var st = c.Estado?.ToLower() ?? "pendiente";
-                                            var bg = st == "confirmada" ? "#D1FAE5" : st == "pendiente" ? "#FEF3C7" : st == "en proceso" ? "#DBEAFE" : st == "atendida" ? "var(--purple-100)" : "#FEE2E2";
-                                            var fg = st == "confirmada" ? "#065F46" : st == "pendiente" ? "#92400E" : st == "en proceso" ? "#1E40AF" : st == "atendida" ? "var(--purple-800)" : "#991B1B";
+                                            var bg = st == "confirmada" ? "#D1FAE5" : st == "pendiente" ? "#FEF3C7" : st == "completada" ? "#DBEAFE" : "#FEE2E2";
+                                            var fg = st == "confirmada" ? "#065F46" : st == "pendiente" ? "#92400E" : st == "completada" ? "#1E40AF" : "#991B1B";
                                         }
                                         <span style="background-color: @bg; color: @fg; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize;">
                                             @c.Estado
@@ -701,6 +700,22 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+            <!-- Botón Ver Resumen del Período → ReporteCitas -->
+            <div style="margin-top: 1.25rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                <form id="form-reporte-citas" asp-controller="Optometra" asp-action="ReporteCitas" method="get" onsubmit="mostrarResumenPeriodo(event)" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <label style="font-size: 0.85rem; color: var(--purple-700); font-weight: 600;">Desde</label>
+                    <input type="date" id="rep-desde" name="desde" style="padding: 0.35rem 0.6rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; font-size: 0.85rem;" />
+                    <label style="font-size: 0.85rem; color: var(--purple-700); font-weight: 600;">Hasta</label>
+                    <input type="date" id="rep-hasta" name="hasta" style="padding: 0.35rem 0.6rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; font-size: 0.85rem;" />
+                    <button type="submit" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.4rem 1rem; border: none; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">📊 Ver resumen del período</button>
+                    <button type="button" onclick="limpiarResumenPeriodo()" id="btn-limpiar-rep" style="display: none; background-color: var(--purple-100); color: var(--purple-800); padding: 0.4rem 0.75rem; border: none; border-radius: 0.375rem; font-size: 0.85rem; cursor: pointer;">Limpiar</button>
+                </form>
+            </div>
+            <div id="card-resumen-reporte" class="card" style="display: none; margin-top: 1rem; padding: 1.25rem; background: var(--purple-50); border: 1px solid var(--purple-200); border-radius: 0.5rem;">
+                <h3 id="titulo-resumen-reporte" style="color: var(--purple-800); font-size: 1rem; margin-bottom: 0.75rem; margin-top: 0;">Resumen de citas del período</h3>
+                <div id="items-resumen-reporte" style="display: flex; gap: 1rem; flex-wrap: wrap;"></div>
             </div>
 
             <!-- Modal para Ver Cita (Solo Lectura) -->
@@ -822,8 +837,7 @@
                             <select name="Estado" id="edit-cita-estado" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
                                 <option value="pendiente">Pendiente</option>
                                 <option value="confirmada">Confirmada</option>
-                                <option value="en proceso">En proceso</option>
-                                <option value="atendida">Atendida</option>
+                                <option value="completada">Completada</option>
                                 <option value="cancelada">Cancelada</option>
                             </select>
                         </div>
@@ -934,6 +948,65 @@
                         </div>
                     </div>
                 }
+
+                var pacienteTimeline = Model.Pacientes.FirstOrDefault(p => p.Id == detId)
+                    ?? Model.HistorialClinico.FirstOrDefault(h => h.UserId == detId)?.User;
+                if (pacienteTimeline != null && hcDetalle == null)
+                {
+                    var histList = Model.HistorialClinico.Where(h => h.UserId == pacienteTimeline.Id);
+                    var examList = Model.ExamenesVisuales.Where(e => e.UserId == pacienteTimeline.Id);
+                    var formList = Model.FormulasOpticas.Where(f => f.UserId == pacienteTimeline.Id);
+
+                    var timeline = new List<(DateTime Fecha, string Tipo, string Titulo, string Detalles)>();
+                    foreach (var h in histList)
+                    {
+                        timeline.Add((h.Fecha, "Historial Clínico", h.Diagnostico ?? "Diagnóstico general", h.Observaciones ?? h.Tratamiento ?? ""));
+                    }
+                    foreach (var e in examList)
+                    {
+                        timeline.Add((e.Fecha, "Examen Visual", e.TipoExamen ?? "Examen visual", e.Resultado ?? ""));
+                    }
+                    foreach (var f in formList)
+                    {
+                        timeline.Add((f.Fecha, "Fórmula Óptica", f.TipoLente ?? "Fórmula óptica", f.Observaciones ?? ""));
+                    }
+                    var timelineOrdenada = timeline.OrderByDescending(x => x.Fecha).ToList();
+
+                    <div class="card" style="padding: 1.5rem; background: var(--purple-50); border: 2px solid var(--purple-300); border-radius: 0.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-md);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1.5px solid var(--purple-200); padding-bottom: 0.5rem;">
+                            <div>
+                                <h2 style="color: var(--purple-900); font-size: 1.2rem; margin: 0; font-family: var(--font-primary, sans-serif); font-weight: 700;">🕐 Línea de Tiempo Completa</h2>
+                                <p style="color: var(--gray-600); font-size: 0.85rem; margin: 0.25rem 0 0 0;">Paciente: <strong>@pacienteTimeline.NombreCompleto</strong> (@pacienteTimeline.Email)</p>
+                            </div>
+                            <a href="?section=historial" style="background-color: var(--purple-200); color: var(--purple-800); text-decoration: none; padding: 0.3rem 0.75rem; border-radius: 0.25rem; font-size: 0.85rem; font-weight: 600;">Cerrar Línea de Tiempo</a>
+                        </div>
+                        
+                        @if (!timelineOrdenada.Any())
+                        {
+                            <p style="color: var(--gray-500); font-style: italic; text-align: center; padding: 1.5rem 0;">No se encontraron registros de historial, exámenes ni fórmulas para este paciente.</p>
+                        }
+                        else
+                        {
+                            <div style="display: flex; flex-direction: column; gap: 1rem; border-left: 3px solid var(--purple-300); margin-left: 0.75rem; padding-left: 1.25rem; padding-top: 0.5rem; padding-bottom: 0.5rem;">
+                                @foreach (var ev in timelineOrdenada)
+                                {
+                                    <div style="position: relative;">
+                                        <div style="position: absolute; left: -1.65rem; top: 0.25rem; width: 10px; height: 10px; border-radius: 50%; background-color: @(ev.Tipo == "Historial Clínico" ? "var(--purple-600)" : ev.Tipo == "Examen Visual" ? "#3b82f6" : "#10b981");"></div>
+                                        <div style="font-size: 0.75rem; color: var(--gray-500); font-weight: 600;">
+                                            @ev.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm") &bull;
+                                            <span style="color: @(ev.Tipo == "Historial Clínico" ? "var(--purple-700)" : ev.Tipo == "Examen Visual" ? "#2563eb" : "#059669"); font-weight: 600;">@ev.Tipo</span>
+                                        </div>
+                                        <div style="font-weight: 600; color: var(--purple-950); font-size: 0.95rem; margin-top: 0.15rem;">@ev.Titulo</div>
+                                        @if (!string.IsNullOrEmpty(ev.Detalles))
+                                        {
+                                            <div style="font-size: 0.85rem; color: var(--gray-600); margin-top: 0.25rem;">@ev.Detalles</div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
             }
 
             <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
@@ -980,6 +1053,9 @@
                                         <td style="padding: 0.75rem; display: flex; gap: 0.4rem; align-items: center;">
                                             <a href="?section=historial&detalleId=@h.Id" class="btn" style="background-color: var(--purple-50); color: var(--purple-800); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600; text-decoration: none;" title="Ver Ficha Clínica">
                                                 👁️
+                                            </a>
+                                            <a href="@Url.Action("HistorialCompleto", "Optometra", new { pacienteId = h.UserId })" class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600; text-decoration: none;" title="Línea de tiempo completa del paciente">
+                                                🕐 Línea de tiempo
                                             </a>
                                             <button onclick="abrirModalEditarHistorial(this)" 
                                                     data-id="@h.Id" 
@@ -2349,9 +2425,9 @@
         const statusVal = btn.getAttribute('data-estado').toLowerCase();
         const estSpan = document.getElementById('ver-cita-estado');
         if (estSpan) {
-            if (statusVal === 'confirmada' || statusVal === 'atendida') {
+            if (statusVal === 'confirmada' || statusVal === 'completada') {
                 estSpan.style.color = '#065F46';
-            } else if (statusVal === 'pendiente' || statusVal === 'en proceso') {
+            } else if (statusVal === 'pendiente') {
                 estSpan.style.color = '#92400E';
             } else {
                 estSpan.style.color = '#991B1B';
@@ -2565,9 +2641,62 @@
             }
             return false;
         }
-        return true;
-    }
-</script>
+        function mostrarResumenPeriodo(e) {
+            if (e) e.preventDefault();
+            const desde = document.getElementById('rep-desde').value;
+            const hasta = document.getElementById('rep-hasta').value;
+            const allCitas = @Html.Raw(allAppointmentsJson);
+
+            let filtradas = allCitas;
+            if (desde) {
+                filtradas = filtradas.filter(c => c.fechaStr >= desde);
+            }
+            if (hasta) {
+                filtradas = filtradas.filter(c => c.fechaStr <= hasta);
+            }
+
+            const conteos = {};
+            filtradas.forEach(c => {
+                const est = (c.estado || 'Sin estado').toLowerCase();
+                const capitalizado = est.charAt(0).toUpperCase() + est.slice(1);
+                conteos[capitalizado] = (conteos[capitalizado] || 0) + 1;
+            });
+
+            const itemsCont = document.getElementById('items-resumen-reporte');
+            const titulo = document.getElementById('titulo-resumen-reporte');
+            const card = document.getElementById('card-resumen-reporte');
+            const btnLimpiar = document.getElementById('btn-limpiar-rep');
+
+            let tit = 'Resumen de citas';
+            if (desde && hasta) tit += ` (${desde} al ${hasta})`;
+            else if (desde) tit += ` (Desde ${desde})`;
+            else if (hasta) tit += ` (Hasta ${hasta})`;
+            else tit += ' (Período completo)';
+            titulo.textContent = `${tit} — Total: ${filtradas.length} cita(s)`;
+
+            const keys = Object.keys(conteos);
+            if (keys.length === 0) {
+                itemsCont.innerHTML = '<p style="color: var(--gray-500); font-style: italic; margin: 0;">No hay citas en el período seleccionado.</p>';
+            } else {
+                itemsCont.innerHTML = keys.map(k => `
+                    <div style="background: white; border: 1px solid var(--purple-200); border-radius: 0.375rem; padding: 0.75rem 1.25rem; text-align: center; min-width: 110px;">
+                        <div style="font-size: 1.5rem; font-weight: 700; color: var(--purple-700);">${conteos[k]}</div>
+                        <div style="font-size: 0.8rem; color: var(--gray-600);">${k}</div>
+                    </div>
+                `).join('');
+            }
+
+            card.style.display = 'block';
+            if (btnLimpiar) btnLimpiar.style.display = 'inline-block';
+        }
+
+        function limpiarResumenPeriodo() {
+            document.getElementById('rep-desde').value = '';
+            document.getElementById('rep-hasta').value = '';
+            document.getElementById('card-resumen-reporte').style.display = 'none';
+            document.getElementById('btn-limpiar-rep').style.display = 'none';
+        }
+    </script>
 
 <style>
     @@media print {
