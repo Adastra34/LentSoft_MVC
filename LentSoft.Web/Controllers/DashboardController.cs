@@ -244,6 +244,12 @@ public class DashboardController : Controller
             .OrderBy(u => u.Nombre)
             .ToListAsync();
 
+        // Auditoría de cambios de estado de citas (solo lectura)
+        ViewBag.AuditoriaCitas = await _context.AuditoriaCitas
+            .OrderByDescending(a => a.FechaCambio)
+            .Take(20)
+            .ToListAsync();
+
         return View(viewModel);
     }
 
@@ -906,23 +912,4 @@ public class DashboardController : Controller
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "proveedores" });
     }
 
-    // ── Mock data ──
-    private static List<ProveedorMock> GetMockProveedores() => new()
-    {
-        new() { Id = 1, Nombre = "Óptica Global S.A.", Contacto = "Carlos Ruiz", Telefono = "555-1001", Email = "ventas@opticaglobal.com", Categoria = "Monturas", Estado = "activo" },
-        new() { Id = 2, Nombre = "LensTech Colombia", Contacto = "Ana López", Telefono = "555-1002", Email = "contacto@lenstech.co", Categoria = "Lentes de contacto", Estado = "activo" },
-        new() { Id = 3, Nombre = "Distribuidora Visual", Contacto = "Pedro Gómez", Telefono = "555-1003", Email = "info@distvisual.com", Categoria = "Accesorios", Estado = "activo" },
-        new() { Id = 4, Nombre = "Ray-Ban Distribuidor", Contacto = "María Fernández", Telefono = "555-1004", Email = "dist@rayban.co", Categoria = "Lentes de sol", Estado = "activo" },
-        new() { Id = 5, Nombre = "Oakley Partner", Contacto = "José Martínez", Telefono = "555-1005", Email = "partner@oakley.co", Categoria = "Monturas deportivas", Estado = "inactivo" }
-    };
-
-    private static List<MovimientoInventarioMock> GetMockMovimientos() => new()
-    {
-        new() { Id = 1, Producto = "Lentes Ray-Ban Aviator", Tipo = "entrada", Cantidad = 20, Fecha = DateTime.UtcNow.AddDays(-2), Responsable = "Ana Martínez" },
-        new() { Id = 2, Producto = "Lentes de Contacto Acuvue", Tipo = "salida", Cantidad = 5, Fecha = DateTime.UtcNow.AddDays(-1), Responsable = "Juan Pérez" },
-        new() { Id = 3, Producto = "Montura Oakley Sport", Tipo = "entrada", Cantidad = 10, Fecha = DateTime.UtcNow.AddDays(-3), Responsable = "Ana Martínez" },
-        new() { Id = 4, Producto = "Estuche Premium", Tipo = "salida", Cantidad = 15, Fecha = DateTime.UtcNow.AddDays(-1), Responsable = "Juan Pérez" },
-        new() { Id = 5, Producto = "Líquido Limpiador", Tipo = "entrada", Cantidad = 50, Fecha = DateTime.UtcNow.AddDays(-5), Responsable = "Ana Martínez" }
-    };
 }
-

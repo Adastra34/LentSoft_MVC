@@ -639,12 +639,69 @@
                     </table>
                 </div>
             </div>
+            var auditLog = ViewBag.AuditoriaCitas as IEnumerable<LentSoft.Web.Models.Entities.AuditoriaCita> ?? new List<LentSoft.Web.Models.Entities.AuditoriaCita>();
+            <!-- Auditoría de Cambios de Estado (colapsable, solo lectura) -->
+            <div style="margin-top: 1.5rem;">
+                <button onclick="toggleAuditoria()" style="background: none; border: none; color: var(--purple-700); font-size: 0.9rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0;">
+                    <span id="icon-auditoria">&#9654;</span>&nbsp;Historial de auditoría de estados (@auditLog.Count() registros)
+                </button>
+                <div id="panel-auditoria" style="display: none; margin-top: 0.75rem;">
+                    <div class="card" style="padding: 1.25rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                        <h3 style="color: var(--purple-800); font-size: 1rem; margin-bottom: 1rem; margin-top: 0;">Últimos 20 cambios de estado — solo lectura</h3>
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid var(--purple-200); color: var(--purple-700);">
+                                        <th style="padding: 0.6rem 0.75rem; text-align: left;">ID Cita</th>
+                                        <th style="padding: 0.6rem 0.75rem; text-align: left;">Estado Anterior</th>
+                                        <th style="padding: 0.6rem 0.75rem; text-align: left;">Estado Nuevo</th>
+                                        <th style="padding: 0.6rem 0.75rem; text-align: left;">Fecha Cambio</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (!auditLog.Any())
+                                    {
+                                        <tr><td colspan="4" style="padding: 1.5rem; text-align: center; color: var(--purple-400);">No hay registros de auditoría todavía.</td></tr>
+                                    }
+                                    @foreach (var a in auditLog)
+                                    {
+                                        <tr style="border-bottom: 1px solid var(--purple-100);">
+                                            <td style="padding: 0.6rem 0.75rem; color: var(--gray-500); font-weight: 600;">#CIT-@a.AppointmentId</td>
+                                            <td style="padding: 0.6rem 0.75rem;">
+                                                @{ var pb = (a.EstadoAnterior ?? "").ToLower(); }
+                                                <span style="background-color: @(pb=="confirmada"?"#D1FAE5":pb=="pendiente"?"#FEF3C7":pb=="completada"?"#DBEAFE":"#FEE2E2"); color:@(pb=="confirmada"?"#065F46":pb=="pendiente"?"#92400E":pb=="completada"?"#1E40AF":"#991B1B"); padding:0.2rem 0.5rem; border-radius:9999px; font-size:0.75rem; font-weight:600; text-transform:capitalize;">@(a.EstadoAnterior ?? "—")</span>
+                                            </td>
+                                            <td style="padding: 0.6rem 0.75rem;">
+                                                @{ var nb = (a.EstadoNuevo ?? "").ToLower(); }
+                                                <span style="background-color: @(nb=="confirmada"?"#D1FAE5":nb=="pendiente"?"#FEF3C7":nb=="completada"?"#DBEAFE":"#FEE2E2"); color:@(nb=="confirmada"?"#065F46":nb=="pendiente"?"#92400E":nb=="completada"?"#1E40AF":"#991B1B"); padding:0.2rem 0.5rem; border-radius:9999px; font-size:0.75rem; font-weight:600; text-transform:capitalize;">@(a.EstadoNuevo ?? "—")</span>
+                                            </td>
+                                            <td style="padding: 0.6rem 0.75rem; color: var(--gray-600);">@a.FechaCambio.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
         }
         @section Scripts {
 
     <partial name="_ValidationScriptsPartial" />
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script>
+        function toggleAuditoria() {
+            const panel = document.getElementById('panel-auditoria');
+            const icon  = document.getElementById('icon-auditoria');
+            if (panel.style.display === 'none') {
+                panel.style.display = 'block';
+                icon.textContent = '▼';
+            } else {
+                panel.style.display = 'none';
+                icon.textContent = '▶';
+            }
+        }
+
         function showToast(msg, type = 'info') {
             if (typeof alertify !== 'undefined') {
                 if (type === 'success') alertify.success(msg);
