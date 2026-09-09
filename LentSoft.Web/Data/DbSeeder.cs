@@ -34,7 +34,44 @@ public static class DbSeeder
             p.PorcentajeIva = p.Nombre.Contains("Líquido", StringComparison.OrdinalIgnoreCase) ? 5.00m : 19.00m;
         }
 
-        if (oldProducts.Any() || oldOrders.Any() || oldOrderItems.Any() || prodsToInit.Any())
+        // 0.1 Asignar imágenes individuales y coherentes a cada producto sembrado si están nulas, vacías o repetidas
+        var allProducts = context.Products.ToList();
+        var defaultImagesByName = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "Lentes Ray-Ban Aviator", "https://images.unsplash.com/photo-1572635196237-14b3f281503f?auto=format&fit=crop&w=600&q=80" },
+            { "Lentes de Contacto Acuvue", "/uploads/products/lentes_contacto_acuvue.jpg" },
+            { "Montura Oakley Sport", "https://images.unsplash.com/photo-1577803645773-f96470509666?auto=format&fit=crop&w=600&q=80" },
+            { "Lentes Graduados Classic", "https://images.unsplash.com/photo-1591076482161-42ce6da69f67?auto=format&fit=crop&w=600&q=80" },
+            { "Estuche Premium", "/uploads/products/estuche_premium.jpg" },
+            { "Líquido Limpiador", "/uploads/products/liquido_limpiador.jpg" }
+        };
+
+        foreach (var prod in allProducts)
+        {
+            bool isBrokenPath = string.IsNullOrWhiteSpace(prod.ImagenUrl) || prod.ImagenUrl.StartsWith("/img/products/", StringComparison.OrdinalIgnoreCase);
+
+            if (defaultImagesByName.TryGetValue(prod.Nombre, out var specificUrl))
+            {
+                if (isBrokenPath)
+                {
+                    prod.ImagenUrl = specificUrl;
+                }
+            }
+            else if (isBrokenPath)
+            {
+                prod.ImagenUrl = prod.Categoria switch
+                {
+                    "lentes-sol" => "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=600&q=80",
+                    "lentes-contacto" => "https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=600&q=80",
+                    "monturas" => "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?auto=format&fit=crop&w=600&q=80",
+                    "lentes-graduados" => "https://images.unsplash.com/photo-1591076482161-42ce6da69f67?auto=format&fit=crop&w=600&q=80",
+                    "accesorios" => "https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=600&q=80",
+                    _ => "https://images.unsplash.com/photo-1591076482161-42ce6da69f67?auto=format&fit=crop&w=600&q=80"
+                };
+            }
+        }
+
+        if (oldProducts.Any() || oldOrders.Any() || oldOrderItems.Any() || prodsToInit.Any() || allProducts.Any(p => context.Entry(p).State == EntityState.Modified))
         {
             context.SaveChanges();
         }

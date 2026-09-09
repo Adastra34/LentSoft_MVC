@@ -965,6 +965,92 @@
             document.getElementById('modal-editar-pedido-proveedor').style.display = 'flex';
         }
 
+        // ==================== GESTIÓN DE PRODUCTOS ====================
+        function previewProductImage(input, previewImgId, containerId, infoId) {
+            const file = input.files && input.files[0];
+            const previewImg = document.getElementById(previewImgId);
+            const container = document.getElementById(containerId);
+            const infoText = infoId ? document.getElementById(infoId) : null;
+
+            if (!file) return;
+
+            const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+            const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+            const validExts = ['.jpg', '.jpeg', '.png', '.webp'];
+
+            if (!validTypes.includes(file.type.toLowerCase()) && !validExts.includes(fileExt)) {
+                showToast('Formato no permitido. Solo se aceptan imágenes JPG, PNG o WEBP.', 'error');
+                input.value = '';
+                if (infoText) infoText.textContent = '';
+                return;
+            }
+
+            if (file.size > 5 * 1024 * 1024) {
+                showToast('El archivo supera el tamaño máximo permitido de 5 MB.', 'error');
+                input.value = '';
+                if (infoText) infoText.textContent = '';
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                if (previewImg) previewImg.src = e.target.result;
+                if (container) container.style.display = 'block';
+                if (infoText) infoText.textContent = `${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function clearProductImagePreview(inputId, previewImgId, containerId, infoId, fallbackUrl = '') {
+            const input = document.getElementById(inputId);
+            if (input) input.value = '';
+            const previewImg = document.getElementById(previewImgId);
+            const container = document.getElementById(containerId);
+            const infoText = infoId ? document.getElementById(infoId) : null;
+
+            if (fallbackUrl && fallbackUrl.trim() !== '') {
+                if (previewImg) previewImg.src = fallbackUrl;
+                if (container) container.style.display = 'block';
+                if (infoText) infoText.textContent = 'Imagen actual';
+            } else {
+                if (previewImg) previewImg.src = '';
+                if (container) container.style.display = 'none';
+                if (infoText) infoText.textContent = '';
+            }
+        }
+
+        function openEditProductModal(id, nombre, descripcion, precio, precioDescuento, categoria, marca, stock, activo, imagenUrl) {
+            document.getElementById('editProductId').value = id;
+            document.getElementById('editProductNombre').value = nombre || '';
+            document.getElementById('editProductDescripcion').value = descripcion || '';
+            document.getElementById('editProductPrecio').value = precio || 0;
+            document.getElementById('editProductPrecioDescuento').value = precioDescuento || '';
+            document.getElementById('editProductCategoria').value = categoria || 'lentes-sol';
+            document.getElementById('editProductMarca').value = marca || '';
+            document.getElementById('editProductStock').value = stock || 0;
+            document.getElementById('editProductActivo').checked = (activo === true || activo === 'true');
+            document.getElementById('editProductExistingImagenUrl').value = imagenUrl || '';
+
+            const fileInput = document.getElementById('editProductImagenArchivo');
+            if (fileInput) fileInput.value = '';
+
+            const previewContainer = document.getElementById('editProductPreviewContainer');
+            const previewImg = document.getElementById('preview-editar-producto');
+            const previewInfo = document.getElementById('editProductImageInfo');
+
+            if (imagenUrl && imagenUrl.trim() !== '') {
+                if (previewImg) previewImg.src = imagenUrl;
+                if (previewContainer) previewContainer.style.display = 'block';
+                if (previewInfo) previewInfo.textContent = 'Imagen actual guardada';
+            } else {
+                if (previewImg) previewImg.src = '';
+                if (previewContainer) previewContainer.style.display = 'none';
+                if (previewInfo) previewInfo.textContent = '';
+            }
+
+            document.getElementById('modal-editar-producto').style.display = 'flex';
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
             setupAjaxForms();
             const urlParams = new URLSearchParams(window.location.search);
@@ -981,6 +1067,182 @@
         });
     </script>
 }
+
+<!-- ==================== MODALES DE PRODUCTOS ==================== -->
+<!-- Modal Crear Producto -->
+<div id="modal-producto" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
+    <div class="card" style="width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✨ Nuevo Producto</h2>
+            <button type="button" onclick="document.getElementById('modal-producto').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form id="form-crear-producto" asp-controller="Product" asp-action="Create" method="post" enctype="multipart/form-data" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre del Producto *</label>
+                <input name="Nombre" type="text" class="form-input" required minlength="3" maxlength="200" placeholder="Ej: Montura Aviator Classic" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Categoría *</label>
+                    <select name="Categoria" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                        <option value="lentes-sol">Gafas de Sol (lentes-sol)</option>
+                        <option value="lentes-contacto">Lentes de Contacto (lentes-contacto)</option>
+                        <option value="monturas">Monturas (monturas)</option>
+                        <option value="lentes-graduados">Lentes Graduados (lentes-graduados)</option>
+                        <option value="accesorios">Accesorios (accesorios)</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Marca</label>
+                    <input name="Marca" type="text" class="form-input" placeholder="Ej: Ray-Ban, Oakley, LentSoft" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Precio Regular ($) *</label>
+                    <input name="Precio" type="number" step="100" min="0" required class="form-input" placeholder="Ej: 250000" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Precio con Descuento ($)</label>
+                    <input name="PrecioDescuento" type="number" step="100" min="0" class="form-input" placeholder="Opcional" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="width: 110px;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Stock *</label>
+                    <input name="Stock" type="number" min="0" value="10" required class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Descripción</label>
+                <textarea name="Descripcion" class="form-input" rows="2" placeholder="Detalles o especificaciones del producto..." style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);"></textarea>
+            </div>
+
+            <!-- Campo de Subida de Imagen con Vista Previa -->
+            <div style="background: var(--purple-50); border: 1.5px dashed var(--purple-300); border-radius: 0.5rem; padding: 1rem;">
+                <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">
+                    📷 Imagen del Producto (Subir Archivo)
+                </label>
+                <p style="font-size: 0.75rem; color: var(--gray-500); margin: 0 0 0.5rem 0;">Formatos admitidos: .jpg, .jpeg, .png, .webp (máx. 5 MB)</p>
+                
+                <input id="crearProductImagenArchivo" name="ImagenArchivo" type="file" accept=".jpg,.jpeg,.png,.webp,image/png,image/jpeg,image/webp" class="form-input"
+                       onchange="previewProductImage(this, 'preview-crear-producto', 'crearProductPreviewContainer', 'crearProductImageInfo')"
+                       style="width: 100%; padding: 0.4rem; background: white; border-radius: 0.375rem; border: 1px solid var(--purple-200);" />
+
+                <!-- Contenedor Vista Previa -->
+                <div id="crearProductPreviewContainer" style="display: none; margin-top: 0.75rem; text-align: center; background: white; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-200);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span id="crearProductImageInfo" style="font-size: 0.75rem; font-weight: 600; color: var(--purple-800);"></span>
+                        <button type="button" onclick="clearProductImagePreview('crearProductImagenArchivo', 'preview-crear-producto', 'crearProductPreviewContainer', 'crearProductImageInfo')" style="background: none; border: none; color: var(--error); font-size: 0.75rem; font-weight: 600; cursor: pointer;">✕ Quitar</button>
+                    </div>
+                    <img id="preview-crear-producto" src="" alt="Vista previa" style="max-height: 160px; max-width: 100%; object-fit: contain; border-radius: 0.375rem; border: 1px solid var(--gray-200);" />
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <input name="Activo" type="checkbox" id="crearProductActivo" value="true" checked style="width: 18px; height: 18px; accent-color: var(--purple-600);" />
+                <label for="crearProductActivo" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem; cursor: pointer;">Producto Activo para la venta</label>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-producto').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Guardar Producto</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar Producto -->
+<div id="modal-editar-producto" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
+    <div class="card" style="width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✏️ Editar Producto</h2>
+            <button type="button" onclick="document.getElementById('modal-editar-producto').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form id="form-editar-producto" asp-controller="Product" asp-action="Edit" method="post" enctype="multipart/form-data" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editProductId" name="Id" />
+            <input type="hidden" id="editProductExistingImagenUrl" name="ImagenUrl" />
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre del Producto *</label>
+                <input id="editProductNombre" name="Nombre" type="text" class="form-input" required minlength="3" maxlength="200" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Categoría *</label>
+                    <select id="editProductCategoria" name="Categoria" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                        <option value="lentes-sol">Gafas de Sol (lentes-sol)</option>
+                        <option value="lentes-contacto">Lentes de Contacto (lentes-contacto)</option>
+                        <option value="monturas">Monturas (monturas)</option>
+                        <option value="lentes-graduados">Lentes Graduados (lentes-graduados)</option>
+                        <option value="accesorios">Accesorios (accesorios)</option>
+                    </select>
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Marca</label>
+                    <input id="editProductMarca" name="Marca" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Precio Regular ($) *</label>
+                    <input id="editProductPrecio" name="Precio" type="number" step="100" min="0" required class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Precio con Descuento ($)</label>
+                    <input id="editProductPrecioDescuento" name="PrecioDescuento" type="number" step="100" min="0" class="form-input" placeholder="Opcional" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="width: 110px;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Stock *</label>
+                    <input id="editProductStock" name="Stock" type="number" min="0" required class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Descripción</label>
+                <textarea id="editProductDescripcion" name="Descripcion" class="form-input" rows="2" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);"></textarea>
+            </div>
+
+            <!-- Campo de Edición/Reemplazo de Imagen con Vista Previa -->
+            <div style="background: var(--purple-50); border: 1.5px dashed var(--purple-300); border-radius: 0.5rem; padding: 1rem;">
+                <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">
+                    📷 Imagen del Producto
+                </label>
+                <p style="font-size: 0.75rem; color: var(--gray-500); margin: 0 0 0.5rem 0;">Sube un archivo nuevo para reemplazar la imagen actual, o déjalo vacío para conservarla.</p>
+                
+                <input id="editProductImagenArchivo" name="ImagenArchivo" type="file" accept=".jpg,.jpeg,.png,.webp,image/png,image/jpeg,image/webp" class="form-input"
+                       onchange="previewProductImage(this, 'preview-editar-producto', 'editProductPreviewContainer', 'editProductImageInfo')"
+                       style="width: 100%; padding: 0.4rem; background: white; border-radius: 0.375rem; border: 1px solid var(--purple-200);" />
+
+                <!-- Contenedor Vista Previa -->
+                <div id="editProductPreviewContainer" style="display: none; margin-top: 0.75rem; text-align: center; background: white; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-200);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span id="editProductImageInfo" style="font-size: 0.75rem; font-weight: 600; color: var(--purple-800);"></span>
+                        <button type="button" onclick="clearProductImagePreview('editProductImagenArchivo', 'preview-editar-producto', 'editProductPreviewContainer', 'editProductImageInfo', document.getElementById('editProductExistingImagenUrl').value)" style="background: none; border: none; color: var(--purple-700); font-size: 0.75rem; font-weight: 600; cursor: pointer;">↺ Restaurar actual</button>
+                    </div>
+                    <img id="preview-editar-producto" src="" alt="Vista previa" style="max-height: 160px; max-width: 100%; object-fit: contain; border-radius: 0.375rem; border: 1px solid var(--gray-200);" />
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <input name="Activo" type="checkbox" id="editProductActivo" value="true" style="width: 18px; height: 18px; accent-color: var(--purple-600);" />
+                <label for="editProductActivo" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem; cursor: pointer;">Producto Activo para la venta</label>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-editar-producto').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Actualizar Producto</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <!-- MODALES DE PEDIDOS -->
 <div id="modal-crear-pedido-venta" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">

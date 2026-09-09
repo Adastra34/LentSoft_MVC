@@ -1,5 +1,8 @@
+using System.IO;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using LentSoft.Web.Models.Entities;
 using LentSoft.Web.Models.ViewModels;
@@ -11,11 +14,19 @@ public class ProductController : Controller
 {
     private readonly IProductService _productService;
     private readonly IFavoriteService _favoriteService;
+    private readonly IWebHostEnvironment _webHostEnvironment;
 
-    public ProductController(IProductService productService, IFavoriteService favoriteService)
+    private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
+    private const long MaxImageSizeBytes = 5 * 1024 * 1024; // 5 MB
+
+    public ProductController(
+        IProductService productService,
+        IFavoriteService favoriteService,
+        IWebHostEnvironment webHostEnvironment)
     {
         _productService = productService;
         _favoriteService = favoriteService;
+        _webHostEnvironment = webHostEnvironment;
     }
 
     /// <summary>
@@ -84,9 +95,21 @@ public class ProductController : Controller
     [HttpPost]
     [Authorize(Roles = "admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Product product)
+    public async Task<IActionResult> Create(Product product, IFormFile? ImagenArchivo)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
+        if (ImagenArchivo != null && ImagenArchivo.Length > 0)
+        {
+            var (success, relativePath, error) = await ProcessProductImageAsync(ImagenArchivo);
+            if (!success)
+            {
+                if (isAjax) return Json(new { success = false, message = error });
+                TempData["ErrorMessage"] = error;
+                return RedirectToAction("Admin", "Dashboard");
+            }
+            product.ImagenUrl = relativePath;
+        }
 
         if (!ModelState.IsValid)
         {
@@ -165,9 +188,40 @@ public class ProductController : Controller
     [HttpPost]
     [Authorize(Roles = "admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Product product)
+    public async Task<IActionResult> Edit(Product product, IFormFile? ImagenArchivo)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
+        var existingProduct = await _productService.GetByIdAsync(product.Id);
+        if (existingProduct == null)
+        {
+            if (isAjax) return Json(new { success = false, message = "Producto no encontrado." });
+            TempData["ErrorMessage"] = "Producto no encontrado.";
+            return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "productos" });
+        }
+
+        string? oldImageUrlToDelete = null;
+
+        if (ImagenArchivo != null && ImagenArchivo.Length > 0)
+        {
+            var (success, relativePath, error) = await ProcessProductImageAsync(ImagenArchivo);
+            if (!success)
+            {
+                if (isAjax) return Json(new { success = false, message = error });
+                TempData["ErrorMessage"] = error;
+                return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "productos" });
+            }
+            oldImageUrlToDelete = existingProduct.ImagenUrl;
+            product.ImagenUrl = relativePath;
+        }
+        else
+        {
+            // Conservar la imagen existente si no se sube nada nuevo
+            if (string.IsNullOrWhiteSpace(product.ImagenUrl))
+            {
+                product.ImagenUrl = existingProduct.ImagenUrl;
+            }
+        }
 
         if (!ModelState.IsValid)
         {
@@ -187,6 +241,12 @@ public class ProductController : Controller
             }
             else
             {
+                // Si la actualización fue exitosa y se subió una nueva imagen, borrar la previa si era local
+                if (!string.IsNullOrEmpty(oldImageUrlToDelete))
+                {
+                    DeleteLocalProductImage(oldImageUrlToDelete);
+                }
+
                 if (isAjax) return Json(new { success = true, message = "Producto actualizado exitosamente.", data = updated });
                 TempData["SuccessMessage"] = "Producto actualizado exitosamente.";
             }
@@ -198,6 +258,73 @@ public class ProductController : Controller
         }
 
         return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "productos" });
+    }
+
+    private async Task<(bool success, string? relativePath, string? errorMessage)> ProcessProductImageAsync(IFormFile file)
+    {
+        if (file.Length == 0)
+        {
+            return (false, null, "El archivo de imagen está vacío.");
+        }
+
+        if (file.Length > MaxImageSizeBytes)
+        {
+            return (false, null, "El tamaño de la imagen no debe superar los 5 MB.");
+        }
+
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!AllowedImageExtensions.Contains(ext))
+        {
+            return (false, null, "Formato de imagen no permitido. Solo se aceptan archivos .jpg, .jpeg, .png y .webp.");
+        }
+
+        try
+        {
+            var webRoot = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var uploadsDir = Path.Combine(webRoot, "uploads", "products");
+            if (!Directory.Exists(uploadsDir))
+            {
+                Directory.CreateDirectory(uploadsDir);
+            }
+
+            var uniqueFileName = $"{Guid.NewGuid():N}{ext}";
+            var fullPath = Path.Combine(uploadsDir, uniqueFileName);
+
+            using (var stream = new FileStream(fullPath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var relativePath = $"/uploads/products/{uniqueFileName}";
+            return (true, relativePath, null);
+        }
+        catch (Exception ex)
+        {
+            return (false, null, $"Error al guardar la imagen en el servidor: {ex.Message}");
+        }
+    }
+
+    private void DeleteLocalProductImage(string? imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl)) return;
+
+        var normalized = imageUrl.Replace('\\', '/').TrimStart('/');
+        if (normalized.StartsWith("uploads/products/", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                var webRoot = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                var fullPath = Path.Combine(webRoot, normalized.Replace('/', Path.DirectorySeparatorChar));
+                if (System.IO.File.Exists(fullPath))
+                {
+                    System.IO.File.Delete(fullPath);
+                }
+            }
+            catch
+            {
+                // No bloquear si ocurre un problema al remover el archivo viejo
+            }
+        }
     }
 
     /// <summary>

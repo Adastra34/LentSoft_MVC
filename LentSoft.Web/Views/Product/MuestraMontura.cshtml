@@ -145,7 +145,7 @@
                             
                             <!-- Thumbnail Image -->
                             <div style="height: 130px; background: var(--gray-50); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
-                                @if (item.ImagenUrl != null)
+                                @if (!string.IsNullOrWhiteSpace(item.ImagenUrl))
                                 {
                                     <img src="@item.ImagenUrl" alt="@item.Nombre" style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 0.5rem;" />
                                 }
