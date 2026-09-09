@@ -31,7 +31,7 @@
             <div>
                 <!-- Main Image -->
                 <div style="background: white; border-radius: 1.25rem; overflow: hidden; box-shadow: var(--shadow-md); margin-bottom: 1.25rem; display: flex; align-items: center; justify-content: center; aspect-ratio: 4/3; border: 1px solid var(--gray-100);">
-                    @if (Model.Product.ImagenUrl != null)
+                    @if (!string.IsNullOrWhiteSpace(Model.Product.ImagenUrl))
                     {
                         <img id="mainProductImage" src="@Model.Product.ImagenUrl" alt="@Model.Product.Nombre" style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 1.5rem; transition: transform 0.3s;" />
                     }
@@ -43,7 +43,7 @@
 
                 <!-- Thumbnails Carousel -->
                 <div style="display: flex; gap: 1rem; justify-content: center; overflow-x: auto; padding: 0.25rem 0;">
-                    @if (Model.Product.ImagenUrl != null)
+                    @if (!string.IsNullOrWhiteSpace(Model.Product.ImagenUrl))
                     {
                         <button type="button" onclick="changeImage('@Model.Product.ImagenUrl', this)" 
                                 style="border: 2.5px solid var(--purple-600); background: white; border-radius: 0.75rem; width: 80px; height: 80px; padding: 0.25rem; cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none; transition: border-color 0.2s; box-shadow: var(--shadow-sm);">

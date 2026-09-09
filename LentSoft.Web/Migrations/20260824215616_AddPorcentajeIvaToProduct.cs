@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -10,12 +10,15 @@ namespace LentSoft.Web.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.AddColumn<decimal>(
-                name: "PorcentajeIva",
-                table: "Products",
-                type: "decimal(5,2)",
-                nullable: false,
-                defaultValue: 19.00m);
+            migrationBuilder.Sql(@"
+IF NOT EXISTS (
+    SELECT 1 FROM sys.columns 
+    WHERE object_id = OBJECT_ID(N'[Products]') AND name = 'PorcentajeIva'
+)
+BEGIN
+    ALTER TABLE [Products] ADD [PorcentajeIva] decimal(5,2) NOT NULL DEFAULT 19.0;
+END
+");
 
             migrationBuilder.UpdateData(
                 table: "Employees",
