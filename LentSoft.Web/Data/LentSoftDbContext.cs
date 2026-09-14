@@ -390,7 +390,7 @@ public class LentSoftDbContext : DbContext
                 Proteccion = "UV400",
                 Estilo = "Aviador",
                 Tamanio = "58-14-135",
-                ImagenOverlayUrl = "/img/overlays/rayban_aviator.svg"
+                ImagenOverlayUrl = "/img/overlays/rayban_aviator_final.png"
             },
             new Product
             {
@@ -451,7 +451,7 @@ public class LentSoftDbContext : DbContext
                 Proteccion = "Antirreflejo / Luz Azul",
                 Estilo = "Wayfarer",
                 Tamanio = "52-19-145",
-                ImagenOverlayUrl = "/img/overlays/classic.svg"
+                ImagenOverlayUrl = "/img/overlays/lentes_graduados_classic_final.png"
             },
             new Product
             {
