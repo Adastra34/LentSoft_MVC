@@ -24,4 +24,10 @@ public interface IChatAgentService
     /// <param name="userName">Nombre del usuario autenticado, o null si es visitante.</param>
     /// <returns>Texto de respuesta del modelo de IA.</returns>
     Task<string> GetResponseAsync(string userMessage, List<ChatMessageDto> history, string? userName);
+
+    /// <summary>
+    /// Construye dinámicamente el catálogo de productos consultando la base de datos
+    /// y agrega las funcionalidades fijas de la plataforma para el contexto del chatbot.
+    /// </summary>
+    Task<string> BuildProductContextAsync();
 }
