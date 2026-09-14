@@ -25,7 +25,7 @@ public class VentasController : Controller
         _saleConfirmationTokenService = saleConfirmationTokenService;
     }
 
-    public async Task<IActionResult> Index(string section = "general", string? searchTerm = null, int page = 1, int pageSize = 5)
+    public async Task<IActionResult> Index(string section = "general", string subtab = "productos", string? searchTerm = null, int page = 1, int pageSize = 5)
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var usuario = await _context.Users.FindAsync(userId);
@@ -67,6 +67,11 @@ public class VentasController : Controller
         var totalVentasConteo = ventas.Count(v => v.Estado != "cancelado");
         var ticketPromedio = totalVentasConteo > 0 ? (ventasDelMes / totalVentasConteo) : 0;
 
+        var pedidosVentas = await _context.SalesOrders
+            .Where(o => o.Activo)
+            .OrderByDescending(o => o.Fecha)
+            .ToListAsync();
+
         var viewModel = new DashboardVentasViewModel
         {
             VentasDelMes = ventasDelMes,
@@ -81,9 +86,11 @@ public class VentasController : Controller
             FacturasTotalCount = facturasTotalCount,
             PedidosDisponibles = pedidosDisponibles,
             Productos = productos,
+            PedidosVentas = pedidosVentas,
             Clientes = clientes,
             UsuarioActual = usuario,
-            ActiveSection = section
+            ActiveSection = section,
+            ActiveSubTab = subtab
         };
 
         return View("~/Views/Dashboard/Ventas.cshtml", viewModel);
