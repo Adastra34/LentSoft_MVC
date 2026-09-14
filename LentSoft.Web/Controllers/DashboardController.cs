@@ -727,7 +727,7 @@ public class DashboardController : Controller
 
     // ── GESTIÓN DE PEDIDOS DE VENTAS (INDEPENDIENTES) ──
     [HttpPost]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin,ventas")]
     public async Task<IActionResult> CreateSalesOrder(SalesOrder model)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
@@ -769,11 +769,16 @@ public class DashboardController : Controller
             if (isAjax) return Json(new { success = false, message = firstError });
             TempData["ErrorMessage"] = firstError;
         }
+
+        if (User.IsInRole("ventas"))
+        {
+            return RedirectToAction("Index", "Ventas", new { section = "inventarios", subtab = "pedidos" });
+        }
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
     }
 
     [HttpPost]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin,ventas")]
     public async Task<IActionResult> EditSalesOrder(SalesOrder model)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
@@ -798,11 +803,16 @@ public class DashboardController : Controller
             if (isAjax) return Json(new { success = false, message = "No se encontró el pedido de venta especificado." });
             TempData["ErrorMessage"] = "No se encontró el pedido de venta especificado.";
         }
+
+        if (User.IsInRole("ventas"))
+        {
+            return RedirectToAction("Index", "Ventas", new { section = "inventarios", subtab = "pedidos" });
+        }
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
     }
 
     [HttpPost]
-    [Authorize(Roles = "admin")]
+    [Authorize(Roles = "admin,ventas")]
     public async Task<IActionResult> DeleteSalesOrder(int id)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
@@ -818,6 +828,11 @@ public class DashboardController : Controller
         else
         {
             if (isAjax) return Json(new { success = false, message = "No se encontró el pedido de venta especificado." });
+        }
+
+        if (User.IsInRole("ventas"))
+        {
+            return RedirectToAction("Index", "Ventas", new { section = "inventarios", subtab = "pedidos" });
         }
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
     }

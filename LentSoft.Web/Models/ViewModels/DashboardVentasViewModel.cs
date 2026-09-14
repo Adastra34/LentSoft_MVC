@@ -22,8 +22,9 @@ public class DashboardVentasViewModel
     public int FacturasTotalPages => (int)Math.Ceiling((double)FacturasTotalCount / (FacturasPageSize > 0 ? FacturasPageSize : 5));
     public List<Order> PedidosDisponibles { get; set; } = new();
 
-    // ── Inventarios (solo lectura) ──
+    // ── Inventarios ──
     public List<Product> Productos { get; set; } = new();
+    public List<SalesOrder> PedidosVentas { get; set; } = new();
 
     // ── Clientes ──
     public List<User> Clientes { get; set; } = new();
@@ -33,4 +34,5 @@ public class DashboardVentasViewModel
 
     // Navigation
     public string ActiveSection { get; set; } = "general";
+    public string ActiveSubTab { get; set; } = "productos";
 }
