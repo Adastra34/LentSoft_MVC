@@ -610,6 +610,7 @@ label, .form-label {
   flex-direction: column;
   align-items: flex-end;
   gap: 0.75rem;
+  pointer-events: none; /* No bloquear clics en elementos que están detrás */
 }
 
 /* ── Botón flotante ── */
@@ -629,6 +630,7 @@ label, .form-label {
   transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1),
               box-shadow 0.25s ease;
   flex-shrink: 0;
+  pointer-events: auto; /* Reactivar clics en el botón flotante */
 }
 
 .morgana-toggle-btn:hover {
@@ -696,17 +698,20 @@ label, .form-label {
   overflow: hidden;
   /* Estado cerrado */
   opacity: 0;
+  visibility: hidden;
   transform: translateY(16px) scale(0.96);
   pointer-events: none;
   transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1);
+              transform 0.3s cubic-bezier(0.34, 1.2, 0.64, 1),
+              visibility 0.3s;
   transform-origin: bottom right;
 }
 
 .morgana-panel--open {
   opacity: 1;
+  visibility: visible;
   transform: translateY(0) scale(1);
-  pointer-events: all;
+  pointer-events: auto;
 }
 
 /* ── Header del panel ── */

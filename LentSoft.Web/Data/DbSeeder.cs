@@ -324,5 +324,82 @@ public static class DbSeeder
             context.FormulasOpticas.AddRange(formulas);
             context.SaveChanges();
         }
+
+        // ── Seed special-character test data (XSS/escaping verification) ──
+        if (!context.Products.Any(p => p.Nombre == "Gafas O'Brien Deluxe"))
+        {
+            context.Products.Add(new Product
+            {
+                Nombre = "Gafas O'Brien Deluxe",
+                Descripcion = "Montura premium estilo \"retro\" — Pro D'Angelo & Co.",
+                Precio = 320000.00m,
+                PorcentajeIva = 19.00m,
+                Categoria = "monturas",
+                Marca = "O'Brien & Sons",
+                Stock = 15,
+                Activo = true,
+                Rating = 4.7m,
+                ReviewCount = 5,
+                EsDestacado = false,
+                FechaCreacion = DateTime.UtcNow,
+                ImagenUrl = "https://images.unsplash.com/photo-1574258495973-f010dfbb5371?auto=format&fit=crop&w=600&q=80"
+            });
+            context.SaveChanges();
+        }
+
+        if (!context.Suppliers.Any(s => s.Id == "PROV-TEST"))
+        {
+            context.Suppliers.Add(new Supplier
+            {
+                Id = "PROV-TEST",
+                Nombre = "D'Angelo & Cía.",
+                Contacto = "María D'Angelo",
+                TipoProductos = "Monturas \"premium\"",
+                Telefono = "555-9999",
+                Correo = "maria@dangelo.com",
+                Activo = true,
+                FechaRegistro = DateTime.UtcNow
+            });
+            context.SaveChanges();
+        }
+
+        if (!context.SalesOrders.Any(s => s.NumeroPedido == "PED-VENTA-TEST"))
+        {
+            context.SalesOrders.Add(new SalesOrder
+            {
+                NumeroPedido = "PED-VENTA-TEST",
+                ClienteNombre = "María D'Angelo",
+                ProductoNombre = "Gafas O'Brien Deluxe",
+                Cantidad = 1,
+                PrecioUnitario = 320000.00m,
+                Total = 320000.00m,
+                Estado = "pendiente",
+                Notas = "Talla \"M\" — cliente pide grabado con apóstrofe: O'Brien",
+                Fecha = DateTime.UtcNow,
+                Activo = true
+            });
+            context.SaveChanges();
+        }
+
+        var testSupplierId = context.Suppliers.Any(s => s.Id == "PROV-TEST") ? "PROV-TEST" : context.Suppliers.First().Id;
+        var testProductId = context.Products.FirstOrDefault(p => p.Nombre == "Gafas O'Brien Deluxe")?.Id ?? context.Products.First().Id;
+
+        if (!context.SupplierOrders.Any(s => s.NumeroPedido == "PED-PROV-TEST"))
+        {
+            context.SupplierOrders.Add(new SupplierOrder
+            {
+                NumeroPedido = "PED-PROV-TEST",
+                SupplierId = testSupplierId,
+                ProductId = testProductId,
+                Cantidad = 5,
+                PrecioUnitario = 180000.00m,
+                Total = 900000.00m,
+                Estado = "pendiente",
+                Notas = "Pedido D'Angelo — incluye modelos \"retro\" con detalles O'Brien & Co.",
+                Fecha = DateTime.UtcNow,
+                Activo = true
+            });
+            context.SaveChanges();
+        }
     }
 }

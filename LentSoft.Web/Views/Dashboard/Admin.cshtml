@@ -219,8 +219,10 @@
                                         </td>
                                         <td style="padding: 0.75rem;">
                                             <div class="table-actions-wrapper">
-                                                <button type="button" class="btn-action-edit" aria-label="Editar" onclick="openEditProductModal(@prod.Id, '@System.Web.HttpUtility.JavaScriptStringEncode(prod.Nombre)', '@System.Web.HttpUtility.JavaScriptStringEncode(prod.Descripcion ?? "")', @prod.Precio.ToString(System.Globalization.CultureInfo.InvariantCulture), '@(prod.PrecioDescuento?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "")', '@System.Web.HttpUtility.JavaScriptStringEncode(prod.Categoria)', '@System.Web.HttpUtility.JavaScriptStringEncode(prod.Marca ?? "")', @prod.Stock, @(prod.Activo ? "true" : "false"), '@System.Web.HttpUtility.JavaScriptStringEncode(prod.ImagenUrl ?? "")')" data-i18n="admin.inv.edit">✏️ Editar</button>
-                                                <form asp-controller="Product" asp-action="Delete" asp-route-id="@prod.Id" method="post" style="display:inline;" onsubmit="confirmDelete(event, '¿Deseas eliminar el producto @prod.Nombre?', this)">
+                                                <button type="button" class="btn-action-edit btn-edit-product" aria-label="Editar"
+                                                    data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = prod.Id, nombre = prod.Nombre, descripcion = prod.Descripcion ?? "", precio = prod.Precio, precioDescuento = prod.PrecioDescuento?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "", categoria = prod.Categoria, marca = prod.Marca ?? "", stock = prod.Stock, activo = prod.Activo, imagenUrl = prod.ImagenUrl ?? "" }))'
+                                                    data-i18n="admin.inv.edit">✏️ Editar</button>
+                                                <form asp-controller="Product" asp-action="Delete" asp-route-id="@prod.Id" method="post" style="display:inline;" class="form-delete-product" data-nombre="@prod.Nombre">
                                                     <button type="submit" class="btn-action-delete" aria-label="Eliminar" data-i18n="admin.inv.delete">🗑️ Eliminar</button>
                                                 </form>
                                             </div>
@@ -281,8 +283,10 @@
                                         </td>
                                         <td style="padding: 0.75rem;">
                                             <div class="table-actions-wrapper">
-                                                <button type="button" class="btn-action-edit" aria-label="Editar" onclick="openEditSupplierModal('@prov.Id', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Nombre)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Contacto ?? "")', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.TipoProductos)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Telefono)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.Correo)', '@System.Web.HttpUtility.JavaScriptStringEncode(prov.LogoUrl ?? "")')" data-i18n="admin.inv.edit">✏️ Editar</button>
-                                                <form asp-controller="Supplier" asp-action="Delete" asp-route-id="@prov.Id" method="post" style="display:inline;" onsubmit="confirmDelete(event, '¿Deseas eliminar al proveedor @prov.Nombre?', this)">
+                                                <button type="button" class="btn-action-edit btn-edit-supplier" aria-label="Editar"
+                                                    data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = prov.Id, nombre = prov.Nombre, contacto = prov.Contacto ?? "", tipoProductos = prov.TipoProductos, telefono = prov.Telefono, correo = prov.Correo, logoUrl = prov.LogoUrl ?? "" }))'
+                                                    data-i18n="admin.inv.edit">✏️ Editar</button>
+                                                <form asp-controller="Supplier" asp-action="Delete" asp-route-id="@prov.Id" method="post" style="display:inline;" class="form-delete-supplier" data-nombre="@prov.Nombre">
                                                     <button type="submit" class="btn-action-delete" aria-label="Eliminar" data-i18n="admin.inv.delete">🗑️ Eliminar</button>
                                                 </form>
                                             </div>
@@ -396,8 +400,9 @@
                                             </span>
                                         </td>
                                         <td style="padding: 0.75rem; text-align: right;">
-                                            <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;" onclick="openEditSalesOrderModal(@p.Id, '@p.NumeroPedido', '@p.ClienteNombre', '@p.ProductoNombre', @p.Cantidad, @p.PrecioUnitario, '@p.Estado', '@p.Notas')">✏️ Editar</button>
-                                            <form asp-action="DeleteSalesOrder" asp-controller="Dashboard" method="post" style="display: inline;" onsubmit="confirmDelete(event, '¿Seguro que deseas eliminar este pedido de venta?', this);">
+                                            <button type="button" class="btn btn-secondary btn-edit-sales-order" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;"
+                                                data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = p.Id, numeroPedido = p.NumeroPedido, clienteNombre = p.ClienteNombre, productoNombre = p.ProductoNombre, cantidad = p.Cantidad, precioUnitario = p.PrecioUnitario, estado = p.Estado, notas = p.Notas ?? "" }))'>✏️ Editar</button>
+                                            <form asp-action="DeleteSalesOrder" asp-controller="Dashboard" method="post" style="display: inline;" class="form-delete-sales-order">
                                                 <input type="hidden" name="id" value="@p.Id" />
                                                 <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">🗑️</button>
                                             </form>
@@ -449,8 +454,9 @@
                                             </span>
                                         </td>
                                         <td style="padding: 0.75rem; text-align: right;">
-                                            <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;" onclick="openEditSupplierOrderModal(@p.Id, '@p.NumeroPedido', '@p.SupplierId', @p.ProductId, @p.Cantidad, @p.PrecioUnitario, '@p.Estado', '@p.Notas')">✏️ Editar</button>
-                                            <form asp-action="DeleteSupplierOrder" asp-controller="Dashboard" method="post" style="display: inline;" onsubmit="confirmDelete(event, '¿Seguro que deseas eliminar este pedido a proveedor?', this);">
+                                            <button type="button" class="btn btn-secondary btn-edit-supplier-order" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;"
+                                                data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = p.Id, numeroPedido = p.NumeroPedido, supplierId = p.SupplierId, productId = p.ProductId, cantidad = p.Cantidad, precioUnitario = p.PrecioUnitario, estado = p.Estado, notas = p.Notas ?? "" }))'>✏️ Editar</button>
+                                            <form asp-action="DeleteSupplierOrder" asp-controller="Dashboard" method="post" style="display: inline;" class="form-delete-supplier-order">
                                                 <input type="hidden" name="id" value="@p.Id" />
                                                 <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">🗑️</button>
                                             </form>
@@ -1064,6 +1070,65 @@
             } else {
                 switchPedidosTab('ventas');
             }
+
+            // ── Delegated Edit Handlers (safe: no inline JS string interpolation) ──
+            document.addEventListener('click', function(e) {
+                const btn = e.target.closest('[data-record]');
+                if (!btn) return;
+                let rec;
+                try { rec = JSON.parse(btn.dataset.record); } catch { return; }
+
+                if (btn.classList.contains('btn-edit-product')) {
+                    openEditProductModal(
+                        rec.id, rec.nombre, rec.descripcion, rec.precio,
+                        rec.precioDescuento, rec.categoria, rec.marca,
+                        rec.stock, rec.activo, rec.imagenUrl
+                    );
+                } else if (btn.classList.contains('btn-edit-supplier')) {
+                    if (typeof openEditSupplierModal === 'function') {
+                        openEditSupplierModal(
+                            rec.id, rec.nombre, rec.contacto,
+                            rec.tipoProductos, rec.telefono, rec.correo, rec.logoUrl
+                        );
+                    } else {
+                        showToast('El modal de edición de proveedores aún no está implementado.', 'info');
+                    }
+                } else if (btn.classList.contains('btn-edit-sales-order')) {
+                    openEditSalesOrderModal(
+                        rec.id, rec.numeroPedido, rec.clienteNombre,
+                        rec.productoNombre, rec.cantidad, rec.precioUnitario,
+                        rec.estado, rec.notas
+                    );
+                } else if (btn.classList.contains('btn-edit-supplier-order')) {
+                    openEditSupplierOrderModal(
+                        rec.id, rec.numeroPedido, rec.supplierId,
+                        rec.productId, rec.cantidad, rec.precioUnitario,
+                        rec.estado, rec.notas
+                    );
+                }
+            });
+
+            // ── Delegated Delete Form Handlers ──
+            document.addEventListener('submit', function(e) {
+                const form = e.target;
+                let message = '';
+
+                if (form.classList.contains('form-delete-product')) {
+                    const nombre = form.dataset.nombre || '';
+                    message = '¿Deseas eliminar el producto ' + nombre + '?';
+                } else if (form.classList.contains('form-delete-supplier')) {
+                    const nombre = form.dataset.nombre || '';
+                    message = '¿Deseas eliminar al proveedor ' + nombre + '?';
+                } else if (form.classList.contains('form-delete-sales-order')) {
+                    message = '¿Seguro que deseas eliminar este pedido de venta?';
+                } else if (form.classList.contains('form-delete-supplier-order')) {
+                    message = '¿Seguro que deseas eliminar este pedido a proveedor?';
+                } else {
+                    return; // Not one of our delegated forms
+                }
+
+                confirmDelete(e, message, form);
+            });
         });
     </script>
 }
