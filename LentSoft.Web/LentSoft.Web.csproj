@@ -1,10 +1,11 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>LentSoft.Web</RootNamespace>
+    <UserSecretsId>0eaa324d-64cd-4b66-b8a6-2327be1b3c93</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
