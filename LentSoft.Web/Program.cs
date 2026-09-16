@@ -1,0 +1,171 @@
+using System.Security.Claims;
+using System.Text;
+using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using LentSoft.Web.Data;
+using LentSoft.Web.Services;
+
+// ── Culture Configuration (Pesos Colombianos - COP) ──
+var cultureInfo = new System.Globalization.CultureInfo("es-CO");
+cultureInfo.NumberFormat.CurrencySymbol = "COP $";
+cultureInfo.NumberFormat.CurrencyDecimalDigits = 0;
+cultureInfo.NumberFormat.CurrencyGroupSeparator = ".";
+cultureInfo.NumberFormat.CurrencyDecimalSeparator = ",";
+System.Globalization.CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// ── JWT Secret Key Validations (Fail-Fast) ──
+var jwtPasswordKey = builder.Configuration["PasswordResetJwt:SecretKey"];
+if (string.IsNullOrEmpty(jwtPasswordKey) || 
+    jwtPasswordKey == "CONFIGURAR_EN_USER_SECRETS_O_VARIABLE_DE_ENTORNO" || 
+    jwtPasswordKey.Length < 16)
+{
+    throw new InvalidOperationException("La clave secreta para PasswordResetJwt no está configurada o es demasiado corta.");
+}
+
+var jwtSaleKey = builder.Configuration["SaleConfirmationJwt:SecretKey"];
+if (string.IsNullOrEmpty(jwtSaleKey) || 
+    jwtSaleKey == "CONFIGURAR_EN_USER_SECRETS_O_VARIABLE_DE_ENTORNO" || 
+    jwtSaleKey.Length < 16)
+{
+    throw new InvalidOperationException("La clave secreta para SaleConfirmationJwt no está configurada o es demasiado corta.");
+}
+
+var geminiApiKey = builder.Configuration["Gemini:ApiKey"];
+if (string.IsNullOrEmpty(geminiApiKey) || geminiApiKey == "CONFIGURAR_TU_API_KEY_DE_GEMINI")
+{
+    throw new InvalidOperationException("La API key de Gemini no está configurada. Establece 'Gemini:ApiKey' en appsettings.Development.json o en variables de entorno.");
+}
+
+// ── Data Protection (Persistent keys across restarts) ──
+var keysFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LentSoft-Keys");
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(keysFolder))
+    .SetApplicationName("LentSoft");
+
+// ── Database ──
+builder.Services.AddDbContext<LentSoftDbContext>(options =>
+{
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+});
+
+// ── Services (DI) ──
+builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IFavoriteService, FavoriteService>();
+builder.Services.AddScoped<ICartService, CartService>();
+builder.Services.AddScoped<IInvoiceService, InvoiceService>();
+builder.Services.AddScoped<IPdfInvoiceService, PdfInvoiceService>();
+builder.Services.AddSingleton<IPasswordResetTokenService, PasswordResetTokenService>();
+builder.Services.AddSingleton<ISaleConfirmationTokenService, SaleConfirmationTokenService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IChatAgentService, ChatAgentService>();
+builder.Services.AddScoped<IMobileJwtService, MobileJwtService>();
+
+// ── Authentication (Cookie-based for Web, JWT Bearer for Mobile API) ──
+var mobileJwtSettings = builder.Configuration.GetSection("MobileJwt");
+var mobileJwtKey = mobileJwtSettings["SecretKey"] ?? "dev-secret-key-lentsoft-mobile-jwt-api-minimum-32-chars";
+var mobileJwtIssuer = mobileJwtSettings["Issuer"] ?? "LentSoft.Api";
+var mobileJwtAudience = mobileJwtSettings["Audience"] ?? "LentSoft.Mobile";
+
+builder.Services.AddAuthentication(options =>
+    {
+        options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+        options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    })
+    .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+    {
+        options.LoginPath = "/Auth/Login";
+        options.LogoutPath = "/Auth/Logout";
+        options.AccessDeniedPath = "/Auth/Login";
+        options.Cookie.Name = "LentSoft.Auth";
+        options.Cookie.HttpOnly = true;
+        options.ExpireTimeSpan = TimeSpan.FromHours(24);
+        options.SlidingExpiration = true;
+    })
+    .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
+    {
+        options.RequireHttpsMetadata = false;
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidIssuer = mobileJwtIssuer,
+            ValidateAudience = true,
+            ValidAudience = mobileJwtAudience,
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(mobileJwtKey)),
+            ValidateLifetime = true,
+            ClockSkew = TimeSpan.Zero
+        };
+    });
+
+builder.Services.AddAuthorization();
+
+// ── HTTP Clients ──
+builder.Services.AddHttpClient("Gemini");
+
+// ── Rate Limiting (protección del endpoint /Chat/Ask) ──
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddPolicy("chat", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 2
+            }));
+});
+
+// ── MVC ──
+builder.Services.AddControllersWithViews();
+
+var app = builder.Build();
+
+// ── Middleware Pipeline ──
+if (!app.Environment.IsDevelopment())
+{
+    app.UseExceptionHandler("/Home/Error");
+    app.UseHsts();
+}
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+app.UseStaticFiles();
+app.UseRouting();
+app.UseAuthentication();
+app.UseAuthorization();
+app.UseRateLimiter();
+
+// ── Routes ──
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// ── Database migration + seed on startup (development only) ──
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<LentSoftDbContext>();
+    db.Database.Migrate();
+    DbSeeder.Seed(db);
+}
+
+app.Run();

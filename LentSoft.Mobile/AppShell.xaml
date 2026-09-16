@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<Shell
+    x:Class="LentSoft.Mobile.AppShell"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:LentSoft.Mobile.Views"
+    Title="LentSoft"
+    Shell.NavBarIsVisible="False"
+    Shell.TabBarBackgroundColor="White"
+    Shell.TabBarForegroundColor="{StaticResource Purple}"
+    Shell.TabBarTitleColor="{StaticResource Purple}"
+    Shell.TabBarUnselectedColor="{StaticResource Muted}">
+
+    <!-- Flow fuera del Shell principal: Login -->
+    <ShellItem Route="login">
+        <ShellContent
+            Title="Iniciar Sesión"
+            ContentTemplate="{DataTemplate views:LoginPage}"
+            Shell.TabBarIsVisible="False"
+            Shell.NavBarIsVisible="False" />
+    </ShellItem>
+
+    <!-- Shell Principal: TabBar con 5 destinos -->
+    <TabBar Route="main">
+        <Tab Title="Inicio" Icon="tab_inicio.svg" Route="inicio">
+            <ShellContent ContentTemplate="{DataTemplate views:InicioPage}" />
+        </Tab>
+
+        <Tab Title="Tienda" Icon="tab_tienda.svg" Route="tienda">
+            <ShellContent ContentTemplate="{DataTemplate views:TiendaPage}" />
+        </Tab>
+
+        <Tab Title="Facturas" Icon="tab_facturas.svg" Route="facturas">
+            <ShellContent ContentTemplate="{DataTemplate views:FacturasPage}" />
+        </Tab>
+
+        <Tab Title="Citas" Icon="tab_citas.svg" Route="citas">
+            <ShellContent ContentTemplate="{DataTemplate views:CitasPage}" />
+        </Tab>
+
+        <Tab Title="Perfil" Icon="tab_perfil.svg" Route="perfil">
+            <ShellContent ContentTemplate="{DataTemplate views:PerfilPage}" />
+        </Tab>
+    </TabBar>
+
+</Shell>

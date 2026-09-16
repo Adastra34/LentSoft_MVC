@@ -1,0 +1,457 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:LentSoft.Mobile.ViewModels"
+             xmlns:models="clr-namespace:LentSoft.Mobile.Models"
+             x:Class="LentSoft.Mobile.Views.PerfilPage"
+             x:DataType="vm:PerfilViewModel"
+             Shell.NavBarIsVisible="False"
+             BackgroundColor="{StaticResource Lavender}">
+
+    <Grid VerticalOptions="FillAndExpand">
+
+        <ScrollView>
+            <VerticalStackLayout Spacing="16" Padding="0,0,0,36">
+
+                <!-- Profile Header with Purple Gradient & Glow -->
+                <Border HeightRequest="190"
+                        StrokeThickness="0"
+                        StrokeShape="RoundRectangle 0,0,28,28">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Color="{StaticResource Purple}" Offset="0.0"/>
+                            <GradientStop Color="{StaticResource PurpleDeep}" Offset="1.0"/>
+                        </LinearGradientBrush>
+                    </Border.Background>
+
+                    <Grid Padding="20">
+                        <!-- Radial Glow Top Right -->
+                        <Ellipse WidthRequest="120" HeightRequest="120"
+                                 HorizontalOptions="End" VerticalOptions="Start"
+                                 TranslationX="30" TranslationY="-30"
+                                 Opacity="0.2">
+                            <Ellipse.Fill>
+                                <RadialGradientBrush Center="0.5,0.5" Radius="0.5">
+                                    <GradientStop Color="{StaticResource Gold}" Offset="0.0"/>
+                                    <GradientStop Color="Transparent" Offset="1.0"/>
+                                </RadialGradientBrush>
+                            </Ellipse.Fill>
+                        </Ellipse>
+
+                        <!-- Avatar with initials over golden gradient -->
+                        <VerticalStackLayout VerticalOptions="Center" HorizontalOptions="Center" Spacing="8">
+                            <Border WidthRequest="74" HeightRequest="74"
+                                    StrokeShape="RoundRectangle 37"
+                                    Stroke="{StaticResource White}"
+                                    StrokeThickness="3"
+                                    HorizontalOptions="Center">
+                                <Border.Background>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                        <GradientStop Color="#F9D423" Offset="0.0"/>
+                                        <GradientStop Color="#F2B705" Offset="1.0"/>
+                                    </LinearGradientBrush>
+                                </Border.Background>
+
+                                <Label Text="{Binding Initials}"
+                                       FontSize="26"
+                                       FontAttributes="Bold"
+                                       TextColor="{StaticResource Ink}"
+                                       HorizontalOptions="Center"
+                                       VerticalOptions="Center"/>
+                            </Border>
+
+                            <Label Text="{Binding NombreCompleto}"
+                                   FontSize="19"
+                                   FontAttributes="Bold"
+                                   TextColor="White"
+                                   HorizontalOptions="Center"/>
+
+                            <Label Text="{Binding Email}"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Line}"
+                                   HorizontalOptions="Center"/>
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+                <!-- Profile Menu Options Card -->
+                <Border Style="{StaticResource LentSoftCard}"
+                        Margin="16,-10,16,0"
+                        Padding="8">
+                    <VerticalStackLayout Spacing="0">
+
+                        <!-- Mis favoritos -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding MenuItemSelectedCommand}" CommandParameter="Mis favoritos"/>
+                            </Grid.GestureRecognizers>
+                            <Label Grid.Column="0" Text="❤️" FontSize="18" VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="{Binding MyFavoritesText}" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Ink}" VerticalOptions="Center"/>
+                            <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{StaticResource Muted}" VerticalOptions="Center"/>
+                        </Grid>
+
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource Line}" Margin="12,0"/>
+
+                        <!-- Mis pedidos -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding MenuItemSelectedCommand}" CommandParameter="Mis pedidos"/>
+                            </Grid.GestureRecognizers>
+                            <Label Grid.Column="0" Text="📦" FontSize="18" VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="{Binding MyOrdersText}" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Ink}" VerticalOptions="Center"/>
+                            <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{StaticResource Muted}" VerticalOptions="Center"/>
+                        </Grid>
+
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource Line}" Margin="12,0"/>
+
+                        <!-- Fórmula óptica -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding MenuItemSelectedCommand}" CommandParameter="Fórmula óptica"/>
+                            </Grid.GestureRecognizers>
+                            <Label Grid.Column="0" Text="👓" FontSize="18" VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="{Binding OpticPrescriptionText}" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Ink}" VerticalOptions="Center"/>
+                            <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{StaticResource Muted}" VerticalOptions="Center"/>
+                        </Grid>
+
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource Line}" Margin="12,0"/>
+
+                        <!-- Mis datos -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding MenuItemSelectedCommand}" CommandParameter="Mis datos"/>
+                            </Grid.GestureRecognizers>
+                            <Label Grid.Column="0" Text="👤" FontSize="18" VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="{Binding MyDataText}" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Ink}" VerticalOptions="Center"/>
+                            <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{StaticResource Muted}" VerticalOptions="Center"/>
+                        </Grid>
+
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource Line}" Margin="12,0"/>
+
+                        <!-- Direcciones -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding MenuItemSelectedCommand}" CommandParameter="Direcciones"/>
+                            </Grid.GestureRecognizers>
+                            <Label Grid.Column="0" Text="📍" FontSize="18" VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="{Binding AddressesText}" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Ink}" VerticalOptions="Center"/>
+                            <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{StaticResource Muted}" VerticalOptions="Center"/>
+                        </Grid>
+
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource Line}" Margin="12,0"/>
+
+                        <!-- Idioma ES / EN Toggle -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding MenuItemSelectedCommand}" CommandParameter="Idioma"/>
+                            </Grid.GestureRecognizers>
+                            <Label Grid.Column="0" Text="🌐" FontSize="18" VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="{Binding LanguageText}" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Ink}" VerticalOptions="Center"/>
+                            <Border Grid.Column="2" BackgroundColor="{StaticResource Purple}" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="8,4">
+                                <Label Text="{Binding CurrentLanguageDisplay}" FontSize="11" FontAttributes="Bold" TextColor="White"/>
+                            </Border>
+                        </Grid>
+
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource Line}" Margin="12,0"/>
+
+                        <!-- Seguridad -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding MenuItemSelectedCommand}" CommandParameter="Seguridad"/>
+                            </Grid.GestureRecognizers>
+                            <Label Grid.Column="0" Text="🔒" FontSize="18" VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="{Binding SecurityText}" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Ink}" VerticalOptions="Center"/>
+                            <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{StaticResource Muted}" VerticalOptions="Center"/>
+                        </Grid>
+
+                        <BoxView HeightRequest="1" BackgroundColor="{StaticResource Line}" Margin="12,0"/>
+
+                        <!-- Notificaciones -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" Padding="14,14" ColumnSpacing="12">
+                            <Grid.GestureRecognizers>
+                                <TapGestureRecognizer Command="{Binding MenuItemSelectedCommand}" CommandParameter="Notificaciones"/>
+                            </Grid.GestureRecognizers>
+                            <Label Grid.Column="0" Text="🔔" FontSize="18" VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="{Binding NotificationsText}" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Ink}" VerticalOptions="Center"/>
+                            <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{StaticResource Muted}" VerticalOptions="Center"/>
+                        </Grid>
+
+                    </VerticalStackLayout>
+                </Border>
+
+                <!-- Brand Motif Badge Card -->
+                <Border Style="{StaticResource LentSoftCard}"
+                        Margin="16,0,16,0"
+                        Padding="14">
+                    <Grid ColumnDefinitions="Auto,*" ColumnSpacing="12" VerticalOptions="Center">
+                        <Border Grid.Column="0"
+                                WidthRequest="44" HeightRequest="32"
+                                StrokeShape="RoundRectangle 16"
+                                Stroke="{StaticResource Purple}"
+                                StrokeThickness="2"
+                                BackgroundColor="{StaticResource Lavender}">
+                            <Ellipse WidthRequest="10" HeightRequest="10" Fill="{StaticResource Purple}" HorizontalOptions="Center" VerticalOptions="Center"/>
+                        </Border>
+                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                            <Label Text="LentSoft Mobile v1.0"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Ink}"/>
+                            <Label Text="Salud visual de alta precisión · Bogotá, Colombia"
+                                   FontSize="11"
+                                   TextColor="{StaticResource Muted}"/>
+                        </VerticalStackLayout>
+                    </Grid>
+                </Border>
+
+                <!-- Botón Cerrar Sesión en CORAL -->
+                <Button Text="{Binding LogoutText}"
+                        Command="{Binding LogoutCommand}"
+                        Style="{StaticResource CoralButton}"
+                        Margin="16,4,16,0"/>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- FAVORITES MODAL OVERLAY -->
+        <Grid IsVisible="{Binding IsFavoritesModalVisible}"
+              BackgroundColor="#80000000"
+              Padding="16,20">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseFavoritesCommand}"/>
+            </Grid.GestureRecognizers>
+
+            <Border BackgroundColor="White"
+                    StrokeShape="RoundRectangle 20"
+                    StrokeThickness="0"
+                    Margin="0"
+                    Padding="18"
+                    VerticalOptions="Center"
+                    HeightRequest="520">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer/>
+                </Border.GestureRecognizers>
+
+                <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
+                    <!-- Header -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
+                            <Label Text="❤️" FontSize="20" VerticalOptions="Center"/>
+                            <Label Text="{Binding MyFavoritesText}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource Purple}" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+
+                        <Button Grid.Column="1"
+                                Text="✕"
+                                Command="{Binding CloseFavoritesCommand}"
+                                BackgroundColor="{StaticResource Lavender}"
+                                TextColor="{StaticResource Ink}"
+                                CornerRadius="14"
+                                WidthRequest="32" HeightRequest="32"
+                                Padding="0" FontSize="14"/>
+                    </Grid>
+
+                    <!-- Items List -->
+                    <CollectionView Grid.Row="1" ItemsSource="{Binding Favorites}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:ProductDto">
+                                <Border Stroke="{StaticResource Line}" StrokeThickness="1" StrokeShape="RoundRectangle 12" Padding="10" Margin="0,0,0,8">
+                                    <Grid ColumnDefinitions="50,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                                        <Border Grid.Column="0" WidthRequest="48" HeightRequest="48" StrokeShape="RoundRectangle 8" BackgroundColor="{StaticResource Lavender}" StrokeThickness="0">
+                                            <Image Source="{Binding SafeImageUrl}" Aspect="AspectFit" Margin="4"/>
+                                        </Border>
+
+                                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center">
+                                            <Label Text="{Binding Marca}" FontSize="10" FontAttributes="Bold" TextColor="{StaticResource Purple}"/>
+                                            <Label Text="{Binding DisplayNombre}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}" LineBreakMode="TailTruncation" MaxLines="1"/>
+                                            <Label Text="{Binding DisplayPrice}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                                        </VerticalStackLayout>
+
+                                        <Button Grid.Column="2" Text="🗑️"
+                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PerfilViewModel}}, Path=RemoveFavoriteCommand}"
+                                                CommandParameter="{Binding .}"
+                                                BackgroundColor="Transparent" FontSize="14" WidthRequest="36" HeightRequest="36"/>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+
+                        <CollectionView.EmptyView>
+                            <VerticalStackLayout Spacing="8" HorizontalOptions="Center" VerticalOptions="Center" Padding="30">
+                                <Label Text="🤍" FontSize="36" HorizontalOptions="Center"/>
+                                <Label Text="Aún no tienes productos favoritos" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
+                                <Label Text="Toca el ícono de corazón en cualquier producto para guardarlo aquí." FontSize="12" TextColor="{StaticResource Muted}" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+                            </VerticalStackLayout>
+                        </CollectionView.EmptyView>
+                    </CollectionView>
+
+                    <Button Grid.Row="2" Text="Cerrar" Command="{Binding CloseFavoritesCommand}" BackgroundColor="{StaticResource Purple}" TextColor="White" FontAttributes="Bold" CornerRadius="12" HeightRequest="44"/>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- ORDERS MODAL OVERLAY -->
+        <Grid IsVisible="{Binding IsOrdersModalVisible}"
+              BackgroundColor="#80000000"
+              Padding="16,20">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseOrdersCommand}"/>
+            </Grid.GestureRecognizers>
+
+            <Border BackgroundColor="White"
+                    StrokeShape="RoundRectangle 20"
+                    StrokeThickness="0"
+                    Margin="0"
+                    Padding="18"
+                    VerticalOptions="Center"
+                    HeightRequest="540">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer/>
+                </Border.GestureRecognizers>
+
+                <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
+                    <!-- Header -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
+                            <Label Text="📦" FontSize="20" VerticalOptions="Center"/>
+                            <Label Text="{Binding MyOrdersText}" FontSize="18" FontAttributes="Bold" TextColor="{StaticResource Purple}" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+
+                        <Button Grid.Column="1"
+                                Text="✕"
+                                Command="{Binding CloseOrdersCommand}"
+                                BackgroundColor="{StaticResource Lavender}"
+                                TextColor="{StaticResource Ink}"
+                                CornerRadius="14"
+                                WidthRequest="32" HeightRequest="32"
+                                Padding="0" FontSize="14"/>
+                    </Grid>
+
+                    <!-- Orders List -->
+                    <CollectionView Grid.Row="1" ItemsSource="{Binding Orders}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:OrderRecordDto">
+                                <Border Stroke="{StaticResource Line}" StrokeThickness="1" StrokeShape="RoundRectangle 14" Padding="12" Margin="0,0,0,10" BackgroundColor="{StaticResource Lavender}">
+                                    <VerticalStackLayout Spacing="6">
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Label Grid.Column="0" Text="{Binding OrderNumber}" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource Purple}"/>
+                                            <Border Grid.Column="1" BackgroundColor="#DEF7EC" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="6,2">
+                                                <Label Text="{Binding Status}" FontSize="10" FontAttributes="Bold" TextColor="#03543F"/>
+                                            </Border>
+                                        </Grid>
+
+                                        <Label Text="{Binding Date, StringFormat='Fecha: {0:dd/MM/yyyy HH:mm}'}" FontSize="11" TextColor="{StaticResource Muted}"/>
+
+                                        <BoxView HeightRequest="1" Color="{StaticResource Line}" Margin="0,2"/>
+
+                                        <!-- Items Summary -->
+                                        <Label Text="{Binding ItemsSummary}" FontSize="11" TextColor="{StaticResource Ink}" LineBreakMode="WordWrap"/>
+
+                                        <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                                            <Label Grid.Column="0" Text="Total:" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                                            <Label Grid.Column="1" Text="{Binding DisplayTotal}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource Purple}"/>
+                                        </Grid>
+                                    </VerticalStackLayout>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+
+                        <CollectionView.EmptyView>
+                            <VerticalStackLayout Spacing="8" HorizontalOptions="Center" VerticalOptions="Center" Padding="30">
+                                <Label Text="📦" FontSize="36" HorizontalOptions="Center"/>
+                                <Label Text="Aún no has realizado pedidos" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
+                                <Label Text="Tus compras realizadas en la tienda aparecerán en esta sección." FontSize="12" TextColor="{StaticResource Muted}" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
+                            </VerticalStackLayout>
+                        </CollectionView.EmptyView>
+                    </CollectionView>
+
+                    <Button Grid.Row="2" Text="Cerrar" Command="{Binding CloseOrdersCommand}" BackgroundColor="{StaticResource Purple}" TextColor="White" FontAttributes="Bold" CornerRadius="12" HeightRequest="44"/>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- FORMULA OPTICA MODAL CARD -->
+        <Grid IsVisible="{Binding IsFormulaModalVisible}"
+              BackgroundColor="#80000000"
+              Padding="16,20">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseFormulaCommand}"/>
+            </Grid.GestureRecognizers>
+
+            <Border BackgroundColor="White"
+                    StrokeShape="RoundRectangle 20"
+                    StrokeThickness="0"
+                    Margin="0"
+                    Padding="18"
+                    VerticalOptions="Center">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer/>
+                </Border.GestureRecognizers>
+
+                <VerticalStackLayout Spacing="14">
+                    <!-- Header -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
+                            <Label Text="👓" FontSize="20" VerticalOptions="Center"/>
+                            <Label Text="{Binding OpticPrescriptionText}" FontSize="17" FontAttributes="Bold" TextColor="{StaticResource Purple}" VerticalOptions="Center"/>
+                        </HorizontalStackLayout>
+
+                        <Button Grid.Column="1"
+                                Text="✕"
+                                Command="{Binding CloseFormulaCommand}"
+                                BackgroundColor="{StaticResource Lavender}"
+                                TextColor="{StaticResource Ink}"
+                                CornerRadius="14"
+                                WidthRequest="32" HeightRequest="32"
+                                Padding="0" FontSize="14"/>
+                    </Grid>
+
+                    <!-- Optical Prescription Details Card -->
+                    <Border BackgroundColor="{StaticResource Lavender}" StrokeThickness="1" Stroke="{StaticResource Purple}" StrokeShape="RoundRectangle 14" Padding="14">
+                        <VerticalStackLayout Spacing="10">
+                            <!-- Header info -->
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Label Grid.Column="0" Text="Paciente: Usuario LentSoft" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                                <Label Grid.Column="1" Text="Control: 15/06/2026" FontSize="11" TextColor="{StaticResource Muted}"/>
+                            </Grid>
+
+                            <BoxView HeightRequest="1" Color="{StaticResource Line}"/>
+
+                            <!-- Prescription Table Grid -->
+                            <Grid ColumnDefinitions="*,*,*,*,*" RowDefinitions="Auto,Auto,Auto" RowSpacing="6" ColumnSpacing="4">
+                                <!-- Table Header -->
+                                <Label Grid.Row="0" Grid.Column="0" Text="Ojo" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Purple}"/>
+                                <Label Grid.Row="0" Grid.Column="1" Text="ESF" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Purple}" HorizontalOptions="Center"/>
+                                <Label Grid.Row="0" Grid.Column="2" Text="CIL" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Purple}" HorizontalOptions="Center"/>
+                                <Label Grid.Row="0" Grid.Column="3" Text="EJE" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Purple}" HorizontalOptions="Center"/>
+                                <Label Grid.Row="0" Grid.Column="4" Text="DP" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Purple}" HorizontalOptions="Center"/>
+
+                                <!-- OD (Right Eye) -->
+                                <Label Grid.Row="1" Grid.Column="0" Text="OD (Derecho)" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                                <Label Grid.Row="1" Grid.Column="1" Text="-1.50" FontSize="11" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
+                                <Label Grid.Row="1" Grid.Column="2" Text="-0.50" FontSize="11" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
+                                <Label Grid.Row="1" Grid.Column="3" Text="180°" FontSize="11" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
+                                <Label Grid.Row="1" Grid.Column="4" Text="32 mm" FontSize="11" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
+
+                                <!-- OI (Left Eye) -->
+                                <Label Grid.Row="2" Grid.Column="0" Text="OI (Izquierdo)" FontSize="11" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                                <Label Grid.Row="2" Grid.Column="1" Text="-1.75" FontSize="11" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
+                                <Label Grid.Row="2" Grid.Column="2" Text="-0.25" FontSize="11" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
+                                <Label Grid.Row="2" Grid.Column="3" Text="175°" FontSize="11" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
+                                <Label Grid.Row="2" Grid.Column="4" Text="32 mm" FontSize="11" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
+                            </Grid>
+
+                            <BoxView HeightRequest="1" Color="{StaticResource Line}"/>
+
+                            <Label Text="Especialista: Dr. Ana Gómez (Reg. 45892)" FontSize="11" TextColor="{StaticResource Muted}"/>
+                            <Label Text="Observaciones: Filtro azul recomendado para uso de pantallas." FontSize="11" TextColor="{StaticResource Muted}"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Button Text="Cerrar" Command="{Binding CloseFormulaCommand}" BackgroundColor="{StaticResource Purple}" TextColor="White" FontAttributes="Bold" CornerRadius="12" HeightRequest="44"/>
+                </VerticalStackLayout>
+            </Border>
+        </Grid>
+
+    </Grid>
+
+</ContentPage>

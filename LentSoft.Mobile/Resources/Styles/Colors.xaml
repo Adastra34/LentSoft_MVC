@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<?xaml-comp compile="true" ?>
+<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml">
+
+    <!-- Design System Colors for LentSoft -->
+    <Color x:Key="Purple">#5B2A9E</Color>
+    <Color x:Key="PurpleDeep">#3D1B72</Color>
+    <Color x:Key="Ink">#1E1B29</Color>
+    <Color x:Key="Lavender">#F3EFFB</Color>
+    <Color x:Key="Card">#FFFFFF</Color>
+    <Color x:Key="Gold">#F2B705</Color>
+    <Color x:Key="Green">#2FBF71</Color>
+    <Color x:Key="Coral">#FF6B5E</Color>
+    <Color x:Key="Muted">#77708A</Color>
+    <Color x:Key="Line">#E4DDF5</Color>
+
+    <!-- Additional Palette Helpers -->
+    <Color x:Key="Amber">#D97706</Color>
+    <Color x:Key="AmberLight">#FEF3C7</Color>
+    <Color x:Key="GreenLight">#DCFCE7</Color>
+    <Color x:Key="PurpleLight">#EDE4F9</Color>
+    <Color x:Key="GoldLight">#FEF9C3</Color>
+    <Color x:Key="CoralLight">#FEE2E2</Color>
+
+    <!-- Default MAUI Aliases -->
+    <Color x:Key="Primary">#5B2A9E</Color>
+    <Color x:Key="PrimaryDark">#3D1B72</Color>
+    <Color x:Key="PrimaryDarkText">#1E1B29</Color>
+    <Color x:Key="Secondary">#F3EFFB</Color>
+    <Color x:Key="SecondaryDarkText">#5B2A9E</Color>
+    <Color x:Key="Tertiary">#F2B705</Color>
+
+    <Color x:Key="White">#FFFFFF</Color>
+    <Color x:Key="Black">#1E1B29</Color>
+    <Color x:Key="MidnightBlue">#1E1B29</Color>
+    <Color x:Key="OffBlack">#1F1F1F</Color>
+
+    <Color x:Key="Gray100">#F3EFFB</Color>
+    <Color x:Key="Gray200">#E4DDF5</Color>
+    <Color x:Key="Gray300">#D0C7E8</Color>
+    <Color x:Key="Gray400">#A29BB8</Color>
+    <Color x:Key="Gray500">#77708A</Color>
+    <Color x:Key="Gray600">#554E69</Color>
+    <Color x:Key="Gray900">#1E1B29</Color>
+    <Color x:Key="Gray950">#14121C</Color>
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="PurpleBrush" Color="{StaticResource Purple}"/>
+    <SolidColorBrush x:Key="PurpleDeepBrush" Color="{StaticResource PurpleDeep}"/>
+    <SolidColorBrush x:Key="InkBrush" Color="{StaticResource Ink}"/>
+    <SolidColorBrush x:Key="LavenderBrush" Color="{StaticResource Lavender}"/>
+    <SolidColorBrush x:Key="CardBrush" Color="{StaticResource Card}"/>
+    <SolidColorBrush x:Key="GoldBrush" Color="{StaticResource Gold}"/>
+    <SolidColorBrush x:Key="GreenBrush" Color="{StaticResource Green}"/>
+    <SolidColorBrush x:Key="CoralBrush" Color="{StaticResource Coral}"/>
+    <SolidColorBrush x:Key="MutedBrush" Color="{StaticResource Muted}"/>
+    <SolidColorBrush x:Key="LineBrush" Color="{StaticResource Line}"/>
+    <SolidColorBrush x:Key="AmberBrush" Color="{StaticResource Amber}"/>
+
+    <!-- Gradients -->
+    <LinearGradientBrush x:Key="AppBarGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="{StaticResource Purple}" Offset="0.0"/>
+        <GradientStop Color="{StaticResource PurpleDeep}" Offset="1.0"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="GoldAvatarGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#F9D423" Offset="0.0"/>
+        <GradientStop Color="#F2B705" Offset="1.0"/>
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="CardBannerGradient" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="{StaticResource PurpleDeep}" Offset="0.0"/>
+        <GradientStop Color="{StaticResource Purple}" Offset="1.0"/>
+    </LinearGradientBrush>
+</ResourceDictionary>
