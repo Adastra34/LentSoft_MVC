@@ -687,8 +687,8 @@ label, .form-label {
 
 /* ── Panel de chat ── */
 .morgana-panel {
-  width: 340px;
-  max-height: 520px;
+  width: 380px;
+  max-height: 600px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: 1.25rem;
@@ -890,15 +890,28 @@ label, .form-label {
   40% { transform: translateY(-6px); }
 }
 
-/* ── Chips de preguntas sugeridas (Lista Seleccionable) ── */
+/* ── Chips de preguntas sugeridas (Sección Colapsable) ── */
+.morgana-chips-section {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.25s ease, opacity 0.25s ease;
+  flex-shrink: 0;
+  background: var(--gray-50);
+}
+
+.morgana-chips-section--open {
+  max-height: 320px;
+  opacity: 1;
+  border-top: 1px solid var(--border);
+}
+
 .morgana-chips-header {
   padding: 0.65rem 0.85rem 0.35rem;
   font-family: var(--font-primary);
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--purple-950);
-  background: var(--gray-50);
-  border-top: 1px solid var(--border);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   flex-shrink: 0;
@@ -909,10 +922,9 @@ label, .form-label {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
-  max-height: 200px;
+  max-height: 240px;
   overflow-y: auto;
   flex-shrink: 0;
-  background: var(--gray-50);
   transition: opacity 0.2s ease;
 }
 
@@ -998,6 +1010,45 @@ label, .form-label {
 .morgana-input:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+/* Botón toggle de preguntas frecuentes (estilo outline) */
+.morgana-faq-toggle-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--purple-200);
+  background: var(--white);
+  color: var(--purple-700);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.morgana-faq-toggle-btn:hover {
+  background: var(--purple-50);
+  border-color: var(--purple-500);
+  color: var(--purple-900);
+  transform: scale(1.08);
+}
+
+.morgana-faq-toggle-btn:active {
+  transform: scale(0.95);
+}
+
+.morgana-faq-toggle-btn--active {
+  background: var(--purple-100);
+  border-color: var(--purple-600);
+  color: var(--purple-800);
+}
+
+.morgana-faq-toggle-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .morgana-send-btn {

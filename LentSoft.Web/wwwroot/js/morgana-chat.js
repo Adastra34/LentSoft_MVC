@@ -10,6 +10,7 @@
   // ── Estado ──────────────────────────────────────────────────────────────────
   let isOpen = false;
   let hasGreeted = false;
+  let chipsVisible = false;
   let conversationHistory = [];
 
   // ── Crear estructura HTML del widget ────────────────────────────────────────
@@ -40,15 +41,25 @@
         <!-- Historial de mensajes -->
         <div id="morgana-messages" class="morgana-messages" aria-live="polite"></div>
 
-        <!-- Título de preguntas predeterminadas -->
-        <div class="morgana-chips-header">Preguntas Predeterminadas</div>
+        <!-- Sección de preguntas predeterminadas colapsable -->
+        <div id="morgana-chips-section" class="morgana-chips-section">
+          <!-- Título de preguntas predeterminadas -->
+          <div class="morgana-chips-header">Preguntas Predeterminadas</div>
 
-        <!-- Chips de preguntas sugeridas (como lista seleccionable) -->
-        <div id="morgana-chips" class="morgana-chips"></div>
+          <!-- Chips de preguntas sugeridas (como lista seleccionable) -->
+          <div id="morgana-chips" class="morgana-chips"></div>
+        </div>
 
         <!-- Input de texto libre -->
         <div class="morgana-input-bar">
           <input type="text" id="morgana-input" class="morgana-input" placeholder="Escribe tu mensaje…" autocomplete="off" />
+          <button type="button" id="morgana-faq-toggle-btn" class="morgana-faq-toggle-btn" aria-label="Mostrar preguntas frecuentes" title="Preguntas frecuentes" aria-expanded="false">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+              <line x1="12" y1="17" x2="12.01" y2="17"></line>
+            </svg>
+          </button>
           <button id="morgana-send-btn" class="morgana-send-btn" aria-label="Enviar mensaje">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -196,9 +207,11 @@
     const chipsContainer = document.getElementById('morgana-chips');
     const inputEl = document.getElementById('morgana-input');
     const sendBtn = document.getElementById('morgana-send-btn');
+    const faqToggleBtn = document.getElementById('morgana-faq-toggle-btn');
     if (chipsContainer) chipsContainer.classList.add('morgana-chips--disabled');
     if (inputEl) inputEl.disabled = true;
     if (sendBtn) sendBtn.disabled = true;
+    if (faqToggleBtn) faqToggleBtn.disabled = true;
 
     mostrarTyping();
 
@@ -240,11 +253,38 @@
       if (chipsContainer) chipsContainer.classList.remove('morgana-chips--disabled');
       if (inputEl) { inputEl.disabled = false; inputEl.focus(); }
       if (sendBtn) sendBtn.disabled = false;
+      if (faqToggleBtn) faqToggleBtn.disabled = false;
     });
+  }
+
+  // ── Mostrar / Ocultar preguntas predeterminadas ─────────────────────────────
+  function toggleChips(forzarEstado) {
+    const section = document.getElementById('morgana-chips-section');
+    const toggleBtn = document.getElementById('morgana-faq-toggle-btn');
+    if (!section) return;
+
+    chipsVisible = typeof forzarEstado === 'boolean' ? forzarEstado : !chipsVisible;
+
+    if (chipsVisible) {
+      section.classList.add('morgana-chips-section--open');
+      if (toggleBtn) {
+        toggleBtn.classList.add('morgana-faq-toggle-btn--active');
+        toggleBtn.setAttribute('aria-expanded', 'true');
+        toggleBtn.setAttribute('aria-label', 'Ocultar preguntas frecuentes');
+      }
+    } else {
+      section.classList.remove('morgana-chips-section--open');
+      if (toggleBtn) {
+        toggleBtn.classList.remove('morgana-faq-toggle-btn--active');
+        toggleBtn.setAttribute('aria-expanded', 'false');
+        toggleBtn.setAttribute('aria-label', 'Mostrar preguntas frecuentes');
+      }
+    }
   }
 
   // ── Manejadores de eventos ────────────────────────────────────────────────────
   function manejarChipClick(item) {
+    toggleChips(false); // Colapsar sección de chips tras seleccionar para dar más espacio
     procesarConsulta(item.pregunta, item.pregunta);
   }
 
@@ -273,6 +313,9 @@
     iconChat && iconChat.classList.add('morgana-btn-icon--hidden');
     iconM && iconM.classList.remove('morgana-btn-icon--hidden');
     notifDot && notifDot.classList.add('morgana-notif-dot--hidden');
+
+    // Por defecto, preguntas predeterminadas ocultas al abrir
+    toggleChips(false);
 
     // Mensaje de bienvenida (solo la primera vez)
     if (!hasGreeted) {
@@ -305,6 +348,9 @@
     btn && btn.setAttribute('aria-label', 'Abrir chat de ayuda Morgana');
     iconChat && iconChat.classList.remove('morgana-btn-icon--hidden');
     iconM && iconM.classList.add('morgana-btn-icon--hidden');
+
+    // Resetear visibilidad de chips al cerrar
+    toggleChips(false);
   }
 
   // ── Inicialización ───────────────────────────────────────────────────────────
@@ -324,6 +370,14 @@
     const closeBtn = document.getElementById('morgana-close-btn');
     if (closeBtn) {
       closeBtn.addEventListener('click', cerrarPanel);
+    }
+
+    // Botón toggle de preguntas frecuentes (FAQ)
+    const faqToggleBtn = document.getElementById('morgana-faq-toggle-btn');
+    if (faqToggleBtn) {
+      faqToggleBtn.addEventListener('click', function () {
+        toggleChips();
+      });
     }
 
     // Botón enviar
