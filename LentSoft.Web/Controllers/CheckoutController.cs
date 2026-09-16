@@ -83,6 +83,8 @@ public class CheckoutController : Controller
                 MetodoPagoSimulado = "Tarjeta terminada en " + model.NumeroTarjeta.Substring(Math.Max(0, model.NumeroTarjeta.Length - 4))
             };
 
+            var disabledProducts = new List<string>();
+
             foreach (var item in cart.CartItems)
             {
                 // Reduce stock
@@ -90,6 +92,24 @@ public class CheckoutController : Controller
                 if (product != null)
                 {
                     product.Stock = Math.Max(0, product.Stock - item.Cantidad);
+
+                    // Requerimiento 5: Inhabilitación automática cuando stock llega a 0
+                    if (product.Stock == 0)
+                    {
+                        product.Activo = false;
+                        disabledProducts.Add(product.Nombre);
+                    }
+
+                    // Requerimiento 1: Conectar cada venta con el Historial de Movimientos (Salida)
+                    _context.InventoryMovements.Add(new InventoryMovement
+                    {
+                        ProductId = item.ProductId,
+                        NombreProducto = product.Nombre,
+                        Tipo = "Salida",
+                        Cantidad = item.Cantidad,
+                        Fecha = DateTime.UtcNow,
+                        Responsable = User.Identity?.Name ?? $"Venta Online (Cliente #{userId})"
+                    });
                 }
 
                 order.OrderItems.Add(new OrderItem
@@ -98,6 +118,14 @@ public class CheckoutController : Controller
                     Cantidad = item.Cantidad,
                     PrecioUnitario = item.PrecioUnitario
                 });
+            }
+
+            if (disabledProducts.Any())
+            {
+                var names = string.Join(", ", disabledProducts);
+                TempData["WarningMessage"] = disabledProducts.Count == 1 
+                    ? $"Se inhabilitó el producto {names}" 
+                    : $"Se inhabilitaron los productos: {names}";
             }
 
             _context.Orders.Add(order);

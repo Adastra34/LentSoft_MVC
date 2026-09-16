@@ -27,6 +27,10 @@
             {
                 <text>alertify.success('@Html.Raw(TempData["SuccessMessage"]?.ToString()?.Replace("'", "\\'"))');</text>
             }
+            @if (TempData["WarningMessage"] != null)
+            {
+                <text>alertify.warning('@Html.Raw(TempData["WarningMessage"]?.ToString()?.Replace("'", "\\'"))');</text>
+            }
             @if (TempData["ErrorMessage"] != null)
             {
                 <text>alertify.error('@Html.Raw(TempData["ErrorMessage"]?.ToString()?.Replace("'", "\\'"))');</text>

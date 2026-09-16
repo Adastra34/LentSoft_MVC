@@ -96,6 +96,16 @@ public class ProductService : IProductService
 
     public async Task<Product> CreateAsync(Product product)
     {
+        // Requerimiento 3: Límite máximo de stock de 85 unidades
+        if (product.Stock > 85) product.Stock = 85;
+
+        // Requerimiento 5: Inhabilitación automática si stock es 0
+        if (product.Stock <= 0)
+        {
+            product.Stock = 0;
+            product.Activo = false;
+        }
+
         product.FechaCreacion = DateTime.UtcNow;
         _context.Products.Add(product);
 
@@ -129,6 +139,9 @@ public class ProductService : IProductService
         var product = await _context.Products.FindAsync(id);
         if (product == null) return null;
 
+        // Requerimiento 3: Límite máximo de stock de 85 unidades
+        if (updated.Stock > 85) updated.Stock = 85;
+
         int stockDelta = updated.Stock - product.Stock;
 
         product.Nombre = updated.Nombre;
@@ -139,7 +152,18 @@ public class ProductService : IProductService
         product.Marca = updated.Marca;
         product.Stock = updated.Stock;
         product.ImagenUrl = updated.ImagenUrl;
-        product.Activo = updated.Activo;
+
+        // Requerimiento 5: Inhabilitación automática cuando stock llega a 0
+        if (product.Stock <= 0)
+        {
+            product.Stock = 0;
+            product.Activo = false;
+        }
+        else
+        {
+            product.Activo = updated.Activo;
+        }
+
         if (!string.IsNullOrEmpty(updated.SupplierId)) product.SupplierId = updated.SupplierId;
 
         try

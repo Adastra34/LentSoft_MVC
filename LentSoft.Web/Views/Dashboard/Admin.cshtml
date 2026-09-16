@@ -112,13 +112,18 @@
                         <tbody>
                             @foreach (var p in Model.PedidosRecientes)
                             {
+                                var stLower = (p.Estado ?? "").ToString().Trim().ToLower();
+                                var badgeBg = stLower.Contains("cancel") ? "#E54D4D" 
+                                            : (stLower.Contains("envia") || stLower.Contains("recibi") || stLower.Contains("entrega")) ? "#1E9E6D" 
+                                            : stLower.Contains("proces") ? "#3B82F6" 
+                                            : "#EFA125"; // Pendiente -> naranja
                                 <tr style="border-bottom: 1px solid var(--purple-100);">
                                     <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">#ORD-@p.Id.ToString("D4")</td>
                                     <td style="padding: 0.75rem;">@(p.User?.Nombre ?? "Cliente")</td>
                                     <td style="padding: 0.75rem; color: var(--gray-600);">@p.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                     <td style="padding: 0.75rem; font-weight: 600;">@p.Total.ToString("C")</td>
                                     <td style="padding: 0.75rem;">
-                                        <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; text-transform: capitalize;">
+                                        <span style="background-color: @badgeBg; color: white; padding: 0.35rem 1.25rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; display: inline-block; text-transform: capitalize;">
                                             @p.Estado
                                         </span>
                                     </td>
@@ -183,8 +188,29 @@
             <!-- CONTENIDO PESTAÑA PRODUCTOS -->
             <div id="subtab-content-productos" style="display: @(initialTab == "productos" ? "block" : "none");">
                 <div class="card" style="padding: 1.5rem; background: white;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <input type="text" id="searchProducts" placeholder="Buscar producto..." data-i18n-placeholder="admin.inv.searchproduct" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchProducts', 'tableProducts')" oninput="filterTable('searchProducts', 'tableProducts')" />
+                    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: nowrap; margin-bottom: 1.25rem; width: 100%;">
+                        <div style="position: relative; flex: 1.5; min-width: 240px; display: flex; align-items: center;">
+                            <span style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: #6B7280; font-size: 0.95rem; pointer-events: none;">🔍</span>
+                            <input type="text" id="searchProducts" placeholder="Buscar venta, cliente o código..." style="width: 100%; height: 42px; padding: 0.5rem 0.85rem 0.5rem 2.5rem; font-size: 0.875rem; border: 1px solid #E5E7EB; border-radius: 0.5rem; background: #FFFFFF; color: #374151; outline: none; transition: border-color 0.2s;" onkeyup="filterInventoryTable('searchProducts', 'filterStateProducts', 'filterCatProducts', 'tableProducts')" oninput="filterInventoryTable('searchProducts', 'filterStateProducts', 'filterCatProducts', 'tableProducts')" />
+                        </div>
+                        <div style="position: relative; flex: 1; min-width: 170px; display: flex; align-items: center;">
+                            <select id="filterStateProducts" onchange="filterInventoryTable('searchProducts', 'filterStateProducts', 'filterCatProducts', 'tableProducts')" style="width: 100%; height: 42px; padding: 0.5rem 0.85rem; font-size: 0.875rem; border-radius: 0.5rem; border: 1px solid #E5E7EB; background: #FFFFFF; font-weight: 500; color: #374151; cursor: pointer; outline: none;">
+                                <option value="">⚙️ Filtro: Todos</option>
+                                <option value="activo">Activos</option>
+                                <option value="inactivo">Inactivos / Inhabilitados</option>
+                            </select>
+                        </div>
+                        <div style="position: relative; flex: 1; min-width: 210px; display: flex; gap: 0.5rem; align-items: center;">
+                            <select id="filterCatProducts" onchange="filterInventoryTable('searchProducts', 'filterStateProducts', 'filterCatProducts', 'tableProducts')" style="width: 100%; height: 42px; padding: 0.5rem 0.85rem; font-size: 0.875rem; border-radius: 0.5rem; border: 1px solid #E5E7EB; background: #FFFFFF; font-weight: 500; color: #374151; cursor: pointer; outline: none;">
+                                <option value="">🏷️ Categoría: Todas</option>
+                                <option value="lentes-sol">Gafas de Sol</option>
+                                <option value="lentes-contacto">Lentes de Contacto</option>
+                                <option value="monturas">Monturas</option>
+                                <option value="lentes-graduados">Lentes Graduados</option>
+                                <option value="accesorios">Accesorios</option>
+                            </select>
+                            <button type="button" style="height: 42px; width: 42px; flex-shrink: 0; border: 1px solid #E5E7EB; border-radius: 0.5rem; background: #FFFFFF; color: #6B7280; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Opciones">•••</button>
+                        </div>
                     </div>
                     <div style="overflow-x: auto;">
                         <table id="tableProducts" style="width: 100%; border-collapse: collapse; text-align: left;">
@@ -194,7 +220,7 @@
                                     <th style="padding: 0.75rem;" data-i18n="modal.sale.selectproduct">Nombre</th>
                                     <th style="padding: 0.75rem;" data-i18n="sales.inventory.category">Categoría</th>
                                     <th style="padding: 0.75rem;" data-i18n="sales.inventory.price">Precio</th>
-                                    <th style="padding: 0.75rem;" data-i18n="modal.sale.qty">Stock</th>
+                                    <th style="padding: 0.75rem;" data-i18n="modal.sale.qty">Stock (Máx 85)</th>
                                     <th style="padding: 0.75rem;" data-i18n="sales.table.status">Estado</th>
                                     <th style="padding: 0.75rem;" data-i18n="sales.table.actions">Acciones</th>
                                 </tr>
@@ -209,12 +235,23 @@
                                         </td>
                                         <td style="padding: 0.75rem; color: var(--gray-600);">@prod.Categoria</td>
                                         <td style="padding: 0.75rem; color: var(--gray-600);">@prod.Precio.ToString("C")</td>
-                                        <td style="padding: 0.75rem; color: @(prod.Stock < 10 ? "var(--error)" : "var(--gray-600)"); font-weight: @(prod.Stock < 10 ? "bold" : "normal");">
-                                            @prod.Stock
+                                        <td style="padding: 0.75rem;">
+                                            @if (prod.Stock == 0)
+                                            {
+                                                <span style="background-color: var(--danger); color: white; padding: 0.2rem 0.55rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700;">🔴 Agotado (0)</span>
+                                            }
+                                            else if (prod.Stock <= 10)
+                                            {
+                                                <span style="background-color: #F59E0B; color: white; padding: 0.2rem 0.55rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700;">⚠️ Stock bajo (@prod.Stock)</span>
+                                            }
+                                            else
+                                            {
+                                                <span style="color: var(--gray-700); font-weight: 500;">@prod.Stock</span>
+                                            }
                                         </td>
                                         <td style="padding: 0.75rem;">
-                                            <button type="button" onclick="toggleProductStatus(@prod.Id, this)" style="background-color: @(prod.Activo ? "var(--success)" : "var(--error)"); color: white; border: none; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; cursor: pointer; font-weight: 600;" data-i18n="@(prod.Activo ? "admin.inv.active" : "admin.inv.inactive")">
-                                                @(prod.Activo ? "Activo" : "Inactivo")
+                                            <button type="button" onclick="toggleProductStatus(@prod.Id, this)" style="background-color: @(prod.Activo && prod.Stock > 0 ? "var(--success)" : "var(--danger)"); color: white; border: none; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; cursor: pointer; font-weight: 600;">
+                                                @(prod.Activo && prod.Stock > 0 ? "Activo" : "Inhabilitado")
                                             </button>
                                         </td>
                                         <td style="padding: 0.75rem;">
@@ -238,8 +275,28 @@
             <!-- CONTENIDO PESTAÑA PROVEEDORES -->
             <div id="subtab-content-proveedores" style="display: @(initialTab == "proveedores" ? "block" : "none");">
                 <div class="card" style="padding: 1.5rem; background: white;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <input type="text" id="searchProveedores" placeholder="Buscar proveedor..." data-i18n-placeholder="admin.inv.searchsupplier" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchProveedores', 'tableProveedores')" oninput="filterTable('searchProveedores', 'tableProveedores')" />
+                    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: nowrap; margin-bottom: 1.25rem; width: 100%;">
+                        <div style="position: relative; flex: 1.5; min-width: 240px; display: flex; align-items: center;">
+                            <span style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: #6B7280; font-size: 0.95rem; pointer-events: none;">🔍</span>
+                            <input type="text" id="searchProveedores" placeholder="Buscar venta, cliente o código..." style="width: 100%; height: 42px; padding: 0.5rem 0.85rem 0.5rem 2.5rem; font-size: 0.875rem; border: 1px solid #E5E7EB; border-radius: 0.5rem; background: #FFFFFF; color: #374151; outline: none; transition: border-color 0.2s;" onkeyup="filterInventoryTable('searchProveedores', 'filterStateProveedores', 'filterCatProveedores', 'tableProveedores')" oninput="filterInventoryTable('searchProveedores', 'filterStateProveedores', 'filterCatProveedores', 'tableProveedores')" />
+                        </div>
+                        <div style="position: relative; flex: 1; min-width: 170px; display: flex; align-items: center;">
+                            <select id="filterStateProveedores" onchange="filterInventoryTable('searchProveedores', 'filterStateProveedores', 'filterCatProveedores', 'tableProveedores')" style="width: 100%; height: 42px; padding: 0.5rem 0.85rem; font-size: 0.875rem; border-radius: 0.5rem; border: 1px solid #E5E7EB; background: #FFFFFF; font-weight: 500; color: #374151; cursor: pointer; outline: none;">
+                                <option value="">⚙️ Filtro: Todos</option>
+                                <option value="activo">Activos</option>
+                                <option value="inactivo">Inactivos</option>
+                            </select>
+                        </div>
+                        <div style="position: relative; flex: 1; min-width: 210px; display: flex; gap: 0.5rem; align-items: center;">
+                            <select id="filterCatProveedores" onchange="filterInventoryTable('searchProveedores', 'filterStateProveedores', 'filterCatProveedores', 'tableProveedores')" style="width: 100%; height: 42px; padding: 0.5rem 0.85rem; font-size: 0.875rem; border-radius: 0.5rem; border: 1px solid #E5E7EB; background: #FFFFFF; font-weight: 500; color: #374151; cursor: pointer; outline: none;">
+                                <option value="">🏷️ Categoría: Todas</option>
+                                <option value="monturas">Monturas</option>
+                                <option value="lentes">Lentes</option>
+                                <option value="accesorios">Accesorios</option>
+                                <option value="general">General</option>
+                            </select>
+                            <button type="button" style="height: 42px; width: 42px; flex-shrink: 0; border: 1px solid #E5E7EB; border-radius: 0.5rem; background: #FFFFFF; color: #6B7280; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Opciones">•••</button>
+                        </div>
                     </div>
                     <div style="overflow-x: auto;">
                         <table id="tableProveedores" style="width: 100%; border-collapse: collapse; text-align: left;">
@@ -302,14 +359,35 @@
             <!-- CONTENIDO PESTAÑA HISTORIAL -->
             <div id="subtab-content-historial" style="display: @(initialTab == "historial" ? "block" : "none");">
                 <div class="card" style="padding: 1.5rem; background: white;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <input type="text" id="searchHistorial" placeholder="Buscar en historial..." data-i18n-placeholder="admin.inv.searchhistory" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchHistorial', 'tableHistorial')" oninput="filterTable('searchHistorial', 'tableHistorial')" />
-                        
-                        <div style="display: flex; gap: 0.75rem; align-items: center;">
-                            <label style="font-weight: 600; font-size: 0.85rem; color: var(--purple-900);">Orden por Fecha:</label>
-                            <select onchange="location.href='?section=inventario&subtab=historial&movSort=' + this.value" class="form-input" style="padding: 0.4rem 0.75rem; font-size: 0.85rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
-                                <option value="desc" selected="@(ViewBag.MovSort != "asc")">Más recientes primero (Descendente)</option>
-                                <option value="asc" selected="@(ViewBag.MovSort == "asc")">Más antiguos primero (Ascendente)</option>
+                    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: nowrap; margin-bottom: 1.25rem; width: 100%;">
+                        <div style="position: relative; flex: 1.5; min-width: 240px; display: flex; align-items: center;">
+                            <span style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: #6B7280; font-size: 0.95rem; pointer-events: none;">🔍</span>
+                            <input type="text" id="searchHistorial" placeholder="Buscar venta, cliente o código..." style="width: 100%; height: 42px; padding: 0.5rem 0.85rem 0.5rem 2.5rem; font-size: 0.875rem; border: 1px solid #E5E7EB; border-radius: 0.5rem; background: #FFFFFF; color: #374151; outline: none; transition: border-color 0.2s;" onkeyup="filterInventoryTable('searchHistorial', 'filterStateHistorial', 'filterCatHistorial', 'tableHistorial')" oninput="filterInventoryTable('searchHistorial', 'filterStateHistorial', 'filterCatHistorial', 'tableHistorial')" />
+                        </div>
+                        <div style="position: relative; flex: 1; min-width: 170px; display: flex; align-items: center;">
+                            <select id="filterStateHistorial" onchange="filterInventoryTable('searchHistorial', 'filterStateHistorial', 'filterCatHistorial', 'tableHistorial')" style="width: 100%; height: 42px; padding: 0.5rem 0.85rem; font-size: 0.875rem; border-radius: 0.5rem; border: 1px solid #E5E7EB; background: #FFFFFF; font-weight: 500; color: #374151; cursor: pointer; outline: none;">
+                                <option value="">⚙️ Filtro: Todos</option>
+                                <option value="entrada">Entrada</option>
+                                <option value="salida">Salida</option>
+                                <option value="alta">Alta</option>
+                                <option value="edición">Edición</option>
+                            </select>
+                        </div>
+                        <div style="position: relative; flex: 1; min-width: 210px; display: flex; gap: 0.5rem; align-items: center;">
+                            <select id="filterCatHistorial" onchange="filterInventoryTable('searchHistorial', 'filterStateHistorial', 'filterCatHistorial', 'tableHistorial')" style="width: 100%; height: 42px; padding: 0.5rem 0.85rem; font-size: 0.875rem; border-radius: 0.5rem; border: 1px solid #E5E7EB; background: #FFFFFF; font-weight: 500; color: #374151; cursor: pointer; outline: none;">
+                                <option value="">🏷️ Categoría: Todas</option>
+                                <option value="lentes-sol">Gafas de Sol</option>
+                                <option value="lentes-contacto">Lentes de Contacto</option>
+                                <option value="monturas">Monturas</option>
+                                <option value="accesorios">Accesorios</option>
+                            </select>
+                            <button type="button" style="height: 42px; width: 42px; flex-shrink: 0; border: 1px solid #E5E7EB; border-radius: 0.5rem; background: #FFFFFF; color: #6B7280; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Opciones">•••</button>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center; margin-left: auto;">
+                            <label style="font-weight: 600; font-size: 0.85rem; color: var(--purple-900);">Orden:</label>
+                            <select onchange="location.href='?section=inventario&subtab=historial&movSort=' + this.value" style="height: 42px; padding: 0.5rem 0.85rem; font-size: 0.85rem; border-radius: 0.5rem; border: 1px solid #E5E7EB; background: #FFFFFF;">
+                                <option value="desc" selected="@(ViewBag.MovSort != "asc")">Más recientes primero (Desc)</option>
+                                <option value="asc" selected="@(ViewBag.MovSort == "asc")">Más antiguos primero (Asc)</option>
                             </select>
                         </div>
                     </div>
@@ -320,9 +398,11 @@
                                     <th style="padding: 0.75rem;">ID</th>
                                     <th style="padding: 0.75rem;" data-i18n="modal.sale.selectproduct">Producto</th>
                                     <th style="padding: 0.75rem;" data-i18n="admin.inv.type">Tipo</th>
-                                    <th style="padding: 0.75rem;" data-i18n="admin.inv.qty">Cantidad</th>
+                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="admin.inv.qty">Cantidad</th>
                                     <th style="padding: 0.75rem; cursor: pointer;" onclick="location.href='?section=inventario&subtab=historial&movSort=@(ViewBag.MovSort == "asc" ? "desc" : "asc")'">Fecha @(ViewBag.MovSort == "asc" ? "▲" : "▼")</th>
+                                    <th style="padding: 0.75rem;">Hora</th>
                                     <th style="padding: 0.75rem;" data-i18n="admin.inv.responsible">Responsable</th>
+                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="sales.table.actions">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -335,13 +415,20 @@
                                             <a href="/Product/Details/@mov.ProductId" style="color: var(--purple-700); font-weight: 600; text-decoration: underline;">@(mov.NombreProducto ?? mov.Product?.Nombre ?? ("Producto #" + mov.ProductId))</a>
                                         </td>
                                         <td style="padding: 0.75rem;">
-                                            <span style="background-color: @(mov.Tipo?.ToLower() == "entrada" ? "var(--success)" : "var(--warning)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; text-transform: uppercase;" data-i18n="@tipoKey">
+                                            <span style="background-color: @(mov.Tipo?.ToLower() == "entrada" ? "var(--success)" : mov.Tipo?.ToLower() == "salida" ? "var(--danger)" : "var(--warning)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; text-transform: uppercase;" data-i18n="@tipoKey">
                                                 @mov.Tipo
                                             </span>
                                         </td>
-                                        <td style="padding: 0.75rem; font-weight: 600;">@mov.Cantidad</td>
-                                        <td style="padding: 0.75rem; color: var(--gray-600);">@mov.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td style="padding: 0.75rem; font-weight: 600; text-align: center;">@mov.Cantidad</td>
+                                        <td style="padding: 0.75rem; color: var(--gray-600);">@mov.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                        <td style="padding: 0.75rem; color: var(--gray-600);">@mov.Fecha.ToLocalTime().ToString("HH:mm")</td>
                                         <td style="padding: 0.75rem;">@(mov.Responsable ?? "Administrador")</td>
+                                        <td style="padding: 0.75rem; text-align: center;">
+                                            <form asp-action="DeleteInventoryMovement" asp-controller="Dashboard" method="post" style="display: inline;" onsubmit="return confirm('¿Seguro que deseas eliminar este movimiento del historial?');">
+                                                <input type="hidden" name="id" value="@mov.Id" />
+                                                <button type="submit" style="background-color: #FEE2E2; color: #DC2626; border: none; padding: 0.35rem 1rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: inline-block; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#FCA5A5'" onmouseout="this.style.backgroundColor='#FEE2E2'" aria-label="Eliminar" title="Eliminar movimiento">Eliminar</button>
+                                            </form>
+                                        </td>
                                     </tr>
                                 }
                             </tbody>
@@ -364,9 +451,29 @@
 
                 <!-- CONTENIDO PESTAÑA VENTAS (Independiente) -->
                 <div id="content-pedidos-ventas" class="card" style="padding: 1.5rem; background: white;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <input type="text" id="searchPedidosVentas" placeholder="Buscar pedido de venta..." class="form-input" style="width: 320px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchPedidosVentas', 'tablePedidosVentas')" oninput="filterTable('searchPedidosVentas', 'tablePedidosVentas')" />
-                        <span style="font-size: 0.85rem; color: var(--gray-500);">* Manejo independiente sin acoplamiento al inventario</span>
+                    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: nowrap; margin-bottom: 1.25rem; width: 100%;">
+                        <div style="position: relative; flex: 1.5; min-width: 240px; display: flex; align-items: center;">
+                            <span style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: #6B7280; font-size: 0.95rem; pointer-events: none;">🔍</span>
+                            <input type="text" id="searchPedidosVentas" placeholder="Buscar venta, cliente o código..." style="width: 100%; height: 42px; padding: 0.5rem 0.85rem 0.5rem 2.5rem; font-size: 0.875rem; border: 1px solid #E5E7EB; border-radius: 0.5rem; background: #FFFFFF; color: #374151; outline: none; transition: border-color 0.2s;" onkeyup="filterInventoryTable('searchPedidosVentas', 'filterStatePedidosVentas', 'filterCatPedidosVentas', 'tablePedidosVentas')" oninput="filterInventoryTable('searchPedidosVentas', 'filterStatePedidosVentas', 'filterCatPedidosVentas', 'tablePedidosVentas')" />
+                        </div>
+                        <div style="position: relative; flex: 1; min-width: 170px; display: flex; align-items: center;">
+                            <select id="filterStatePedidosVentas" onchange="filterInventoryTable('searchPedidosVentas', 'filterStatePedidosVentas', 'filterCatPedidosVentas', 'tablePedidosVentas')" style="width: 100%; height: 42px; padding: 0.5rem 0.85rem; font-size: 0.875rem; border-radius: 0.5rem; border: 1px solid #E5E7EB; background: #FFFFFF; font-weight: 500; color: #374151; cursor: pointer; outline: none;">
+                                <option value="">⚙️ Filtro: Todos</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="enviado">Enviado</option>
+                                <option value="entregado">Entregado</option>
+                                <option value="cancelado">Cancelado</option>
+                            </select>
+                        </div>
+                        <div style="position: relative; flex: 1; min-width: 210px; display: flex; gap: 0.5rem; align-items: center;">
+                            <select id="filterCatPedidosVentas" onchange="filterInventoryTable('searchPedidosVentas', 'filterStatePedidosVentas', 'filterCatPedidosVentas', 'tablePedidosVentas')" style="width: 100%; height: 42px; padding: 0.5rem 0.85rem; font-size: 0.875rem; border-radius: 0.5rem; border: 1px solid #E5E7EB; background: #FFFFFF; font-weight: 500; color: #374151; cursor: pointer; outline: none;">
+                                <option value="">🏷️ Categoría: Todas</option>
+                                <option value="monturas">Monturas</option>
+                                <option value="lentes">Lentes</option>
+                                <option value="accesorios">Accesorios</option>
+                            </select>
+                            <button type="button" style="height: 42px; width: 42px; flex-shrink: 0; border: 1px solid #E5E7EB; border-radius: 0.5rem; background: #FFFFFF; color: #6B7280; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Opciones">•••</button>
+                        </div>
                     </div>
                     <div style="overflow-x: auto;">
                         <table id="tablePedidosVentas" style="width: 100%; border-collapse: collapse; text-align: left;">
@@ -375,10 +482,11 @@
                                     <th style="padding: 0.75rem;">N° Pedido</th>
                                     <th style="padding: 0.75rem;">Cliente</th>
                                     <th style="padding: 0.75rem;">Producto</th>
-                                    <th style="padding: 0.75rem;">Cantidad</th>
+                                    <th style="padding: 0.75rem; text-align: center;">Cantidad</th>
                                     <th style="padding: 0.75rem;">Precio U.</th>
                                     <th style="padding: 0.75rem;">Total</th>
                                     <th style="padding: 0.75rem;">Fecha</th>
+                                    <th style="padding: 0.75rem;">Hora</th>
                                     <th style="padding: 0.75rem;">Estado</th>
                                     <th style="padding: 0.75rem; text-align: right;">Acciones</th>
                                 </tr>
@@ -386,16 +494,22 @@
                             <tbody>
                                 @foreach (var p in Model.PedidosVentas)
                                 {
+                                    var stLower = (p.Estado ?? "").ToString().Trim().ToLower();
+                                    var badgeBg = stLower.Contains("cancel") ? "#E54D4D" 
+                                                : (stLower.Contains("envia") || stLower.Contains("recibi") || stLower.Contains("entrega")) ? "#1E9E6D" 
+                                                : stLower.Contains("proces") ? "#3B82F6" 
+                                                : "#EFA125"; // Pendiente -> naranja
                                     <tr style="border-bottom: 1px solid var(--purple-100);">
                                         <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-900);">@p.NumeroPedido</td>
                                         <td style="padding: 0.75rem; color: var(--purple-900); font-weight: 500;">@p.ClienteNombre</td>
                                         <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-700);">@p.ProductoNombre</td>
-                                        <td style="padding: 0.75rem; font-weight: 600;">@p.Cantidad</td>
+                                        <td style="padding: 0.75rem; font-weight: 600; text-align: center;">@p.Cantidad</td>
                                         <td style="padding: 0.75rem;">$@p.PrecioUnitario.ToString("N0")</td>
                                         <td style="padding: 0.75rem; font-weight: 700; color: var(--purple-800);">$@p.Total.ToString("N0")</td>
-                                        <td style="padding: 0.75rem; color: var(--gray-600); font-size: 0.85rem;">@p.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td style="padding: 0.75rem; color: var(--gray-600); font-size: 0.85rem;">@p.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                        <td style="padding: 0.75rem; color: var(--gray-600); font-size: 0.85rem;">@p.Fecha.ToLocalTime().ToString("HH:mm")</td>
                                         <td style="padding: 0.75rem;">
-                                            <span style="background-color: @(p.Estado.ToLower() == "entregado" ? "var(--success)" : p.Estado.ToLower() == "enviado" ? "#3B82F6" : p.Estado.ToLower() == "cancelado" ? "var(--danger)" : "var(--warning)"); color: white; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">
+                                            <span style="background-color: @badgeBg; color: white; padding: 0.35rem 1.25rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; display: inline-block; text-transform: capitalize;">
                                                 @p.Estado
                                             </span>
                                         </td>
@@ -404,7 +518,7 @@
                                                 data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = p.Id, numeroPedido = p.NumeroPedido, clienteNombre = p.ClienteNombre, productoNombre = p.ProductoNombre, cantidad = p.Cantidad, precioUnitario = p.PrecioUnitario, estado = p.Estado, notas = p.Notas ?? "" }))'>✏️ Editar</button>
                                             <form asp-action="DeleteSalesOrder" asp-controller="Dashboard" method="post" style="display: inline;" class="form-delete-sales-order">
                                                 <input type="hidden" name="id" value="@p.Id" />
-                                                <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">🗑️</button>
+                                                <button type="submit" style="background-color: #FEE2E2; color: #DC2626; border: none; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: inline-block; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#FCA5A5'" onmouseout="this.style.backgroundColor='#FEE2E2'" title="Eliminar pedido">Eliminar</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -414,23 +528,43 @@
                     </div>
                 </div>
 
-                <!-- CONTENIDO PESTAÑA PROVEEDORES (Conectado a DB Inventario) -->
+                <!-- CONTENIDO PESTAÑA PEDIDOS PROVEEDORES -->
                 <div id="content-pedidos-proveedores" class="card" style="padding: 1.5rem; background: white; display: none;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                        <input type="text" id="searchPedidosProveedores" placeholder="Buscar pedido a proveedor..." class="form-input" style="width: 320px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchPedidosProveedores', 'tablePedidosProveedores')" oninput="filterTable('searchPedidosProveedores', 'tablePedidosProveedores')" />
-                        <span style="font-size: 0.85rem; color: var(--purple-700); font-weight: 600;">⚡ Conectado a la base de datos de Proveedores y Productos</span>
+                    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: nowrap; margin-bottom: 1.25rem; width: 100%;">
+                        <div style="position: relative; flex: 1.5; min-width: 240px; display: flex; align-items: center;">
+                            <span style="position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%); color: #6B7280; font-size: 0.95rem; pointer-events: none;">🔍</span>
+                            <input type="text" id="searchPedidosProveedores" placeholder="Buscar venta, cliente o código..." style="width: 100%; height: 42px; padding: 0.5rem 0.85rem 0.5rem 2.5rem; font-size: 0.875rem; border: 1px solid #E5E7EB; border-radius: 0.5rem; background: #FFFFFF; color: #374151; outline: none; transition: border-color 0.2s;" onkeyup="filterInventoryTable('searchPedidosProveedores', 'filterStatePedidosProveedores', 'filterCatPedidosProveedores', 'tablePedidosProveedores')" oninput="filterInventoryTable('searchPedidosProveedores', 'filterStatePedidosProveedores', 'filterCatPedidosProveedores', 'tablePedidosProveedores')" />
+                        </div>
+                        <div style="position: relative; flex: 1; min-width: 170px; display: flex; align-items: center;">
+                            <select id="filterStatePedidosProveedores" onchange="filterInventoryTable('searchPedidosProveedores', 'filterStatePedidosProveedores', 'filterCatPedidosProveedores', 'tablePedidosProveedores')" style="width: 100%; height: 42px; padding: 0.5rem 0.85rem; font-size: 0.875rem; border-radius: 0.5rem; border: 1px solid #E5E7EB; background: #FFFFFF; font-weight: 500; color: #374151; cursor: pointer; outline: none;">
+                                <option value="">⚙️ Filtro: Todos</option>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="recibido">Recibido</option>
+                                <option value="cancelado">Cancelado</option>
+                            </select>
+                        </div>
+                        <div style="position: relative; flex: 1; min-width: 210px; display: flex; gap: 0.5rem; align-items: center;">
+                            <select id="filterCatPedidosProveedores" onchange="filterInventoryTable('searchPedidosProveedores', 'filterStatePedidosProveedores', 'filterCatPedidosProveedores', 'tablePedidosProveedores')" style="width: 100%; height: 42px; padding: 0.5rem 0.85rem; font-size: 0.875rem; border-radius: 0.5rem; border: 1px solid #E5E7EB; background: #FFFFFF; font-weight: 500; color: #374151; cursor: pointer; outline: none;">
+                                <option value="">🏷️ Categoría: Todas</option>
+                                <option value="monturas">Monturas</option>
+                                <option value="lentes">Lentes</option>
+                                <option value="accesorios">Accesorios</option>
+                            </select>
+                            <button type="button" style="height: 42px; width: 42px; flex-shrink: 0; border: 1px solid #E5E7EB; border-radius: 0.5rem; background: #FFFFFF; color: #6B7280; font-size: 0.875rem; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Opciones">•••</button>
+                        </div>
                     </div>
                     <div style="overflow-x: auto;">
                         <table id="tablePedidosProveedores" style="width: 100%; border-collapse: collapse; text-align: left;">
                             <thead>
                                 <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
                                     <th style="padding: 0.75rem;">N° Pedido</th>
-                                    <th style="padding: 0.75rem;">Proveedor (DB)</th>
-                                    <th style="padding: 0.75rem;">Producto (DB)</th>
-                                    <th style="padding: 0.75rem;">Cantidad</th>
+                                    <th style="padding: 0.75rem;">Proveedor</th>
+                                    <th style="padding: 0.75rem;">Producto</th>
+                                    <th style="padding: 0.75rem; text-align: center;">Cantidad</th>
                                     <th style="padding: 0.75rem;">Precio U.</th>
                                     <th style="padding: 0.75rem;">Total</th>
                                     <th style="padding: 0.75rem;">Fecha</th>
+                                    <th style="padding: 0.75rem;">Hora</th>
                                     <th style="padding: 0.75rem;">Estado</th>
                                     <th style="padding: 0.75rem; text-align: right;">Acciones</th>
                                 </tr>
@@ -438,18 +572,24 @@
                             <tbody>
                                 @foreach (var p in Model.PedidosProveedores)
                                 {
+                                    var stLower = (p.Estado ?? "").ToString().Trim().ToLower();
+                                    var badgeBg = stLower.Contains("cancel") ? "#E54D4D" 
+                                                : (stLower.Contains("envia") || stLower.Contains("recibi") || stLower.Contains("entrega")) ? "#1E9E6D" 
+                                                : stLower.Contains("proces") ? "#3B82F6" 
+                                                : "#EFA125"; // Pendiente -> naranja
                                     <tr style="border-bottom: 1px solid var(--purple-100);">
                                         <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-900);">@p.NumeroPedido</td>
                                         <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@(p.Supplier?.Nombre ?? "Proveedor ID: " + p.SupplierId)</td>
                                         <td style="padding: 0.75rem; font-weight: 500;">
                                             <a href="/Product/Details/@p.ProductId" style="color: var(--purple-700); font-weight: 600; text-decoration: underline;">@(p.Product?.Nombre ?? "Producto ID: " + p.ProductId)</a>
                                         </td>
-                                        <td style="padding: 0.75rem; font-weight: 600;">@p.Cantidad</td>
+                                        <td style="padding: 0.75rem; font-weight: 600; text-align: center;">@p.Cantidad</td>
                                         <td style="padding: 0.75rem;">$@p.PrecioUnitario.ToString("N0")</td>
                                         <td style="padding: 0.75rem; font-weight: 700; color: var(--purple-900);">$@p.Total.ToString("N0")</td>
-                                        <td style="padding: 0.75rem; color: var(--gray-600); font-size: 0.85rem;">@p.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td style="padding: 0.75rem; color: var(--gray-600); font-size: 0.85rem;">@p.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                        <td style="padding: 0.75rem; color: var(--gray-600); font-size: 0.85rem;">@p.Fecha.ToLocalTime().ToString("HH:mm")</td>
                                         <td style="padding: 0.75rem;">
-                                            <span style="background-color: @(p.Estado.ToLower() == "recibido" ? "var(--success)" : p.Estado.ToLower() == "cancelado" ? "var(--danger)" : "var(--warning)"); color: white; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; text-transform: uppercase; font-weight: 600;">
+                                            <span style="background-color: @badgeBg; color: white; padding: 0.35rem 1.25rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; display: inline-block; text-transform: capitalize;">
                                                 @p.Estado
                                             </span>
                                         </td>
@@ -458,7 +598,7 @@
                                                 data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = p.Id, numeroPedido = p.NumeroPedido, supplierId = p.SupplierId, productId = p.ProductId, cantidad = p.Cantidad, precioUnitario = p.PrecioUnitario, estado = p.Estado, notas = p.Notas ?? "" }))'>✏️ Editar</button>
                                             <form asp-action="DeleteSupplierOrder" asp-controller="Dashboard" method="post" style="display: inline;" class="form-delete-supplier-order">
                                                 <input type="hidden" name="id" value="@p.Id" />
-                                                <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">🗑️</button>
+                                                <button type="submit" style="background-color: #FEE2E2; color: #DC2626; border: none; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: inline-block; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#FCA5A5'" onmouseout="this.style.backgroundColor='#FEE2E2'" title="Eliminar pedido">Eliminar</button>
                                             </form>
                                         </td>
                                     </tr>
@@ -501,13 +641,18 @@
                         <tbody>
                             @foreach (var v in Model.Ventas)
                             {
+                                var stLower = (v.Estado ?? "").ToString().Trim().ToLower();
+                                var badgeBg = stLower.Contains("cancel") ? "#E54D4D" 
+                                            : (stLower.Contains("envia") || stLower.Contains("recibi") || stLower.Contains("entrega")) ? "#1E9E6D" 
+                                            : stLower.Contains("proces") ? "#3B82F6" 
+                                            : "#EFA125"; // Pendiente -> naranja
                                 <tr style="border-bottom: 1px solid var(--purple-100);">
                                     <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">#ORD-@v.Id.ToString("D4")</td>
                                     <td style="padding: 0.75rem;">@(v.User?.Nombre ?? "Cliente")</td>
                                     <td style="padding: 0.75rem; color: var(--gray-600);">@v.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                     <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-900);">@v.Total.ToString("C")</td>
                                     <td style="padding: 0.75rem;">
-                                        <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
+                                        <span style="background-color: @badgeBg; color: white; padding: 0.35rem 1.25rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; display: inline-block; text-transform: capitalize;">
                                             @v.Estado
                                         </span>
                                     </td>
@@ -1724,6 +1869,98 @@
     </div>
 </div>
 
+<!-- MODALES DE PROVEEDORES -->
+<!-- Modal Crear Proveedor -->
+<div id="modal-crear-proveedor" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
+    <div class="card" style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">🏢 Nuevo Proveedor</h2>
+            <button type="button" onclick="document.getElementById('modal-crear-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        <form asp-controller="Supplier" asp-action="Create" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre de Empresa *</label>
+                <input name="Nombre" type="text" class="form-input" required placeholder="Ej: Óptica Global S.A." style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Contacto Principal</label>
+                    <input name="Contacto" type="text" class="form-input" placeholder="Ej: Roberto Gómez" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Tipo de Productos *</label>
+                    <input name="TipoProductos" type="text" class="form-input" required placeholder="Ej: Monturas, Lentes de Contacto" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono *</label>
+                    <input name="Telefono" type="tel" class="form-input" required placeholder="Ej: 6015551234" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Correo Electrónico *</label>
+                    <input name="Correo" type="email" class="form-input" required placeholder="ventas@proveedor.com" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">URL de Logo (Opcional)</label>
+                <input name="LogoUrl" type="url" class="form-input" placeholder="https://..." style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                <button type="button" onclick="document.getElementById('modal-crear-proveedor').style.display='none'" class="btn" style="background: var(--gray-100); color: var(--gray-700); padding: 0.5rem 1rem;">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1.25rem;">Guardar Proveedor</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar Proveedor -->
+<div id="modal-editar-proveedor" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
+    <div class="card" style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✏️ Editar Proveedor</h2>
+            <button type="button" onclick="document.getElementById('modal-editar-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        <form asp-controller="Supplier" asp-action="Edit" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" id="edit-supplier-id" />
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre de Empresa *</label>
+                <input name="Nombre" id="edit-supplier-nombre" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Contacto Principal</label>
+                    <input name="Contacto" id="edit-supplier-contacto" type="text" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Tipo de Productos *</label>
+                    <input name="TipoProductos" id="edit-supplier-tipoproductos" type="text" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+            <div style="display: flex; gap: 1rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono *</label>
+                    <input name="Telefono" id="edit-supplier-telefono" type="tel" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Correo Electrónico *</label>
+                    <input name="Correo" id="edit-supplier-correo" type="email" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">URL de Logo (Opcional)</label>
+                <input name="LogoUrl" id="edit-supplier-logourl" type="url" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                <button type="button" onclick="document.getElementById('modal-editar-proveedor').style.display='none'" class="btn" style="background: var(--gray-100); color: var(--gray-700); padding: 0.5rem 1rem;">Cancelar</button>
+                <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1.25rem;">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <!-- MODALES DE PEDIDOS -->
 <div id="modal-crear-pedido-venta" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
     <div class="card" style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
@@ -1845,7 +2082,7 @@
 <div id="modal-crear-pedido-proveedor" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
     <div class="card" style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
-            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">🚚 Nuevo Pedido a Proveedor (DB)</h2>
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">🚚 Nuevo Pedido a Proveedor</h2>
             <button onclick="document.getElementById('modal-crear-pedido-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
@@ -1857,9 +2094,9 @@
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Proveedor (DB) *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Proveedor *</label>
                 <select name="SupplierId" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
-                    <option value="">-- Seleccionar Proveedor DB --</option>
+                    <option value="">-- Seleccionar Proveedor --</option>
                     @foreach (var s in Model.Proveedores)
                     {
                         <option value="@s.Id">@s.Nombre (@s.TipoProductos)</option>
@@ -1868,9 +2105,9 @@
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Producto de Inventario (DB) *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Producto de Inventario *</label>
                 <select name="ProductId" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
-                    <option value="">-- Seleccionar Producto DB --</option>
+                    <option value="">-- Seleccionar Producto --</option>
                     @foreach (var p in Model.Productos)
                     {
                         <option value="@p.Id">@p.Nombre (Stock: @p.Stock)</option>
@@ -1927,7 +2164,7 @@
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Proveedor (DB) *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Proveedor *</label>
                 <select id="editSupplierOrderSupplierId" name="SupplierId" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
                     @foreach (var s in Model.Proveedores)
                     {
@@ -1937,7 +2174,7 @@
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Producto de Inventario (DB) *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Producto de Inventario *</label>
                 <select id="editSupplierOrderProductId" name="ProductId" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
                     @foreach (var p in Model.Productos)
                     {
@@ -2420,5 +2657,55 @@
         }
         document.getElementById('modal-admin-editar-cita').style.display = 'flex';
     }
+
+    // Requerimiento 6: Buscador, Filtro y Categorías unificado en Inventario
+    function filterInventoryTable(inputId, stateId, catId, tableId) {
+        var input = document.getElementById(inputId);
+        var filterText = input ? input.value.toLowerCase().trim() : '';
+        var stateSelect = document.getElementById(stateId);
+        var filterState = stateSelect ? stateSelect.value.toLowerCase().trim() : '';
+        var catSelect = document.getElementById(catId);
+        var filterCat = catSelect ? catSelect.value.toLowerCase().trim() : '';
+
+        var table = document.getElementById(tableId);
+        if (!table) return;
+        var rows = table.getElementsByTagName("tbody")[0].getElementsByTagName("tr");
+
+        for (var i = 0; i < rows.length; i++) {
+            var rowText = (rows[i].textContent || rows[i].innerText).toLowerCase();
+            var matchText = !filterText || rowText.indexOf(filterText) > -1;
+            var matchState = !filterState || rowText.indexOf(filterState) > -1;
+            var matchCat = !filterCat || rowText.indexOf(filterCat) > -1;
+
+            if (matchText && matchState && matchCat) {
+                rows[i].style.display = "";
+            } else {
+                rows[i].style.display = "none";
+            }
+        }
+    }
+
+    // Requerimiento 2: Handler para abrir modal de edición de proveedores
+    document.addEventListener('click', function(e) {
+        var btn = e.target.closest('.btn-edit-supplier');
+        if (btn) {
+            var rawData = btn.getAttribute('data-record');
+            if (rawData) {
+                try {
+                    var data = JSON.parse(rawData);
+                    document.getElementById('edit-supplier-id').value = data.id || '';
+                    document.getElementById('edit-supplier-nombre').value = data.nombre || '';
+                    document.getElementById('edit-supplier-contacto').value = data.contacto || '';
+                    document.getElementById('edit-supplier-tipoproductos').value = data.tipoProductos || '';
+                    document.getElementById('edit-supplier-telefono').value = data.telefono || '';
+                    document.getElementById('edit-supplier-correo').value = data.correo || '';
+                    document.getElementById('edit-supplier-logourl').value = data.logoUrl || '';
+                    document.getElementById('modal-editar-proveedor').style.display = 'flex';
+                } catch(ex) {
+                    console.error("Error parsing supplier data", ex);
+                }
+            }
+        }
+    });
 
 </script>

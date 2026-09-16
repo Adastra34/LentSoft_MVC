@@ -77,13 +77,18 @@
                         <tbody>
                             @foreach (var v in Model.Ventas.Take(5))
                             {
+                                var stLower = (v.Estado ?? "").ToString().Trim().ToLower();
+                                var badgeBg = stLower.Contains("cancel") ? "#E54D4D" 
+                                            : (stLower.Contains("envia") || stLower.Contains("recibi") || stLower.Contains("entrega")) ? "#1E9E6D" 
+                                            : stLower.Contains("proces") ? "#3B82F6" 
+                                            : "#EFA125"; // Pendiente -> naranja
                                 <tr style="border-bottom: 1px solid var(--purple-100);">
                                     <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">#ORD-@v.Id.ToString("D4")</td>
                                     <td style="padding: 0.75rem;">@(v.User?.Nombre ?? "Cliente")</td>
                                     <td style="padding: 0.75rem; color: var(--gray-600);">@v.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                     <td style="padding: 0.75rem; font-weight: 700; color: var(--purple-900);">@v.Total.ToString("C")</td>
                                     <td style="padding: 0.75rem;">
-                                        <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
+                                        <span style="background-color: @badgeBg; color: white; padding: 0.35rem 1.25rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; display: inline-block; text-transform: capitalize;">
                                             @v.Estado
                                         </span>
                                     </td>
@@ -126,13 +131,18 @@
                         <tbody>
                             @foreach (var v in Model.Ventas)
                             {
+                                var stLower = (v.Estado ?? "").ToString().Trim().ToLower();
+                                var badgeBg = stLower.Contains("cancel") ? "#E54D4D" 
+                                            : (stLower.Contains("envia") || stLower.Contains("recibi") || stLower.Contains("entrega")) ? "#1E9E6D" 
+                                            : stLower.Contains("proces") ? "#3B82F6" 
+                                            : "#EFA125"; // Pendiente -> naranja
                                 <tr style="border-bottom: 1px solid var(--purple-100);">
                                     <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">#ORD-@v.Id.ToString("D4")</td>
                                     <td style="padding: 0.75rem;">@(v.User?.Nombre ?? "Cliente")</td>
                                     <td style="padding: 0.75rem; color: var(--gray-600);">@v.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                     <td style="padding: 0.75rem; font-weight: 700; color: var(--purple-900);">@v.Total.ToString("C")</td>
                                     <td style="padding: 0.75rem;">
-                                        <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
+                                        <span style="background-color: @badgeBg; color: white; padding: 0.35rem 1.25rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; display: inline-block; text-transform: capitalize;">
                                             @v.Estado
                                         </span>
                                     </td>
@@ -405,13 +415,18 @@
                                 {
                                     @foreach (var o in Model.PedidosVentas)
                                     {
+                                        var stLower = (o.Estado ?? "").ToString().Trim().ToLower();
+                                        var badgeBg = stLower.Contains("cancel") ? "#E54D4D" 
+                                                    : (stLower.Contains("envia") || stLower.Contains("recibi") || stLower.Contains("entrega")) ? "#1E9E6D" 
+                                                    : stLower.Contains("proces") ? "#3B82F6" 
+                                                    : "#EFA125"; // Pendiente -> naranja
                                         <tr style="border-bottom: 1px solid var(--purple-100);">
                                             <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">#@o.NumeroPedido</td>
                                             <td style="padding: 0.75rem;">@o.ClienteNombre</td>
                                             <td style="padding: 0.75rem; color: var(--gray-600);">@o.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                             <td style="padding: 0.75rem; font-weight: 700; color: var(--purple-900);">@o.Total.ToString("C")</td>
                                             <td style="padding: 0.75rem;">
-                                                <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
+                                                <span style="background-color: @badgeBg; color: white; padding: 0.35rem 1.25rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; display: inline-block; text-transform: capitalize;">
                                                     @o.Estado
                                                 </span>
                                             </td>
@@ -419,7 +434,7 @@
                                                 <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;" onclick="openEditSalesOrderModal(@o.Id, '@o.NumeroPedido', '@o.ClienteNombre', '@o.ProductoNombre', @o.Cantidad, @o.PrecioUnitario.ToString(System.Globalization.CultureInfo.InvariantCulture), '@o.Estado', '@o.Notas')">✏️ Editar</button>
                                                 <form asp-action="DeleteSalesOrder" asp-controller="Dashboard" method="post" style="display: inline;" onsubmit="return confirm('¿Seguro que deseas eliminar este pedido de venta?');">
                                                     <input type="hidden" name="id" value="@o.Id" />
-                                                    <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">🗑️ Eliminar</button>
+                                                    <button type="submit" style="background-color: #FEE2E2; color: #DC2626; border: none; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: inline-block; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#FCA5A5'" onmouseout="this.style.backgroundColor='#FEE2E2'" title="Eliminar pedido">Eliminar</button>
                                                 </form>
                                             </td>
                                         </tr>
