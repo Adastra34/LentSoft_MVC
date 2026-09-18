@@ -77,18 +77,13 @@
                         <tbody>
                             @foreach (var v in Model.Ventas.Take(5))
                             {
-                                var stLower = (v.Estado ?? "").ToString().Trim().ToLower();
-                                var badgeBg = stLower.Contains("cancel") ? "#E54D4D" 
-                                            : (stLower.Contains("envia") || stLower.Contains("recibi") || stLower.Contains("entrega")) ? "#1E9E6D" 
-                                            : stLower.Contains("proces") ? "#3B82F6" 
-                                            : "#EFA125"; // Pendiente -> naranja
                                 <tr style="border-bottom: 1px solid var(--purple-100);">
                                     <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">#ORD-@v.Id.ToString("D4")</td>
                                     <td style="padding: 0.75rem;">@(v.User?.Nombre ?? "Cliente")</td>
                                     <td style="padding: 0.75rem; color: var(--gray-600);">@v.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                     <td style="padding: 0.75rem; font-weight: 700; color: var(--purple-900);">@v.Total.ToString("C")</td>
                                     <td style="padding: 0.75rem;">
-                                        <span style="background-color: @badgeBg; color: white; padding: 0.35rem 1.25rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; display: inline-block; text-transform: capitalize;">
+                                        <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
                                             @v.Estado
                                         </span>
                                     </td>
@@ -131,18 +126,13 @@
                         <tbody>
                             @foreach (var v in Model.Ventas)
                             {
-                                var stLower = (v.Estado ?? "").ToString().Trim().ToLower();
-                                var badgeBg = stLower.Contains("cancel") ? "#E54D4D" 
-                                            : (stLower.Contains("envia") || stLower.Contains("recibi") || stLower.Contains("entrega")) ? "#1E9E6D" 
-                                            : stLower.Contains("proces") ? "#3B82F6" 
-                                            : "#EFA125"; // Pendiente -> naranja
                                 <tr style="border-bottom: 1px solid var(--purple-100);">
                                     <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">#ORD-@v.Id.ToString("D4")</td>
                                     <td style="padding: 0.75rem;">@(v.User?.Nombre ?? "Cliente")</td>
                                     <td style="padding: 0.75rem; color: var(--gray-600);">@v.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                     <td style="padding: 0.75rem; font-weight: 700; color: var(--purple-900);">@v.Total.ToString("C")</td>
                                     <td style="padding: 0.75rem;">
-                                        <span style="background-color: @badgeBg; color: white; padding: 0.35rem 1.25rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; display: inline-block; text-transform: capitalize;">
+                                        <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
                                             @v.Estado
                                         </span>
                                     </td>
@@ -372,13 +362,16 @@
         @if (Model.ActiveSection == "inventarios")
         {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;" data-i18n="sales.inventory.title">Consulta e Inventario</h1>
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;" data-i18n="sales.inventory.title">Consulta de Inventario (Solo Lectura)</h1>
             </div>
 
             <!-- Sub-tabs -->
             <div style="display: flex; border-bottom: 2px solid var(--purple-200); margin-bottom: 1.5rem;">
                 <a href="?section=inventarios&subtab=productos" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "productos" || string.IsNullOrEmpty(Model.ActiveSubTab) ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "productos" || string.IsNullOrEmpty(Model.ActiveSubTab) ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;">
                     📦 Productos (Solo Lectura)
+                </a>
+                <a href="?section=inventarios&subtab=historial" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "historial" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "historial" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;">
+                    📜 Historial de Movimientos (Solo Lectura)
                 </a>
                 <a href="?section=inventarios&subtab=pedidos-ventas" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "pedidos-ventas" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "pedidos-ventas" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;">
                     🛒 Pedidos de Ventas
@@ -395,19 +388,22 @@
                 </div>
 
                 <div class="card" style="padding: 1.5rem; background: white;">
-                    <div style="margin-bottom: 1rem;">
-                        <input type="text" id="searchPedidosVentasSales" placeholder="Buscar pedido o cliente..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchPedidosVentasSales', 'tablePedidosVentasSales')" />
+                    <div class="inventory-search-bar" style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                        <div style="position: relative; display: flex; align-items: center; flex: 1; min-width: 260px; max-width: 380px;">
+                            <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
+                            <input type="text" id="searchPedidosVentasSales" placeholder="Buscar pedido o cliente..." class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900);" onkeyup="filterTable('searchPedidosVentasSales', 'tablePedidosVentasSales')" />
+                        </div>
                     </div>
-                    <div style="overflow-x: auto;">
+                    <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
                         <table id="tablePedidosVentasSales" style="width: 100%; border-collapse: collapse; text-align: left;">
                             <thead>
                                 <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
                                     <th style="padding: 0.75rem;">ID</th>
                                     <th style="padding: 0.75rem;">Cliente</th>
-                                    <th style="padding: 0.75rem;">Fecha</th>
-                                    <th style="padding: 0.75rem;">Total</th>
-                                    <th style="padding: 0.75rem;">Estado</th>
-                                    <th style="padding: 0.75rem; text-align: right;">Acciones</th>
+                                    <th style="padding: 0.75rem; text-align: center;">Fecha</th>
+                                    <th style="padding: 0.75rem; text-align: center;">Total</th>
+                                    <th style="padding: 0.75rem; text-align: center;">Estado</th>
+                                    <th style="padding: 0.75rem; text-align: center;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -415,26 +411,21 @@
                                 {
                                     @foreach (var o in Model.PedidosVentas)
                                     {
-                                        var stLower = (o.Estado ?? "").ToString().Trim().ToLower();
-                                        var badgeBg = stLower.Contains("cancel") ? "#E54D4D" 
-                                                    : (stLower.Contains("envia") || stLower.Contains("recibi") || stLower.Contains("entrega")) ? "#1E9E6D" 
-                                                    : stLower.Contains("proces") ? "#3B82F6" 
-                                                    : "#EFA125"; // Pendiente -> naranja
                                         <tr style="border-bottom: 1px solid var(--purple-100);">
                                             <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">#@o.NumeroPedido</td>
                                             <td style="padding: 0.75rem;">@o.ClienteNombre</td>
-                                            <td style="padding: 0.75rem; color: var(--gray-600);">@o.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                                            <td style="padding: 0.75rem; font-weight: 700; color: var(--purple-900);">@o.Total.ToString("C")</td>
-                                            <td style="padding: 0.75rem;">
-                                                <span style="background-color: @badgeBg; color: white; padding: 0.35rem 1.25rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; display: inline-block; text-transform: capitalize;">
+                                            <td style="padding: 0.75rem; text-align: center; color: var(--gray-600);">@o.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                            <td style="padding: 0.75rem; text-align: center; font-weight: 700; color: var(--purple-900);">@o.Total.ToString("C")</td>
+                                            <td style="padding: 0.75rem; text-align: center;">
+                                                <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
                                                     @o.Estado
                                                 </span>
                                             </td>
-                                            <td style="padding: 0.75rem; text-align: right;">
+                                            <td style="padding: 0.75rem; text-align: center;">
                                                 <button type="button" class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem; margin-right: 0.25rem;" onclick="openEditSalesOrderModal(@o.Id, '@o.NumeroPedido', '@o.ClienteNombre', '@o.ProductoNombre', @o.Cantidad, @o.PrecioUnitario.ToString(System.Globalization.CultureInfo.InvariantCulture), '@o.Estado', '@o.Notas')">✏️ Editar</button>
                                                 <form asp-action="DeleteSalesOrder" asp-controller="Dashboard" method="post" style="display: inline;" onsubmit="return confirm('¿Seguro que deseas eliminar este pedido de venta?');">
                                                     <input type="hidden" name="id" value="@o.Id" />
-                                                    <button type="submit" style="background-color: #FEE2E2; color: #DC2626; border: none; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: inline-block; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='#FCA5A5'" onmouseout="this.style.backgroundColor='#FEE2E2'" title="Eliminar pedido">Eliminar</button>
+                                                    <button type="submit" class="btn btn-danger" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">🗑️ Eliminar</button>
                                                 </form>
                                             </td>
                                         </tr>
@@ -451,40 +442,142 @@
                     </div>
                 </div>
             }
+            else if (Model.ActiveSubTab == "historial")
+            {
+                <div class="card" style="padding: 1.5rem; background: white;">
+                    <div class="inventory-search-bar" style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                        <div style="position: relative; display: flex; align-items: center; flex: 1; min-width: 260px; max-width: 380px;">
+                            <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
+                            <input type="text" id="searchHistorialSales" placeholder="Item, valor o código" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900);" onkeyup="filterTable('searchHistorialSales', 'tableHistorialSales')" oninput="filterTable('searchHistorialSales', 'tableHistorialSales')" />
+                        </div>
+                        <div style="position: relative;">
+                            <button type="button" onclick="toggleFilterMenu('historialSales')" class="btn" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; border: 1px solid var(--purple-300); background: white; color: var(--purple-900); border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                                ⚙️ Filtro ▾
+                            </button>
+                            <div id="filter-menu-historialSales" style="display: none; position: absolute; top: 110%; left: 0; background: white; border: 1px solid var(--purple-200); border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 160px; padding: 0.4rem 0;">
+                                <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorialSales', 'tableHistorialSales', '')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Todos los tipos</a>
+                                <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorialSales', 'tableHistorialSales', 'Entrada')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Entrada</a>
+                                <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorialSales', 'tableHistorialSales', 'Salida')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Salida</a>
+                            </div>
+                        </div>
+                        <div style="position: relative;">
+                            <button type="button" onclick="toggleCategoryMenu('historialSales')" class="btn" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; border: 1px solid var(--purple-300); background: white; color: var(--purple-900); border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                                🏷️ Categorías ▾
+                            </button>
+                            <div id="category-menu-historialSales" style="display: none; position: absolute; top: 110%; left: 0; background: white; border: 1px solid var(--purple-200); border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 190px; padding: 0.4rem 0;">
+                                <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorialSales', 'tableHistorialSales', '')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Todas</a>
+                                <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorialSales', 'tableHistorialSales', 'Admin')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Admin / Sistema</a>
+                                <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorialSales', 'tableHistorialSales', 'Ventas')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Ventas</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
+                        <table id="tableHistorialSales" style="width: 100%; border-collapse: collapse; text-align: left;">
+                            <thead>
+                                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
+                                    <th style="padding: 0.75rem;">ID</th>
+                                    <th style="padding: 0.75rem;">Seleccionar Producto</th>
+                                    <th style="padding: 0.75rem; text-align: center;">Tipo</th>
+                                    <th style="padding: 0.75rem; text-align: center;">Cantidad</th>
+                                    <th style="padding: 0.75rem; text-align: center;">Fecha</th>
+                                    <th style="padding: 0.75rem; text-align: center;">Hora</th>
+                                    <th style="padding: 0.75rem; text-align: center;">Responsable</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (Model.HistorialMovimientos != null && Model.HistorialMovimientos.Any())
+                                {
+                                    @foreach (var mov in Model.HistorialMovimientos)
+                                    {
+                                        <tr style="border-bottom: 1px solid var(--purple-100);">
+                                            <td style="padding: 0.75rem; color: var(--gray-500);">#MOV-@mov.Id</td>
+                                            <td style="padding: 0.75rem; font-weight: 500;">
+                                                <a href="/Product/Details/@mov.ProductId" style="color: var(--purple-700); font-weight: 600; text-decoration: underline;">@(mov.NombreProducto ?? mov.Product?.Nombre ?? ("Producto #" + mov.ProductId))</a>
+                                            </td>
+                                            <td style="padding: 0.75rem; text-align: center;">
+                                                <span style="background-color: @(mov.Tipo?.ToLower() == "entrada" ? "#10B981" : "#F59E0B"); color: #ffffff; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; display: inline-block;">
+                                                    @mov.Tipo
+                                                </span>
+                                            </td>
+                                            <td style="padding: 0.75rem; text-align: center; font-weight: 600;">@mov.Cantidad</td>
+                                            <td style="padding: 0.75rem; text-align: center; color: var(--gray-600);">@mov.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                            <td style="padding: 0.75rem; text-align: center; color: var(--gray-600);">@mov.Fecha.ToLocalTime().ToString("HH:mm")</td>
+                                            <td style="padding: 0.75rem; text-align: center;">@(mov.Responsable ?? "Sistema / Admin")</td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="7" style="padding: 1.5rem; text-align: center; color: var(--gray-500);">No hay movimientos registrados en el historial.</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
             else
             {
                 <div class="card" style="padding: 1.5rem; background: white;">
-                    <div style="margin-bottom: 1rem;">
-                        <input type="text" id="searchInvSales" placeholder="Buscar producto en inventario..." data-i18n-placeholder="sales.inventory.searchplaceholder" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchInvSales', 'tableInvSales')" />
+                    <div class="inventory-search-bar" style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                        <div style="position: relative; display: flex; align-items: center; flex: 1; min-width: 260px; max-width: 380px;">
+                            <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
+                            <input type="text" id="searchInvSales" placeholder="Buscar producto..." data-i18n-placeholder="sales.inventory.searchplaceholder" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900);" onkeyup="filterTable('searchInvSales', 'tableInvSales')" oninput="filterTable('searchInvSales', 'tableInvSales')" />
+                        </div>
+                        <div style="position: relative;">
+                            <button type="button" onclick="toggleFilterMenu('invSales')" class="btn" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; border: 1px solid var(--purple-300); background: white; color: var(--purple-900); border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                                ⚙️ Filtro ▾
+                            </button>
+                            <div id="filter-menu-invSales" style="display: none; position: absolute; top: 110%; left: 0; background: white; border: 1px solid var(--purple-200); border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 160px; padding: 0.4rem 0;">
+                                <a href="javascript:void(0)" onclick="filterTableByValue('searchInvSales', 'tableInvSales', '')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Todos</a>
+                                <a href="javascript:void(0)" onclick="filterTableByValue('searchInvSales', 'tableInvSales', 'Activo')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Activos</a>
+                                <a href="javascript:void(0)" onclick="filterTableByValue('searchInvSales', 'tableInvSales', 'Agotado')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Agotados</a>
+                            </div>
+                        </div>
+                        <div style="position: relative;">
+                            <button type="button" onclick="toggleCategoryMenu('invSales')" class="btn" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; border: 1px solid var(--purple-300); background: white; color: var(--purple-900); border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                                🏷️ Categorías ▾
+                            </button>
+                            <div id="category-menu-invSales" style="display: none; position: absolute; top: 110%; left: 0; background: white; border: 1px solid var(--purple-200); border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 190px; padding: 0.4rem 0;">
+                                <a href="javascript:void(0)" onclick="filterTableByValue('searchInvSales', 'tableInvSales', '')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Todas</a>
+                                <a href="javascript:void(0)" onclick="filterTableByValue('searchInvSales', 'tableInvSales', 'Gafas de Sol')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Gafas de Sol</a>
+                                <a href="javascript:void(0)" onclick="filterTableByValue('searchInvSales', 'tableInvSales', 'Monturas')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Monturas</a>
+                                <a href="javascript:void(0)" onclick="filterTableByValue('searchInvSales', 'tableInvSales', 'Lentes de Contacto')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Lentes de Contacto</a>
+                                <a href="javascript:void(0)" onclick="filterTableByValue('searchInvSales', 'tableInvSales', 'Lentes Graduados')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Lentes Graduados</a>
+                                <a href="javascript:void(0)" onclick="filterTableByValue('searchInvSales', 'tableInvSales', 'Accesorios')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Accesorios</a>
+                            </div>
+                        </div>
                     </div>
-                    <div style="overflow-x: auto;">
+                    <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
                         <table id="tableInvSales" style="width: 100%; border-collapse: collapse; text-align: left;">
                             <thead>
                                 <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
                                     <th style="padding: 0.75rem;">ID</th>
-                                    <th style="padding: 0.75rem;" data-i18n="sales.inventory.product">Producto</th>
-                                    <th style="padding: 0.75rem;" data-i18n="sales.inventory.category">Categoría</th>
-                                    <th style="padding: 0.75rem;" data-i18n="sales.inventory.brand">Marca</th>
-                                    <th style="padding: 0.75rem;" data-i18n="sales.inventory.price">Precio</th>
-                                    <th style="padding: 0.75rem;" data-i18n="sales.inventory.stock">Stock Disponible</th>
-                                    <th style="padding: 0.75rem;" data-i18n="sales.table.status">Estado</th>
+                                    <th style="padding: 0.75rem;">Seleccionar Producto</th>
+                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="sales.inventory.category">Categoría</th>
+                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="sales.inventory.price">Precio</th>
+                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="sales.inventory.stock">Cantidad</th>
+                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="sales.table.status">Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach (var prod in Model.Productos)
                                 {
+                                    var isAgotado = prod.Stock <= 0;
                                     <tr style="border-bottom: 1px solid var(--purple-100);">
                                         <td style="padding: 0.75rem; color: var(--gray-500);">#@prod.Id</td>
-                                        <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@prod.Nombre</td>
-                                        <td style="padding: 0.75rem; color: var(--gray-600);">@prod.Categoria</td>
-                                        <td style="padding: 0.75rem;">@(prod.Marca ?? "LentSoft")</td>
-                                        <td style="padding: 0.75rem; font-weight: 600;">@prod.Precio.ToString("C")</td>
-                                        <td style="padding: 0.75rem; font-weight: 700; color: @(prod.Stock < 10 ? "var(--error)" : "var(--purple-900)");">
+                                        <td style="padding: 0.75rem; font-weight: 500;">
+                                            <a href="/Product/Details/@prod.Id" style="color: var(--purple-700); font-weight: 600; text-decoration: underline;">@prod.Nombre</a>
+                                        </td>
+                                        <td style="padding: 0.75rem; text-align: center; color: var(--gray-600);">@prod.Categoria</td>
+                                        <td style="padding: 0.75rem; text-align: center; font-weight: 600;">@prod.Precio.ToString("C")</td>
+                                        <td style="padding: 0.75rem; text-align: center; font-weight: 700; color: @(isAgotado ? "var(--error)" : "var(--purple-900)");">
                                             @prod.Stock
                                         </td>
-                                        <td style="padding: 0.75rem;">
-                                            <span style="background-color: @(prod.Activo ? "var(--success)" : "var(--error)"); color: white; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;" data-i18n="@(prod.Activo ? "sales.inventory.available" : "sales.inventory.soldout")">
-                                                @(prod.Activo ? "Disponible" : "Agotado/Inactivo")
+                                        <td style="padding: 0.75rem; text-align: center;">
+                                            <span style="background-color: @(isAgotado ? "var(--error)" : "var(--success)"); color: white; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
+                                                @(isAgotado ? "Agotado" : "Activo")
                                             </span>
                                         </td>
                                     </tr>
@@ -645,6 +738,7 @@
 <script>
     function filterTable(inputId, tableId) {
         const input = document.getElementById(inputId);
+        if (!input) return;
         const filter = input.value.toLowerCase();
         const table = document.getElementById(tableId);
         if (!table) return;
@@ -662,6 +756,37 @@
             trs[i].style.display = show ? '' : 'none';
         }
     }
+
+    function toggleFilterMenu(submodule) {
+        const menu = document.getElementById('filter-menu-' + submodule);
+        if (!menu) return;
+        const isVisible = menu.style.display === 'block';
+        document.querySelectorAll('[id^="filter-menu-"], [id^="category-menu-"]').forEach(m => m.style.display = 'none');
+        menu.style.display = isVisible ? 'none' : 'block';
+    }
+
+    function toggleCategoryMenu(submodule) {
+        const menu = document.getElementById('category-menu-' + submodule);
+        if (!menu) return;
+        const isVisible = menu.style.display === 'block';
+        document.querySelectorAll('[id^="filter-menu-"], [id^="category-menu-"]').forEach(m => m.style.display = 'none');
+        menu.style.display = isVisible ? 'none' : 'block';
+    }
+
+    function filterTableByValue(inputId, tableId, value) {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.value = value;
+            filterTable(inputId, tableId);
+        }
+        document.querySelectorAll('[id^="filter-menu-"], [id^="category-menu-"]').forEach(m => m.style.display = 'none');
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('[id^="filter-menu-"]') && !e.target.closest('[id^="category-menu-"]') && !e.target.closest('button')) {
+            document.querySelectorAll('[id^="filter-menu-"], [id^="category-menu-"]').forEach(m => m.style.display = 'none');
+        }
+    });
 
     function updateNewInvoiceAmounts(selectElem) {
         const selectedOpt = selectElem.options[selectElem.selectedIndex];

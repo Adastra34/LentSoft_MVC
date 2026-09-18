@@ -20,6 +20,10 @@ public static class MauiProgram
 
         // ── Client Services ──
         builder.Services.AddSingleton<IAuthStorageService, AuthStorageService>();
+        builder.Services.AddSingleton<ICartService, CartService>();
+        builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
+        builder.Services.AddSingleton<IFavoriteService, FavoriteService>();
+        builder.Services.AddSingleton<IOrderHistoryService, OrderHistoryService>();
         builder.Services.AddTransient<AuthenticatedHttpClientHandler>();
 
         string baseUrl = (DeviceInfo.Platform == DevicePlatform.Android && DeviceInfo.DeviceType == DeviceType.Virtual)

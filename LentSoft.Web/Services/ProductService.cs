@@ -96,13 +96,9 @@ public class ProductService : IProductService
 
     public async Task<Product> CreateAsync(Product product)
     {
-        // Requerimiento 3: Límite máximo de stock de 85 unidades
-        if (product.Stock > 85) product.Stock = 85;
-
-        // Requerimiento 5: Inhabilitación automática si stock es 0
-        if (product.Stock <= 0)
+        product.Stock = Math.Min(85, Math.Max(0, product.Stock));
+        if (product.Stock == 0)
         {
-            product.Stock = 0;
             product.Activo = false;
         }
 
@@ -139,8 +135,7 @@ public class ProductService : IProductService
         var product = await _context.Products.FindAsync(id);
         if (product == null) return null;
 
-        // Requerimiento 3: Límite máximo de stock de 85 unidades
-        if (updated.Stock > 85) updated.Stock = 85;
+        updated.Stock = Math.Min(85, Math.Max(0, updated.Stock));
 
         int stockDelta = updated.Stock - product.Stock;
 
@@ -152,11 +147,9 @@ public class ProductService : IProductService
         product.Marca = updated.Marca;
         product.Stock = updated.Stock;
         product.ImagenUrl = updated.ImagenUrl;
-
-        // Requerimiento 5: Inhabilitación automática cuando stock llega a 0
-        if (product.Stock <= 0)
+        
+        if (product.Stock == 0)
         {
-            product.Stock = 0;
             product.Activo = false;
         }
         else

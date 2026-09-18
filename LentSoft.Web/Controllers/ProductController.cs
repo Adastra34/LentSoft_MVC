@@ -121,20 +121,9 @@ public class ProductController : Controller
 
         try
         {
-            // Requerimiento 3: Límite máximo de stock de 85 unidades
-            if (product.Stock > 85) product.Stock = 85;
-
-            // Requerimiento 5: Inhabilitación automática cuando el stock es 0
-            if (product.Stock <= 0)
-            {
-                product.Stock = 0;
-                product.Activo = false;
-                TempData["WarningMessage"] = $"Se inhabilitó el producto {product.Nombre}";
-            }
-
             var created = await _productService.CreateAsync(product);
-            if (isAjax) return Json(new { success = true, message = product.Stock == 0 ? $"Se inhabilitó el producto {product.Nombre}" : "Producto creado exitosamente.", data = created });
-            if (TempData["WarningMessage"] == null) TempData["SuccessMessage"] = "Producto creado exitosamente.";
+            if (isAjax) return Json(new { success = true, message = "Producto creado exitosamente.", data = created });
+            TempData["SuccessMessage"] = "Producto creado exitosamente.";
         }
         catch (Exception ex)
         {
@@ -244,17 +233,6 @@ public class ProductController : Controller
 
         try
         {
-            // Requerimiento 3: Límite máximo de stock de 85 unidades
-            if (product.Stock > 85) product.Stock = 85;
-
-            // Requerimiento 5: Inhabilitación automática cuando el stock es 0
-            if (product.Stock <= 0)
-            {
-                product.Stock = 0;
-                product.Activo = false;
-                TempData["WarningMessage"] = $"Se inhabilitó el producto {product.Nombre}";
-            }
-
             var updated = await _productService.UpdateAsync(product.Id, product);
             if (updated == null)
             {
@@ -269,9 +247,8 @@ public class ProductController : Controller
                     DeleteLocalProductImage(oldImageUrlToDelete);
                 }
 
-                var msg = updated.Stock == 0 ? $"Se inhabilitó el producto {updated.Nombre}" : "Producto actualizado exitosamente.";
-                if (isAjax) return Json(new { success = true, message = msg, data = updated });
-                if (TempData["WarningMessage"] == null) TempData["SuccessMessage"] = "Producto actualizado exitosamente.";
+                if (isAjax) return Json(new { success = true, message = "Producto actualizado exitosamente.", data = updated });
+                TempData["SuccessMessage"] = "Producto actualizado exitosamente.";
             }
         }
         catch (Exception ex)

@@ -923,31 +923,8 @@ public class DashboardController : Controller
         else
         {
             if (isAjax) return Json(new { success = false, message = "No se encontró el pedido a proveedor especificado." });
-            TempData["ErrorMessage"] = "No se encontró el pedido a proveedor especificado.";
         }
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "proveedores" });
-    }
-
-    [HttpPost]
-    [Authorize(Roles = "admin")]
-    public async Task<IActionResult> DeleteInventoryMovement(int id)
-    {
-        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
-
-        var existing = await _context.InventoryMovements.FindAsync(id);
-        if (existing != null)
-        {
-            _context.InventoryMovements.Remove(existing);
-            await _context.SaveChangesAsync();
-            if (isAjax) return Json(new { success = true, message = "Movimiento de inventario eliminado correctamente.", id });
-            TempData["SuccessMessage"] = "Movimiento de inventario eliminado correctamente.";
-        }
-        else
-        {
-            if (isAjax) return Json(new { success = false, message = "No se encontró el movimiento de inventario especificado." });
-            TempData["ErrorMessage"] = "No se encontró el movimiento especificado.";
-        }
-        return RedirectToAction("Admin", new { section = "inventario", subtab = "historial" });
     }
 
 }

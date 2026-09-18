@@ -18,3 +18,7 @@ LentSoft.Web/obj/
 # Local config
 appsettings.Development.json
 appsettings.Local.json
+
+# Agents workspace directory
+.agents/
+

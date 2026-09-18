@@ -60,12 +60,19 @@
                                FontSize="13"
                                FontAttributes="Bold"
                                TextColor="{StaticResource Ink}"/>
-                        <Border Style="{StaticResource InputContainer}">
+                        <Border StrokeShape="RoundRectangle 12"
+                                Stroke="{StaticResource Line}"
+                                StrokeThickness="1.5"
+                                BackgroundColor="White"
+                                Padding="12,0"
+                                HeightRequest="48">
                             <Picker ItemsSource="{Binding Servicios}"
                                     SelectedItem="{Binding SelectedServicio}"
                                     TextColor="{StaticResource Ink}"
                                     Title="Selecciona un servicio"
-                                    VerticalOptions="Center"/>
+                                    FontSize="13"
+                                    VerticalOptions="Center"
+                                    HorizontalOptions="FillAndExpand"/>
                         </Border>
                     </VerticalStackLayout>
 

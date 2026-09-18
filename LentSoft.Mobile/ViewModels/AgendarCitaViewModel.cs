@@ -13,11 +13,11 @@ public partial class AgendarCitaViewModel : ObservableObject
 
     public ObservableCollection<string> Servicios { get; } = new()
     {
-        "Examen visual general",
-        "Control de lentes de contacto",
-        "Adaptación de montura",
-        "Urgencia optométrica",
-        "Terapia visual"
+        "Examen visual completo",
+        "Control de lentes",
+        "Primera consulta",
+        "Adaptación de lentes de contacto",
+        "Ajuste y mantenimiento de lentes"
     };
 
     [ObservableProperty]
@@ -45,7 +45,7 @@ public partial class AgendarCitaViewModel : ObservableObject
     private string _confirmButtonText = "Confirmar y Agendar Cita";
 
     [ObservableProperty]
-    private string _selectedServicio = "Examen visual general";
+    private string _selectedServicio = "Examen visual completo";
 
     [ObservableProperty]
     private DateTime _minimumDate = DateTime.Today;

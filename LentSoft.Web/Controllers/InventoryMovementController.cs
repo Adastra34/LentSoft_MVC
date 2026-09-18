@@ -47,11 +47,29 @@ public class InventoryMovementController : Controller
                 return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "historial" });
             }
             product.Stock -= movement.Cantidad;
+            if (product.Stock == 0)
+            {
+                product.Activo = false;
+                TempData["WarningMessage"] = $"Se inhabilitó el producto {product.Nombre}";
+            }
+            else if (product.Stock <= 10)
+            {
+                TempData["WarningMessage"] = $"¡Alerta de Stock Mínimo! El producto {product.Nombre} está por agotarse (Stock: {product.Stock}).";
+            }
         }
         else
         {
             tipo = "Entrada";
+            if (product.Stock + movement.Cantidad > 85)
+            {
+                TempData["ErrorMessage"] = $"El stock no puede superar las 85 unidades. Stock actual de {product.Nombre}: {product.Stock}, intentó agregar: {movement.Cantidad}.";
+                return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "historial" });
+            }
             product.Stock += movement.Cantidad;
+            if (product.Stock > 0 && !product.Activo)
+            {
+                product.Activo = true;
+            }
         }
 
         movement.Tipo = tipo;
@@ -70,13 +88,39 @@ public class InventoryMovementController : Controller
             _context.Products.Update(product);
             await _context.SaveChangesAsync();
 
-            TempData["SuccessMessage"] = $"Movimiento de {tipo} registrado exitosamente. Nuevo stock: {product.Stock}.";
+            var successMsg = $"Movimiento de {tipo} registrado exitosamente. Nuevo stock: {product.Stock}.";
+            if (TempData["WarningMessage"] != null)
+            {
+                TempData["SuccessMessage"] = successMsg + " " + TempData["WarningMessage"];
+            }
+            else
+            {
+                TempData["SuccessMessage"] = successMsg;
+            }
         }
         catch (Exception ex)
         {
             TempData["ErrorMessage"] = $"Error al registrar el movimiento de inventario: {ex.Message}";
         }
 
+        return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "historial" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var movement = await _context.InventoryMovements.FindAsync(id);
+        if (movement != null)
+        {
+            _context.InventoryMovements.Remove(movement);
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Movimiento de inventario eliminado correctamente.";
+        }
+        else
+        {
+            TempData["ErrorMessage"] = "No se encontró el movimiento especificado.";
+        }
         return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "historial" });
     }
 }

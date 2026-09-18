@@ -8,236 +8,788 @@
              Shell.NavBarIsVisible="False"
              BackgroundColor="{StaticResource Lavender}">
 
-    <Grid RowDefinitions="Auto,Auto,*" VerticalOptions="FillAndExpand">
+    <Grid VerticalOptions="FillAndExpand">
 
-        <!-- Custom AppBar with Search Field -->
-        <Border Grid.Row="0"
-                HeightRequest="120"
-                StrokeThickness="0"
-                StrokeShape="RoundRectangle 0,0,24,24">
-            <Border.Background>
-                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="{StaticResource Purple}" Offset="0.0"/>
-                    <GradientStop Color="{StaticResource PurpleDeep}" Offset="1.0"/>
-                </LinearGradientBrush>
-            </Border.Background>
+        <!-- Main View Layout -->
+        <Grid RowDefinitions="Auto,Auto,*">
 
-            <Grid Padding="16,12,16,12" VerticalOptions="Center">
-                <VerticalStackLayout Spacing="8">
-                    <Label Text="Tienda Óptica"
-                           FontSize="20"
-                           FontAttributes="Bold"
-                           TextColor="White"/>
+            <!-- Custom AppBar with Search Field & Shopping Cart Header Icon -->
+            <Border Grid.Row="0"
+                    HeightRequest="120"
+                    StrokeThickness="0"
+                    StrokeShape="RoundRectangle 0,0,24,24">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                        <GradientStop Color="{StaticResource Purple}" Offset="0.0"/>
+                        <GradientStop Color="{StaticResource PurpleDeep}" Offset="1.0"/>
+                    </LinearGradientBrush>
+                </Border.Background>
 
-                    <!-- Search Input Bar -->
-                    <Border StrokeShape="RoundRectangle 12"
-                            StrokeThickness="0"
-                            BackgroundColor="White"
-                            HeightRequest="42"
-                            Padding="12,0">
-                        <Grid ColumnDefinitions="*,Auto">
-                            <Entry Grid.Column="0"
-                                   Text="{Binding SearchText}"
-                                   Placeholder="Buscar monturas, lentes..."
-                                   PlaceholderColor="{StaticResource Muted}"
-                                   TextColor="{StaticResource Ink}"
-                                   FontSize="13"
-                                   ReturnCommand="{Binding SearchCommand}"
+                <Grid Padding="16,10,16,10" VerticalOptions="Center">
+                    <VerticalStackLayout Spacing="6">
+                        <!-- Top Row: Title + Language Toggle + Shopping Cart Button -->
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="8" VerticalOptions="Center">
+                            <Label Grid.Column="0"
+                                   Text="{Binding ShopTitle}"
+                                   FontSize="20"
+                                   FontAttributes="Bold"
+                                   TextColor="White"
                                    VerticalOptions="Center"/>
-                            <Button Grid.Column="1"
-                                    Text="🔍"
-                                    Command="{Binding SearchCommand}"
-                                    BackgroundColor="Transparent"
-                                    FontSize="14"
-                                    Padding="0"
-                                    WidthRequest="30"
-                                    HeightRequest="30"/>
+
+                            <!-- Language Toggle Button -->
+                            <Border Grid.Column="1"
+                                    BackgroundColor="White"
+                                    StrokeShape="RoundRectangle 14"
+                                    StrokeThickness="0"
+                                    Padding="10,6"
+                                    HeightRequest="36"
+                                    VerticalOptions="Center">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding ToggleLanguageCommand}"/>
+                                </Border.GestureRecognizers>
+
+                                <HorizontalStackLayout Spacing="4" VerticalOptions="Center">
+                                    <Label Text="{Binding CurrentLanguageDisplay}"
+                                           FontSize="12"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource Purple}"
+                                           VerticalOptions="Center"/>
+                                </HorizontalStackLayout>
+                            </Border>
+
+                            <!-- Cart Button with Count Badge -->
+                            <Border Grid.Column="2"
+                                    BackgroundColor="White"
+                                    StrokeShape="RoundRectangle 14"
+                                    StrokeThickness="0"
+                                    Padding="10,6"
+                                    HeightRequest="36"
+                                    VerticalOptions="Center">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding OpenCartModalCommand}"/>
+                                </Border.GestureRecognizers>
+
+                                <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                                    <Label Text="🛒" FontSize="15" VerticalOptions="Center"/>
+                                    <Border BackgroundColor="{StaticResource Purple}"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 10"
+                                            Padding="5,1"
+                                            VerticalOptions="Center">
+                                        <Label Text="{Binding CartItemCount}"
+                                               FontSize="11"
+                                               FontAttributes="Bold"
+                                               TextColor="White"/>
+                                    </Border>
+                                </HorizontalStackLayout>
+                            </Border>
                         </Grid>
-                    </Border>
-                </VerticalStackLayout>
-            </Grid>
-        </Border>
 
-        <!-- Horizontal Category Chips -->
-        <ScrollView Grid.Row="1"
-                    Orientation="Horizontal"
-                    HorizontalScrollBarVisibility="Never"
-                    Padding="16,12,16,8">
-            <HorizontalStackLayout Spacing="8">
-                <!-- Chip Todas -->
-                <Button Text="Todas"
-                        Command="{Binding SelectCategoryCommand}"
-                        CommandParameter="Todas"
-                        BackgroundColor="{StaticResource Purple}"
-                        TextColor="White"
-                        CornerRadius="16"
-                        FontSize="12"
-                        FontAttributes="Bold"
-                        HeightRequest="36"
-                        Padding="14,0"/>
-
-                <!-- Chip Monturas -->
-                <Button Text="Monturas"
-                        Command="{Binding SelectCategoryCommand}"
-                        CommandParameter="Monturas"
-                        BackgroundColor="White"
-                        TextColor="{StaticResource Ink}"
-                        BorderColor="{StaticResource Line}"
-                        BorderWidth="1"
-                        CornerRadius="16"
-                        FontSize="12"
-                        FontAttributes="Bold"
-                        HeightRequest="36"
-                        Padding="14,0"/>
-
-                <!-- Chip Contacto -->
-                <Button Text="Contacto"
-                        Command="{Binding SelectCategoryCommand}"
-                        CommandParameter="Contacto"
-                        BackgroundColor="White"
-                        TextColor="{StaticResource Ink}"
-                        BorderColor="{StaticResource Line}"
-                        BorderWidth="1"
-                        CornerRadius="16"
-                        FontSize="12"
-                        FontAttributes="Bold"
-                        HeightRequest="36"
-                        Padding="14,0"/>
-
-                <!-- Chip Sol -->
-                <Button Text="Sol"
-                        Command="{Binding SelectCategoryCommand}"
-                        CommandParameter="Sol"
-                        BackgroundColor="White"
-                        TextColor="{StaticResource Ink}"
-                        BorderColor="{StaticResource Line}"
-                        BorderWidth="1"
-                        CornerRadius="16"
-                        FontSize="12"
-                        FontAttributes="Bold"
-                        HeightRequest="36"
-                        Padding="14,0"/>
-
-                <!-- Chip Accesorios -->
-                <Button Text="Accesorios"
-                        Command="{Binding SelectCategoryCommand}"
-                        CommandParameter="Accesorios"
-                        BackgroundColor="White"
-                        TextColor="{StaticResource Ink}"
-                        BorderColor="{StaticResource Line}"
-                        BorderWidth="1"
-                        CornerRadius="16"
-                        FontSize="12"
-                        FontAttributes="Bold"
-                        HeightRequest="36"
-                        Padding="14,0"/>
-            </HorizontalStackLayout>
-        </ScrollView>
-
-        <!-- Product Grid: 2 Columns -->
-        <RefreshView Grid.Row="2"
-                     IsRefreshing="{Binding IsRefreshing}"
-                     Command="{Binding LoadProductsCommand}">
-            <CollectionView ItemsSource="{Binding Products}"
-                            Margin="12,4,12,12">
-                <CollectionView.ItemsLayout>
-                    <GridItemsLayout Orientation="Vertical"
-                                     Span="2"
-                                     HorizontalItemSpacing="10"
-                                     VerticalItemSpacing="10"/>
-                </CollectionView.ItemsLayout>
-
-                <CollectionView.ItemTemplate>
-                    <DataTemplate x:DataType="models:ProductDto">
-                        <Border Style="{StaticResource LentSoftCard}"
-                                Padding="12">
-                            <Border.GestureRecognizers>
-                                <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=ProductSelectedCommand}"
-                                                      CommandParameter="{Binding .}"/>
-                            </Border.GestureRecognizers>
-
-                            <VerticalStackLayout Spacing="8">
-                                <!-- Image with Lens Badge decoration -->
-                                <Border HeightRequest="110"
-                                        StrokeShape="RoundRectangle 12"
-                                        BackgroundColor="{StaticResource Lavender}"
-                                        StrokeThickness="0">
-                                    <Grid>
-                                        <Image Source="{Binding SafeImageUrl}"
-                                               Aspect="AspectFit"
-                                               Margin="8"/>
-
-                                        <!-- Brand Lens badge top right -->
-                                        <Border WidthRequest="22" HeightRequest="16"
-                                                StrokeShape="RoundRectangle 8"
-                                                Stroke="{StaticResource Purple}"
-                                                StrokeThickness="1"
-                                                BackgroundColor="White"
-                                                HorizontalOptions="End" VerticalOptions="Start"
-                                                Margin="6">
-                                            <Ellipse WidthRequest="6" HeightRequest="6" Fill="{StaticResource Purple}" HorizontalOptions="Center" VerticalOptions="Center"/>
-                                        </Border>
-
-                                        <!-- Discount Badge -->
-                                        <Border BackgroundColor="{StaticResource Gold}"
-                                                StrokeThickness="0"
-                                                StrokeShape="RoundRectangle 6"
-                                                Padding="4,2"
-                                                HorizontalOptions="Start" VerticalOptions="Start"
-                                                Margin="6"
-                                                IsVisible="{Binding HasDiscount}">
-                                            <Label Text="{Binding DescuentoPorcentaje, StringFormat='-{0}%'}"
-                                                   FontSize="9"
-                                                   FontAttributes="Bold"
-                                                   TextColor="{StaticResource Ink}"/>
-                                        </Border>
-                                    </Grid>
-                                </Border>
-
-                                <!-- Brand -->
-                                <Label Text="{Binding Marca}"
-                                       FontSize="11"
-                                       TextColor="{StaticResource Muted}"
-                                       TextTransform="Uppercase"
-                                       FontAttributes="Bold"/>
-
-                                <!-- Product Name -->
-                                <Label Text="{Binding Nombre}"
-                                       FontSize="13"
-                                       FontAttributes="Bold"
+                        <!-- Search Input Bar -->
+                        <Border StrokeShape="RoundRectangle 12"
+                                StrokeThickness="0"
+                                BackgroundColor="White"
+                                HeightRequest="40"
+                                Padding="12,0">
+                            <Grid ColumnDefinitions="*,Auto">
+                                <Entry Grid.Column="0"
+                                       Text="{Binding SearchText}"
+                                       Placeholder="{Binding SearchPlaceholderText}"
+                                       PlaceholderColor="{StaticResource Muted}"
                                        TextColor="{StaticResource Ink}"
-                                       LineBreakMode="TailTruncation"
-                                       MaxLines="2"
-                                       HeightRequest="36"/>
+                                       FontSize="13"
+                                       ReturnCommand="{Binding SearchCommand}"
+                                       VerticalOptions="Center"/>
+                                <Button Grid.Column="1"
+                                        Text="🔍"
+                                        Command="{Binding SearchCommand}"
+                                        BackgroundColor="Transparent"
+                                        FontSize="14"
+                                        Padding="0"
+                                        WidthRequest="30"
+                                        HeightRequest="30"/>
+                            </Grid>
+                        </Border>
+                    </VerticalStackLayout>
+                </Grid>
+            </Border>
 
-                                <!-- Price COP -->
-                                <Label Text="{Binding DisplayPrice}"
-                                       FontSize="14"
+            <!-- Horizontal Category Chips -->
+            <ScrollView Grid.Row="1"
+                        Orientation="Horizontal"
+                        HorizontalScrollBarVisibility="Never"
+                        Padding="16,10,16,6">
+                <HorizontalStackLayout Spacing="8">
+                    <!-- Chip Todas -->
+                    <Button Text="{Binding CategoryAllText}"
+                            Command="{Binding SelectCategoryCommand}"
+                            CommandParameter="Todas"
+                            BackgroundColor="{StaticResource Purple}"
+                            TextColor="White"
+                            CornerRadius="16"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            HeightRequest="34"
+                            Padding="14,0"/>
+
+                    <!-- Chip Monturas -->
+                    <Button Text="{Binding CategoryFramesText}"
+                            Command="{Binding SelectCategoryCommand}"
+                            CommandParameter="Monturas"
+                            BackgroundColor="White"
+                            TextColor="{StaticResource Ink}"
+                            BorderColor="{StaticResource Line}"
+                            BorderWidth="1"
+                            CornerRadius="16"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            HeightRequest="34"
+                            Padding="14,0"/>
+
+                    <!-- Chip Contacto -->
+                    <Button Text="{Binding CategoryContactText}"
+                            Command="{Binding SelectCategoryCommand}"
+                            CommandParameter="Contacto"
+                            BackgroundColor="White"
+                            TextColor="{StaticResource Ink}"
+                            BorderColor="{StaticResource Line}"
+                            BorderWidth="1"
+                            CornerRadius="16"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            HeightRequest="34"
+                            Padding="14,0"/>
+
+                    <!-- Chip Sol -->
+                    <Button Text="{Binding CategorySunText}"
+                            Command="{Binding SelectCategoryCommand}"
+                            CommandParameter="Sol"
+                            BackgroundColor="White"
+                            TextColor="{StaticResource Ink}"
+                            BorderColor="{StaticResource Line}"
+                            BorderWidth="1"
+                            CornerRadius="16"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            HeightRequest="34"
+                            Padding="14,0"/>
+
+                    <!-- Chip Accesorios -->
+                    <Button Text="{Binding CategoryAccText}"
+                            Command="{Binding SelectCategoryCommand}"
+                            CommandParameter="Accesorios"
+                            BackgroundColor="White"
+                            TextColor="{StaticResource Ink}"
+                            BorderColor="{StaticResource Line}"
+                            BorderWidth="1"
+                            CornerRadius="16"
+                            FontSize="12"
+                            FontAttributes="Bold"
+                            HeightRequest="34"
+                            Padding="14,0"/>
+                </HorizontalStackLayout>
+            </ScrollView>
+
+            <!-- Product Grid: 2 Columns -->
+            <RefreshView Grid.Row="2"
+                         IsRefreshing="{Binding IsRefreshing}"
+                         Command="{Binding LoadProductsCommand}">
+                <CollectionView ItemsSource="{Binding Products}"
+                                Margin="12,4,12,12">
+                    <CollectionView.ItemsLayout>
+                        <GridItemsLayout Orientation="Vertical"
+                                         Span="2"
+                                         HorizontalItemSpacing="10"
+                                         VerticalItemSpacing="10"/>
+                    </CollectionView.ItemsLayout>
+
+                    <CollectionView.ItemTemplate>
+                        <DataTemplate x:DataType="models:ProductDto">
+                            <Border Style="{StaticResource LentSoftCard}"
+                                    Padding="12">
+                                <Border.GestureRecognizers>
+                                    <TapGestureRecognizer Command="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=ProductSelectedCommand}"
+                                                          CommandParameter="{Binding .}"/>
+                                </Border.GestureRecognizers>
+
+                                <VerticalStackLayout Spacing="8">
+                                    <!-- Image with Lens Badge decoration -->
+                                    <Border HeightRequest="110"
+                                            StrokeShape="RoundRectangle 12"
+                                            BackgroundColor="{StaticResource Lavender}"
+                                            StrokeThickness="0">
+                                        <Grid>
+                                            <Image Source="{Binding SafeImageUrl}"
+                                                   Aspect="AspectFit"
+                                                   Margin="8"/>
+
+                                            <!-- Brand Lens badge top right -->
+                                            <Border WidthRequest="22" HeightRequest="16"
+                                                    StrokeShape="RoundRectangle 8"
+                                                    Stroke="{StaticResource Purple}"
+                                                    StrokeThickness="1"
+                                                    BackgroundColor="White"
+                                                    HorizontalOptions="End" VerticalOptions="Start"
+                                                    Margin="6">
+                                                <Ellipse WidthRequest="6" HeightRequest="6" Fill="{StaticResource Purple}" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                            </Border>
+
+                                            <!-- Discount Badge -->
+                                            <Border BackgroundColor="{StaticResource Gold}"
+                                                    StrokeThickness="0"
+                                                    StrokeShape="RoundRectangle 6"
+                                                    Padding="4,2"
+                                                    HorizontalOptions="Start" VerticalOptions="Start"
+                                                    Margin="6"
+                                                    IsVisible="{Binding HasDiscount}">
+                                                <Label Text="{Binding DescuentoPorcentaje, StringFormat='-{0}%'}"
+                                                       FontSize="9"
+                                                       FontAttributes="Bold"
+                                                       TextColor="{StaticResource Ink}"/>
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+
+                                    <!-- Brand -->
+                                    <Label Text="{Binding Marca}"
+                                           FontSize="11"
+                                           TextColor="{StaticResource Muted}"
+                                           TextTransform="Uppercase"
+                                           FontAttributes="Bold"/>
+
+                                    <!-- Product Name -->
+                                    <Label Text="{Binding DisplayNombre}"
+                                           FontSize="13"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource Ink}"
+                                           LineBreakMode="TailTruncation"
+                                           MaxLines="2"
+                                           HeightRequest="36"/>
+
+                                    <!-- Price COP -->
+                                    <Label Text="{Binding DisplayPrice}"
+                                           FontSize="14"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource Purple}"/>
+
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </CollectionView.ItemTemplate>
+
+                    <CollectionView.EmptyView>
+                        <VerticalStackLayout Spacing="8" HorizontalOptions="Center" VerticalOptions="Center" Padding="40">
+                            <Label Text="👓" FontSize="40" HorizontalOptions="Center"/>
+                            <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=NoProductsText}"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Ink}"
+                                   HorizontalOptions="Center"/>
+                            <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=NoProductsSubtext}"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Muted}"
+                                   HorizontalOptions="Center"/>
+                        </VerticalStackLayout>
+                    </CollectionView.EmptyView>
+
+                </CollectionView>
+            </RefreshView>
+
+        </Grid>
+
+        <!-- Product Details Web-Style Modal Overlay -->
+        <Grid IsVisible="{Binding IsDetailModalVisible}"
+              BackgroundColor="#80000000"
+              Padding="16,20">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseDetailModalCommand}"/>
+            </Grid.GestureRecognizers>
+
+            <Border BackgroundColor="White"
+                    StrokeShape="RoundRectangle 20"
+                    StrokeThickness="0"
+                    Margin="0"
+                    Padding="18"
+                    VerticalOptions="Center"
+                    MaximumHeightRequest="620"
+                    BindingContext="{Binding SelectedProduct}"
+                    x:DataType="models:ProductDto">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer/>
+                </Border.GestureRecognizers>
+
+                <ScrollView VerticalScrollBarVisibility="Never">
+                    <VerticalStackLayout Spacing="12">
+
+                        <!-- Header Bar with Close Button -->
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Label Grid.Column="0"
+                                   Text="{Binding Marca}"
+                                   FontSize="12"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Purple}"
+                                   TextTransform="Uppercase"
+                                   VerticalOptions="Center"/>
+
+                            <Button Grid.Column="1"
+                                    Text="✕"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=CloseDetailModalCommand}"
+                                    BackgroundColor="{StaticResource Lavender}"
+                                    TextColor="{StaticResource Ink}"
+                                    CornerRadius="14"
+                                    WidthRequest="32"
+                                    HeightRequest="32"
+                                    Padding="0"
+                                    FontSize="14"/>
+                        </Grid>
+
+                        <!-- Product Title -->
+                        <Label Text="{Binding DisplayNombre}"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Ink}"/>
+
+                        <!-- High-Res Product Image Container -->
+                        <Border HeightRequest="170"
+                                StrokeShape="RoundRectangle 16"
+                                BackgroundColor="{StaticResource Lavender}"
+                                StrokeThickness="0"
+                                Padding="10">
+                            <Grid>
+                                <Image Source="{Binding SafeImageUrl}"
+                                       Aspect="AspectFit"/>
+
+                                <!-- Discount Tag -->
+                                <Border BackgroundColor="{StaticResource Gold}"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 8"
+                                        Padding="6,3"
+                                        HorizontalOptions="Start" VerticalOptions="Start"
+                                        Margin="4"
+                                        IsVisible="{Binding HasDiscount}">
+                                    <Label Text="{Binding DescuentoPorcentaje, StringFormat='-{0}% OFF'}"
+                                           FontSize="10"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource Ink}"/>
+                                </Border>
+                            </Grid>
+                        </Border>
+
+                        <!-- Rating & Review Count -->
+                        <HorizontalStackLayout Spacing="6" VerticalOptions="Center">
+                            <Label Text="{Binding DisplayRatingStars}"
+                                   TextColor="#F59E0B"
+                                   FontSize="14"/>
+                            <Label Text="{Binding Rating, StringFormat='{0:F1}'}"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Ink}"/>
+                            <Label Text="{Binding ReviewCount, StringFormat='({0} reseñas)'}"
+                                   FontSize="12"
+                                   TextColor="{StaticResource Muted}"/>
+                        </HorizontalStackLayout>
+
+                        <!-- Price Section -->
+                        <Border BackgroundColor="{StaticResource Lavender}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="14,10">
+                            <Grid ColumnDefinitions="*,Auto" VerticalOptions="Center">
+                                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                    <Label Text="{Binding DisplayPrice}"
+                                           FontSize="20"
+                                           FontAttributes="Bold"
+                                           TextColor="{StaticResource Purple}"/>
+                                    <Label Text="{Binding DisplayRegularPrice, StringFormat='Antes: {0}'}"
+                                           FontSize="12"
+                                           TextDecorations="Strikethrough"
+                                           TextColor="{StaticResource Muted}"
+                                           IsVisible="{Binding HasDiscount}"/>
+                                </VerticalStackLayout>
+
+                                <Label Grid.Column="1"
+                                       Text="{Binding Stock, StringFormat='{0} en stock'}"
+                                       FontSize="12"
                                        FontAttributes="Bold"
-                                       TextColor="{StaticResource Purple}"/>
+                                       TextColor="#059669"
+                                       VerticalOptions="Center"/>
+                            </Grid>
+                        </Border>
 
+                        <!-- Web Description Section -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=DescriptionText}"
+                                   FontSize="13"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Ink}"/>
+                            <Label Text="{Binding SafeDescripcion}"
+                                   FontSize="13"
+                                   TextColor="{StaticResource Ink}"
+                                   LineHeight="1.3"/>
+                        </VerticalStackLayout>
+
+                        <!-- Web Warranty Cards Container -->
+                        <Border BackgroundColor="{StaticResource Lavender}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 14"
+                                Padding="12">
+                            <VerticalStackLayout Spacing="10">
+                                <!-- Warranty Card 1: Garantía incluida -->
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                    <Label Grid.Column="0" Text="🛡️" FontSize="18" VerticalOptions="Start"/>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=WarrantyTitle}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Purple}"/>
+                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=WarrantyDesc}" FontSize="11" TextColor="{StaticResource Muted}"/>
+                                    </VerticalStackLayout>
+                                </Grid>
+
+                                <!-- Warranty Card 2: Envío gratis -->
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                    <Label Grid.Column="0" Text="🚚" FontSize="18" VerticalOptions="Start"/>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=ShippingTitle}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Purple}"/>
+                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=ShippingDesc}" FontSize="11" TextColor="{StaticResource Muted}"/>
+                                    </VerticalStackLayout>
+                                </Grid>
+
+                                <!-- Warranty Card 3: Calidad garantizada -->
+                                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
+                                    <Label Grid.Column="0" Text="✨" FontSize="18" VerticalOptions="Start"/>
+                                    <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=QualityTitle}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Purple}"/>
+                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=QualityDesc}" FontSize="11" TextColor="{StaticResource Muted}"/>
+                                    </VerticalStackLayout>
+                                </Grid>
                             </VerticalStackLayout>
                         </Border>
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
 
-                <CollectionView.EmptyView>
-                    <VerticalStackLayout Spacing="8" HorizontalOptions="Center" VerticalOptions="Center" Padding="40">
-                        <Label Text="👓" FontSize="40" HorizontalOptions="Center"/>
-                        <Label Text="No se encontraron productos"
-                               FontSize="16"
-                               FontAttributes="Bold"
-                               TextColor="{StaticResource Ink}"
-                               HorizontalOptions="Center"/>
-                        <Label Text="Prueba con otra categoría o búsqueda."
-                               FontSize="13"
-                               TextColor="{StaticResource Muted}"
-                               HorizontalOptions="Center"/>
+                        <!-- Actions Bar: Add to Cart Button + Favorite Button -->
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="10" Margin="0,4,0,0">
+                            <Button Grid.Column="0"
+                                    Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=AddToCartText}"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=AddToCartCommand}"
+                                    CommandParameter="{Binding .}"
+                                    BackgroundColor="{StaticResource Purple}"
+                                    TextColor="White"
+                                    FontAttributes="Bold"
+                                    CornerRadius="14"
+                                    HeightRequest="46"
+                                    FontSize="14"/>
+
+                            <Button Grid.Column="1"
+                                    Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=SelectedProductFavHeart}"
+                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=ToggleFavoriteCommand}"
+                                    CommandParameter="{Binding .}"
+                                    BackgroundColor="White"
+                                    BorderColor="{StaticResource Line}"
+                                    BorderWidth="1"
+                                    CornerRadius="14"
+                                    WidthRequest="46"
+                                    HeightRequest="46"
+                                    FontSize="18"
+                                    Padding="0"/>
+                        </Grid>
+
                     </VerticalStackLayout>
-                </CollectionView.EmptyView>
+                </ScrollView>
+            </Border>
+        </Grid>
 
-            </CollectionView>
-        </RefreshView>
+        <!-- Shopping Cart & Checkout Modal Overlay Container -->
+        <Grid IsVisible="{Binding IsCartModalVisible}"
+              BackgroundColor="#80000000"
+              Padding="16,20">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseCartModalCommand}"/>
+            </Grid.GestureRecognizers>
+
+            <Border BackgroundColor="White"
+                    StrokeShape="RoundRectangle 20"
+                    StrokeThickness="0"
+                    Margin="0"
+                    Padding="18"
+                    VerticalOptions="Center"
+                    HeightRequest="540">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer/>
+                </Border.GestureRecognizers>
+
+                <!-- Single Root Container for Border -->
+                <Grid>
+
+                    <!-- STEP 1: Tu Carrito de Compras -->
+                    <Grid IsVisible="{Binding IsCartListStepVisible}" RowDefinitions="Auto,*,Auto" RowSpacing="12">
+
+                    <!-- Cart Header -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <Label Grid.Column="0"
+                               Text="{Binding CartTitleText}"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Purple}"
+                               VerticalOptions="Center"/>
+
+                        <Button Grid.Column="1"
+                                Text="✕"
+                                Command="{Binding CloseCartModalCommand}"
+                                BackgroundColor="{StaticResource Lavender}"
+                                TextColor="{StaticResource Ink}"
+                                CornerRadius="14"
+                                WidthRequest="32"
+                                HeightRequest="32"
+                                Padding="0"
+                                FontSize="14"/>
+                    </Grid>
+
+                    <!-- Cart Items List -->
+                    <CollectionView Grid.Row="1"
+                                    ItemsSource="{Binding CartItems}"
+                                    Margin="0,4">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:CartItemDto">
+                                <Border Stroke="{StaticResource Line}"
+                                        StrokeThickness="1"
+                                        StrokeShape="RoundRectangle 12"
+                                        Padding="10"
+                                        Margin="0,0,0,8">
+                                    <Grid ColumnDefinitions="52,*,110" ColumnSpacing="8" VerticalOptions="Center">
+                                        <!-- Item Image -->
+                                        <Border Grid.Column="0"
+                                                WidthRequest="50" HeightRequest="50"
+                                                StrokeShape="RoundRectangle 8"
+                                                BackgroundColor="{StaticResource Lavender}"
+                                                StrokeThickness="0"
+                                                VerticalOptions="Center">
+                                            <Image Source="{Binding Product.SafeImageUrl}" Aspect="AspectFit" Margin="4"/>
+                                        </Border>
+
+                                        <!-- Item Info & Quantity Selector -->
+                                        <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" HorizontalOptions="FillAndExpand">
+                                            <Label Text="{Binding Product.DisplayNombre}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}" LineBreakMode="TailTruncation" MaxLines="2"/>
+                                            <Label Text="{Binding Product.Marca, StringFormat='MARCA: {0}'}" FontSize="10" TextColor="{StaticResource Muted}" LineBreakMode="TailTruncation"/>
+                                            <Label Text="{Binding DisplaySubtotal}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Purple}"/>
+                                        </VerticalStackLayout>
+
+                                        <!-- Quantity Controls & Delete Button -->
+                                        <HorizontalStackLayout Grid.Column="2" Spacing="4" VerticalOptions="Center">
+                                            <Button Text="-"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=DecreaseCartItemCommand}"
+                                                    CommandParameter="{Binding Product.Id}"
+                                                    WidthRequest="28" HeightRequest="28"
+                                                    CornerRadius="8" Padding="0" FontSize="14"
+                                                    BackgroundColor="{StaticResource Lavender}" TextColor="{StaticResource Ink}"/>
+
+                                            <Label Text="{Binding Cantidad}" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource Ink}" VerticalOptions="Center" Margin="4,0"/>
+
+                                            <Button Text="+"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=IncreaseCartItemCommand}"
+                                                    CommandParameter="{Binding Product.Id}"
+                                                    WidthRequest="28" HeightRequest="28"
+                                                    CornerRadius="8" Padding="0" FontSize="14"
+                                                    BackgroundColor="{StaticResource Lavender}" TextColor="{StaticResource Ink}"/>
+
+                                            <Button Text="🗑️"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=RemoveCartItemCommand}"
+                                                    CommandParameter="{Binding Product.Id}"
+                                                    WidthRequest="28" HeightRequest="28"
+                                                    CornerRadius="8" Padding="0" FontSize="12"
+                                                    BackgroundColor="Transparent"/>
+                                        </HorizontalStackLayout>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+
+                        <CollectionView.EmptyView>
+                            <VerticalStackLayout Spacing="8" HorizontalOptions="Center" VerticalOptions="Center" Padding="30">
+                                <Label Text="🛒" FontSize="36" HorizontalOptions="Center"/>
+                                <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=EmptyCartTitle}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
+                                <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=EmptyCartSubtitle}" FontSize="12" TextColor="{StaticResource Muted}" HorizontalOptions="Center"/>
+                            </VerticalStackLayout>
+                        </CollectionView.EmptyView>
+                    </CollectionView>
+
+                    <!-- Cart Order Summary & Proceed to Checkout Button -->
+                    <VerticalStackLayout Grid.Row="2" Spacing="10">
+                        <Border BackgroundColor="{StaticResource Lavender}"
+                                StrokeThickness="0"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12">
+                            <VerticalStackLayout Spacing="6">
+                                <Label Text="Resumen de Compra" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource Purple}"/>
+
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Grid.Column="0" Text="Productos" FontSize="12" TextColor="{StaticResource Ink}"/>
+                                    <Label Grid.Column="1" Text="{Binding CartItemCount, StringFormat='{0} unidades'}" FontSize="12" TextColor="{StaticResource Ink}"/>
+                                </Grid>
+
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Grid.Column="0" Text="Envío" FontSize="12" TextColor="{StaticResource Ink}"/>
+                                    <Label Grid.Column="1" Text="Gratis" FontSize="12" FontAttributes="Bold" TextColor="#059669"/>
+                                </Grid>
+
+                                <BoxView HeightRequest="1" Color="{StaticResource Line}" Margin="0,2"/>
+
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <Label Grid.Column="0" Text="Total General" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                                    <Label Grid.Column="1" Text="{Binding CartTotalDisplay}" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Purple}"/>
+                                </Grid>
+                            </VerticalStackLayout>
+                        </Border>
+
+                        <Button Text="{Binding CheckoutButtonText}"
+                                Command="{Binding ProceedToCheckoutCommand}"
+                                BackgroundColor="{StaticResource Purple}"
+                                TextColor="White"
+                                FontAttributes="Bold"
+                                CornerRadius="12"
+                                HeightRequest="46"
+                                FontSize="14"/>
+                    </VerticalStackLayout>
+
+                </Grid>
+
+                <!-- STEP 2: Método de Pago Simulado Form -->
+                <ScrollView IsVisible="{Binding IsCheckoutStepVisible}" VerticalScrollBarVisibility="Never">
+                    <VerticalStackLayout Spacing="12">
+
+                        <!-- Header Bar with Back Button & Close Button -->
+                        <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10" VerticalOptions="Center">
+                            <Button Grid.Column="0"
+                                    Text="{Binding BackText}"
+                                    Command="{Binding BackToCartListCommand}"
+                                    BackgroundColor="{StaticResource Lavender}"
+                                    TextColor="{StaticResource Purple}"
+                                    FontAttributes="Bold"
+                                    CornerRadius="12"
+                                    HeightRequest="32"
+                                    Padding="10,0"
+                                    FontSize="12"/>
+
+                            <Label Grid.Column="1"
+                                   Text="Método de Pago"
+                                   FontSize="16"
+                                   FontAttributes="Bold"
+                                   TextColor="{StaticResource Purple}"
+                                   HorizontalOptions="Center"
+                                   VerticalOptions="Center"/>
+
+                            <Button Grid.Column="2"
+                                    Text="✕"
+                                    Command="{Binding CloseCartModalCommand}"
+                                    BackgroundColor="{StaticResource Lavender}"
+                                    TextColor="{StaticResource Ink}"
+                                    CornerRadius="14"
+                                    WidthRequest="32"
+                                    HeightRequest="32"
+                                    Padding="0"
+                                    FontSize="14"/>
+                        </Grid>
+
+                        <Label Text="{Binding PaymentTitleText}"
+                               FontSize="18"
+                               FontAttributes="Bold"
+                               TextColor="{StaticResource Purple}"/>
+
+                        <!-- Número de Tarjeta -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="{Binding CardNumberText}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                            <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Line}" BackgroundColor="White" Padding="12,0" HeightRequest="42">
+                                <Entry Text="{Binding CardNumber}" Placeholder="0000 0000 0000 0000" Keyboard="Numeric" TextColor="{StaticResource Ink}" FontSize="13" VerticalOptions="Center"/>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Nombre en la Tarjeta -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="{Binding CardHolderText}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                            <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Line}" BackgroundColor="White" Padding="12,0" HeightRequest="42">
+                                <Entry Text="{Binding CardHolderName}" Placeholder="Ej. Juan Pérez" TextColor="{StaticResource Ink}" FontSize="13" VerticalOptions="Center"/>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Expiración y CVV (2 Columns) -->
+                        <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
+                            <VerticalStackLayout Grid.Column="0" Spacing="4">
+                                <Label Text="{Binding CardExpiryText}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                                <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Line}" BackgroundColor="White" Padding="12,0" HeightRequest="42">
+                                    <Entry Text="{Binding CardExpiry}" Placeholder="MM/AA" TextColor="{StaticResource Ink}" FontSize="13" VerticalOptions="Center"/>
+                                </Border>
+                            </VerticalStackLayout>
+
+                            <VerticalStackLayout Grid.Column="1" Spacing="4">
+                                <Label Text="{Binding CardCvvText}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                                <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Line}" BackgroundColor="White" Padding="12,0" HeightRequest="42">
+                                    <Entry Text="{Binding CardCvv}" Placeholder="123" Keyboard="Numeric" TextColor="{StaticResource Ink}" FontSize="13" VerticalOptions="Center"/>
+                                </Border>
+                            </VerticalStackLayout>
+                        </Grid>
+
+                        <!-- Dirección de Envío -->
+                        <VerticalStackLayout Spacing="4">
+                            <Label Text="{Binding ShippingAddressText}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                            <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Line}" BackgroundColor="White" Padding="12,8">
+                                <Editor Text="{Binding ShippingAddress}" Placeholder="Ingresa tu dirección completa de entrega" AutoSize="TextChanges" HeightRequest="60" TextColor="{StaticResource Ink}" FontSize="13"/>
+                            </Border>
+                        </VerticalStackLayout>
+
+                        <!-- Security Simulation Banner (Matching Web Screenshot) -->
+                        <Border BackgroundColor="{StaticResource Lavender}"
+                                Stroke="{StaticResource Line}"
+                                StrokeThickness="1"
+                                StrokeShape="RoundRectangle 12"
+                                Padding="12">
+                            <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10" VerticalOptions="Center">
+                                <Label Grid.Column="0" Text="🔒" FontSize="20" VerticalOptions="Start"/>
+                                <VerticalStackLayout Grid.Column="1" Spacing="2">
+                                    <Label Text="Entorno Seguro de Simulación:" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Purple}"/>
+                                    <Label Text="Las transacciones bancarias son simuladas internamente. Ningún dato real de tarjeta de crédito será enviado a procesadores externos ni validado contra instituciones bancarias." FontSize="11" TextColor="{StaticResource Muted}" LineHeight="1.2"/>
+                                </VerticalStackLayout>
+                            </Grid>
+                        </Border>
+
+                        <!-- Order Total Summary Badge -->
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+                            <Label Grid.Column="0" Text="Total a Pagar:" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource Ink}" VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="{Binding CartTotalDisplay}" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Purple}" VerticalOptions="Center"/>
+                        </Grid>
+
+                        <!-- Primary Payment Button -->
+                        <Button Text="{Binding ConfirmPaymentText}"
+                                Command="{Binding ConfirmPaymentCommand}"
+                                BackgroundColor="{StaticResource Purple}"
+                                TextColor="White"
+                                FontAttributes="Bold"
+                                CornerRadius="12"
+                                HeightRequest="48"
+                                FontSize="15"
+                                Margin="0,4,0,0"/>
+
+                    </VerticalStackLayout>
+                </ScrollView>
+
+                </Grid>
+            </Border>
+        </Grid>
+
+        <!-- Web-Style Floating Green Toast Notification Overlay -->
+        <Border IsVisible="{Binding IsToastVisible}"
+                BackgroundColor="#10B981"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 12"
+                HorizontalOptions="End"
+                VerticalOptions="End"
+                Margin="16,0,16,24"
+                Padding="16,12"
+                Shadow="{Shadow Brush=Black, Offset='0,4', Radius=8, Opacity=0.25}">
+            <HorizontalStackLayout Spacing="10" VerticalOptions="Center">
+                <Label Text="🛒" FontSize="16" VerticalOptions="Center"/>
+                <Label Text="{Binding ToastMessage}"
+                       FontSize="13"
+                       FontAttributes="Bold"
+                       TextColor="White"
+                       VerticalOptions="Center"/>
+            </HorizontalStackLayout>
+        </Border>
 
     </Grid>
 
