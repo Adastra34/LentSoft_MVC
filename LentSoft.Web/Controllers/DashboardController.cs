@@ -633,6 +633,12 @@ public class DashboardController : Controller
     {
         try
         {
+            if (!Appointment.EstadosValidos.Contains(estado, StringComparer.OrdinalIgnoreCase))
+            {
+                TempData["ErrorMessage"] = "Estado no válido. Los valores permitidos son: pendiente, confirmada, completada, cancelada.";
+                return RedirectToAction("Admin", new { section = "citas" });
+            }
+
             var cita = await _context.Appointments.FindAsync(id);
             if (cita != null)
             {

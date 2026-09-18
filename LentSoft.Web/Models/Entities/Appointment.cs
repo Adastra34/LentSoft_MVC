@@ -41,6 +41,9 @@ public class Appointment : IValidatableObject
     [ForeignKey(nameof(OptometraId))]
     public User? Optometra { get; set; }
 
+    // --- Estados válidos ---
+    public static readonly string[] EstadosValidos = { "pendiente", "confirmada", "completada", "cancelada" };
+
     // --- Horario Laboral Config & Validations ---
     public static readonly DayOfWeek[] DiasLaborales = new[]
     {
@@ -58,18 +61,14 @@ public class Appointment : IValidatableObject
 
     public static bool EsHorarioLaboral(DateTime fechaHora)
     {
-        // El día de la semana no sea Domingo
         if (!DiasLaborales.Contains(fechaHora.DayOfWeek))
-        {
             return false;
-        }
 
-        // La hora esté entre las 8:00 y las 18:00
-        var time = fechaHora.TimeOfDay;
-        if (time < new TimeSpan(HoraInicio, 0, 0) || time > new TimeSpan(HoraFin, 0, 0))
-        {
+        var horaInicioCita = fechaHora.TimeOfDay;
+        var horaFinCita = horaInicioCita.Add(TimeSpan.FromMinutes(DuracionCitaMinutos));
+
+        if (horaInicioCita < new TimeSpan(HoraInicio, 0, 0) || horaFinCita > new TimeSpan(HoraFin, 0, 0))
             return false;
-        }
 
         return true;
     }
@@ -109,11 +108,10 @@ public class Appointment : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        var validEstados = new[] { "pendiente", "confirmada", "completada", "cancelada" };
-        if (!validEstados.Contains(Estado))
+        if (!EstadosValidos.Contains(Estado, StringComparer.OrdinalIgnoreCase))
         {
             yield return new ValidationResult(
-                "El estado de la cita debe ser: pendiente, confirmada, completada o cancelada",
+                "El estado debe ser: pendiente, confirmada, completada o cancelada.",
                 new[] { nameof(Estado) });
         }
     }

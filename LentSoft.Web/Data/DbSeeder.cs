@@ -144,7 +144,7 @@ public static class DbSeeder
                 },
                 new Appointment
                 {
-                    UserId = pSofia.Id, Servicio = "Primera consulta", FechaHora = now.Date.AddDays(1).AddHours(12), Estado = "en proceso", Notas = "Examen de agudeza para colegio", FechaCreacion = now, OptometraId = optId
+                    UserId = pSofia.Id, Servicio = "Primera consulta", FechaHora = now.Date.AddDays(1).AddHours(12), Estado = "pendiente", Notas = "Examen de agudeza para colegio", FechaCreacion = now, OptometraId = optId
                 },
                 new Appointment
                 {
