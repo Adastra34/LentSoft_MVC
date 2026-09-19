@@ -625,15 +625,25 @@ public class DashboardController : Controller
         return RedirectToAction("Admin", new { section = "citas" });
     }
 
-    // â”€â”€ Admin: Actualizar estado de cita â”€â”€
+    // ── Admin: Actualizar estado de cita ──
     [HttpPost]
     [Authorize(Roles = "admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateAppointmentStatus(int id, string estado)
+    [ActionName("ChangeAppointmentStatus")]
+    public async Task<IActionResult> ChangeAppointmentStatus(int id, string? estado, string? nuevoEstado = null)
     {
+        return await UpdateAppointmentStatus(id, estado, nuevoEstado);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "admin")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateAppointmentStatus(int id, string? estado, string? nuevoEstado = null)
+    {
+        var targetEstado = !string.IsNullOrWhiteSpace(estado) ? estado : nuevoEstado;
         try
         {
-            if (!Appointment.EstadosValidos.Contains(estado, StringComparer.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(targetEstado) || !Appointment.EstadosValidos.Contains(targetEstado, StringComparer.OrdinalIgnoreCase))
             {
                 TempData["ErrorMessage"] = "Estado no válido. Los valores permitidos son: pendiente, confirmada, completada, cancelada.";
                 return RedirectToAction("Admin", new { section = "citas" });
@@ -642,7 +652,7 @@ public class DashboardController : Controller
             var cita = await _context.Appointments.FindAsync(id);
             if (cita != null)
             {
-                cita.Estado = estado;
+                cita.Estado = targetEstado.ToLower();
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Estado de cita actualizado.";
             }
@@ -659,7 +669,7 @@ public class DashboardController : Controller
         return RedirectToAction("Admin", new { section = "citas" });
     }
 
-    // â”€â”€ Admin: Eliminar cita â”€â”€
+    // ── Admin: Eliminar / Desactivar cita ──
     [HttpPost]
     [Authorize(Roles = "admin")]
     [ValidateAntiForgeryToken]
@@ -673,24 +683,37 @@ public class DashboardController : Controller
                 cita.Activo = false;
                 _context.Appointments.Update(cita);
                 await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Cita eliminada exitosamente.";
+                TempData["SuccessMessage"] = "Cita desactivada exitosamente.";
+
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = true, message = "Cita desactivada exitosamente." });
+                }
             }
             else
             {
                 TempData["ErrorMessage"] = "Cita no encontrada.";
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = "Cita no encontrada." });
+                }
             }
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al eliminar la cita: {ex.Message}";
+            TempData["ErrorMessage"] = $"Error al desactivar la cita: {ex.Message}";
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         return RedirectToAction("Admin", new { section = "citas" });
     }
 
-
     [HttpPost]
     [Authorize(Roles = "admin")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditAppointment(int Id, int UserId, int? OptometraId, string Servicio, DateTime FechaHora, string? Notas)
     {
         var cita = await _context.Appointments.FindAsync(Id);

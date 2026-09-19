@@ -573,7 +573,7 @@
                                         @(c.User != null ? $"{c.User.Nombre} {c.User.Apellido}" : "Sin paciente")
                                     </td>
                                     <td style="padding: 0.75rem;">
-                                        @(c.Optometra != null ? c.Optometra.Nombre : "Por asignar")
+                                        @(c.Optometra != null && !string.IsNullOrWhiteSpace(c.Optometra.Nombre) ? c.Optometra.Nombre.Split(' ')[0] : "Por asignar")
                                     </td>
                                     <td style="padding: 0.75rem;">@c.Servicio</td>
                                     <td style="padding: 0.75rem;">@c.FechaHora.ToString("dd/MM/yyyy hh:mm tt")</td>
@@ -589,8 +589,8 @@
                                         </span>
                                     </td>
                                     <td style="padding: 0.75rem; text-align: right;">
-                                        <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-                                            <button class="btn btn-primary" style="padding: 0.4rem 0.6rem;" title="Ver Detalle"
+                                        <div style="display: flex; gap: 0.5rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                                            <button type="button" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 500;" title="Ver Detalle"
                                                     data-id="@c.Id"
                                                     data-userid="@c.UserId"
                                                     data-paciente="@(c.User != null ? $"{c.User.Nombre} {c.User.Apellido}" : "")"
@@ -602,25 +602,28 @@
                                                     data-notas="@c.Notas"
                                                     data-vecesreprogramada="@c.VecesReprogramada"
                                                     onclick="abrirModalAdminVerCita(this)">
-                                                👁️
+                                                👁️ Ver
                                             </button>
 
-                                            <!-- Dropdown para Cambio Rápido de Estado -->
-                                            <form asp-action="UpdateAppointmentStatus" method="post" style="display: inline-block;">
+                                            <!-- Dropdown para Cambio Rápido de Estado (Pill) -->
+                                            <form asp-action="UpdateAppointmentStatus" method="post" style="display: inline-block; margin: 0;">
+                                                @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@c.Id" />
-                                                <select name="nuevoEstado" onchange="this.form.submit()" style="padding: 0.4rem; border-radius: 0.375rem; border: 1px solid var(--purple-200);">
-                                                    <option value="" disabled selected>Estado...</option>
-                                                    <option value="pendiente">Pendiente</option>
-                                                    <option value="confirmada">Confirmada</option>
-                                                    <option value="completada">Completada</option>
-                                                    <option value="cancelada">Cancelada</option>
+                                                <select name="estado" onchange="this.form.submit()" style="padding: 0.35rem 0.75rem; border-radius: 9999px; border: 1px solid var(--purple-200); background-color: var(--purple-50); color: var(--purple-800); font-size: 0.8rem; font-weight: 500; cursor: pointer; outline: none;">
+                                                    <option value="" disabled selected>Cambiar estado...</option>
+                                                    <option value="pendiente" selected="@(st == "pendiente")">Pendiente</option>
+                                                    <option value="confirmada" selected="@(st == "confirmada")">Confirmada</option>
+                                                    <option value="completada" selected="@(st == "completada")">Completada</option>
+                                                    <option value="cancelada" selected="@(st == "cancelada")">Cancelada</option>
                                                 </select>
                                             </form>
                                             
-                                            <form asp-action="DeleteAppointment" method="post" style="display: inline-block;" onsubmit="return confirm('¿Está seguro de eliminar esta cita?');">
+                                            <!-- Botón Desactivar Cita (Pill con confirmación Alertify) -->
+                                            <form asp-action="DeleteAppointment" method="post" class="form-delete-appointment" style="display: inline-block; margin: 0;" onsubmit="return confirmarDesactivarCita(event, this, '@(c.User != null ? $"{c.User.Nombre} {c.User.Apellido}" : "esta cita")');">
+                                                @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@c.Id" />
-                                                <button type="submit" class="btn" style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.4rem 0.6rem;">
-                                                    <i class="fas fa-trash"></i>
+                                                <button type="submit" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.75rem; border-radius: 9999px; background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease;" title="Desactivar Cita" onmouseover="this.style.backgroundColor='#FCD34D'; this.style.color='#78350F';" onmouseout="this.style.backgroundColor='#FEE2E2'; this.style.color='#991B1B';">
+                                                    🗑️ Desactivar
                                                 </button>
                                             </form>
                                         </div>
@@ -682,6 +685,200 @@
                             </table>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- ==================== MODAL VER CITA (SOLO LECTURA) ==================== -->
+            <div id="modal-admin-ver-cita" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem; backdrop-filter: blur(2px);">
+                <div class="card" style="width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="font-size: 1.35rem;">👁️</span>
+                            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">Detalle de la Cita Médica</h2>
+                        </div>
+                        <button type="button" onclick="document.getElementById('modal-admin-ver-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500); line-height: 1;">&times;</button>
+                    </div>
+
+                    <div style="padding: 1.5rem;">
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem; margin-bottom: 1rem;">
+                            <div style="background-color: var(--purple-50); border: 1px solid var(--purple-100); border-radius: 0.5rem; padding: 0.85rem;">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--purple-700); margin-bottom: 0.25rem;">👤 Paciente</label>
+                                <span id="admin-ver-cita-paciente" style="font-size: 0.95rem; font-weight: 600; color: var(--purple-950); display: block; word-break: break-word;">-</span>
+                            </div>
+                            <div style="background-color: var(--purple-50); border: 1px solid var(--purple-100); border-radius: 0.5rem; padding: 0.85rem;">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--purple-700); margin-bottom: 0.25rem;">🩺 Optómetra</label>
+                                <span id="admin-ver-cita-optometra" style="font-size: 0.95rem; font-weight: 600; color: var(--purple-950); display: block;">-</span>
+                            </div>
+                            <div style="background-color: var(--purple-50); border: 1px solid var(--purple-100); border-radius: 0.5rem; padding: 0.85rem;">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--purple-700); margin-bottom: 0.25rem;">📋 Servicio</label>
+                                <span id="admin-ver-cita-servicio" style="font-size: 0.95rem; font-weight: 600; color: var(--purple-950); display: block;">-</span>
+                            </div>
+                            <div style="background-color: var(--purple-50); border: 1px solid var(--purple-100); border-radius: 0.5rem; padding: 0.85rem;">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--purple-700); margin-bottom: 0.25rem;">📅 Fecha y Hora</label>
+                                <span id="admin-ver-cita-fecha" style="font-size: 0.95rem; font-weight: 600; color: var(--purple-950); display: block;">-</span>
+                            </div>
+                            <div style="background-color: var(--purple-50); border: 1px solid var(--purple-100); border-radius: 0.5rem; padding: 0.85rem;">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--purple-700); margin-bottom: 0.25rem;">📌 Estado</label>
+                                <span id="admin-ver-cita-estado" style="font-size: 0.95rem; font-weight: 700; color: var(--purple-950); display: inline-block;">-</span>
+                            </div>
+                            <div style="background-color: var(--purple-50); border: 1px solid var(--purple-100); border-radius: 0.5rem; padding: 0.85rem;">
+                                <label style="display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--purple-700); margin-bottom: 0.25rem;">🔄 Reprogramaciones</label>
+                                <span id="admin-ver-cita-reprog" style="font-size: 0.95rem; font-weight: 600; color: var(--purple-950); display: block;">0</span>
+                            </div>
+                        </div>
+
+                        <div style="background-color: var(--purple-50); border: 1px solid var(--purple-100); border-radius: 0.5rem; padding: 0.85rem; margin-bottom: 1.5rem;">
+                            <label style="display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--purple-700); margin-bottom: 0.25rem;">📝 Notas</label>
+                            <span id="admin-ver-cita-notas" style="font-size: 0.9rem; color: var(--gray-700); display: block; white-space: pre-wrap;">Ninguna</span>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                            <button type="button" onclick="document.getElementById('modal-admin-ver-cita').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cerrar</button>
+                            <button type="button" class="btn btn-primary" onclick="abrirModalAdminEditarCitaDesdeVer()" style="padding: 0.5rem 1.25rem; font-weight: 600;">✏️ Editar Cita</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ==================== MODAL EDITAR CITA ==================== -->
+            <div id="modal-admin-editar-cita" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem; backdrop-filter: blur(2px);">
+                <div class="card" style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="font-size: 1.35rem;">✏️</span>
+                            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">Editar Cita Médica</h2>
+                        </div>
+                        <button type="button" onclick="document.getElementById('modal-admin-editar-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500); line-height: 1;">&times;</button>
+                    </div>
+
+                    <form asp-controller="Dashboard" asp-action="EditAppointment" method="post" onsubmit="return validateCitaForm(this);" style="padding: 1.5rem;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="Id" id="admin-edit-cita-id" />
+                        <input type="hidden" name="UserId" id="admin-edit-cita-userid" />
+
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--purple-900); margin-bottom: 0.4rem;">Paciente</label>
+                            <input type="text" id="admin-edit-cita-paciente-nombre" readonly class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; background-color: var(--gray-100); cursor: not-allowed;" />
+                        </div>
+
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--purple-900); margin-bottom: 0.4rem;">Optómetra</label>
+                            <select name="OptometraId" id="admin-edit-cita-optometraid" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem;" required>
+                                <option value="">Sin asignar / Seleccionar optómetra...</option>
+                                @if (ViewBag.Optometras != null)
+                                {
+                                    foreach (var opt in (IEnumerable<LentSoft.Web.Models.Entities.User>)ViewBag.Optometras)
+                                    {
+                                        <option value="@opt.Id">@opt.Nombre @opt.Apellido</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--purple-900); margin-bottom: 0.4rem;">Servicio</label>
+                            <select name="Servicio" id="admin-edit-cita-servicio" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem;" required>
+                                <option value="Consulta General">Consulta General</option>
+                                <option value="Control">Control</option>
+                                <option value="Optometría">Optometría</option>
+                                <option value="Contactología">Contactología</option>
+                                <option value="Urgencia">Urgencia</option>
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--purple-900); margin-bottom: 0.4rem;">Fecha y Hora (Lun-Sáb, 8:00 a 18:00)</label>
+                            <input type="datetime-local" name="FechaHora" id="admin-edit-cita-fechahora" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem;" required onchange="validateCitaForm(this.form)" />
+                        </div>
+
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--purple-900); margin-bottom: 0.4rem;">Notas Clínicas / Observaciones</label>
+                            <textarea name="Notas" id="admin-edit-cita-notas" class="form-input" rows="3" style="width: 100%; padding: 0.5rem 0.75rem;" placeholder="Observaciones sobre la cita..."></textarea>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                            <button type="button" onclick="document.getElementById('modal-admin-editar-cita').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                            <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1.25rem; font-weight: 600;">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- ==================== MODAL NUEVA CITA ==================== -->
+            <div id="modal-cita" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem; backdrop-filter: blur(2px);">
+                <div class="card" style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="font-size: 1.35rem;">📅</span>
+                            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">Nueva Cita Médica</h2>
+                        </div>
+                        <button type="button" onclick="document.getElementById('modal-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500); line-height: 1;">&times;</button>
+                    </div>
+
+                    <form asp-controller="Dashboard" asp-action="CreateAppointment" method="post" onsubmit="return validateCitaForm(this);" style="padding: 1.5rem;">
+                        @Html.AntiForgeryToken()
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--purple-900); margin-bottom: 0.4rem;">Paciente</label>
+                            <select name="UserId" id="admin-nueva-cita-paciente" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem;" required>
+                                <option value="" disabled selected>Seleccione un paciente...</option>
+                                @if (Model.TodosLosClientes != null && Model.TodosLosClientes.Any())
+                                {
+                                    foreach (var cliente in Model.TodosLosClientes)
+                                    {
+                                        <option value="@cliente.Id">@cliente.Nombre @cliente.Apellido (@cliente.Email)</option>
+                                    }
+                                }
+                                else if (Model.Clientes != null)
+                                {
+                                    foreach (var cliente in Model.Clientes)
+                                    {
+                                        <option value="@cliente.Id">@cliente.Nombre @cliente.Apellido (@cliente.Email)</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--purple-900); margin-bottom: 0.4rem;">Optómetra</label>
+                            <select name="OptometraId" id="admin-nueva-cita-optometra" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem;" required>
+                                <option value="" disabled selected>Seleccione un optómetra...</option>
+                                @if (ViewBag.Optometras != null)
+                                {
+                                    foreach (var opt in (IEnumerable<LentSoft.Web.Models.Entities.User>)ViewBag.Optometras)
+                                    {
+                                        <option value="@opt.Id">@opt.Nombre @opt.Apellido</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--purple-900); margin-bottom: 0.4rem;">Servicio</label>
+                            <select name="Servicio" id="admin-nueva-cita-servicio" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem;" required>
+                                <option value="" disabled selected>Seleccione un servicio...</option>
+                                <option value="Consulta General">Consulta General</option>
+                                <option value="Control">Control</option>
+                                <option value="Optometría">Optometría</option>
+                                <option value="Contactología">Contactología</option>
+                                <option value="Urgencia">Urgencia</option>
+                            </select>
+                        </div>
+
+                        <div style="margin-bottom: 1rem;">
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--purple-900); margin-bottom: 0.4rem;">Fecha y Hora (Lun-Sáb, 8:00 a 18:00)</label>
+                            <input type="datetime-local" name="FechaHora" id="admin-nueva-cita-fechahora" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem;" required onchange="validateCitaForm(this.form)" />
+                        </div>
+
+                        <div style="margin-bottom: 1.5rem;">
+                            <label style="display: block; font-size: 0.85rem; font-weight: 600; color: var(--purple-900); margin-bottom: 0.4rem;">Notas Clínicas / Observaciones</label>
+                            <textarea name="Notas" id="admin-nueva-cita-notas" class="form-input" rows="3" style="width: 100%; padding: 0.5rem 0.75rem;" placeholder="Notas adicionales sobre la cita..."></textarea>
+                        </div>
+
+                        <div style="display: flex; justify-content: flex-end; gap: 0.75rem;">
+                            <button type="button" onclick="document.getElementById('modal-cita').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                            <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1.25rem; font-weight: 600;">Guardar Cita</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         }
@@ -1405,22 +1602,24 @@
     }
 
     function abrirModalAdminVerCita(btn) {
-        document.getElementById('admin-ver-cita-paciente').textContent = btn.getAttribute('data-paciente');
-        document.getElementById('admin-ver-cita-optometra').textContent = btn.getAttribute('data-optometranombre');
-        document.getElementById('admin-ver-cita-servicio').textContent = btn.getAttribute('data-servicio');
+        document.getElementById('admin-ver-cita-paciente').textContent = btn.getAttribute('data-paciente') || 'Sin paciente';
+        document.getElementById('admin-ver-cita-optometra').textContent = btn.getAttribute('data-optometranombre') || 'Por asignar';
+        document.getElementById('admin-ver-cita-servicio').textContent = btn.getAttribute('data-servicio') || '-';
         
         const rawDate = btn.getAttribute('data-fechahora');
         if (rawDate) {
             const dateObj = new Date(rawDate);
-            document.getElementById('admin-ver-cita-fecha').textContent = dateObj.toLocaleString();
+            document.getElementById('admin-ver-cita-fecha').textContent = isNaN(dateObj) ? rawDate : dateObj.toLocaleString();
+        } else {
+            document.getElementById('admin-ver-cita-fecha').textContent = '-';
         }
         
-        document.getElementById('admin-ver-cita-estado').textContent = btn.getAttribute('data-estado').toUpperCase();
-        document.getElementById('admin-ver-cita-reprog').textContent = btn.getAttribute('data-vecesreprogramada');
+        document.getElementById('admin-ver-cita-estado').textContent = (btn.getAttribute('data-estado') || '').toUpperCase();
+        document.getElementById('admin-ver-cita-reprog').textContent = btn.getAttribute('data-vecesreprogramada') || '0';
         document.getElementById('admin-ver-cita-notas').textContent = btn.getAttribute('data-notas') || 'Ninguna';
         
         // Colores de estado
-        const statusVal = btn.getAttribute('data-estado').toLowerCase();
+        const statusVal = (btn.getAttribute('data-estado') || '').toLowerCase();
         const estSpan = document.getElementById('admin-ver-cita-estado');
         if (statusVal === 'confirmada' || statusVal === 'completada') {
             estSpan.style.color = '#065F46';
@@ -1438,15 +1637,34 @@
         document.getElementById('modal-admin-ver-cita').style.display = 'none';
         if (window.currentAdminCitaBtn) {
             const btn = window.currentAdminCitaBtn;
-            document.getElementById('admin-edit-cita-id').value = btn.getAttribute('data-id');
-            document.getElementById('admin-edit-cita-userid').value = btn.getAttribute('data-userid');
-            document.getElementById('admin-edit-cita-paciente-nombre').value = btn.getAttribute('data-paciente');
-            document.getElementById('admin-edit-cita-servicio').value = btn.getAttribute('data-servicio');
-            document.getElementById('admin-edit-cita-fechahora').value = btn.getAttribute('data-fechahora');
-            document.getElementById('admin-edit-cita-notas').value = btn.getAttribute('data-notas');
-            document.getElementById('admin-edit-cita-optometraid').value = btn.getAttribute('data-optometra');
+            document.getElementById('admin-edit-cita-id').value = btn.getAttribute('data-id') || '';
+            document.getElementById('admin-edit-cita-userid').value = btn.getAttribute('data-userid') || '';
+            document.getElementById('admin-edit-cita-paciente-nombre').value = btn.getAttribute('data-paciente') || '';
+            document.getElementById('admin-edit-cita-servicio').value = btn.getAttribute('data-servicio') || 'Consulta General';
+            document.getElementById('admin-edit-cita-fechahora').value = btn.getAttribute('data-fechahora') || '';
+            document.getElementById('admin-edit-cita-notas').value = btn.getAttribute('data-notas') || '';
+            document.getElementById('admin-edit-cita-optometraid').value = btn.getAttribute('data-optometra') || '';
         }
         document.getElementById('modal-admin-editar-cita').style.display = 'flex';
+    }
+
+    function abrirModalAdminEditarCita(btn) {
+        window.currentAdminCitaBtn = btn;
+        abrirModalAdminEditarCitaDesdeVer();
+    }
+
+    function confirmarDesactivarCita(e, form, pacienteNombre) {
+        e.preventDefault();
+        const msg = '¿Deseas desactivar la cita de ' + pacienteNombre + '? El registro no se eliminará, solo se desactivará.';
+        if (typeof alertify !== 'undefined') {
+            alertify.confirm('Confirmar Desactivación', msg,
+                function () { form.submit(); },
+                function () { showToast('Acción cancelada', 'info'); }
+            ).set('labels', { ok: 'Sí, desactivar', cancel: 'Cancelar' });
+        } else if (confirm(msg)) {
+            form.submit();
+        }
+        return false;
     }
 
 </script>
