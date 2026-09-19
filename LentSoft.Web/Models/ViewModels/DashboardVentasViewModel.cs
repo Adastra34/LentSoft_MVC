@@ -25,6 +25,7 @@ public class DashboardVentasViewModel
     // ── Inventarios ──
     public List<Product> Productos { get; set; } = new();
     public List<SalesOrder> PedidosVentas { get; set; } = new();
+    public List<InventoryMovement> HistorialMovimientos { get; set; } = new();
 
     // ── Clientes ──
     public List<User> Clientes { get; set; } = new();
