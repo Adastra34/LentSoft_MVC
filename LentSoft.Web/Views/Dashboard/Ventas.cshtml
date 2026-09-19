@@ -362,16 +362,16 @@
         @if (Model.ActiveSection == "inventarios")
         {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;" data-i18n="sales.inventory.title">Consulta de Inventario (Solo Lectura)</h1>
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;" data-i18n="sales.inventory.title">Consulta de Inventario</h1>
             </div>
 
             <!-- Sub-tabs -->
             <div style="display: flex; border-bottom: 2px solid var(--purple-200); margin-bottom: 1.5rem;">
                 <a href="?section=inventarios&subtab=productos" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "productos" || string.IsNullOrEmpty(Model.ActiveSubTab) ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "productos" || string.IsNullOrEmpty(Model.ActiveSubTab) ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;">
-                    📦 Productos (Solo Lectura)
+                    📦 Productos
                 </a>
                 <a href="?section=inventarios&subtab=historial" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "historial" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "historial" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;">
-                    📜 Historial de Movimientos (Solo Lectura)
+                    📜 Historial de Movimientos
                 </a>
                 <a href="?section=inventarios&subtab=pedidos-ventas" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "pedidos-ventas" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "pedidos-ventas" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;">
                     🛒 Pedidos de Ventas

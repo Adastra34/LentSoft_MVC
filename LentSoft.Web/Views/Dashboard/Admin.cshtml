@@ -478,7 +478,6 @@
                                 </div>
                             </div>
                         </div>
-                        <span style="font-size: 0.85rem; color: white;">* Manejo independiente sin acoplamiento al inventario</span>
                     </div>
                     <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
                         <table id="tablePedidosVentas" style="width: 100%; border-collapse: collapse; text-align: left;">
@@ -564,15 +563,14 @@
                                 </div>
                             </div>
                         </div>
-                        <span style="font-size: 0.85rem; color: white; font-weight: 600;">⚡ Conectado a la base de datos de Proveedores y Productos</span>
                     </div>
                     <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
                         <table id="tablePedidosProveedores" style="width: 100%; border-collapse: collapse; text-align: left;">
                             <thead>
                                 <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
                                     <th style="padding: 0.75rem;">N° Pedido</th>
-                                    <th style="padding: 0.75rem;">Proveedor (DB)</th>
-                                    <th style="padding: 0.75rem;">Producto (DB)</th>
+                                    <th style="padding: 0.75rem;">Proveedor</th>
+                                    <th style="padding: 0.75rem;">Producto</th>
                                     <th style="padding: 0.75rem; text-align: center;">Cantidad</th>
                                     <th style="padding: 0.75rem; text-align: center;">Precio U.</th>
                                     <th style="padding: 0.75rem; text-align: center;">Total</th>
@@ -808,7 +806,7 @@
                 </button>
                 <div id="panel-auditoria" style="display: none; margin-top: 0.75rem;">
                     <div class="card" style="padding: 1.25rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
-                        <h3 style="color: var(--purple-800); font-size: 1rem; margin-bottom: 1rem; margin-top: 0;">Últimos 20 cambios de estado — solo lectura</h3>
+                        <h3 style="color: var(--purple-800); font-size: 1rem; margin-bottom: 1rem; margin-top: 0;">Últimos 20 cambios de estado</h3>
                         <div style="overflow-x: auto;">
                             <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
                                 <thead>
@@ -2117,7 +2115,7 @@
 <div id="modal-crear-pedido-proveedor" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
     <div class="card" style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
-            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">🚚 Nuevo Pedido a Proveedor (DB)</h2>
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">🚚 Nuevo Pedido a Proveedor</h2>
             <button onclick="document.getElementById('modal-crear-pedido-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
@@ -2129,9 +2127,9 @@
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Proveedor (DB) *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Proveedor *</label>
                 <select name="SupplierId" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
-                    <option value="">-- Seleccionar Proveedor DB --</option>
+                    <option value="">-- Seleccionar Proveedor --</option>
                     @foreach (var s in Model.Proveedores)
                     {
                         <option value="@s.Id">@s.Nombre (@s.TipoProductos)</option>
@@ -2140,9 +2138,9 @@
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Producto de Inventario (DB) *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Producto de Inventario *</label>
                 <select name="ProductId" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
-                    <option value="">-- Seleccionar Producto DB --</option>
+                    <option value="">-- Seleccionar Producto --</option>
                     @foreach (var p in Model.Productos)
                     {
                         <option value="@p.Id">@p.Nombre (Stock: @p.Stock)</option>
@@ -2199,7 +2197,7 @@
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Proveedor (DB) *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Proveedor *</label>
                 <select id="editSupplierOrderSupplierId" name="SupplierId" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
                     @foreach (var s in Model.Proveedores)
                     {
@@ -2209,7 +2207,7 @@
             </div>
 
             <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Producto de Inventario (DB) *</label>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Producto de Inventario *</label>
                 <select id="editSupplierOrderProductId" name="ProductId" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
                     @foreach (var p in Model.Productos)
                     {

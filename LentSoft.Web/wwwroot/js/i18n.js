@@ -268,7 +268,7 @@
         'sales.invoices.prev': { es: '« Anterior', en: '« Previous' },
         'sales.invoices.next': { es: 'Siguiente »', en: 'Next »' },
 
-        'sales.inventory.title': { es: 'Consulta de Inventario (Solo Lectura)', en: 'Inventory Consultation (Read Only)' },
+        'sales.inventory.title': { es: 'Consulta de Inventario', en: 'Inventory Consultation' },
         'sales.inventory.searchplaceholder': { es: 'Buscar producto en inventario...', en: 'Search product in inventory...' },
         'sales.inventory.product': { es: 'Producto', en: 'Product' },
         'sales.inventory.category': { es: 'Categoría', en: 'Category' },
