@@ -165,8 +165,27 @@ public class OrderController : Controller
                             throw new InvalidOperationException($"El producto '{product.Nombre}' no cuenta con stock suficiente en el inventario. Disponible: {product.Stock}, solicitado: {qty}.");
                         }
 
-                        // Deduct stock
-                        product.Stock -= qty;
+                        // Deduct stock and enforce limits
+                        product.Stock = Math.Max(0, product.Stock - qty);
+                        if (product.Stock > 85) product.Stock = 85;
+
+                        // Auto-inactivate if stock reaches 0
+                        if (product.Stock == 0)
+                        {
+                            product.Activo = false;
+                        }
+
+                        // Record movement in inventory history
+                        var movement = new LentSoft.Web.Models.Entities.InventoryMovement
+                        {
+                            ProductId = product.Id,
+                            NombreProducto = product.Nombre,
+                            Tipo = "Salida",
+                            Cantidad = qty,
+                            Fecha = DateTime.UtcNow,
+                            Responsable = User.Identity?.Name ?? $"Ventas ({existingUser.Nombre})"
+                        };
+                        _context.InventoryMovements.Add(movement);
 
                         var precioUnit = product.PrecioDescuento ?? product.Precio;
                         var itemSubtotal = precioUnit * qty;

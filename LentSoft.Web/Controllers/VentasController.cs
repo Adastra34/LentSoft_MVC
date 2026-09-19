@@ -43,6 +43,7 @@ public class VentasController : Controller
         var pedidosDisponibles = await _invoiceService.GetOrdersAvailableForInvoicingAsync();
 
         var productos = await _context.Products
+            .Where(p => p.Activo)
             .OrderBy(p => p.Nombre)
             .ToListAsync();
 
@@ -87,6 +88,7 @@ public class VentasController : Controller
             PedidosDisponibles = pedidosDisponibles,
             Productos = productos,
             PedidosVentas = pedidosVentas,
+            HistorialMovimientos = await _context.InventoryMovements.Include(m => m.Product).OrderByDescending(m => m.Fecha).ToListAsync(),
             Clientes = clientes,
             UsuarioActual = usuario,
             ActiveSection = section,

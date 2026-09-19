@@ -85,11 +85,28 @@ public class CheckoutController : Controller
 
             foreach (var item in cart.CartItems)
             {
-                // Reduce stock
+                // Reduce stock and enforce limits
                 var product = await _context.Products.FindAsync(item.ProductId);
                 if (product != null)
                 {
                     product.Stock = Math.Max(0, product.Stock - item.Cantidad);
+                    if (product.Stock > 85) product.Stock = 85;
+
+                    if (product.Stock == 0)
+                    {
+                        product.Activo = false;
+                    }
+
+                    var movement = new InventoryMovement
+                    {
+                        ProductId = product.Id,
+                        NombreProducto = product.Nombre,
+                        Tipo = "Salida",
+                        Cantidad = item.Cantidad,
+                        Fecha = DateTime.UtcNow,
+                        Responsable = "Venta Online (Cliente)"
+                    };
+                    _context.InventoryMovements.Add(movement);
                 }
 
                 order.OrderItems.Add(new OrderItem
