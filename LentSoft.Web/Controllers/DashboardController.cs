@@ -625,18 +625,34 @@ public class DashboardController : Controller
         return RedirectToAction("Admin", new { section = "citas" });
     }
 
-    // â”€â”€ Admin: Actualizar estado de cita â”€â”€
+    // ── Admin: Actualizar estado de cita ──
     [HttpPost]
     [Authorize(Roles = "admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> UpdateAppointmentStatus(int id, string estado)
+    [ActionName("ChangeAppointmentStatus")]
+    public async Task<IActionResult> ChangeAppointmentStatus(int id, string? estado, string? nuevoEstado = null)
     {
+        return await UpdateAppointmentStatus(id, estado, nuevoEstado);
+    }
+
+    [HttpPost]
+    [Authorize(Roles = "admin")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateAppointmentStatus(int id, string? estado, string? nuevoEstado = null)
+    {
+        var targetEstado = !string.IsNullOrWhiteSpace(estado) ? estado : nuevoEstado;
         try
         {
+            if (string.IsNullOrWhiteSpace(targetEstado) || !Appointment.EstadosValidos.Contains(targetEstado, StringComparer.OrdinalIgnoreCase))
+            {
+                TempData["ErrorMessage"] = "Estado no válido. Los valores permitidos son: pendiente, confirmada, completada, cancelada.";
+                return RedirectToAction("Admin", new { section = "citas" });
+            }
+
             var cita = await _context.Appointments.FindAsync(id);
             if (cita != null)
             {
-                cita.Estado = estado;
+                cita.Estado = targetEstado.ToLower();
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Estado de cita actualizado.";
             }
@@ -653,7 +669,7 @@ public class DashboardController : Controller
         return RedirectToAction("Admin", new { section = "citas" });
     }
 
-    // â”€â”€ Admin: Eliminar cita â”€â”€
+    // ── Admin: Eliminar / Desactivar cita ──
     [HttpPost]
     [Authorize(Roles = "admin")]
     [ValidateAntiForgeryToken]
@@ -667,24 +683,37 @@ public class DashboardController : Controller
                 cita.Activo = false;
                 _context.Appointments.Update(cita);
                 await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Cita eliminada exitosamente.";
+                TempData["SuccessMessage"] = "Cita desactivada exitosamente.";
+
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = true, message = "Cita desactivada exitosamente." });
+                }
             }
             else
             {
                 TempData["ErrorMessage"] = "Cita no encontrada.";
+                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                {
+                    return Json(new { success = false, message = "Cita no encontrada." });
+                }
             }
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al eliminar la cita: {ex.Message}";
+            TempData["ErrorMessage"] = $"Error al desactivar la cita: {ex.Message}";
+            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            {
+                return Json(new { success = false, message = ex.Message });
+            }
         }
 
         return RedirectToAction("Admin", new { section = "citas" });
     }
 
-
     [HttpPost]
     [Authorize(Roles = "admin")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditAppointment(int Id, int UserId, int? OptometraId, string Servicio, DateTime FechaHora, string? Notas)
     {
         var cita = await _context.Appointments.FindAsync(Id);
@@ -727,7 +756,7 @@ public class DashboardController : Controller
 
     // ── GESTIÓN DE PEDIDOS DE VENTAS (INDEPENDIENTES) ──
     [HttpPost]
-    [Authorize(Roles = "admin,ventas")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> CreateSalesOrder(SalesOrder model)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
@@ -769,16 +798,11 @@ public class DashboardController : Controller
             if (isAjax) return Json(new { success = false, message = firstError });
             TempData["ErrorMessage"] = firstError;
         }
-
-        if (User.IsInRole("ventas"))
-        {
-            return RedirectToAction("Index", "Ventas", new { section = "inventarios", subtab = "pedidos" });
-        }
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
     }
 
     [HttpPost]
-    [Authorize(Roles = "admin,ventas")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> EditSalesOrder(SalesOrder model)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
@@ -803,16 +827,11 @@ public class DashboardController : Controller
             if (isAjax) return Json(new { success = false, message = "No se encontró el pedido de venta especificado." });
             TempData["ErrorMessage"] = "No se encontró el pedido de venta especificado.";
         }
-
-        if (User.IsInRole("ventas"))
-        {
-            return RedirectToAction("Index", "Ventas", new { section = "inventarios", subtab = "pedidos" });
-        }
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
     }
 
     [HttpPost]
-    [Authorize(Roles = "admin,ventas")]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> DeleteSalesOrder(int id)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
@@ -828,11 +847,6 @@ public class DashboardController : Controller
         else
         {
             if (isAjax) return Json(new { success = false, message = "No se encontró el pedido de venta especificado." });
-        }
-
-        if (User.IsInRole("ventas"))
-        {
-            return RedirectToAction("Index", "Ventas", new { section = "inventarios", subtab = "pedidos" });
         }
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
     }
