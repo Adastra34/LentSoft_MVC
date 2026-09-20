@@ -1,8 +1,9 @@
 using System.ComponentModel.DataAnnotations;
+using LentSoft.Web.Models.Entities;
 
 namespace LentSoft.Web.Models.ViewModels;
 
-public class AppointmentFormViewModel
+public class AppointmentFormViewModel : IValidatableObject
 {
     public int Id { get; set; }
 
@@ -23,4 +24,14 @@ public class AppointmentFormViewModel
 
     [Display(Name = "Estado")]
     public string Estado { get; set; } = "pendiente";
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (!Appointment.EstadosValidos.Contains(Estado, StringComparer.OrdinalIgnoreCase))
+        {
+            yield return new ValidationResult(
+                "El estado debe ser: pendiente, confirmada, completada o cancelada.",
+                new[] { nameof(Estado) });
+        }
+    }
 }
