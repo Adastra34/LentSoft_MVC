@@ -327,4 +327,92 @@ public class ApiService : IApiService
             return null;
         }
     }
+
+    public async Task<string> AskChatBotAsync(string mensaje, List<ChatMessageDto>? history = null)
+    {
+        if (string.IsNullOrWhiteSpace(mensaje)) return "Por favor escribe una consulta.";
+
+        string userText = mensaje.Trim();
+
+        try
+        {
+            var apiHistory = history?
+                .TakeLast(6)
+                .Select(m => new { role = m.IsUser ? "user" : "assistant", content = m.Message })
+                .ToList() ?? new();
+
+            var response = await _httpClient.PostAsJsonAsync("Chat/Ask", new
+            {
+                mensaje = userText,
+                historial = apiHistory
+            });
+
+            if (response.IsSuccessStatusCode)
+            {
+                using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync());
+                if (doc.RootElement.TryGetProperty("respuesta", out var respProp))
+                {
+                    var txt = respProp.GetString();
+                    if (!string.IsNullOrWhiteSpace(txt)) return txt;
+                }
+            }
+        }
+        catch { }
+
+        // Comprehensive Smart Assistant Engine for Mobile
+        string lower = userText.ToLower(new System.Globalization.CultureInfo("es-CO"));
+
+        if (lower.Contains("producto") || lower.Contains("catalogo") || lower.Contains("ofrecen") || lower.Contains("tienen") || lower.Contains("venden") || lower.Contains("poseen"))
+        {
+            return "En LentSoft contamos con un catálogo completo de salud visual:\n\n" +
+                   "👓 Monturas Graduadas: Diseños Classic, Oakley Sport y gafas de sol elegantes.\n" +
+                   "👁️ Lentes de Contacto: Marcas reconocidas como Acuvue (diarios y de uso mensual).\n" +
+                   "🧼 Accesorios y Limpieza: Estuches Premium y líquido limpiador para el cuidado de tus lentes.\n\n" +
+                   "¿Deseas detalles o precios sobre alguna categoría en especial?";
+        }
+
+        if (lower.Contains("precio") || lower.Contains("cuanto cuesta") || lower.Contains("valor") || lower.Contains("costo"))
+        {
+            return "Nuestros precios varían según el producto y categoría:\n\n" +
+                   "• Estuche Premium: $99.000 COP\n" +
+                   "• Líquido Limpiador: $120.000 COP\n" +
+                   "• Lentes de Contacto Acuvue: $399.000 COP\n" +
+                   "• Lentes Graduados Classic: $1.200.000 COP\n" +
+                   "• Montura Oakley Sport: $1.800.000 COP\n" +
+                   "• Lentes Ray-Ban Aviator: $2.500.000 COP\n\n" +
+                   "¡Todos incluyen envío gratis y opción de pago simulado en la app!";
+        }
+
+        if (lower.Contains("cita") || lower.Contains("optometra") || lower.Contains("examen") || lower.Contains("agendar") || lower.Contains("doctor"))
+        {
+            return "Puedes agendar tu cita de valoración visual con nuestros optómetras directamente en la pestaña 'Citas' 🗓️. Podrás seleccionar la fecha, hora y especialista de tu preferencia.";
+        }
+
+        if (lower.Contains("envio") || lower.Contains("entrega") || lower.Contains("domicilio") || lower.Contains("despacho"))
+        {
+            return "🚚 ¡El envío es 100% GRATIS a nivel nacional! Tu pedido llegará directamente a tu domicilio en un plazo estimado de 3 a 5 días hábiles.";
+        }
+
+        if (lower.Contains("garantia") || lower.Contains("devolucion") || lower.Contains("calidad"))
+        {
+            return "🛡️ Todas nuestras monturas y lentes cuentan con 12 meses de garantía contra defectos de fabricación. Además, nuestros materiales están avalados por profesionales de la salud visual.";
+        }
+
+        if (lower.Contains("contacto") || lower.Contains("acuvue"))
+        {
+            return "👁️ Ofrecemos lentes de contacto de marcas líderes como Acuvue. Disponibles para corrección de miopía, astigmatismo y uso diario con máxima hidratación.";
+        }
+
+        if (lower.Contains("sol") || lower.Contains("ray ban") || lower.Contains("ray-ban") || lower.Contains("aviator") || lower.Contains("gafas"))
+        {
+            return "🕶️ En la categoría 'Sol' encontrarás modelos emblemáticos como los Ray-Ban Aviator y monturas deportivas con 100% de protección UV400.";
+        }
+
+        if (lower.Contains("hola") || lower.Contains("buenas") || lower.Contains("saludos"))
+        {
+            return "¡Hola! 👋 Qué gusto saludarte. Soy Morgana, tu asesora de óptica en LentSoft. ¿En qué te puedo asesorar hoy? (Productos, Citas, Envíos o Garantías)";
+        }
+
+        return $"Entiendo tu consulta sobre \"{userText}\". Puedo orientarte sobre nuestro catálogo de monturas, lentes de contacto, agendamiento de citas médicas o estado de envíos. ¿Sobre qué área te gustaría saber más?";
+    }
 }

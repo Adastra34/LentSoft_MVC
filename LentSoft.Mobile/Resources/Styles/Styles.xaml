@@ -412,24 +412,24 @@
     </Style>
 
     <Style TargetType="Shell" ApplyToDerivedTypes="True">
-        <Setter Property="Shell.BackgroundColor" Value="{StaticResource PurpleDeep}" />
+        <Setter Property="Shell.BackgroundColor" Value="{AppThemeBinding Light={StaticResource PurpleDeep}, Dark={StaticResource DarkHeaderStart}}" />
         <Setter Property="Shell.ForegroundColor" Value="{StaticResource White}" />
         <Setter Property="Shell.TitleColor" Value="{StaticResource White}" />
         <Setter Property="Shell.DisabledColor" Value="{StaticResource Gray400}" />
         <Setter Property="Shell.UnselectedColor" Value="{StaticResource Gray300}" />
         <Setter Property="Shell.NavBarHasShadow" Value="False" />
-        <Setter Property="Shell.TabBarBackgroundColor" Value="{StaticResource White}" />
-        <Setter Property="Shell.TabBarForegroundColor" Value="{StaticResource Purple}" />
-        <Setter Property="Shell.TabBarTitleColor" Value="{StaticResource Purple}" />
-        <Setter Property="Shell.TabBarUnselectedColor" Value="{StaticResource Muted}" />
+        <Setter Property="Shell.TabBarBackgroundColor" Value="{AppThemeBinding Light={StaticResource White}, Dark={StaticResource DarkCardBg}}" />
+        <Setter Property="Shell.TabBarForegroundColor" Value="{AppThemeBinding Light={StaticResource Purple}, Dark={StaticResource Gold}}" />
+        <Setter Property="Shell.TabBarTitleColor" Value="{AppThemeBinding Light={StaticResource Purple}, Dark={StaticResource Gold}}" />
+        <Setter Property="Shell.TabBarUnselectedColor" Value="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}" />
     </Style>
 
     <!-- LentSoft Custom Design System Styles -->
     <Style x:Key="LentSoftCard" TargetType="Border">
         <Setter Property="StrokeShape" Value="RoundRectangle 16"/>
-        <Setter Property="Stroke" Value="{StaticResource Line}"/>
+        <Setter Property="Stroke" Value="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"/>
         <Setter Property="StrokeThickness" Value="1"/>
-        <Setter Property="BackgroundColor" Value="{StaticResource Card}"/>
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Card}, Dark={StaticResource DarkCardBg}}"/>
         <Setter Property="Padding" Value="16"/>
         <Setter Property="Shadow">
             <Shadow Brush="{StaticResource Muted}" Offset="0,4" Radius="12" Opacity="0.08"/>
@@ -440,7 +440,7 @@
         <Setter Property="StrokeShape" Value="RoundRectangle 16"/>
         <Setter Property="Stroke" Value="{StaticResource Purple}"/>
         <Setter Property="StrokeThickness" Value="2"/>
-        <Setter Property="BackgroundColor" Value="{StaticResource Card}"/>
+        <Setter Property="BackgroundColor" Value="{AppThemeBinding Light={StaticResource Card}, Dark={StaticResource DarkCardBg}}"/>
         <Setter Property="Padding" Value="16"/>
         <Setter Property="Shadow">
             <Shadow Brush="{StaticResource Purple}" Offset="0,4" Radius="14" Opacity="0.12"/>

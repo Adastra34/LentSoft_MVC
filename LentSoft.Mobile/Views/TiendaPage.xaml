@@ -6,7 +6,7 @@
              x:Class="LentSoft.Mobile.Views.TiendaPage"
              x:DataType="vm:TiendaViewModel"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="{StaticResource Lavender}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkPageBg}}">
 
     <Grid VerticalOptions="FillAndExpand">
 
@@ -38,7 +38,7 @@
 
                             <!-- Language Toggle Button -->
                             <Border Grid.Column="1"
-                                    BackgroundColor="White"
+                                    BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkCardBg}}"
                                     StrokeShape="RoundRectangle 14"
                                     StrokeThickness="0"
                                     Padding="10,6"
@@ -59,7 +59,7 @@
 
                             <!-- Cart Button with Count Badge -->
                             <Border Grid.Column="2"
-                                    BackgroundColor="White"
+                                    BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkCardBg}}"
                                     StrokeShape="RoundRectangle 14"
                                     StrokeThickness="0"
                                     Padding="10,6"
@@ -88,15 +88,15 @@
                         <!-- Search Input Bar -->
                         <Border StrokeShape="RoundRectangle 12"
                                 StrokeThickness="0"
-                                BackgroundColor="White"
+                                BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkInputBg}}"
                                 HeightRequest="40"
                                 Padding="12,0">
                             <Grid ColumnDefinitions="*,Auto">
                                 <Entry Grid.Column="0"
                                        Text="{Binding SearchText}"
                                        Placeholder="{Binding SearchPlaceholderText}"
-                                       PlaceholderColor="{StaticResource Muted}"
-                                       TextColor="{StaticResource Ink}"
+                                       PlaceholderColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"
                                        FontSize="13"
                                        ReturnCommand="{Binding SearchCommand}"
                                        VerticalOptions="Center"/>
@@ -136,9 +136,9 @@
                     <Button Text="{Binding CategoryFramesText}"
                             Command="{Binding SelectCategoryCommand}"
                             CommandParameter="Monturas"
-                            BackgroundColor="White"
-                            TextColor="{StaticResource Ink}"
-                            BorderColor="{StaticResource Line}"
+                            BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkInputBg}}"
+                            TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"
+                            BorderColor="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"
                             BorderWidth="1"
                             CornerRadius="16"
                             FontSize="12"
@@ -150,9 +150,9 @@
                     <Button Text="{Binding CategoryContactText}"
                             Command="{Binding SelectCategoryCommand}"
                             CommandParameter="Contacto"
-                            BackgroundColor="White"
-                            TextColor="{StaticResource Ink}"
-                            BorderColor="{StaticResource Line}"
+                            BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkInputBg}}"
+                            TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"
+                            BorderColor="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"
                             BorderWidth="1"
                             CornerRadius="16"
                             FontSize="12"
@@ -164,9 +164,9 @@
                     <Button Text="{Binding CategorySunText}"
                             Command="{Binding SelectCategoryCommand}"
                             CommandParameter="Sol"
-                            BackgroundColor="White"
-                            TextColor="{StaticResource Ink}"
-                            BorderColor="{StaticResource Line}"
+                            BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkInputBg}}"
+                            TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"
+                            BorderColor="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"
                             BorderWidth="1"
                             CornerRadius="16"
                             FontSize="12"
@@ -178,9 +178,9 @@
                     <Button Text="{Binding CategoryAccText}"
                             Command="{Binding SelectCategoryCommand}"
                             CommandParameter="Accesorios"
-                            BackgroundColor="White"
-                            TextColor="{StaticResource Ink}"
-                            BorderColor="{StaticResource Line}"
+                            BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkInputBg}}"
+                            TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"
+                            BorderColor="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"
                             BorderWidth="1"
                             CornerRadius="16"
                             FontSize="12"
@@ -216,23 +216,23 @@
                                     <!-- Image with Lens Badge decoration -->
                                     <Border HeightRequest="110"
                                             StrokeShape="RoundRectangle 12"
-                                            BackgroundColor="{StaticResource Lavender}"
+                                            BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInputBg}}"
                                             StrokeThickness="0">
                                         <Grid>
                                             <Image Source="{Binding SafeImageUrl}"
                                                    Aspect="AspectFit"
                                                    Margin="8"/>
 
-                                            <!-- Brand Lens badge top right -->
-                                            <Border WidthRequest="22" HeightRequest="16"
-                                                    StrokeShape="RoundRectangle 8"
-                                                    Stroke="{StaticResource Purple}"
-                                                    StrokeThickness="1"
-                                                    BackgroundColor="White"
+                                            <!-- Interactive Favorite Heart Button -->
+                                            <Button Text="{Binding FavoriteHeartIcon}"
+                                                    Command="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=ToggleFavoriteCommand}"
+                                                    CommandParameter="{Binding .}"
+                                                    BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkCardBg}}"
+                                                    CornerRadius="14"
+                                                    WidthRequest="28" HeightRequest="28"
+                                                    Padding="0" FontSize="12"
                                                     HorizontalOptions="End" VerticalOptions="Start"
-                                                    Margin="6">
-                                                <Ellipse WidthRequest="6" HeightRequest="6" Fill="{StaticResource Purple}" HorizontalOptions="Center" VerticalOptions="Center"/>
-                                            </Border>
+                                                    Margin="6"/>
 
                                             <!-- Discount Badge -->
                                             <Border BackgroundColor="{StaticResource Gold}"
@@ -253,7 +253,7 @@
                                     <!-- Brand -->
                                     <Label Text="{Binding Marca}"
                                            FontSize="11"
-                                           TextColor="{StaticResource Muted}"
+                                           TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"
                                            TextTransform="Uppercase"
                                            FontAttributes="Bold"/>
 
@@ -261,7 +261,7 @@
                                     <Label Text="{Binding DisplayNombre}"
                                            FontSize="13"
                                            FontAttributes="Bold"
-                                           TextColor="{StaticResource Ink}"
+                                           TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"
                                            LineBreakMode="TailTruncation"
                                            MaxLines="2"
                                            HeightRequest="36"/>
@@ -305,9 +305,10 @@
                 <TapGestureRecognizer Command="{Binding CloseDetailModalCommand}"/>
             </Grid.GestureRecognizers>
 
-            <Border BackgroundColor="White"
+            <Border BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkModalBg}}"
+                    Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkModalBorder}}"
+                    StrokeThickness="1"
                     StrokeShape="RoundRectangle 20"
-                    StrokeThickness="0"
                     Margin="0"
                     Padding="18"
                     VerticalOptions="Center"
@@ -334,8 +335,8 @@
                             <Button Grid.Column="1"
                                     Text="✕"
                                     Command="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=CloseDetailModalCommand}"
-                                    BackgroundColor="{StaticResource Lavender}"
-                                    TextColor="{StaticResource Ink}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
+                                    TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"
                                     CornerRadius="14"
                                     WidthRequest="32"
                                     HeightRequest="32"
@@ -347,12 +348,12 @@
                         <Label Text="{Binding DisplayNombre}"
                                FontSize="18"
                                FontAttributes="Bold"
-                               TextColor="{StaticResource Ink}"/>
+                               TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
 
                         <!-- High-Res Product Image Container -->
                         <Border HeightRequest="170"
                                 StrokeShape="RoundRectangle 16"
-                                BackgroundColor="{StaticResource Lavender}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
                                 StrokeThickness="0"
                                 Padding="10">
                             <Grid>
@@ -383,14 +384,14 @@
                             <Label Text="{Binding Rating, StringFormat='{0:F1}'}"
                                    FontSize="13"
                                    FontAttributes="Bold"
-                                   TextColor="{StaticResource Ink}"/>
+                                   TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
                             <Label Text="{Binding ReviewCount, StringFormat='({0} reseñas)'}"
                                    FontSize="12"
-                                   TextColor="{StaticResource Muted}"/>
+                                   TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"/>
                         </HorizontalStackLayout>
 
                         <!-- Price Section -->
-                        <Border BackgroundColor="{StaticResource Lavender}"
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
                                 StrokeThickness="0"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="14,10">
@@ -399,11 +400,11 @@
                                     <Label Text="{Binding DisplayPrice}"
                                            FontSize="20"
                                            FontAttributes="Bold"
-                                           TextColor="{StaticResource Purple}"/>
+                                           TextColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}"/>
                                     <Label Text="{Binding DisplayRegularPrice, StringFormat='Antes: {0}'}"
                                            FontSize="12"
                                            TextDecorations="Strikethrough"
-                                           TextColor="{StaticResource Muted}"
+                                           TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"
                                            IsVisible="{Binding HasDiscount}"/>
                                 </VerticalStackLayout>
 
@@ -411,7 +412,7 @@
                                        Text="{Binding Stock, StringFormat='{0} en stock'}"
                                        FontSize="12"
                                        FontAttributes="Bold"
-                                       TextColor="#059669"
+                                       TextColor="{AppThemeBinding Light=#059669, Dark=#34D399}"
                                        VerticalOptions="Center"/>
                             </Grid>
                         </Border>
@@ -421,15 +422,15 @@
                             <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=DescriptionText}"
                                    FontSize="13"
                                    FontAttributes="Bold"
-                                   TextColor="{StaticResource Ink}"/>
+                                   TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
                             <Label Text="{Binding SafeDescripcion}"
                                    FontSize="13"
-                                   TextColor="{StaticResource Ink}"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"
                                    LineHeight="1.3"/>
                         </VerticalStackLayout>
 
                         <!-- Web Warranty Cards Container -->
-                        <Border BackgroundColor="{StaticResource Lavender}"
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
                                 StrokeThickness="0"
                                 StrokeShape="RoundRectangle 14"
                                 Padding="12">
@@ -438,8 +439,8 @@
                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                                     <Label Grid.Column="0" Text="🛡️" FontSize="18" VerticalOptions="Start"/>
                                     <VerticalStackLayout Grid.Column="1" Spacing="2">
-                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=WarrantyTitle}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Purple}"/>
-                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=WarrantyDesc}" FontSize="11" TextColor="{StaticResource Muted}"/>
+                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=WarrantyTitle}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}"/>
+                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=WarrantyDesc}" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"/>
                                     </VerticalStackLayout>
                                 </Grid>
 
@@ -447,8 +448,8 @@
                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                                     <Label Grid.Column="0" Text="🚚" FontSize="18" VerticalOptions="Start"/>
                                     <VerticalStackLayout Grid.Column="1" Spacing="2">
-                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=ShippingTitle}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Purple}"/>
-                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=ShippingDesc}" FontSize="11" TextColor="{StaticResource Muted}"/>
+                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=ShippingTitle}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}"/>
+                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=ShippingDesc}" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"/>
                                     </VerticalStackLayout>
                                 </Grid>
 
@@ -456,8 +457,8 @@
                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
                                     <Label Grid.Column="0" Text="✨" FontSize="18" VerticalOptions="Start"/>
                                     <VerticalStackLayout Grid.Column="1" Spacing="2">
-                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=QualityTitle}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Purple}"/>
-                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=QualityDesc}" FontSize="11" TextColor="{StaticResource Muted}"/>
+                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=QualityTitle}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}"/>
+                                        <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=QualityDesc}" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"/>
                                     </VerticalStackLayout>
                                 </Grid>
                             </VerticalStackLayout>
@@ -480,8 +481,8 @@
                                     Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=SelectedProductFavHeart}"
                                     Command="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=ToggleFavoriteCommand}"
                                     CommandParameter="{Binding .}"
-                                    BackgroundColor="White"
-                                    BorderColor="{StaticResource Line}"
+                                    BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkInnerBoxBg}}"
+                                    BorderColor="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"
                                     BorderWidth="1"
                                     CornerRadius="14"
                                     WidthRequest="46"
@@ -503,9 +504,10 @@
                 <TapGestureRecognizer Command="{Binding CloseCartModalCommand}"/>
             </Grid.GestureRecognizers>
 
-            <Border BackgroundColor="White"
+            <Border BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkModalBg}}"
+                    Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkModalBorder}}"
+                    StrokeThickness="1"
                     StrokeShape="RoundRectangle 20"
-                    StrokeThickness="0"
                     Margin="0"
                     Padding="18"
                     VerticalOptions="Center"
@@ -532,8 +534,8 @@
                         <Button Grid.Column="1"
                                 Text="✕"
                                 Command="{Binding CloseCartModalCommand}"
-                                BackgroundColor="{StaticResource Lavender}"
-                                TextColor="{StaticResource Ink}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
+                                TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"
                                 CornerRadius="14"
                                 WidthRequest="32"
                                 HeightRequest="32"
@@ -557,7 +559,7 @@
                                         <Border Grid.Column="0"
                                                 WidthRequest="50" HeightRequest="50"
                                                 StrokeShape="RoundRectangle 8"
-                                                BackgroundColor="{StaticResource Lavender}"
+                                                BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
                                                 StrokeThickness="0"
                                                 VerticalOptions="Center">
                                             <Image Source="{Binding Product.SafeImageUrl}" Aspect="AspectFit" Margin="4"/>
@@ -565,9 +567,9 @@
 
                                         <!-- Item Info & Quantity Selector -->
                                         <VerticalStackLayout Grid.Column="1" Spacing="2" VerticalOptions="Center" HorizontalOptions="FillAndExpand">
-                                            <Label Text="{Binding Product.DisplayNombre}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}" LineBreakMode="TailTruncation" MaxLines="2"/>
-                                            <Label Text="{Binding Product.Marca, StringFormat='MARCA: {0}'}" FontSize="10" TextColor="{StaticResource Muted}" LineBreakMode="TailTruncation"/>
-                                            <Label Text="{Binding DisplaySubtotal}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Purple}"/>
+                                            <Label Text="{Binding Product.DisplayNombre}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" LineBreakMode="TailTruncation" MaxLines="2"/>
+                                            <Label Text="{Binding Product.Marca, StringFormat='MARCA: {0}'}" FontSize="10" TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}" LineBreakMode="TailTruncation"/>
+                                            <Label Text="{Binding DisplaySubtotal}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}"/>
                                         </VerticalStackLayout>
 
                                         <!-- Quantity Controls & Delete Button -->
@@ -577,16 +579,16 @@
                                                     CommandParameter="{Binding Product.Id}"
                                                     WidthRequest="28" HeightRequest="28"
                                                     CornerRadius="8" Padding="0" FontSize="14"
-                                                    BackgroundColor="{StaticResource Lavender}" TextColor="{StaticResource Ink}"/>
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
 
-                                            <Label Text="{Binding Cantidad}" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource Ink}" VerticalOptions="Center" Margin="4,0"/>
+                                            <Label Text="{Binding Cantidad}" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" VerticalOptions="Center" Margin="4,0"/>
 
                                             <Button Text="+"
                                                     Command="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=IncreaseCartItemCommand}"
                                                     CommandParameter="{Binding Product.Id}"
                                                     WidthRequest="28" HeightRequest="28"
                                                     CornerRadius="8" Padding="0" FontSize="14"
-                                                    BackgroundColor="{StaticResource Lavender}" TextColor="{StaticResource Ink}"/>
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
 
                                             <Button Text="🗑️"
                                                     Command="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=RemoveCartItemCommand}"
@@ -603,36 +605,36 @@
                         <CollectionView.EmptyView>
                             <VerticalStackLayout Spacing="8" HorizontalOptions="Center" VerticalOptions="Center" Padding="30">
                                 <Label Text="🛒" FontSize="36" HorizontalOptions="Center"/>
-                                <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=EmptyCartTitle}" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
-                                <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=EmptyCartSubtitle}" FontSize="12" TextColor="{StaticResource Muted}" HorizontalOptions="Center"/>
+                                <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=EmptyCartTitle}" FontSize="14" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" HorizontalOptions="Center"/>
+                                <Label Text="{Binding Source={RelativeSource AncestorType={x:Type vm:TiendaViewModel}}, Path=EmptyCartSubtitle}" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}" HorizontalOptions="Center"/>
                             </VerticalStackLayout>
                         </CollectionView.EmptyView>
                     </CollectionView>
 
                     <!-- Cart Order Summary & Proceed to Checkout Button -->
                     <VerticalStackLayout Grid.Row="2" Spacing="10">
-                        <Border BackgroundColor="{StaticResource Lavender}"
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
                                 StrokeThickness="0"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12">
                             <VerticalStackLayout Spacing="6">
-                                <Label Text="Resumen de Compra" FontSize="13" FontAttributes="Bold" TextColor="{StaticResource Purple}"/>
+                                <Label Text="Resumen de Compra" FontSize="13" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}"/>
 
                                 <Grid ColumnDefinitions="*,Auto">
-                                    <Label Grid.Column="0" Text="Productos" FontSize="12" TextColor="{StaticResource Ink}"/>
-                                    <Label Grid.Column="1" Text="{Binding CartItemCount, StringFormat='{0} unidades'}" FontSize="12" TextColor="{StaticResource Ink}"/>
+                                    <Label Grid.Column="0" Text="Productos" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
+                                    <Label Grid.Column="1" Text="{Binding CartItemCount, StringFormat='{0} unidades'}" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
                                 </Grid>
 
                                 <Grid ColumnDefinitions="*,Auto">
-                                    <Label Grid.Column="0" Text="Envío" FontSize="12" TextColor="{StaticResource Ink}"/>
-                                    <Label Grid.Column="1" Text="Gratis" FontSize="12" FontAttributes="Bold" TextColor="#059669"/>
+                                    <Label Grid.Column="0" Text="Envío" FontSize="12" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
+                                    <Label Grid.Column="1" Text="Gratis" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light=#059669, Dark=#34D399}"/>
                                 </Grid>
 
-                                <BoxView HeightRequest="1" Color="{StaticResource Line}" Margin="0,2"/>
+                                <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}" Margin="0,2"/>
 
                                 <Grid ColumnDefinitions="*,Auto">
-                                    <Label Grid.Column="0" Text="Total General" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
-                                    <Label Grid.Column="1" Text="{Binding CartTotalDisplay}" FontSize="15" FontAttributes="Bold" TextColor="{StaticResource Purple}"/>
+                                    <Label Grid.Column="0" Text="Total General" FontSize="14" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
+                                    <Label Grid.Column="1" Text="{Binding CartTotalDisplay}" FontSize="15" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}"/>
                                 </Grid>
                             </VerticalStackLayout>
                         </Border>
@@ -658,8 +660,8 @@
                             <Button Grid.Column="0"
                                     Text="{Binding BackText}"
                                     Command="{Binding BackToCartListCommand}"
-                                    BackgroundColor="{StaticResource Lavender}"
-                                    TextColor="{StaticResource Purple}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
+                                    TextColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}"
                                     FontAttributes="Bold"
                                     CornerRadius="12"
                                     HeightRequest="32"
@@ -670,15 +672,15 @@
                                    Text="Método de Pago"
                                    FontSize="16"
                                    FontAttributes="Bold"
-                                   TextColor="{StaticResource Purple}"
+                                   TextColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}"
                                    HorizontalOptions="Center"
                                    VerticalOptions="Center"/>
 
                             <Button Grid.Column="2"
                                     Text="✕"
                                     Command="{Binding CloseCartModalCommand}"
-                                    BackgroundColor="{StaticResource Lavender}"
-                                    TextColor="{StaticResource Ink}"
+                                    BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
+                                    TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"
                                     CornerRadius="14"
                                     WidthRequest="32"
                                     HeightRequest="32"
@@ -693,48 +695,48 @@
 
                         <!-- Número de Tarjeta -->
                         <VerticalStackLayout Spacing="4">
-                            <Label Text="{Binding CardNumberText}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
-                            <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Line}" BackgroundColor="White" Padding="12,0" HeightRequest="42">
-                                <Entry Text="{Binding CardNumber}" Placeholder="0000 0000 0000 0000" Keyboard="Numeric" TextColor="{StaticResource Ink}" FontSize="13" VerticalOptions="Center"/>
+                            <Label Text="{Binding CardNumberText}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
+                            <Border StrokeShape="RoundRectangle 10" Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}" BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkInputBg}}" Padding="12,0" HeightRequest="42">
+                                <Entry Text="{Binding CardNumber}" Placeholder="0000 0000 0000 0000" Keyboard="Numeric" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" FontSize="13" VerticalOptions="Center"/>
                             </Border>
                         </VerticalStackLayout>
 
                         <!-- Nombre en la Tarjeta -->
                         <VerticalStackLayout Spacing="4">
-                            <Label Text="{Binding CardHolderText}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
-                            <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Line}" BackgroundColor="White" Padding="12,0" HeightRequest="42">
-                                <Entry Text="{Binding CardHolderName}" Placeholder="Ej. Juan Pérez" TextColor="{StaticResource Ink}" FontSize="13" VerticalOptions="Center"/>
+                            <Label Text="{Binding CardHolderText}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
+                            <Border StrokeShape="RoundRectangle 10" Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}" BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkInputBg}}" Padding="12,0" HeightRequest="42">
+                                <Entry Text="{Binding CardHolderName}" Placeholder="Ej. Juan Pérez" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" FontSize="13" VerticalOptions="Center"/>
                             </Border>
                         </VerticalStackLayout>
 
                         <!-- Expiración y CVV (2 Columns) -->
                         <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                             <VerticalStackLayout Grid.Column="0" Spacing="4">
-                                <Label Text="{Binding CardExpiryText}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
-                                <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Line}" BackgroundColor="White" Padding="12,0" HeightRequest="42">
-                                    <Entry Text="{Binding CardExpiry}" Placeholder="MM/AA" TextColor="{StaticResource Ink}" FontSize="13" VerticalOptions="Center"/>
+                                <Label Text="{Binding CardExpiryText}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
+                                <Border StrokeShape="RoundRectangle 10" Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}" BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkInputBg}}" Padding="12,0" HeightRequest="42">
+                                    <Entry Text="{Binding CardExpiry}" Placeholder="MM/AA" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" FontSize="13" VerticalOptions="Center"/>
                                 </Border>
                             </VerticalStackLayout>
 
                             <VerticalStackLayout Grid.Column="1" Spacing="4">
-                                <Label Text="{Binding CardCvvText}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
-                                <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Line}" BackgroundColor="White" Padding="12,0" HeightRequest="42">
-                                    <Entry Text="{Binding CardCvv}" Placeholder="123" Keyboard="Numeric" TextColor="{StaticResource Ink}" FontSize="13" VerticalOptions="Center"/>
+                                <Label Text="{Binding CardCvvText}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
+                                <Border StrokeShape="RoundRectangle 10" Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}" BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkInputBg}}" Padding="12,0" HeightRequest="42">
+                                    <Entry Text="{Binding CardCvv}" Placeholder="123" Keyboard="Numeric" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" FontSize="13" VerticalOptions="Center"/>
                                 </Border>
                             </VerticalStackLayout>
                         </Grid>
 
                         <!-- Dirección de Envío -->
                         <VerticalStackLayout Spacing="4">
-                            <Label Text="{Binding ShippingAddressText}" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
-                            <Border StrokeShape="RoundRectangle 10" Stroke="{StaticResource Line}" BackgroundColor="White" Padding="12,8">
-                                <Editor Text="{Binding ShippingAddress}" Placeholder="Ingresa tu dirección completa de entrega" AutoSize="TextChanges" HeightRequest="60" TextColor="{StaticResource Ink}" FontSize="13"/>
+                            <Label Text="{Binding ShippingAddressText}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
+                            <Border StrokeShape="RoundRectangle 10" Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}" BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkInputBg}}" Padding="12,8">
+                                <Editor Text="{Binding ShippingAddress}" Placeholder="Ingresa tu dirección completa de entrega" AutoSize="TextChanges" HeightRequest="60" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" FontSize="13"/>
                             </Border>
                         </VerticalStackLayout>
 
                         <!-- Security Simulation Banner (Matching Web Screenshot) -->
-                        <Border BackgroundColor="{StaticResource Lavender}"
-                                Stroke="{StaticResource Line}"
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
+                                Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"
                                 StrokeThickness="1"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="12">
@@ -749,8 +751,8 @@
 
                         <!-- Order Total Summary Badge -->
                         <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
-                            <Label Grid.Column="0" Text="Total a Pagar:" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource Ink}" VerticalOptions="Center"/>
-                            <Label Grid.Column="1" Text="{Binding CartTotalDisplay}" FontSize="16" FontAttributes="Bold" TextColor="{StaticResource Purple}" VerticalOptions="Center"/>
+                            <Label Grid.Column="0" Text="Total a Pagar:" FontSize="14" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" VerticalOptions="Center"/>
+                            <Label Grid.Column="1" Text="{Binding CartTotalDisplay}" FontSize="16" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}" VerticalOptions="Center"/>
                         </Grid>
 
                         <!-- Primary Payment Button -->
@@ -790,6 +792,111 @@
                        VerticalOptions="Center"/>
             </HorizontalStackLayout>
         </Border>
+
+        <!-- Floating Action Button (FAB) for Morgana AI Chatbot -->
+        <Border HorizontalOptions="End"
+                VerticalOptions="End"
+                Margin="0,0,18,80"
+                BackgroundColor="{StaticResource Purple}"
+                StrokeThickness="0"
+                StrokeShape="RoundRectangle 28"
+                WidthRequest="56" HeightRequest="56"
+                Shadow="{Shadow Brush=Black, Offset='0,4', Radius=8, Opacity=0.3}">
+            <Border.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding OpenChatModalCommand}"/>
+            </Border.GestureRecognizers>
+            <Label Text="🤖" FontSize="26" HorizontalOptions="Center" VerticalOptions="Center"/>
+        </Border>
+
+        <!-- AI Chatbot Modal Card Overlay -->
+        <Grid IsVisible="{Binding IsChatModalVisible}"
+              BackgroundColor="#80000000"
+              Padding="16,20">
+            <Grid.GestureRecognizers>
+                <TapGestureRecognizer Command="{Binding CloseChatModalCommand}"/>
+            </Grid.GestureRecognizers>
+
+            <Border BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkModalBg}}"
+                    Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkModalBorder}}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 20"
+                    Margin="0"
+                    Padding="16"
+                    VerticalOptions="Center"
+                    HeightRequest="560">
+                <Border.GestureRecognizers>
+                    <TapGestureRecognizer/>
+                </Border.GestureRecognizers>
+
+                <Grid RowDefinitions="Auto,*,Auto" RowSpacing="12">
+                    <!-- Chat Header -->
+                    <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                        <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
+                            <Border WidthRequest="36" HeightRequest="36" StrokeShape="RoundRectangle 18" BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}" StrokeThickness="0">
+                                <Label Text="🤖" FontSize="20" HorizontalOptions="Center" VerticalOptions="Center"/>
+                            </Border>
+                            <VerticalStackLayout Spacing="0" VerticalOptions="Center">
+                                <Label Text="Morgana AI - LentSoft" FontSize="15" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}"/>
+                                <Label Text="Asistente de Salud Visual" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"/>
+                            </VerticalStackLayout>
+                        </HorizontalStackLayout>
+
+                        <Button Grid.Column="1"
+                                Text="✕"
+                                Command="{Binding CloseChatModalCommand}"
+                                BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
+                                TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"
+                                CornerRadius="14"
+                                WidthRequest="32" HeightRequest="32"
+                                Padding="0" FontSize="14"/>
+                    </Grid>
+
+                    <BoxView Grid.Row="0" HeightRequest="1" Color="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}" VerticalOptions="End"/>
+
+                    <!-- Messages List -->
+                    <CollectionView Grid.Row="1" ItemsSource="{Binding ChatMessages}">
+                        <CollectionView.ItemTemplate>
+                            <DataTemplate x:DataType="models:ChatMessageDto">
+                                <Grid Padding="0,4">
+                                    <Border BackgroundColor="{Binding BackgroundColorHex}"
+                                            StrokeThickness="0"
+                                            StrokeShape="RoundRectangle 14"
+                                            Padding="12,10"
+                                            MaximumWidthRequest="280"
+                                            HorizontalOptions="{Binding Alignment}">
+                                        <VerticalStackLayout Spacing="2">
+                                            <Label Text="{Binding SenderDisplay}" FontSize="10" FontAttributes="Bold" TextColor="{Binding TextColorHex}" Opacity="0.8"/>
+                                            <Label Text="{Binding Message}" FontSize="13" TextColor="{Binding TextColorHex}"/>
+                                        </VerticalStackLayout>
+                                    </Border>
+                                </Grid>
+                            </DataTemplate>
+                        </CollectionView.ItemTemplate>
+                    </CollectionView>
+
+                    <!-- Input Bar -->
+                    <Grid Grid.Row="2" ColumnDefinitions="*,Auto" ColumnSpacing="8">
+                        <Border Grid.Column="0" BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}" StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}" StrokeShape="RoundRectangle 20" Padding="12,4">
+                            <Entry Text="{Binding ChatInputText}"
+                                   Placeholder="Escribe tu consulta médica o sobre productos..."
+                                   PlaceholderColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"
+                                   FontSize="13"/>
+                        </Border>
+
+                        <Button Grid.Column="1"
+                                Text="Enviar ➔"
+                                Command="{Binding SendChatMessageCommand}"
+                                BackgroundColor="{StaticResource Purple}"
+                                TextColor="White"
+                                FontAttributes="Bold"
+                                CornerRadius="20"
+                                HeightRequest="44"
+                                Padding="12,0"/>
+                    </Grid>
+                </Grid>
+            </Border>
+        </Grid>
 
     </Grid>
 

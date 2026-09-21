@@ -6,10 +6,10 @@
     xmlns:views="clr-namespace:LentSoft.Mobile.Views"
     Title="LentSoft"
     Shell.NavBarIsVisible="False"
-    Shell.TabBarBackgroundColor="White"
-    Shell.TabBarForegroundColor="{StaticResource Purple}"
-    Shell.TabBarTitleColor="{StaticResource Purple}"
-    Shell.TabBarUnselectedColor="{StaticResource Muted}">
+    Shell.TabBarBackgroundColor="{AppThemeBinding Light=White, Dark=#1C1A24}"
+    Shell.TabBarForegroundColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}"
+    Shell.TabBarTitleColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}"
+    Shell.TabBarUnselectedColor="{AppThemeBinding Light={StaticResource Muted}, Dark=#9CA3AF}">
 
     <!-- Flow fuera del Shell principal: Login -->
     <ShellItem Route="login">

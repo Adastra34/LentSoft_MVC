@@ -153,20 +153,43 @@ public class LocalizationService : ILocalizationService
         if (string.IsNullOrWhiteSpace(originalTitle)) return string.Empty;
         if (_currentLanguage != "EN") return originalTitle;
 
-        if (originalTitle == "Lentes Graduados Classic") return "Classic Prescription Lenses";
-        if (originalTitle == "Lentes Ray-Ban Aviator") return "Ray-Ban Aviator Sunglasses";
-        if (originalTitle == "Líquido Limpiador") return "Lens Cleaning Solution";
-        if (originalTitle == "Montura Oakley Sport") return "Oakley Sport Frame";
-        if (originalTitle == "Gafas de Sol Elegantes") return "Elegant Sunglasses";
-        if (originalTitle == "Lentes de Contacto Diarios") return "Daily Contact Lenses";
+        var productTranslations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["Lentes Graduados Classic"] = "Classic Prescription Lenses",
+            ["Lentes Ray Ban Aviator"] = "Ray-Ban Aviator Sunglasses",
+            ["Lentes Ray-Ban Aviator"] = "Ray-Ban Aviator Sunglasses",
+            ["Líquido Limpiador"] = "Lens Cleaning Solution",
+            ["Montura Oakley Sport"] = "Oakley Sport Frame",
+            ["Gafas de Sol Elegantes"] = "Elegant Sunglasses",
+            ["Lentes de Contacto Diarios"] = "Daily Contact Lenses",
+            ["Lentes de Contacto Acuvue"] = "Acuvue Contact Lenses",
+            ["Estuche Premium"] = "Premium Case",
+            ["Estuche de Lujo"] = "Luxury Case",
+            ["Paño Microfibra"] = "Microfiber Cloth",
+            ["Cordón Ajustable"] = "Adjustable Strap"
+        };
 
-        string result = originalTitle;
-        if (result.StartsWith("Montura ", StringComparison.OrdinalIgnoreCase))
-            result = "Frame " + result.Substring(8);
+        if (productTranslations.TryGetValue(originalTitle.Trim(), out var exactMatch))
+        {
+            return exactMatch;
+        }
+
+        string result = originalTitle.Trim();
+
+        if (result.StartsWith("Lentes de Contacto ", StringComparison.OrdinalIgnoreCase))
+            return result.Substring(19) + " Contact Lenses";
+
         if (result.StartsWith("Lentes de ", StringComparison.OrdinalIgnoreCase))
-            result = "Lenses for " + result.Substring(10);
+            return "Lenses for " + result.Substring(10);
+
+        if (result.StartsWith("Montura ", StringComparison.OrdinalIgnoreCase))
+            return result.Substring(8) + " Frame";
+
+        if (result.StartsWith("Gafas de Sol ", StringComparison.OrdinalIgnoreCase))
+            return result.Substring(13) + " Sunglasses";
+
         if (result.StartsWith("Gafas de ", StringComparison.OrdinalIgnoreCase))
-            result = "Glasses for " + result.Substring(9);
+            return result.Substring(9) + " Glasses";
 
         return result;
     }

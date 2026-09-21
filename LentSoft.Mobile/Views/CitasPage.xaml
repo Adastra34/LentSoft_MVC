@@ -6,7 +6,7 @@
              x:Class="LentSoft.Mobile.Views.CitasPage"
              x:DataType="vm:CitasViewModel"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="{StaticResource Lavender}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkPageBg}}">
 
     <RefreshView IsRefreshing="{Binding IsRefreshing}" Command="{Binding LoadAppointmentsCommand}">
         <ScrollView>
@@ -65,7 +65,7 @@
                                            Text="{Binding ProximaCita.Servicio}"
                                            FontSize="17"
                                            FontAttributes="Bold"
-                                           TextColor="{StaticResource Ink}"/>
+                                           TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
 
                                     <!-- Status Badge (Amber or Green) -->
                                     <Border Grid.Column="1"
@@ -85,7 +85,7 @@
                                     <Label Grid.Column="1"
                                            Text="{Binding ProximaCita.DisplayFechaHora}"
                                            FontSize="13"
-                                           TextColor="{StaticResource Ink}"
+                                           TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"
                                            VerticalOptions="Center"/>
                                 </Grid>
 
@@ -135,10 +135,10 @@
                                 <Label Text="No tienes citas pendientes"
                                        FontSize="14"
                                        FontAttributes="Bold"
-                                       TextColor="{StaticResource Ink}"/>
+                                       TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                                 <Label Text="Programa tu examen visual o control con nuestro equipo de optometría."
                                        FontSize="12"
-                                       TextColor="{StaticResource Muted}"/>
+                                       TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"/>
                             </VerticalStackLayout>
                         </Border>
                     </VerticalStackLayout>
@@ -153,7 +153,7 @@
                         <Label Text="HISTORIAL DE CONSULTAS"
                                FontSize="12"
                                FontAttributes="Bold"
-                               TextColor="{StaticResource Muted}"/>
+                               TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"/>
 
                         <VerticalStackLayout BindableLayout.ItemsSource="{Binding Historial}"
                                              Spacing="10"
@@ -171,8 +171,8 @@
                                             <Border Grid.Column="0"
                                                     WidthRequest="40" HeightRequest="40"
                                                     StrokeShape="RoundRectangle 20"
-                                                    BackgroundColor="{StaticResource Lavender}"
-                                                    Stroke="{StaticResource Line}"
+                                                    BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInputBg}}"
+                                                    Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"
                                                     StrokeThickness="1">
                                                 <Label Text="👁️" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center"/>
                                             </Border>
@@ -182,10 +182,10 @@
                                                 <Label Text="{Binding Servicio}"
                                                        FontSize="14"
                                                        FontAttributes="Bold"
-                                                       TextColor="{StaticResource Ink}"/>
+                                                       TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                                                 <Label Text="{Binding DisplayFechaCorta}"
                                                        FontSize="12"
-                                                       TextColor="{StaticResource Muted}"/>
+                                                       TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"/>
                                                 <Label Text="{Binding OptometraNombre}"
                                                        FontSize="11"
                                                        TextColor="{StaticResource Purple}"/>
@@ -211,7 +211,7 @@
 
                         <Label Text="No hay registros en el historial de citas."
                                FontSize="13"
-                               TextColor="{StaticResource Muted}"
+                               TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"
                                IsVisible="{Binding NoHistorial}"
                                Padding="0,10"/>
                     </VerticalStackLayout>

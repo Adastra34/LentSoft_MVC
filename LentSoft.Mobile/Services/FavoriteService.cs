@@ -4,6 +4,14 @@ namespace LentSoft.Mobile.Services;
 
 public class FavoriteService : IFavoriteService
 {
+    private static FavoriteService? _instance;
+    public static FavoriteService Instance => _instance ??= new FavoriteService();
+
+    public FavoriteService()
+    {
+        _instance = this;
+    }
+
     private readonly List<ProductDto> _favorites = new();
 
     public IReadOnlyList<ProductDto> Favorites => _favorites.AsReadOnly();

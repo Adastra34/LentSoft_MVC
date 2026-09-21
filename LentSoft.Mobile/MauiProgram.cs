@@ -24,6 +24,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
         builder.Services.AddSingleton<IFavoriteService, FavoriteService>();
         builder.Services.AddSingleton<IOrderHistoryService, OrderHistoryService>();
+        builder.Services.AddSingleton<IInvoiceService, InvoiceService>();
         builder.Services.AddTransient<AuthenticatedHttpClientHandler>();
 
         string baseUrl = (DeviceInfo.Platform == DevicePlatform.Android && DeviceInfo.DeviceType == DeviceType.Virtual)

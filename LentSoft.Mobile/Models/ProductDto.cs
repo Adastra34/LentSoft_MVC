@@ -105,8 +105,7 @@ public class ProductDto
 
             if (ImagenUrl.StartsWith("/"))
             {
-                // Prepend base server URL for relative path
-                return $"http://10.0.1.183:5000{ImagenUrl}";
+                return $"http://localhost:5000{ImagenUrl}";
             }
 
             return GetFallbackImage();
@@ -124,8 +123,11 @@ public class ProductDto
         if (Nombre.Contains("Limpiador", StringComparison.OrdinalIgnoreCase) || Nombre.Contains("Líquido", StringComparison.OrdinalIgnoreCase))
             return "https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=600&q=80";
 
-        if (Categoria.Contains("sol", StringComparison.OrdinalIgnoreCase))
+        if (Categoria.Contains("sol", StringComparison.OrdinalIgnoreCase) || Nombre.Contains("Aviator", StringComparison.OrdinalIgnoreCase))
             return "https://images.unsplash.com/photo-1511499767150-a48a237f0083?auto=format&fit=crop&w=600&q=80";
+
+        if (Nombre.Contains("Graduados", StringComparison.OrdinalIgnoreCase) || Categoria.Contains("monturas", StringComparison.OrdinalIgnoreCase))
+            return "https://images.unsplash.com/photo-1591076482161-42ce6da69f67?auto=format&fit=crop&w=600&q=80";
 
         return "https://images.unsplash.com/photo-1591076482161-42ce6da69f67?auto=format&fit=crop&w=600&q=80";
     }
@@ -156,4 +158,7 @@ public class ProductDto
             return stars.PadRight(5, '☆');
         }
     }
+
+    public bool IsFavorite => Services.FavoriteService.Instance.IsFavorite(Id);
+    public string FavoriteHeartIcon => IsFavorite ? "❤️" : "🤍";
 }

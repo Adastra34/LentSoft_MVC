@@ -5,7 +5,7 @@
              x:Class="LentSoft.Mobile.Views.RegisterPage"
              x:DataType="vm:RegisterViewModel"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="{StaticResource Lavender}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkPageBg}}">
 
     <ScrollView>
         <Grid RowDefinitions="Auto,*" VerticalOptions="FillAndExpand">
@@ -56,16 +56,16 @@
                     <!-- Nombre y Apellido en 2 columnas -->
                     <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                         <VerticalStackLayout Grid.Column="0" Spacing="4">
-                            <Label Text="Nombre" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                            <Label Text="Nombre" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                             <Border Style="{StaticResource InputContainer}">
-                                <Entry Text="{Binding Nombre}" Placeholder="Ej: Carlos" TextColor="{StaticResource Ink}"/>
+                                <Entry Text="{Binding Nombre}" Placeholder="Ej: Carlos" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                             </Border>
                         </VerticalStackLayout>
 
                         <VerticalStackLayout Grid.Column="1" Spacing="4">
-                            <Label Text="Apellido" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                            <Label Text="Apellido" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                             <Border Style="{StaticResource InputContainer}">
-                                <Entry Text="{Binding Apellido}" Placeholder="Ej: Pérez" TextColor="{StaticResource Ink}"/>
+                                <Entry Text="{Binding Apellido}" Placeholder="Ej: Pérez" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                             </Border>
                         </VerticalStackLayout>
                     </Grid>
@@ -73,49 +73,49 @@
                     <!-- Documento -->
                     <Grid ColumnDefinitions="90,*" ColumnSpacing="10">
                         <VerticalStackLayout Grid.Column="0" Spacing="4">
-                            <Label Text="Tipo Doc" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                            <Label Text="Tipo Doc" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                             <Border Style="{StaticResource InputContainer}">
-                                <Entry Text="{Binding TipoDocumento}" TextColor="{StaticResource Ink}"/>
+                                <Entry Text="{Binding TipoDocumento}" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                             </Border>
                         </VerticalStackLayout>
 
                         <VerticalStackLayout Grid.Column="1" Spacing="4">
-                            <Label Text="Número de Documento" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                            <Label Text="Número de Documento" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                             <Border Style="{StaticResource InputContainer}">
-                                <Entry Text="{Binding NumeroDocumento}" Placeholder="12345678" Keyboard="Numeric" TextColor="{StaticResource Ink}"/>
+                                <Entry Text="{Binding NumeroDocumento}" Placeholder="12345678" Keyboard="Numeric" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                             </Border>
                         </VerticalStackLayout>
                     </Grid>
 
                     <!-- Teléfono -->
                     <VerticalStackLayout Spacing="4">
-                        <Label Text="Teléfono" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                        <Label Text="Teléfono" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                         <Border Style="{StaticResource InputContainer}">
-                            <Entry Text="{Binding Telefono}" Placeholder="300 123 4567" Keyboard="Telephone" TextColor="{StaticResource Ink}"/>
+                            <Entry Text="{Binding Telefono}" Placeholder="300 123 4567" Keyboard="Telephone" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <!-- Email -->
                     <VerticalStackLayout Spacing="4">
-                        <Label Text="Correo Electrónico" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                        <Label Text="Correo Electrónico" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                         <Border Style="{StaticResource InputContainer}">
-                            <Entry Text="{Binding Email}" Placeholder="correo@ejemplo.com" Keyboard="Email" TextColor="{StaticResource Ink}"/>
+                            <Entry Text="{Binding Email}" Placeholder="correo@ejemplo.com" Keyboard="Email" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <!-- Password -->
                     <VerticalStackLayout Spacing="4">
-                        <Label Text="Contraseña" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                        <Label Text="Contraseña" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                         <Border Style="{StaticResource InputContainer}">
-                            <Entry Text="{Binding Password}" Placeholder="Mínimo 8 caracteres" IsPassword="True" TextColor="{StaticResource Ink}"/>
+                            <Entry Text="{Binding Password}" Placeholder="Mínimo 8 caracteres" IsPassword="True" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                         </Border>
                     </VerticalStackLayout>
 
                     <!-- Confirm Password -->
                     <VerticalStackLayout Spacing="4">
-                        <Label Text="Confirmar Contraseña" FontSize="12" FontAttributes="Bold" TextColor="{StaticResource Ink}"/>
+                        <Label Text="Confirmar Contraseña" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                         <Border Style="{StaticResource InputContainer}">
-                            <Entry Text="{Binding ConfirmPassword}" Placeholder="Repite tu contraseña" IsPassword="True" TextColor="{StaticResource Ink}"/>
+                            <Entry Text="{Binding ConfirmPassword}" Placeholder="Repite tu contraseña" IsPassword="True" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}"/>
                         </Border>
                     </VerticalStackLayout>
 

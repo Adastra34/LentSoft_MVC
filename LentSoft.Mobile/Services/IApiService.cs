@@ -16,4 +16,5 @@ public interface IApiService
     Task<AppointmentDto?> RescheduleAppointmentAsync(int id, DateTime nuevaFechaHora);
     Task<UserDto?> GetProfileAsync();
     Task<UserDto?> UpdateProfileAsync(string nombre, string? apellido, string? telefono, string? direccion);
+    Task<string> AskChatBotAsync(string mensaje, List<ChatMessageDto>? history = null);
 }

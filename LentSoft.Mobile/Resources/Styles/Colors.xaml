@@ -16,6 +16,33 @@
     <Color x:Key="Muted">#77708A</Color>
     <Color x:Key="Line">#E4DDF5</Color>
 
+    <!-- Light & Dark Theme Palette Definitions (Reference Screenshot Dark Mode) -->
+    <Color x:Key="LightPageBg">#F3EFFB</Color>
+    <Color x:Key="DarkPageBg">#0F0E14</Color>
+
+    <Color x:Key="LightCardBg">#FFFFFF</Color>
+    <Color x:Key="DarkCardBg">#1C1A24</Color>
+
+    <!-- Modal Card & Inner Box Tokens for High-Contrast Dark Mode -->
+    <Color x:Key="DarkModalBg">#201C2B</Color>
+    <Color x:Key="DarkModalBorder">#3B354C</Color>
+    <Color x:Key="DarkInnerBoxBg">#2A2538</Color>
+
+    <Color x:Key="LightInkText">#1E1B29</Color>
+    <Color x:Key="DarkInkText">#FFFFFF</Color>
+
+    <Color x:Key="LightMutedText">#77708A</Color>
+    <Color x:Key="DarkMutedText">#A09CB0</Color>
+
+    <Color x:Key="LightLineColor">#E4DDF5</Color>
+    <Color x:Key="DarkLineColor">#2A2735</Color>
+
+    <Color x:Key="LightInputBg">#FFFFFF</Color>
+    <Color x:Key="DarkInputBg">#181620</Color>
+
+    <Color x:Key="DarkHeaderStart">#1F103A</Color>
+    <Color x:Key="DarkHeaderEnd">#120926</Color>
+
     <!-- Additional Palette Helpers -->
     <Color x:Key="Amber">#D97706</Color>
     <Color x:Key="AmberLight">#FEF3C7</Color>
