@@ -2938,20 +2938,28 @@
                 const blob = (pdfBlob instanceof Blob && pdfBlob.type === 'application/pdf')
                     ? pdfBlob
                     : new Blob([pdfBlob], { type: 'application/pdf' });
-                const blobUrl = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.style.display = 'none';
-                a.href = blobUrl;
-                a.download = filename;
-                a.setAttribute('download', filename);
-                document.body.appendChild(a);
-                a.click();
-                setTimeout(function () {
-                    if (a.parentNode) {
-                        a.parentNode.removeChild(a);
-                    }
-                    URL.revokeObjectURL(blobUrl);
-                }, 2000);
+
+                if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+                    window.navigator.msSaveOrOpenBlob(blob, filename);
+                } else {
+                    const blobUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = blobUrl;
+                    a.download = filename;
+                    a.setAttribute('download', filename);
+                    a.target = '_self';
+                    document.body.appendChild(a);
+                    a.click();
+                    setTimeout(function () {
+                        if (a.parentNode) {
+                            a.parentNode.removeChild(a);
+                        }
+                        setTimeout(function () {
+                            URL.revokeObjectURL(blobUrl);
+                        }, 60000);
+                    }, 1000);
+                }
 
                 if (typeof alertify !== 'undefined') {
                     alertify.success('PDF descargado exitosamente: ' + filename);
