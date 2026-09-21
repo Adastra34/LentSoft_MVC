@@ -105,7 +105,12 @@ public class ProductDto
 
             if (ImagenUrl.StartsWith("/"))
             {
-                return $"http://localhost:5000{ImagenUrl}";
+                string host = "localhost";
+                if (DeviceInfo.Platform == DevicePlatform.Android)
+                {
+                    host = (DeviceInfo.DeviceType == DeviceType.Virtual) ? "10.0.2.2" : "172.16.6.121";
+                }
+                return $"http://{host}:5000{ImagenUrl}";
             }
 
             return GetFallbackImage();

@@ -38,9 +38,17 @@ public static class MauiProgram
         builder.Services.AddSingleton<IInvoiceService, InvoiceService>();
         builder.Services.AddTransient<AuthenticatedHttpClientHandler>();
 
-        string baseUrl = (DeviceInfo.Platform == DevicePlatform.Android && DeviceInfo.DeviceType == DeviceType.Virtual)
-            ? "http://10.0.2.2:5000/"
-            : "http://localhost:5000/";
+        string baseUrl;
+        if (DeviceInfo.Platform == DevicePlatform.Android)
+        {
+            baseUrl = (DeviceInfo.DeviceType == DeviceType.Virtual)
+                ? "http://10.0.2.2:5000/"
+                : "http://172.16.6.121:5000/";
+        }
+        else
+        {
+            baseUrl = "http://localhost:5000/";
+        }
 
         var httpClientBuilder = builder.Services.AddHttpClient<IApiService, ApiService>(client =>
         {
