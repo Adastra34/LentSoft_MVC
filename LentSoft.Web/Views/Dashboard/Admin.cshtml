@@ -107,19 +107,22 @@
 
             <!-- Tabla de pedidos recientes -->
             <div class="card" style="padding: 1.5rem; background: white;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <h2 style="color: var(--purple-800); font-size: 1.25rem; margin: 0;" data-i18n="admin.general.recentorders">Pedidos Recientes</h2>
-                    <input type="text" id="searchRecentOrders" placeholder="Buscar pedido..." data-i18n-placeholder="admin.general.searchorder" class="form-input" style="width: 250px; padding: 0.4rem 0.75rem; font-size: 0.875rem;" onkeyup="filterTable('searchRecentOrders', 'tableRecentOrders')" />
+                <h2 style="color: var(--purple-800); font-size: 1.25rem; margin: 0 0 1rem 0;" data-i18n="admin.general.recentorders">Pedidos Recientes</h2>
+                <div style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                    <div style="position: relative; display: flex; align-items: center; min-width: 260px; max-width: 380px; flex: 1;">
+                        <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
+                        <input type="text" id="searchRecentOrders" placeholder="Buscar pedido..." data-i18n-placeholder="admin.general.searchorder" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); font-size: 0.85rem;" onkeyup="filterTable('searchRecentOrders', 'tableRecentOrders')" />
+                    </div>
                 </div>
-                <div style="overflow-x: auto;">
+                <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
                     <table id="tableRecentOrders" style="width: 100%; border-collapse: collapse; text-align: left;">
-                        <thead>
-                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                <th style="padding: 0.75rem;">ID</th>
-                                <th style="padding: 0.75rem;" data-i18n="sales.table.client">Cliente</th>
-                                <th style="padding: 0.75rem;" data-i18n="sales.table.date">Fecha</th>
-                                <th style="padding: 0.75rem;" data-i18n="sales.table.total">Total</th>
-                                <th style="padding: 0.75rem;" data-i18n="sales.table.status">Estado</th>
+                        <thead style="background-color: var(--purple-50); color: var(--purple-900);">
+                            <tr style="border-bottom: 2px solid var(--purple-200);">
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">ID</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="sales.table.client">Cliente</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="sales.table.date">Fecha</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="sales.table.total">Total</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="sales.table.status">Estado</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -229,15 +232,15 @@
                     </div>
                     <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
                         <table id="tableProducts" style="width: 100%; border-collapse: collapse; text-align: left;">
-                            <thead>
-                                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                    <th style="padding: 0.75rem;">ID</th>
-                                    <th style="padding: 0.75rem;" data-i18n="modal.sale.selectproduct">Nombre</th>
-                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="sales.inventory.category">Categoría</th>
-                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="sales.inventory.price">Precio</th>
-                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="modal.sale.qty">Stock</th>
-                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="sales.table.status">Estado</th>
-                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="sales.table.actions">Acciones</th>
+                            <thead style="background-color: var(--purple-50); color: var(--purple-900);">
+                                <tr style="border-bottom: 2px solid var(--purple-200);">
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">ID</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="modal.sale.selectproduct">Nombre</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;" data-i18n="sales.inventory.category">Categoría</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;" data-i18n="sales.inventory.price">Precio</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;" data-i18n="modal.sale.qty">Stock</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;" data-i18n="sales.table.status">Estado</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;" data-i18n="sales.table.actions">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -310,17 +313,17 @@
                     </div>
                     <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
                         <table id="tableProveedores" style="width: 100%; border-collapse: collapse; text-align: left;">
-                            <thead>
-                                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                    <th style="padding: 0.75rem;">ID</th>
-                                    <th style="padding: 0.75rem; text-align: center;">Logo</th>
-                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="admin.inv.company">Empresa</th>
-                                    <th style="padding: 0.75rem; text-align: center;">Contacto</th>
-                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="admin.inv.producttype">Tipo Productos</th>
-                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="admin.inv.phone">Teléfono</th>
-                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="admin.inv.email">Email</th>
-                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="sales.table.status">Estado</th>
-                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="sales.table.actions">Acciones</th>
+                            <thead style="background-color: var(--purple-50); color: var(--purple-900);">
+                                <tr style="border-bottom: 2px solid var(--purple-200);">
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">ID</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Logo</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;" data-i18n="admin.inv.company">Empresa</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Contacto</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;" data-i18n="admin.inv.producttype">Tipo Productos</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;" data-i18n="admin.inv.phone">Teléfono</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;" data-i18n="admin.inv.email">Email</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;" data-i18n="sales.table.status">Estado</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;" data-i18n="sales.table.actions">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -407,16 +410,16 @@
                     </div>
                     <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
                         <table id="tableHistorial" style="width: 100%; border-collapse: collapse; text-align: left;">
-                            <thead>
-                                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                    <th style="padding: 0.75rem;">ID</th>
-                                    <th style="padding: 0.75rem;" data-i18n="modal.sale.selectproduct">Seleccionar Producto</th>
-                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="admin.inv.type">Tipo</th>
-                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="admin.inv.qty">Cantidad</th>
-                                    <th style="padding: 0.75rem; text-align: center; cursor: pointer;" onclick="location.href='?section=inventario&subtab=historial&movSort=@(ViewBag.MovSort == "asc" ? "desc" : "asc")'">Fecha @(ViewBag.MovSort == "asc" ? "▲" : "▼")</th>
-                                    <th style="padding: 0.75rem; text-align: center;">Hora</th>
-                                    <th style="padding: 0.75rem; text-align: center;" data-i18n="admin.inv.responsible">Responsable</th>
-                                    <th style="padding: 0.75rem; text-align: right;" data-i18n="sales.table.actions">Acciones</th>
+                            <thead style="background-color: var(--purple-50); color: var(--purple-900);">
+                                <tr style="border-bottom: 2px solid var(--purple-200);">
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">ID</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="modal.sale.selectproduct">Seleccionar Producto</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;" data-i18n="admin.inv.type">Tipo</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;" data-i18n="admin.inv.qty">Cantidad</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center; cursor: pointer;" onclick="location.href='?section=inventario&subtab=historial&movSort=@(ViewBag.MovSort == "asc" ? "desc" : "asc")'">Fecha @(ViewBag.MovSort == "asc" ? "▲" : "▼")</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Hora</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;" data-i18n="admin.inv.responsible">Responsable</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: right;" data-i18n="sales.table.actions">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -494,17 +497,17 @@
                     </div>
                     <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
                         <table id="tablePedidosVentas" style="width: 100%; border-collapse: collapse; text-align: left;">
-                            <thead>
-                                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                    <th style="padding: 0.75rem;">N° Pedido</th>
-                                    <th style="padding: 0.75rem;">Cliente</th>
-                                    <th style="padding: 0.75rem;">Producto</th>
-                                    <th style="padding: 0.75rem; text-align: center;">Cantidad</th>
-                                    <th style="padding: 0.75rem; text-align: center;">Precio U.</th>
-                                    <th style="padding: 0.75rem; text-align: center;">Total</th>
-                                    <th style="padding: 0.75rem; text-align: center;">Fecha</th>
-                                    <th style="padding: 0.75rem; text-align: center;">Estado</th>
-                                    <th style="padding: 0.75rem; text-align: center;">Acciones</th>
+                            <thead style="background-color: var(--purple-50); color: var(--purple-900);">
+                                <tr style="border-bottom: 2px solid var(--purple-200);">
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">N° Pedido</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Cliente</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Producto</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Cantidad</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Precio U.</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Total</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Fecha</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Estado</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -579,17 +582,17 @@
                     </div>
                     <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
                         <table id="tablePedidosProveedores" style="width: 100%; border-collapse: collapse; text-align: left;">
-                            <thead>
-                                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                    <th style="padding: 0.75rem;">N° Pedido</th>
-                                    <th style="padding: 0.75rem;">Proveedor</th>
-                                    <th style="padding: 0.75rem;">Producto</th>
-                                    <th style="padding: 0.75rem; text-align: center;">Cantidad</th>
-                                    <th style="padding: 0.75rem; text-align: center;">Precio U.</th>
-                                    <th style="padding: 0.75rem; text-align: center;">Total</th>
-                                    <th style="padding: 0.75rem; text-align: center;">Fecha</th>
-                                    <th style="padding: 0.75rem; text-align: center;">Estado</th>
-                                    <th style="padding: 0.75rem; text-align: center;">Acciones</th>
+                            <thead style="background-color: var(--purple-50); color: var(--purple-900);">
+                                <tr style="border-bottom: 2px solid var(--purple-200);">
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">N° Pedido</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Proveedor</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Producto</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Cantidad</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Precio U.</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Total</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Fecha</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Estado</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -649,19 +652,22 @@
             </div>
 
             <div class="card" style="padding: 1.5rem; background: white;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <input type="text" id="searchVentas" placeholder="Buscar venta o cliente..." data-i18n-placeholder="admin.sales.search" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchVentas', 'tableVentas')" />
+                <div style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                    <div style="position: relative; display: flex; align-items: center; min-width: 260px; max-width: 380px; flex: 1;">
+                        <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
+                        <input type="text" id="searchVentas" placeholder="Buscar venta o cliente..." data-i18n-placeholder="admin.sales.search" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); font-size: 0.85rem;" onkeyup="filterTable('searchVentas', 'tableVentas')" />
+                    </div>
                 </div>
-                <div style="overflow-x: auto;">
+                <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
                     <table id="tableVentas" style="width: 100%; border-collapse: collapse; text-align: left;">
-                        <thead>
-                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                <th style="padding: 0.75rem;" data-i18n="sales.table.order">Venta</th>
-                                <th style="padding: 0.75rem;" data-i18n="sales.table.client">Cliente</th>
-                                <th style="padding: 0.75rem;" data-i18n="sales.table.date">Fecha</th>
-                                <th style="padding: 0.75rem;" data-i18n="sales.table.total">Total</th>
-                                <th style="padding: 0.75rem;" data-i18n="sales.table.status">Estado</th>
-                                <th style="padding: 0.75rem;" data-i18n="sales.table.currentstatus">Actualizar Estado</th>
+                        <thead style="background-color: var(--purple-50); color: var(--purple-900);">
+                            <tr style="border-bottom: 2px solid var(--purple-200);">
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="sales.table.order">Venta</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="sales.table.client">Cliente</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="sales.table.date">Fecha</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="sales.table.total">Total</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="sales.table.status">Estado</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="sales.table.currentstatus">Actualizar Estado</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -717,23 +723,26 @@
                 <button class="filter-tab" onclick="filterAdminCitasByEstado('cancelada', this)" style="background-color: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Canceladas</button>
             </div>
 
-            <div class="card" style="padding: 1.5rem;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                    <input type="text" id="searchAdminCitas" placeholder="Buscar cita o paciente..." data-i18n-placeholder="admin.citas.search" class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterAdminCitasCombo()" />
+            <div class="card" style="padding: 1.5rem; background: white;">
+                <div style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                    <div style="position: relative; display: flex; align-items: center; min-width: 260px; max-width: 380px; flex: 1;">
+                        <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
+                        <input type="text" id="searchAdminCitas" placeholder="Buscar cita o paciente..." data-i18n-placeholder="admin.citas.search" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); font-size: 0.85rem;" onkeyup="filterAdminCitasCombo()" />
+                    </div>
                 </div>
 
-                <div style="overflow-x: auto;">
+                <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
                     <table id="tableAdminCitas" style="width: 100%; border-collapse: collapse; text-align: left;">
-                        <thead>
-                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--purple-700);">
-                                <th style="padding: 0.75rem;">ID</th>
-                                <th style="padding: 0.75rem;" data-i18n="admin.citas.patient">Paciente</th>
-                                <th style="padding: 0.75rem;">Optómetra</th>
-                                <th style="padding: 0.75rem;" data-i18n="admin.citas.service">Servicio</th>
-                                <th style="padding: 0.75rem;" data-i18n="admin.citas.datetime">Fecha y Hora</th>
-                                <th style="padding: 0.75rem;">Reprogramaciones</th>
-                                <th style="padding: 0.75rem;" data-i18n="admin.citas.status">Estado</th>
-                                <th style="padding: 0.75rem; text-align: right;" data-i18n="admin.citas.actions">Acciones</th>
+                        <thead style="background-color: var(--purple-50); color: var(--purple-900);">
+                            <tr style="border-bottom: 2px solid var(--purple-200);">
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">ID</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="admin.citas.patient">Paciente</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Optómetra</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="admin.citas.service">Servicio</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="admin.citas.datetime">Fecha y Hora</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Reprogramaciones</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="admin.citas.status">Estado</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: right;" data-i18n="admin.citas.actions">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -842,14 +851,14 @@
                 <div id="panel-auditoria" style="display: none; margin-top: 0.75rem;">
                     <div class="card" style="padding: 1.25rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
                         <h3 style="color: var(--purple-800); font-size: 1rem; margin-bottom: 1rem; margin-top: 0;">Últimos 20 cambios de estado</h3>
-                        <div style="overflow-x: auto;">
+                        <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-radius: 0.5rem;">
                             <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
-                                <thead>
-                                    <tr style="border-bottom: 2px solid var(--purple-200); color: var(--purple-700);">
-                                        <th style="padding: 0.6rem 0.75rem; text-align: left;">ID Cita</th>
-                                        <th style="padding: 0.6rem 0.75rem; text-align: left;">Estado Anterior</th>
-                                        <th style="padding: 0.6rem 0.75rem; text-align: left;">Estado Nuevo</th>
-                                        <th style="padding: 0.6rem 0.75rem; text-align: left;">Fecha Cambio</th>
+                                <thead style="background-color: var(--purple-50); color: var(--purple-900);">
+                                    <tr style="border-bottom: 2px solid var(--purple-200);">
+                                        <th style="padding: 0.6rem 0.75rem; text-align: left; font-weight: 700;">ID Cita</th>
+                                        <th style="padding: 0.6rem 0.75rem; text-align: left; font-weight: 700;">Estado Anterior</th>
+                                        <th style="padding: 0.6rem 0.75rem; text-align: left; font-weight: 700;">Estado Nuevo</th>
+                                        <th style="padding: 0.6rem 0.75rem; text-align: left; font-weight: 700;">Fecha Cambio</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -2512,12 +2521,12 @@
 
             <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-radius: 0.375rem;">
                 <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
-                    <thead>
-                        <tr style="background: var(--purple-50); border-bottom: 1px solid var(--purple-200);">
-                            <th style="padding: 0.6rem;">Producto</th>
-                            <th style="padding: 0.6rem;">Costo Unit.</th>
-                            <th style="padding: 0.6rem;">Solicitado</th>
-                            <th style="padding: 0.6rem; width: 140px;">Cant. Recibida</th>
+                    <thead style="background-color: var(--purple-50); color: var(--purple-900);">
+                        <tr style="border-bottom: 1px solid var(--purple-200);">
+                            <th style="padding: 0.6rem; font-weight: 700;">Producto</th>
+                            <th style="padding: 0.6rem; font-weight: 700;">Costo Unit.</th>
+                            <th style="padding: 0.6rem; font-weight: 700;">Solicitado</th>
+                            <th style="padding: 0.6rem; font-weight: 700; width: 140px;">Cant. Recibida</th>
                         </tr>
                     </thead>
                     <tbody id="recibirItemsBody">
@@ -2872,6 +2881,217 @@
     </div>
 </div>
 
+<!-- ==================== MODALES DE CITAS MÉDICAS ==================== -->
+<!-- Modal Crear Cita Médica -->
+<div id="modal-cita" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
+    <div class="card" style="width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.3rem;">📅</span>
+                <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">Programar Nueva Cita</h2>
+            </div>
+            <button type="button" onclick="document.getElementById('modal-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        <form asp-controller="Dashboard" asp-action="CreateAppointment" method="post" onsubmit="return validateCitaForm(this);" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Paciente *</label>
+                <select name="UserId" class="form-input" required style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                    <option value="" disabled selected>-- Seleccionar Paciente --</option>
+                    @if (Model.TodosLosClientes != null)
+                    {
+                        foreach (var cli in Model.TodosLosClientes)
+                        {
+                            <option value="@cli.Id">@cli.Nombre @cli.Apellido (@cli.Email)</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Optómetra *</label>
+                <select name="OptometraId" class="form-input" required style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                    <option value="" disabled selected>-- Seleccionar Optómetra --</option>
+                    @{
+                        var optsCrear = ViewBag.Optometras as IEnumerable<LentSoft.Web.Models.Entities.User> ?? Enumerable.Empty<LentSoft.Web.Models.Entities.User>();
+                    }
+                    @foreach (var opt in optsCrear)
+                    {
+                        <option value="@opt.Id">@opt.Nombre @opt.Apellido</option>
+                    }
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 220px;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Servicio *</label>
+                    <select name="Servicio" class="form-input" required style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                        <option value="Examen visual completo">Examen visual completo</option>
+                        <option value="Examen de vista">Examen de vista</option>
+                        <option value="Primera consulta">Primera consulta</option>
+                        <option value="Control de lentes">Control de lentes</option>
+                        <option value="Ajuste de lentes">Ajuste de lentes</option>
+                        <option value="Consulta por lentes de contacto">Consulta por lentes de contacto</option>
+                        <option value="Adaptación lentes contacto">Adaptación lentes contacto</option>
+                        <option value="Control optometría">Control optometría</option>
+                        <option value="Seguimiento glaucoma">Seguimiento glaucoma</option>
+                        <option value="Consulta General">Consulta General</option>
+                    </select>
+                </div>
+                <div style="flex: 1; min-width: 220px;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Fecha y Hora *</label>
+                    <input name="FechaHora" type="datetime-local" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" class="form-input" required style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                    <span style="font-size: 0.75rem; color: var(--gray-500); display: block; margin-top: 0.25rem;">Lun - Sáb, 8:00 a.m. a 6:00 p.m.</span>
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Notas Adicionales</label>
+                <textarea name="Notas" class="form-input" rows="2" placeholder="Motivo o notas clínicas opcionales..." style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                <button type="button" onclick="document.getElementById('modal-cita').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.6rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <span>📅 Agendar Cita</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Ver Detalle Cita Médica -->
+<div id="modal-admin-ver-cita" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
+    <div class="card" style="width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.3rem;">👁️</span>
+                <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">Detalle de la Cita Médica</h2>
+            </div>
+            <button type="button" onclick="document.getElementById('modal-admin-ver-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+
+        <div style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; background: var(--purple-50); padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--purple-100);">
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 600; color: var(--purple-700); text-transform: uppercase; display: block; margin-bottom: 0.2rem;">Paciente</label>
+                    <span id="admin-ver-cita-paciente" style="font-size: 0.95rem; font-weight: 700; color: var(--purple-950);">Sin paciente</span>
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 600; color: var(--purple-700); text-transform: uppercase; display: block; margin-bottom: 0.2rem;">Optómetra</label>
+                    <span id="admin-ver-cita-optometra" style="font-size: 0.95rem; font-weight: 700; color: var(--purple-950);">Por asignar</span>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; display: block; margin-bottom: 0.2rem;">Servicio</label>
+                    <span id="admin-ver-cita-servicio" style="font-size: 0.9rem; font-weight: 600; color: var(--gray-800);">-</span>
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; display: block; margin-bottom: 0.2rem;">Fecha y Hora</label>
+                    <span id="admin-ver-cita-fecha" style="font-size: 0.9rem; font-weight: 600; color: var(--gray-800);">-</span>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; display: block; margin-bottom: 0.2rem;">Estado</label>
+                    <span id="admin-ver-cita-estado" style="font-size: 0.8rem; font-weight: 700; padding: 0.25rem 0.6rem; border-radius: 9999px; background: white; border: 1px solid var(--purple-200); display: inline-block;">-</span>
+                </div>
+                <div>
+                    <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; display: block; margin-bottom: 0.2rem;">Reprogramaciones</label>
+                    <span id="admin-ver-cita-reprog" style="font-size: 0.9rem; font-weight: 600; color: var(--gray-800);">0</span>
+                </div>
+            </div>
+
+            <div>
+                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase; display: block; margin-bottom: 0.35rem;">Notas Adicionales</label>
+                <div id="admin-ver-cita-notas" style="padding: 0.75rem; border-radius: 0.375rem; background: var(--gray-50); border: 1px solid var(--purple-100); font-size: 0.85rem; color: var(--gray-700); min-height: 48px; white-space: pre-wrap;">Ninguna</div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem; border-top: 1px solid var(--purple-100); padding-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-admin-ver-cita').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.6rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cerrar</button>
+                <button type="button" onclick="abrirModalAdminEditarCitaDesdeVer()" style="background: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: gap: 0.4rem;">
+                    <span>✏️ Editar Cita</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Editar Cita Médica -->
+<div id="modal-admin-editar-cita" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
+    <div class="card" style="width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <span style="font-size: 1.3rem;">✏️</span>
+                <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">Modificar Cita Médica</h2>
+            </div>
+            <button type="button" onclick="document.getElementById('modal-admin-editar-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        <form asp-controller="Dashboard" asp-action="EditAppointment" method="post" onsubmit="return validateCitaForm(this);" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" id="admin-edit-cita-id" />
+            <input type="hidden" name="UserId" id="admin-edit-cita-userid" />
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Paciente</label>
+                <input type="text" id="admin-edit-cita-paciente-nombre" readonly class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--gray-300); background-color: var(--gray-100); color: var(--gray-700); font-weight: 500;" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Optómetra Asignado *</label>
+                <select name="OptometraId" id="admin-edit-cita-optometraid" class="form-input" required style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                    <option value="" disabled>-- Seleccionar Optómetra --</option>
+                    @{
+                        var optsEditar = ViewBag.Optometras as IEnumerable<LentSoft.Web.Models.Entities.User> ?? Enumerable.Empty<LentSoft.Web.Models.Entities.User>();
+                    }
+                    @foreach (var opt in optsEditar)
+                    {
+                        <option value="@opt.Id">@opt.Nombre @opt.Apellido</option>
+                    }
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 220px;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Servicio *</label>
+                    <select name="Servicio" id="admin-edit-cita-servicio" class="form-input" required style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                        <option value="Examen visual completo">Examen visual completo</option>
+                        <option value="Examen de vista">Examen de vista</option>
+                        <option value="Primera consulta">Primera consulta</option>
+                        <option value="Control de lentes">Control de lentes</option>
+                        <option value="Ajuste de lentes">Ajuste de lentes</option>
+                        <option value="Consulta por lentes de contacto">Consulta por lentes de contacto</option>
+                        <option value="Adaptación lentes contacto">Adaptación lentes contacto</option>
+                        <option value="Control optometría">Control optometría</option>
+                        <option value="Seguimiento glaucoma">Seguimiento glaucoma</option>
+                        <option value="Consulta General">Consulta General</option>
+                    </select>
+                </div>
+                <div style="flex: 1; min-width: 220px;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Fecha y Hora *</label>
+                    <input name="FechaHora" id="admin-edit-cita-fechahora" type="datetime-local" class="form-input" required style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                    <span style="font-size: 0.75rem; color: var(--gray-500); display: block; margin-top: 0.25rem;">Lun - Sáb, 8:00 a.m. a 6:00 p.m.</span>
+                </div>
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Notas Adicionales</label>
+                <textarea name="Notas" id="admin-edit-cita-notas" class="form-input" rows="2" placeholder="Notas clínicas o motivos de reprogramación..." style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); resize: vertical;"></textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
+                <button type="button" onclick="document.getElementById('modal-admin-editar-cita').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.6rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <span>💾 Guardar Cambios</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     function addPurchaseOrderItemRow() {
         const body = document.getElementById('poItemsBody');
@@ -3000,50 +3220,82 @@
     }
 
     function abrirModalAdminVerCita(btn) {
-        document.getElementById('admin-ver-cita-paciente').textContent = btn.getAttribute('data-paciente') || 'Sin paciente';
-        document.getElementById('admin-ver-cita-optometra').textContent = btn.getAttribute('data-optometranombre') || 'Por asignar';
-        document.getElementById('admin-ver-cita-servicio').textContent = btn.getAttribute('data-servicio') || '-';
+        const pacEl = document.getElementById('admin-ver-cita-paciente');
+        if (pacEl) pacEl.textContent = btn.getAttribute('data-paciente') || 'Sin paciente';
+        
+        const optEl = document.getElementById('admin-ver-cita-optometra');
+        if (optEl) optEl.textContent = btn.getAttribute('data-optometranombre') || 'Por asignar';
+        
+        const srvEl = document.getElementById('admin-ver-cita-servicio');
+        if (srvEl) srvEl.textContent = btn.getAttribute('data-servicio') || '-';
         
         const rawDate = btn.getAttribute('data-fechahora');
-        if (rawDate) {
-            const dateObj = new Date(rawDate);
-            document.getElementById('admin-ver-cita-fecha').textContent = isNaN(dateObj) ? rawDate : dateObj.toLocaleString();
-        } else {
-            document.getElementById('admin-ver-cita-fecha').textContent = '-';
+        const fechaEl = document.getElementById('admin-ver-cita-fecha');
+        if (fechaEl) {
+            if (rawDate) {
+                const dateObj = new Date(rawDate);
+                fechaEl.textContent = isNaN(dateObj) ? rawDate : dateObj.toLocaleString();
+            } else {
+                fechaEl.textContent = '-';
+            }
         }
         
-        document.getElementById('admin-ver-cita-estado').textContent = (btn.getAttribute('data-estado') || '').toUpperCase();
-        document.getElementById('admin-ver-cita-reprog').textContent = btn.getAttribute('data-vecesreprogramada') || '0';
-        document.getElementById('admin-ver-cita-notas').textContent = btn.getAttribute('data-notas') || 'Ninguna';
-        
-        // Colores de estado
-        const statusVal = (btn.getAttribute('data-estado') || '').toLowerCase();
         const estSpan = document.getElementById('admin-ver-cita-estado');
-        if (statusVal === 'confirmada' || statusVal === 'completada') {
-            estSpan.style.color = '#065F46';
-        } else if (statusVal === 'pendiente') {
-            estSpan.style.color = '#92400E';
-        } else {
-            estSpan.style.color = '#991B1B';
+        if (estSpan) {
+            const statusVal = (btn.getAttribute('data-estado') || '').toLowerCase();
+            estSpan.textContent = (btn.getAttribute('data-estado') || '').toUpperCase();
+            if (statusVal === 'confirmada' || statusVal === 'completada') {
+                estSpan.style.color = '#065F46';
+                estSpan.style.backgroundColor = '#D1FAE5';
+            } else if (statusVal === 'pendiente') {
+                estSpan.style.color = '#92400E';
+                estSpan.style.backgroundColor = '#FEF3C7';
+            } else {
+                estSpan.style.color = '#991B1B';
+                estSpan.style.backgroundColor = '#FEE2E2';
+            }
         }
 
+        const repEl = document.getElementById('admin-ver-cita-reprog');
+        if (repEl) repEl.textContent = btn.getAttribute('data-vecesreprogramada') || '0';
+
+        const notEl = document.getElementById('admin-ver-cita-notas');
+        if (notEl) notEl.textContent = btn.getAttribute('data-notas') || 'Ninguna';
+
         window.currentAdminCitaBtn = btn;
-        document.getElementById('modal-admin-ver-cita').style.display = 'flex';
+        const modal = document.getElementById('modal-admin-ver-cita');
+        if (modal) modal.style.display = 'flex';
     }
 
     function abrirModalAdminEditarCitaDesdeVer() {
-        document.getElementById('modal-admin-ver-cita').style.display = 'none';
+        const verModal = document.getElementById('modal-admin-ver-cita');
+        if (verModal) verModal.style.display = 'none';
+
         if (window.currentAdminCitaBtn) {
             const btn = window.currentAdminCitaBtn;
-            document.getElementById('admin-edit-cita-id').value = btn.getAttribute('data-id') || '';
-            document.getElementById('admin-edit-cita-userid').value = btn.getAttribute('data-userid') || '';
-            document.getElementById('admin-edit-cita-paciente-nombre').value = btn.getAttribute('data-paciente') || '';
-            document.getElementById('admin-edit-cita-servicio').value = btn.getAttribute('data-servicio') || 'Consulta General';
-            document.getElementById('admin-edit-cita-fechahora').value = btn.getAttribute('data-fechahora') || '';
-            document.getElementById('admin-edit-cita-notas').value = btn.getAttribute('data-notas') || '';
-            document.getElementById('admin-edit-cita-optometraid').value = btn.getAttribute('data-optometra') || '';
+            const elId = document.getElementById('admin-edit-cita-id');
+            if (elId) elId.value = btn.getAttribute('data-id') || '';
+
+            const elUser = document.getElementById('admin-edit-cita-userid');
+            if (elUser) elUser.value = btn.getAttribute('data-userid') || '';
+
+            const elPac = document.getElementById('admin-edit-cita-paciente-nombre');
+            if (elPac) elPac.value = btn.getAttribute('data-paciente') || '';
+
+            const elSrv = document.getElementById('admin-edit-cita-servicio');
+            if (elSrv) elSrv.value = btn.getAttribute('data-servicio') || 'Consulta General';
+
+            const elFecha = document.getElementById('admin-edit-cita-fechahora');
+            if (elFecha) elFecha.value = btn.getAttribute('data-fechahora') || '';
+
+            const elNotas = document.getElementById('admin-edit-cita-notas');
+            if (elNotas) elNotas.value = btn.getAttribute('data-notas') || '';
+
+            const elOpt = document.getElementById('admin-edit-cita-optometraid');
+            if (elOpt) elOpt.value = btn.getAttribute('data-optometra') || '';
         }
-        document.getElementById('modal-admin-editar-cita').style.display = 'flex';
+        const editModal = document.getElementById('modal-admin-editar-cita');
+        if (editModal) editModal.style.display = 'flex';
     }
 
     function abrirModalAdminEditarCita(btn) {
@@ -3063,6 +3315,19 @@
             form.submit();
         }
         return false;
+    }
+
+    function toggleAuditoria() {
+        const panel = document.getElementById('panel-auditoria');
+        const icon = document.getElementById('icon-auditoria');
+        if (!panel) return;
+        if (panel.style.display === 'none' || !panel.style.display) {
+            panel.style.display = 'block';
+            if (icon) icon.innerHTML = '&#9660;';
+        } else {
+            panel.style.display = 'none';
+            if (icon) icon.innerHTML = '&#9654;';
+        }
     }
 
 </script>
