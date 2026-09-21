@@ -1,10 +1,14 @@
+using System.Globalization;
 using System.Security.Claims;
+using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LentSoft.Web.Data;
 using LentSoft.Web.Models.ViewModels;
 using LentSoft.Web.Models.Entities;
+using LentSoft.Web.Services;
 
 namespace LentSoft.Web.Controllers;
 
@@ -12,10 +16,12 @@ namespace LentSoft.Web.Controllers;
 public class OptometraController : Controller
 {
     private readonly LentSoftDbContext _context;
+    private readonly IPdfRecetaService _pdfRecetaService;
 
-    public OptometraController(LentSoftDbContext context)
+    public OptometraController(LentSoftDbContext context, IPdfRecetaService? pdfRecetaService = null)
     {
         _context = context;
+        _pdfRecetaService = pdfRecetaService ?? new PdfRecetaService();
     }
 
     public async Task<IActionResult> Index(string section = "dashboard", int? detalleId = null)
@@ -230,6 +236,13 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateExamen(ExamenVisual model)
     {
+        ModelState.Remove("User");
+        ModelState.Remove("Optometra");
+        if (string.IsNullOrWhiteSpace(model.Resultado))
+        {
+            model.Resultado = string.IsNullOrWhiteSpace(model.Diagnostico) ? "Examen Clínico Visual" : model.Diagnostico;
+            ModelState.Remove("Resultado");
+        }
         if (!ModelState.IsValid)
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Error al registrar el examen visual.";
@@ -258,6 +271,13 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditExamen(ExamenVisual model)
     {
+        ModelState.Remove("User");
+        ModelState.Remove("Optometra");
+        if (string.IsNullOrWhiteSpace(model.Resultado))
+        {
+            model.Resultado = string.IsNullOrWhiteSpace(model.Diagnostico) ? "Examen Clínico Visual" : model.Diagnostico;
+            ModelState.Remove("Resultado");
+        }
         if (!ModelState.IsValid)
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos del examen no válidos.";
@@ -340,6 +360,8 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateFormula(FormulaOptica model)
     {
+        ModelState.Remove("User");
+        ModelState.Remove("Optometra");
         if (!ModelState.IsValid)
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Error al crear la fórmula óptica.";
@@ -368,6 +390,8 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditFormula(FormulaOptica model)
     {
+        ModelState.Remove("User");
+        ModelState.Remove("Optometra");
         if (!ModelState.IsValid)
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos de la fórmula no válidos.";
@@ -433,6 +457,63 @@ public class OptometraController : Controller
         }
 
         return RedirectToAction("Index", new { section = "formulas" });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> DownloadRecetaPdf(int id)
+    {
+        var formula = await _context.FormulasOpticas
+            .Include(f => f.User)
+            .Include(f => f.Optometra)
+            .FirstOrDefaultAsync(f => f.Id == id && f.Activo);
+
+        if (formula == null)
+        {
+            TempData["ErrorMessage"] = "Fórmula óptica no encontrada.";
+            return RedirectToAction("Index", new { section = "formulas" });
+        }
+
+        try
+        {
+            var pdfBytes = _pdfRecetaService.GenerateRecetaPdf(formula);
+            var rawPaciente = formula.User?.NombreCompleto ?? "Paciente";
+            var cleanPaciente = SanitizeForFilename(rawPaciente);
+            var numFormula = $"FOR-{formula.Id}";
+            var filename = $"Receta_{cleanPaciente}_{numFormula}.pdf";
+
+            return File(pdfBytes, "application/pdf", filename);
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al generar el PDF de la receta: {ex.Message}";
+            return RedirectToAction("Index", new { section = "formulas" });
+        }
+    }
+
+    private static string SanitizeForFilename(string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return "Paciente";
+
+        var normalized = input.Normalize(NormalizationForm.FormD);
+        var sb = new StringBuilder();
+        foreach (var c in normalized)
+        {
+            var unicodeCategory = CharUnicodeInfo.GetUnicodeCategory(c);
+            if (unicodeCategory != UnicodeCategory.NonSpacingMark)
+            {
+                if (char.IsLetterOrDigit(c) || c == '_' || c == '-')
+                {
+                    sb.Append(c);
+                }
+                else if (char.IsWhiteSpace(c))
+                {
+                    sb.Append('_');
+                }
+            }
+        }
+
+        var result = Regex.Replace(sb.ToString(), "_+", "_").Trim('_');
+        return string.IsNullOrEmpty(result) ? "Paciente" : result;
     }
 
     // ── CRUD Pacientes (Tarea 1) ──

@@ -41,6 +41,9 @@ public class Appointment : IValidatableObject
     [ForeignKey(nameof(OptometraId))]
     public User? Optometra { get; set; }
 
+    // --- Estados válidos ---
+    public static readonly string[] EstadosValidos = new[] { "pendiente", "confirmada", "completada", "cancelada" };
+
     // --- Horario Laboral Config & Validations ---
     public static readonly DayOfWeek[] DiasLaborales = new[]
     {

@@ -230,45 +230,47 @@
             </div>
 
             <!-- TAREA 6: PRÓXIMAS CONSULTAS -->
-            <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                    <h2 style="color: var(--purple-800); font-size: 1.2rem; margin: 0; font-family: var(--font-primary, sans-serif); font-weight: 700;">Próximas consultas</h2>
-                    <a href="?section=citas" style="color: var(--purple-600); font-weight: 600; font-size: 0.875rem; text-decoration: none;">Ver todas →</a>
+            <div style="margin-bottom: 1.5rem;">
+                <div class="table-toolbar-purple" style="justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <span style="font-size: 1.1rem;">📅</span>
+                        <h2 style="color: white; font-size: 1.05rem; margin: 0; font-weight: 700; letter-spacing: 0.01em;">Próximas consultas</h2>
+                    </div>
+                    <a href="?section=citas" class="btn" style="background: white; color: var(--purple-900); font-weight: 700; font-size: 0.8rem; padding: 0.35rem 0.8rem; border-radius: 0.375rem; text-decoration: none; transition: all 0.2s ease;">Ver todas →</a>
                 </div>
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <div class="table-container-purple">
+                    <table class="custom-table-modern">
                         <thead>
-                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600); font-size: 0.85rem;">
-                                <th style="padding: 0.75rem;">Cita</th>
-                                <th style="padding: 0.75rem;">Paciente</th>
-                                <th style="padding: 0.75rem;">Tipo</th>
-                                <th style="padding: 0.75rem;">Fecha</th>
-                                <th style="padding: 0.75rem;">Estado</th>
+                            <tr>
+                                <th>Cita</th>
+                                <th>Paciente</th>
+                                <th>Tipo</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
                             </tr>
                         </thead>
                         <tbody>
                             @if (!proximasConsultas.Any())
                             {
                                 <tr>
-                                    <td colspan="5" style="padding: 1.5rem; text-align: center; color: var(--gray-500);">No hay próximas consultas registradas.</td>
+                                    <td colspan="5" style="padding: 1.75rem; text-align: center; color: var(--gray-500);">No hay próximas consultas registradas.</td>
                                 </tr>
                             }
                             else
                             {
                                 @foreach (var c in proximasConsultas)
                                 {
-                                    <tr style="border-bottom: 1px solid var(--purple-100);">
-                                        <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">#CIT-@c.Id</td>
-                                        <td style="padding: 0.75rem; font-weight: 500;">@(c.User?.Nombre ?? "Paciente")</td>
-                                        <td style="padding: 0.75rem;">@c.Servicio</td>
-                                        <td style="padding: 0.75rem; color: var(--gray-600);">@c.FechaHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                                        <td style="padding: 0.75rem;">
+                                    <tr>
+                                        <td style="font-weight: 700; color: var(--purple-700);">#CIT-@c.Id</td>
+                                        <td style="font-weight: 600; color: var(--gray-800);">@(c.User?.Nombre ?? "Paciente")</td>
+                                        <td style="color: var(--gray-700);">@c.Servicio</td>
+                                        <td style="color: var(--gray-600);">@c.FechaHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
                                             @{
                                                 var st = c.Estado?.ToLower() ?? "pendiente";
-                                                var bg = st == "confirmada" ? "var(--purple-100)" : st == "pendiente" ? "#FEF3C7" : st == "completada" ? "#D1FAE5" : "var(--gray-100)";
-                                                var fg = st == "confirmada" ? "var(--purple-800)" : st == "pendiente" ? "#92400E" : st == "completada" ? "#065F46" : "var(--gray-700)";
+                                                var badgeCls = st == "confirmada" ? "badge-success" : st == "pendiente" ? "badge-warning" : st == "completada" ? "badge-info" : "badge-danger";
                                             }
-                                            <span style="background-color: @bg; color: @fg; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize;">
+                                            <span class="badge-status-solid @badgeCls">
                                                 @c.Estado
                                             </span>
                                         </td>
@@ -291,83 +293,109 @@
                 </button>
             </div>
 
-            <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
-                <div style="margin-bottom: 1rem;">
-                    <input type="text" id="searchPacientes" placeholder="Buscar paciente..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchPacientes', 'tablePacientes')" />
+            <div style="margin-bottom: 1.5rem;">
+                <div class="table-toolbar-purple">
+                    <div class="table-search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchPacientes" placeholder="Buscar paciente en el sistema..." class="form-input" onkeyup="filterTable('searchPacientes', 'tablePacientes')" oninput="filterTable('searchPacientes', 'tablePacientes')" />
+                    </div>
+                    <div style="position: relative;">
+                        <button type="button" onclick="toggleFilterMenu('pacientes')" class="btn-filter-dropdown">
+                            ⚙️ Filtro ▾
+                        </button>
+                        <div id="filter-menu-pacientes" class="filter-dropdown-menu">
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchPacientes', 'tablePacientes', '')">Todos los estados</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchPacientes', 'tablePacientes', 'Activo')">Activos</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchPacientes', 'tablePacientes', 'Inactivo')">Inactivos</a>
+                        </div>
+                    </div>
                 </div>
-                <div style="overflow-x: auto;">
-                    <table id="tablePacientes" style="width: 100%; border-collapse: collapse; text-align: left;">
+                <div class="table-container-purple">
+                    <table id="tablePacientes" class="custom-table-modern">
                         <thead>
-                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                <th style="padding: 0.75rem;">ID</th>
-                                <th style="padding: 0.75rem;">Nombre Completo</th>
-                                <th style="padding: 0.75rem;">Email</th>
-                                <th style="padding: 0.75rem;">Teléfono</th>
-                                <th style="padding: 0.75rem;">Estado</th>
-                                <th style="padding: 0.75rem;">Fecha Registro</th>
-                                <th style="padding: 0.75rem;">Acciones</th>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre Completo</th>
+                                <th>Email</th>
+                                <th>Teléfono</th>
+                                <th style="text-align: center;">Estado</th>
+                                <th>Fecha Registro</th>
+                                <th style="text-align: right;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var p in Model.Pacientes)
+                            @if (!Model.Pacientes.Any())
                             {
-                                <tr style="border-bottom: 1px solid var(--purple-100);">
-                                    <td style="padding: 0.75rem; color: var(--gray-500);">#PAC-@p.Id</td>
-                                    <td style="padding: 0.75rem; font-weight: 500; color: var(--purple-900);">@p.NombreCompleto</td>
-                                    <td style="padding: 0.75rem;">@p.Email</td>
-                                    <td style="padding: 0.75rem;">@(p.Telefono ?? "N/A")</td>
-                                    <td style="padding: 0.75rem;">
-                                        @{
-                                            var active = (p.EstadoPaciente ?? "Activo").Equals("Activo", StringComparison.OrdinalIgnoreCase);
-                                            var bgP = active ? "#D1FAE5" : "#FEE2E2";
-                                            var fgP = active ? "#065F46" : "#991B1B";
-                                        }
-                                        <span style="background-color: @bgP; color: @fgP; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
-                                            @(p.EstadoPaciente ?? "Activo")
-                                        </span>
-                                    </td>
-                                    <td style="padding: 0.75rem; color: var(--gray-600);">@p.FechaRegistro.ToLocalTime().ToString("dd/MM/yyyy")</td>
-                                    <td style="padding: 0.75rem; display: flex; gap: 0.4rem; align-items: center;">
-                                        <button onclick="abrirModalVerPaciente(this)" 
-                                                data-id="@p.Id"
-                                                data-nombre="@p.Nombre"
-                                                data-apellido="@p.Apellido"
-                                                data-tipodocumento="@p.TipoDocumento"
-                                                data-numerodocumento="@p.NumeroDocumento"
-                                                data-email="@p.Email"
-                                                data-telefono="@(p.Telefono ?? "")"
-                                                data-fechanacimiento="@(p.FechaNacimiento?.ToString("yyyy-MM-dd") ?? "")"
-                                                data-genero="@(p.Genero ?? "")"
-                                                data-direccion="@(p.Direccion ?? "")"
-                                                data-eps="@(p.EPS ?? "")"
-                                                data-estadopaciente="@(p.EstadoPaciente ?? "Activo")"
-                                                data-observaciones="@(p.ObservacionesPaciente ?? "")"
-                                                class="btn" style="background-color: var(--purple-50); color: var(--purple-800); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Ver Detalle">
-                                            👁️
-                                        </button>
-                                        <button onclick="abrirModalEditarPaciente(this)" 
-                                                data-id="@p.Id" 
-                                                data-nombre="@p.Nombre" 
-                                                data-apellido="@p.Apellido" 
-                                                data-tipodocumento="@p.TipoDocumento"
-                                                data-numerodocumento="@p.NumeroDocumento"
-                                                data-email="@p.Email" 
-                                                data-telefono="@(p.Telefono ?? "")" 
-                                                data-fechanacimiento="@(p.FechaNacimiento?.ToString("yyyy-MM-dd") ?? "")"
-                                                data-genero="@(p.Genero ?? "")"
-                                                data-direccion="@(p.Direccion ?? "")"
-                                                data-eps="@(p.EPS ?? "")"
-                                                data-estadopaciente="@(p.EstadoPaciente ?? "Activo")"
-                                                data-observaciones="@(p.ObservacionesPaciente ?? "")"
-                                                class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Editar">
-                                            ✏️
-                                        </button>
-                                        <form id="form-delete-paciente-@p.Id" asp-controller="Optometra" asp-action="DeletePaciente" method="post" style="display:inline;">
-                                            <input type="hidden" name="id" value="@p.Id" />
-                                            <button type="button" onclick="confirmDeactivatePaciente(@p.Id, '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(p.NombreCompleto))')" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Desactivar Paciente">🗑️</button>
-                                        </form>
-                                    </td>
+                                <tr>
+                                    <td colspan="7" style="padding: 1.75rem; text-align: center; color: var(--gray-500);">No hay pacientes registrados.</td>
                                 </tr>
+                            }
+                            else
+                            {
+                                @foreach (var p in Model.Pacientes)
+                                {
+                                    <tr>
+                                        <td style="color: var(--gray-500); font-weight: 600;">#PAC-@p.Id</td>
+                                        <td style="font-weight: 600; color: var(--purple-800);">@p.NombreCompleto</td>
+                                        <td style="color: var(--gray-700);">@p.Email</td>
+                                        <td style="color: var(--gray-600);">@(p.Telefono ?? "N/A")</td>
+                                        <td style="text-align: center;">
+                                            @{
+                                                var active = (p.EstadoPaciente ?? "Activo").Equals("Activo", StringComparison.OrdinalIgnoreCase);
+                                                var badgeClsP = active ? "badge-success" : "badge-danger";
+                                            }
+                                            <span class="badge-status-solid @badgeClsP">
+                                                @(p.EstadoPaciente ?? "Activo")
+                                            </span>
+                                        </td>
+                                        <td style="color: var(--gray-600);">@p.FechaRegistro.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                        <td style="text-align: right;">
+                                            <div style="display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                                                <button onclick="abrirModalVerPaciente(this)" 
+                                                        data-id="@p.Id"
+                                                        data-nombre="@p.Nombre"
+                                                        data-apellido="@p.Apellido"
+                                                        data-tipodocumento="@p.TipoDocumento"
+                                                        data-numerodocumento="@p.NumeroDocumento"
+                                                        data-email="@p.Email"
+                                                        data-telefono="@(p.Telefono ?? "")"
+                                                        data-fechanacimiento="@(p.FechaNacimiento?.ToString("yyyy-MM-dd") ?? "")"
+                                                        data-genero="@(p.Genero ?? "")"
+                                                        data-direccion="@(p.Direccion ?? "")"
+                                                        data-eps="@(p.EPS ?? "")"
+                                                        data-estadopaciente="@(p.EstadoPaciente ?? "Activo")"
+                                                        data-observaciones="@(p.ObservacionesPaciente ?? "")"
+                                                        class="btn-action-icon btn-action-view" title="Ver Detalle">
+                                                    👁️ Ver
+                                                </button>
+                                                <button onclick="abrirModalEditarPaciente(this)" 
+                                                        data-id="@p.Id" 
+                                                        data-nombre="@p.Nombre" 
+                                                        data-apellido="@p.Apellido" 
+                                                        data-tipodocumento="@p.TipoDocumento"
+                                                        data-numerodocumento="@p.NumeroDocumento"
+                                                        data-email="@p.Email" 
+                                                        data-telefono="@(p.Telefono ?? "")" 
+                                                        data-fechanacimiento="@(p.FechaNacimiento?.ToString("yyyy-MM-dd") ?? "")"
+                                                        data-genero="@(p.Genero ?? "")"
+                                                        data-direccion="@(p.Direccion ?? "")"
+                                                        data-eps="@(p.EPS ?? "")"
+                                                        data-estadopaciente="@(p.EstadoPaciente ?? "Activo")"
+                                                        data-observaciones="@(p.ObservacionesPaciente ?? "")"
+                                                        class="btn-action-icon btn-action-edit" title="Editar">
+                                                    ✏️ Editar
+                                                </button>
+                                                <form id="form-delete-paciente-@p.Id" asp-controller="Optometra" asp-action="DeletePaciente" method="post" style="display:inline; margin: 0;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@p.Id" />
+                                                    <button type="button" onclick="confirmDeactivatePaciente(@p.Id, '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(p.NombreCompleto))')" class="btn-action-icon btn-action-delete" title="Desactivar Paciente">
+                                                        🗑️ Desactivar
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
                             }
                         </tbody>
                     </table>
@@ -635,67 +663,95 @@
             </div>
 
             <!-- Tabla de Citas -->
-            <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
-                <div style="margin-bottom: 1rem;">
-                    <input type="text" id="searchCitasOpto" placeholder="Buscar por N° cita, paciente o servicio..." class="form-input" style="width: 300px; padding: 0.4rem 0.75rem;" onkeyup="filterTable('searchCitasOpto', 'tableCitasOpto')" />
+            <div style="margin-bottom: 1.5rem;">
+                <div class="table-toolbar-purple">
+                    <div class="table-search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchCitasOpto" placeholder="Buscar por N° cita, paciente o servicio..." class="form-input" onkeyup="filterTable('searchCitasOpto', 'tableCitasOpto')" oninput="filterTable('searchCitasOpto', 'tableCitasOpto')" />
+                    </div>
+                    <div style="position: relative;">
+                        <button type="button" onclick="toggleFilterMenu('citasOpto')" class="btn-filter-dropdown">
+                            ⚙️ Filtro ▾
+                        </button>
+                        <div id="filter-menu-citasOpto" class="filter-dropdown-menu">
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchCitasOpto', 'tableCitasOpto', '')">Todos los estados</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchCitasOpto', 'tableCitasOpto', 'Pendiente')">Pendientes</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchCitasOpto', 'tableCitasOpto', 'Confirmada')">Confirmadas</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchCitasOpto', 'tableCitasOpto', 'Completada')">Completadas</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchCitasOpto', 'tableCitasOpto', 'Cancelada')">Canceladas</a>
+                        </div>
+                    </div>
                 </div>
-                <div style="overflow-x: auto;">
-                    <table id="tableCitasOpto" style="width: 100%; border-collapse: collapse; text-align: left;">
+                <div class="table-container-purple">
+                    <table id="tableCitasOpto" class="custom-table-modern">
                         <thead>
-                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                <th style="padding: 0.75rem;">N° Cita</th>
-                                <th style="padding: 0.75rem;">Paciente</th>
-                                <th style="padding: 0.75rem;">Servicio</th>
-                                <th style="padding: 0.75rem;">Fecha y Hora</th>
-                                <th style="padding: 0.75rem;">Estado</th>
-                                <th style="padding: 0.75rem;">Acciones</th>
+                            <tr>
+                                <th>N° Cita</th>
+                                <th>Paciente</th>
+                                <th>Servicio</th>
+                                <th>Fecha y Hora</th>
+                                <th style="text-align: center;">Estado</th>
+                                <th style="text-align: right;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var c in Model.Citas)
+                            @if (!Model.Citas.Any())
                             {
-                                <tr class="cita-row" data-estado="@c.Estado?.ToLower()" style="border-bottom: 1px solid var(--purple-100);">
-                                    <td style="padding: 0.75rem; color: var(--gray-500); font-weight: 600;">#CIT-@c.Id</td>
-                                    <td style="padding: 0.75rem; font-weight: 500;">@(c.User?.NombreCompleto ?? "Paciente")</td>
-                                    <td style="padding: 0.75rem;">@c.Servicio</td>
-                                    <td style="padding: 0.75rem; color: var(--gray-600);">@c.FechaHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td style="padding: 0.75rem;">
-                                        @{
-                                            var st = c.Estado?.ToLower() ?? "pendiente";
-                                            var bg = st == "confirmada" ? "#D1FAE5" : st == "pendiente" ? "#FEF3C7" : st == "completada" ? "#DBEAFE" : "#FEE2E2";
-                                            var fg = st == "confirmada" ? "#065F46" : st == "pendiente" ? "#92400E" : st == "completada" ? "#1E40AF" : "#991B1B";
-                                        }
-                                        <span style="background-color: @bg; color: @fg; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; text-transform: capitalize;">
-                                            @c.Estado
-                                        </span>
-                                    </td>
-                                    <td style="padding: 0.75rem; display: flex; gap: 0.4rem; align-items: center;">
-                                        <button onclick="abrirModalVerCita(this)" 
-                                                data-id="@c.Id"
-                                                data-paciente="@(c.User?.NombreCompleto ?? "Paciente")"
-                                                data-servicio="@c.Servicio"
-                                                data-fechahorastr="@c.FechaHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm")"
-                                                data-notas="@(c.Notas ?? "")"
-                                                data-estado="@c.Estado"
-                                                class="btn" style="background-color: var(--purple-50); color: var(--purple-800); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Ver Detalle">
-                                            👁️
-                                        </button>
-                                        <button onclick="abrirModalEditarCita(this)" 
-                                                data-id="@c.Id"
-                                                data-userid="@c.UserId"
-                                                data-servicio="@c.Servicio"
-                                                data-fechahora="@c.FechaHora.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")"
-                                                data-notas="@(c.Notas ?? "")"
-                                                data-estado="@c.Estado"
-                                                class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Editar">
-                                            ✏️
-                                        </button>
-                                        <form id="form-delete-appointment-@c.Id" asp-controller="Optometra" asp-action="DeleteAppointment" method="post" style="display:inline;">
-                                            <input type="hidden" name="id" value="@c.Id" />
-                                            <button type="button" onclick="confirmDeleteAppointment(@c.Id)" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar cita">🗑️</button>
-                                        </form>
-                                    </td>
+                                <tr>
+                                    <td colspan="6" style="padding: 1.75rem; text-align: center; color: var(--gray-500);">No hay citas registradas en la agenda.</td>
                                 </tr>
+                            }
+                            else
+                            {
+                                @foreach (var c in Model.Citas)
+                                {
+                                    <tr class="cita-row" data-estado="@c.Estado?.ToLower()">
+                                        <td style="color: var(--purple-700); font-weight: 700;">#CIT-@c.Id</td>
+                                        <td style="font-weight: 600; color: var(--gray-800);">@(c.User?.NombreCompleto ?? "Paciente")</td>
+                                        <td style="color: var(--gray-700);">@c.Servicio</td>
+                                        <td style="color: var(--gray-600);">@c.FechaHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td style="text-align: center;">
+                                            @{
+                                                var st = c.Estado?.ToLower() ?? "pendiente";
+                                                var badgeClsC = st == "confirmada" ? "badge-success" : st == "pendiente" ? "badge-warning" : st == "completada" ? "badge-info" : "badge-danger";
+                                            }
+                                            <span class="badge-status-solid @badgeClsC">
+                                                @c.Estado
+                                            </span>
+                                        </td>
+                                        <td style="text-align: right;">
+                                            <div style="display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                                                <button onclick="abrirModalVerCita(this)" 
+                                                        data-id="@c.Id"
+                                                        data-paciente="@(c.User?.NombreCompleto ?? "Paciente")"
+                                                        data-servicio="@c.Servicio"
+                                                        data-fechahorastr="@c.FechaHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm")"
+                                                        data-notas="@(c.Notas ?? "")"
+                                                        data-estado="@c.Estado"
+                                                        class="btn-action-icon btn-action-view" title="Ver Detalle">
+                                                    👁️ Ver
+                                                </button>
+                                                <button onclick="abrirModalEditarCita(this)" 
+                                                        data-id="@c.Id"
+                                                        data-userid="@c.UserId"
+                                                        data-servicio="@c.Servicio"
+                                                        data-fechahora="@c.FechaHora.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")"
+                                                        data-notas="@(c.Notas ?? "")"
+                                                        data-estado="@c.Estado"
+                                                        class="btn-action-icon btn-action-edit" title="Editar">
+                                                    ✏️ Editar
+                                                </button>
+                                                <form id="form-delete-appointment-@c.Id" asp-controller="Optometra" asp-action="DeleteAppointment" method="post" style="display:inline; margin: 0;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@c.Id" />
+                                                    <button type="button" onclick="confirmDeleteAppointment(@c.Id)" class="btn-action-icon btn-action-delete" title="Eliminar cita">
+                                                        🗑️ Eliminar
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
                             }
                         </tbody>
                     </table>
@@ -1009,71 +1065,91 @@
                 }
             }
 
-            <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <div style="margin-bottom: 1.5rem;">
+                <div class="table-toolbar-purple">
+                    <div class="table-search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchHistorias" placeholder="Buscar en historial clínico por paciente o diagnóstico..." class="form-input" onkeyup="filterTable('searchHistorias', 'tableHistorias')" oninput="filterTable('searchHistorias', 'tableHistorias')" />
+                    </div>
+                    <div style="position: relative;">
+                        <button type="button" onclick="toggleFilterMenu('historias')" class="btn-filter-dropdown">
+                            ⚙️ Filtro ▾
+                        </button>
+                        <div id="filter-menu-historias" class="filter-dropdown-menu">
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorias', 'tableHistorias', '')">Todos los registros</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorias', 'tableHistorias', 'Activo')">Activos</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorias', 'tableHistorias', 'Inactivo')">Inactivos</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-container-purple">
+                    <table id="tableHistorias" class="custom-table-modern">
                         <thead>
-                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                <th style="padding: 0.75rem;">ID</th>
-                                <th style="padding: 0.75rem;">Paciente</th>
-                                <th style="padding: 0.75rem;">Fecha</th>
-                                <th style="padding: 0.75rem;">Diagnóstico</th>
-                                <th style="padding: 0.75rem;">Estado</th>
-                                <th style="padding: 0.75rem;">Optómetra</th>
-                                <th style="padding: 0.75rem;">Acciones</th>
+                            <tr>
+                                <th>ID</th>
+                                <th>Paciente</th>
+                                <th>Fecha</th>
+                                <th>Diagnóstico</th>
+                                <th style="text-align: center;">Estado</th>
+                                <th>Optómetra</th>
+                                <th style="text-align: right;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @if (!Model.HistorialClinico.Any())
                             {
                                 <tr>
-                                    <td colspan="7" style="padding: 1.5rem; text-align: center; color: var(--gray-500);">No hay registros de historial clínico.</td>
+                                    <td colspan="7" style="padding: 1.75rem; text-align: center; color: var(--gray-500);">No hay registros de historial clínico.</td>
                                 </tr>
                             }
                             else
                             {
                                 @foreach (var h in Model.HistorialClinico)
                                 {
-                                    <tr style="border-bottom: 1px solid var(--purple-100);">
-                                        <td style="padding: 0.75rem; color: var(--gray-500);">#HC-@h.Id</td>
-                                        <td style="padding: 0.75rem; font-weight: 500;">@(h.User?.NombreCompleto ?? "N/A")</td>
-                                        <td style="padding: 0.75rem; color: var(--gray-600);">@h.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
-                                        <td style="padding: 0.75rem;">@h.Diagnostico</td>
-                                        <td style="padding: 0.75rem;">
+                                    <tr>
+                                        <td style="color: var(--gray-500); font-weight: 600;">#HC-@h.Id</td>
+                                        <td style="font-weight: 600; color: var(--purple-800);">@(h.User?.NombreCompleto ?? "N/A")</td>
+                                        <td style="color: var(--gray-600);">@h.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                        <td style="color: var(--gray-800); font-weight: 500;">@h.Diagnostico</td>
+                                        <td style="text-align: center;">
                                             @{
                                                 var actHc = (h.Estado ?? "Activo").Equals("Activo", StringComparison.OrdinalIgnoreCase);
-                                                var bgHc = actHc ? "#D1FAE5" : "#FEE2E2";
-                                                var fgHc = actHc ? "#065F46" : "#991B1B";
+                                                var badgeClsH = actHc ? "badge-success" : "badge-danger";
                                             }
-                                            <span style="background-color: @bgHc; color: @fgHc; padding: 0.2rem 0.5rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 600;">
+                                            <span class="badge-status-solid @badgeClsH">
                                                 @(h.Estado ?? "Activo")
                                             </span>
                                         </td>
-                                        <td style="padding: 0.75rem;">@(h.Optometra?.NombreCompleto ?? "Optómetra")</td>
-                                        <td style="padding: 0.75rem; display: flex; gap: 0.4rem; align-items: center;">
-                                            <a href="?section=historial&detalleId=@h.Id" class="btn" style="background-color: var(--purple-50); color: var(--purple-800); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600; text-decoration: none;" title="Ver Ficha Clínica">
-                                                👁️
-                                            </a>
-                                            <a href="@Url.Action("HistorialCompleto", "Optometra", new { pacienteId = h.UserId })" class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600; text-decoration: none;" title="Línea de tiempo completa del paciente">
-                                                🕐 Línea de tiempo
-                                            </a>
-                                            <button onclick="abrirModalEditarHistorial(this)" 
-                                                    data-id="@h.Id" 
-                                                    data-userid="@h.UserId" 
-                                                    data-fecha="@h.Fecha.ToString("yyyy-MM-dd")" 
-                                                    data-diagnostico="@h.Diagnostico" 
-                                                    data-tratamiento="@h.Tratamiento"
-                                                    data-antecedentes="@(h.Antecedentes ?? "")"
-                                                    data-examenes="@(h.ExamenesRealizados ?? "")"
-                                                    data-observaciones="@(h.Observaciones ?? "")"
-                                                    data-estado="@(h.Estado ?? "Activo")"
-                                                    class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Editar">
-                                                ✏️
-                                            </button>
-                                            <form id="form-delete-historial-@h.Id" asp-controller="Optometra" asp-action="DeleteHistorial" method="post" style="display:inline;">
-                                                <input type="hidden" name="id" value="@h.Id" />
-                                                <button type="button" onclick="confirmDeleteHistorial(@h.Id)" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar registro">🗑️</button>
-                                            </form>
+                                        <td style="color: var(--gray-700);">@(h.Optometra?.NombreCompleto ?? "Optómetra")</td>
+                                        <td style="text-align: right;">
+                                            <div style="display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                                                <a href="?section=historial&detalleId=@h.Id" class="btn-action-icon btn-action-view" title="Ver Ficha Clínica">
+                                                    👁️ Ver
+                                                </a>
+                                                <a href="@Url.Action("HistorialCompleto", "Optometra", new { pacienteId = h.UserId })" class="btn-action-icon" style="background-color: #F3E8FF; color: #6B21A8; border-color: #E9D5FF;" title="Línea de tiempo completa del paciente">
+                                                    🕐 Línea de tiempo
+                                                </a>
+                                                <button onclick="abrirModalEditarHistorial(this)" 
+                                                        data-id="@h.Id" 
+                                                        data-userid="@h.UserId" 
+                                                        data-fecha="@h.Fecha.ToString("yyyy-MM-dd")" 
+                                                        data-diagnostico="@h.Diagnostico" 
+                                                        data-tratamiento="@h.Tratamiento"
+                                                        data-antecedentes="@(h.Antecedentes ?? "")"
+                                                        data-examenes="@(h.ExamenesRealizados ?? "")"
+                                                        data-observaciones="@(h.Observaciones ?? "")"
+                                                        data-estado="@(h.Estado ?? "Activo")"
+                                                        class="btn-action-icon btn-action-edit" title="Editar">
+                                                    ✏️ Editar
+                                                </button>
+                                                <form id="form-delete-historial-@h.Id" asp-controller="Optometra" asp-action="DeleteHistorial" method="post" style="display:inline; margin: 0;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@h.Id" />
+                                                    <button type="button" onclick="confirmDeleteHistorial(@h.Id)" class="btn-action-icon btn-action-delete" title="Eliminar registro">
+                                                        🗑️ Eliminar
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 }
@@ -1221,93 +1297,116 @@
                 </button>
             </div>
 
-            <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <div style="margin-bottom: 1.5rem;">
+                <div class="table-toolbar-purple">
+                    <div class="table-search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchExamenes" placeholder="Buscar examen visual por paciente o diagnóstico..." class="form-input" onkeyup="filterTable('searchExamenes', 'tableExamenes')" oninput="filterTable('searchExamenes', 'tableExamenes')" />
+                    </div>
+                    <div style="position: relative;">
+                        <button type="button" onclick="toggleFilterMenu('examenes')" class="btn-filter-dropdown">
+                            ⚙️ Filtro ▾
+                        </button>
+                        <div id="filter-menu-examenes" class="filter-dropdown-menu">
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchExamenes', 'tableExamenes', '')">Todos los exámenes</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchExamenes', 'tableExamenes', 'General')">Examen General</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchExamenes', 'tableExamenes', 'Refracción')">Refracción</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchExamenes', 'tableExamenes', 'Control')">Control</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-container-purple">
+                    <table id="tableExamenes" class="custom-table-modern">
                         <thead>
-                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                <th style="padding: 0.75rem;">Paciente</th>
-                                <th style="padding: 0.75rem;">Fecha</th>
-                                <th style="padding: 0.75rem;">Tipo de Examen</th>
-                                <th style="padding: 0.75rem;">Agudeza OD</th>
-                                <th style="padding: 0.75rem;">Agudeza OI</th>
-                                <th style="padding: 0.75rem;">Diagnóstico</th>
-                                <th style="padding: 0.75rem;">Acciones</th>
+                            <tr>
+                                <th>Paciente</th>
+                                <th>Fecha</th>
+                                <th>Tipo de Examen</th>
+                                <th>Agudeza OD</th>
+                                <th>Agudeza OI</th>
+                                <th>Diagnóstico</th>
+                                <th style="text-align: right;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @if (!Model.ExamenesVisuales.Any())
                             {
                                 <tr>
-                                    <td colspan="7" style="padding: 1.5rem; text-align: center; color: var(--gray-500);">No hay exámenes registrados.</td>
+                                    <td colspan="7" style="padding: 1.75rem; text-align: center; color: var(--gray-500);">No hay exámenes registrados.</td>
                                 </tr>
                             }
                             else
                             {
                                 @foreach (var ex in Model.ExamenesVisuales)
                                 {
-                                    <tr style="border-bottom: 1px solid var(--purple-100);">
-                                        <td style="padding: 0.75rem; font-weight: 500;">@(ex.User?.NombreCompleto ?? "N/A")</td>
-                                        <td style="padding: 0.75rem; color: var(--gray-600);">@ex.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
-                                        <td style="padding: 0.75rem;">@ex.TipoExamen</td>
-                                        <td style="padding: 0.75rem;">@ex.OjoDerecho</td>
-                                        <td style="padding: 0.75rem;">@ex.OjoIzquierdo</td>
-                                        <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-800);">@ex.Diagnostico</td>
-                                        <td style="padding: 0.75rem; display: flex; gap: 0.4rem; align-items: center;">
-                                            <button onclick="abrirModalVerExamen(this)"
-                                                    data-id="@ex.Id"
-                                                    data-paciente="@(ex.User?.NombreCompleto ?? "N/A")"
-                                                    data-fecha="@ex.Fecha.ToLocalTime().ToString("dd/MM/yyyy")"
-                                                    data-tipoexamen="@ex.TipoExamen"
-                                                    data-ojoderecho="@ex.OjoDerecho"
-                                                    data-ojoizquierdo="@ex.OjoIzquierdo"
-                                                    data-tonometriaod="@(ex.TonometriaOD ?? "N/A")"
-                                                    data-tonometriaoi="@(ex.TonometriaOI ?? "N/A")"
-                                                    data-esferaod="@(ex.EsferaOD ?? "0.00")"
-                                                    data-cilindrood="@(ex.CilindroOD ?? "0.00")"
-                                                    data-ejeod="@(ex.EjeOD ?? "0")"
-                                                    data-adicionod="@(ex.AdicionOD ?? "0.00")"
-                                                    data-esferaoi="@(ex.EsferaOI ?? "0.00")"
-                                                    data-cilindrooi="@(ex.CilindroOI ?? "0.00")"
-                                                    data-ejeoi="@(ex.EjeOI ?? "0")"
-                                                    data-adicionoi="@(ex.AdicionOI ?? "0.00")"
-                                                    data-segmentoanterior="@(ex.SegmentoAnterior ?? "Sin hallazgos.")"
-                                                    data-segmentoposterior="@(ex.SegmentoPosterior ?? "Sin hallazgos.")"
-                                                    data-diagnostico="@ex.Diagnostico"
-                                                    data-tratamiento="@(ex.Tratamiento ?? "Ninguno.")"
-                                                    data-observaciones="@(ex.Observaciones ?? "Ninguna.")"
-                                                    class="btn" style="background-color: var(--purple-50); color: var(--purple-800); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Ver Detalle">
-                                                👁️
-                                            </button>
-                                            <button onclick="abrirModalEditarExamen(this)"
-                                                    data-id="@ex.Id"
-                                                    data-userid="@ex.UserId"
-                                                    data-fecha="@ex.Fecha.ToString("yyyy-MM-dd")"
-                                                    data-tipoexamen="@ex.TipoExamen"
-                                                    data-ojoderecho="@ex.OjoDerecho"
-                                                    data-ojoizquierdo="@ex.OjoIzquierdo"
-                                                    data-tonometriaod="@(ex.TonometriaOD ?? "")"
-                                                    data-tonometriaoi="@(ex.TonometriaOI ?? "")"
-                                                    data-esferaod="@(ex.EsferaOD ?? "")"
-                                                    data-cilindrood="@(ex.CilindroOD ?? "")"
-                                                    data-ejeod="@(ex.EjeOD ?? "")"
-                                                    data-adicionod="@(ex.AdicionOD ?? "")"
-                                                    data-esferaoi="@(ex.EsferaOI ?? "")"
-                                                    data-cilindrooi="@(ex.CilindroOI ?? "")"
-                                                    data-ejeoi="@(ex.EjeOI ?? "")"
-                                                    data-adicionoi="@(ex.AdicionOI ?? "")"
-                                                    data-segmentoanterior="@(ex.SegmentoAnterior ?? "")"
-                                                    data-segmentoposterior="@(ex.SegmentoPosterior ?? "")"
-                                                    data-diagnostico="@ex.Diagnostico"
-                                                    data-tratamiento="@(ex.Tratamiento ?? "")"
-                                                    data-observaciones="@(ex.Observaciones ?? "")"
-                                                    class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Editar">
-                                                ✏️
-                                            </button>
-                                            <form id="form-delete-examen-@ex.Id" asp-controller="Optometra" asp-action="DeleteExamen" method="post" style="display:inline;">
-                                                <input type="hidden" name="id" value="@ex.Id" />
-                                                <button type="button" onclick="confirmDeleteExamen(@ex.Id)" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar examen">🗑️</button>
-                                            </form>
+                                    <tr>
+                                        <td style="font-weight: 600; color: var(--purple-800);">@(ex.User?.NombreCompleto ?? "N/A")</td>
+                                        <td style="color: var(--gray-600);">@ex.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                        <td style="color: var(--gray-700);">@ex.TipoExamen</td>
+                                        <td style="color: var(--gray-700);">@ex.OjoDerecho</td>
+                                        <td style="color: var(--gray-700);">@ex.OjoIzquierdo</td>
+                                        <td style="font-weight: 600; color: var(--purple-900);">@ex.Diagnostico</td>
+                                        <td style="text-align: right;">
+                                            <div style="display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                                                <button onclick="abrirModalVerExamen(this)"
+                                                        data-id="@ex.Id"
+                                                        data-paciente="@(ex.User?.NombreCompleto ?? "N/A")"
+                                                        data-fecha="@ex.Fecha.ToLocalTime().ToString("dd/MM/yyyy")"
+                                                        data-tipoexamen="@ex.TipoExamen"
+                                                        data-ojoderecho="@ex.OjoDerecho"
+                                                        data-ojoizquierdo="@ex.OjoIzquierdo"
+                                                        data-tonometriaod="@(ex.TonometriaOD ?? "N/A")"
+                                                        data-tonometriaoi="@(ex.TonometriaOI ?? "N/A")"
+                                                        data-esferaod="@(ex.EsferaOD ?? "0.00")"
+                                                        data-cilindrood="@(ex.CilindroOD ?? "0.00")"
+                                                        data-ejeod="@(ex.EjeOD ?? "0")"
+                                                        data-adicionod="@(ex.AdicionOD ?? "0.00")"
+                                                        data-esferaoi="@(ex.EsferaOI ?? "0.00")"
+                                                        data-cilindrooi="@(ex.CilindroOI ?? "0.00")"
+                                                        data-ejeoi="@(ex.EjeOI ?? "0")"
+                                                        data-adicionoi="@(ex.AdicionOI ?? "0.00")"
+                                                        data-segmentoanterior="@(ex.SegmentoAnterior ?? "Sin hallazgos.")"
+                                                        data-segmentoposterior="@(ex.SegmentoPosterior ?? "Sin hallazgos.")"
+                                                        data-diagnostico="@ex.Diagnostico"
+                                                        data-tratamiento="@(ex.Tratamiento ?? "Ninguno.")"
+                                                        data-observaciones="@(ex.Observaciones ?? "Ninguna.")"
+                                                        class="btn-action-icon btn-action-view" title="Ver Detalle">
+                                                    👁️ Ver
+                                                </button>
+                                                <button onclick="abrirModalEditarExamen(this)"
+                                                        data-id="@ex.Id"
+                                                        data-userid="@ex.UserId"
+                                                        data-paciente="@(ex.User?.NombreCompleto ?? "")"
+                                                        data-fecha="@ex.Fecha.ToString("yyyy-MM-dd")"
+                                                        data-tipoexamen="@ex.TipoExamen"
+                                                        data-ojoderecho="@ex.OjoDerecho"
+                                                        data-ojoizquierdo="@ex.OjoIzquierdo"
+                                                        data-tonometriaod="@(ex.TonometriaOD ?? "")"
+                                                        data-tonometriaoi="@(ex.TonometriaOI ?? "")"
+                                                        data-esferaod="@(ex.EsferaOD ?? "")"
+                                                        data-cilindrood="@(ex.CilindroOD ?? "")"
+                                                        data-ejeod="@(ex.EjeOD ?? "")"
+                                                        data-adicionod="@(ex.AdicionOD ?? "")"
+                                                        data-esferaoi="@(ex.EsferaOI ?? "")"
+                                                        data-cilindrooi="@(ex.CilindroOI ?? "")"
+                                                        data-ejeoi="@(ex.EjeOI ?? "")"
+                                                        data-adicionoi="@(ex.AdicionOI ?? "")"
+                                                        data-segmentoanterior="@(ex.SegmentoAnterior ?? "")"
+                                                        data-segmentoposterior="@(ex.SegmentoPosterior ?? "")"
+                                                        data-diagnostico="@ex.Diagnostico"
+                                                        data-tratamiento="@(ex.Tratamiento ?? "")"
+                                                        data-observaciones="@(ex.Observaciones ?? "")"
+                                                        class="btn-action-icon btn-action-edit" title="Editar">
+                                                    ✏️ Editar
+                                                </button>
+                                                <form id="form-delete-examen-@ex.Id" asp-controller="Optometra" asp-action="DeleteExamen" method="post" style="display:inline; margin: 0;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@ex.Id" />
+                                                    <button type="button" onclick="confirmDeleteExamen(@ex.Id)" class="btn-action-icon btn-action-delete" title="Eliminar examen">
+                                                        🗑️ Eliminar
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 }
@@ -1316,6 +1415,7 @@
                     </table>
                 </div>
             </div>
+
 
             <!-- Modal para Ver Examen Clínico Detallado (Solo Lectura) -->
             <div id="modal-ver-examen" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
@@ -1421,22 +1521,62 @@
                         <button onclick="document.getElementById('modal-nuevo-examen').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
                     </div>
 
-                    <form asp-controller="Optometra" asp-action="CreateExamen" method="post" style="display:flex; flex-direction:column; gap:0.75rem;" onsubmit="document.getElementById('new-examen-resultado').value = document.getElementById('new-examen-diagnostico').value">
+                    <form asp-controller="Optometra" asp-action="CreateExamen" method="post" style="display:flex; flex-direction:column; gap:0.75rem;" onsubmit="return validateNuevoExamenForm(this)">
                         <input type="hidden" name="Resultado" id="new-examen-resultado" />
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem; position: relative;">
                                 <label style="font-size: 0.8rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
-                                <select name="UserId" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
-                                    @foreach (var cli in Model.Pacientes)
-                                    {
-                                        <option value="@cli.Id">@cli.NombreCompleto</option>
-                                    }
-                                </select>
+                                <div style="position: relative;" id="wrapper-nuevo-examen-paciente">
+                                    <div style="position: relative; display: flex; align-items: center;">
+                                        <span style="position: absolute; left: 0.6rem; color: var(--purple-500); font-size: 0.85rem; pointer-events: none;">🔍</span>
+                                        <input type="text"
+                                               id="search-nuevo-examen-paciente"
+                                               placeholder="Buscar paciente por nombre..."
+                                               autocomplete="off"
+                                               style="width: 100%; padding: 0.45rem 2rem 0.45rem 2rem; border: 1.5px solid var(--purple-200); border-radius: 0.375rem; font-size: 0.85rem; background: white;"
+                                               onfocus="mostrarListaPacientes('nuevo-examen')"
+                                               oninput="filtrarPacientesModal('nuevo-examen')" />
+                                        <button type="button"
+                                                id="clear-nuevo-examen-paciente"
+                                                onclick="limpiarPacienteSeleccionado('nuevo-examen')"
+                                                style="display: none; position: absolute; right: 0.5rem; background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 0.9rem; padding: 0 0.25rem;"
+                                                title="Limpiar selección">✕</button>
+                                    </div>
+                                    <input type="hidden" name="UserId" id="hidden-nuevo-examen-userid" />
+                                    
+                                    <!-- Floating Dropdown Results -->
+                                    <div id="dropdown-nuevo-examen-pacientes"
+                                         style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: white; border: 1.5px solid var(--purple-300); border-radius: 0.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.18); max-height: 200px; overflow-y: auto; z-index: 1050;">
+                                        @foreach (var cli in Model.Pacientes)
+                                        {
+                                            <div class="patient-opt-item"
+                                                 data-id="@cli.Id"
+                                                 data-nombre="@cli.NombreCompleto"
+                                                 data-doc="@(cli.NumeroDocumento ?? "")"
+                                                 onclick="seleccionarPacienteModal('nuevo-examen', @cli.Id, '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(cli.NombreCompleto))', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(cli.NumeroDocumento ?? ""))')">
+                                                <div>
+                                                    <span style="font-weight: 600; color: var(--purple-950);">@cli.NombreCompleto</span>
+                                                    @if (!string.IsNullOrEmpty(cli.NumeroDocumento))
+                                                    {
+                                                        <span style="font-size: 0.75rem; color: var(--gray-500); margin-left: 0.5rem;">Doc: @cli.NumeroDocumento</span>
+                                                    }
+                                                </div>
+                                                <span style="font-size: 0.75rem; color: var(--purple-600); font-weight: 600;">Elegir</span>
+                                            </div>
+                                        }
+                                        <div id="no-patients-nuevo-examen" style="display: none; padding: 0.75rem; text-align: center; color: var(--gray-500); font-size: 0.8rem; font-style: italic;">
+                                            No se encontró ningún paciente con ese nombre.
+                                        </div>
+                                    </div>
+                                    <div id="badge-nuevo-examen-paciente" style="display: none; margin-top: 0.25rem; font-size: 0.75rem; color: #047857; font-weight: 600;">
+                                        ✓ Seleccionado: <span id="badge-name-nuevo-examen"></span>
+                                    </div>
+                                </div>
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.8rem; font-weight: 600; color: var(--gray-700);">Fecha del Examen</label>
-                                <input name="Fecha" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                                <input name="Fecha" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" style="padding: 0.45rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
                             </div>
                         </div>
 
@@ -1542,23 +1682,63 @@
                         <button onclick="document.getElementById('modal-editar-examen').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
                     </div>
 
-                    <form asp-controller="Optometra" asp-action="EditExamen" method="post" style="display:flex; flex-direction:column; gap:0.75rem;" onsubmit="document.getElementById('edit-examen-resultado').value = document.getElementById('edit-examen-diagnostico').value">
+                    <form asp-controller="Optometra" asp-action="EditExamen" method="post" style="display:flex; flex-direction:column; gap:0.75rem;" onsubmit="return validateEditExamenForm(this)">
                         <input type="hidden" name="Id" id="edit-examen-id" />
                         <input type="hidden" name="Resultado" id="edit-examen-resultado" />
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem; position: relative;">
                                 <label style="font-size: 0.8rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
-                                <select name="UserId" id="edit-examen-userid" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
-                                    @foreach (var cli in Model.Pacientes)
-                                    {
-                                        <option value="@cli.Id">@cli.NombreCompleto</option>
-                                    }
-                                </select>
+                                <div style="position: relative;" id="wrapper-edit-examen-paciente">
+                                    <div style="position: relative; display: flex; align-items: center;">
+                                        <span style="position: absolute; left: 0.6rem; color: var(--purple-500); font-size: 0.85rem; pointer-events: none;">🔍</span>
+                                        <input type="text"
+                                               id="search-edit-examen-paciente"
+                                               placeholder="Buscar paciente por nombre..."
+                                               autocomplete="off"
+                                               style="width: 100%; padding: 0.45rem 2rem 0.45rem 2rem; border: 1.5px solid var(--purple-200); border-radius: 0.375rem; font-size: 0.85rem; background: white;"
+                                               onfocus="mostrarListaPacientes('edit-examen')"
+                                               oninput="filtrarPacientesModal('edit-examen')" />
+                                        <button type="button"
+                                                id="clear-edit-examen-paciente"
+                                                onclick="limpiarPacienteSeleccionado('edit-examen')"
+                                                style="display: none; position: absolute; right: 0.5rem; background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 0.9rem; padding: 0 0.25rem;"
+                                                title="Limpiar selección">✕</button>
+                                    </div>
+                                    <input type="hidden" name="UserId" id="edit-examen-userid" />
+                                    
+                                    <!-- Floating Dropdown Results -->
+                                    <div id="dropdown-edit-examen-pacientes"
+                                         style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: white; border: 1.5px solid var(--purple-300); border-radius: 0.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.18); max-height: 200px; overflow-y: auto; z-index: 1050;">
+                                        @foreach (var cli in Model.Pacientes)
+                                        {
+                                            <div class="patient-opt-item"
+                                                 data-id="@cli.Id"
+                                                 data-nombre="@cli.NombreCompleto"
+                                                 data-doc="@(cli.NumeroDocumento ?? "")"
+                                                 onclick="seleccionarPacienteModal('edit-examen', @cli.Id, '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(cli.NombreCompleto))', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(cli.NumeroDocumento ?? ""))')">
+                                                <div>
+                                                    <span style="font-weight: 600; color: var(--purple-950);">@cli.NombreCompleto</span>
+                                                    @if (!string.IsNullOrEmpty(cli.NumeroDocumento))
+                                                    {
+                                                        <span style="font-size: 0.75rem; color: var(--gray-500); margin-left: 0.5rem;">Doc: @cli.NumeroDocumento</span>
+                                                    }
+                                                </div>
+                                                <span style="font-size: 0.75rem; color: var(--purple-600); font-weight: 600;">Elegir</span>
+                                            </div>
+                                        }
+                                        <div id="no-patients-edit-examen" style="display: none; padding: 0.75rem; text-align: center; color: var(--gray-500); font-size: 0.8rem; font-style: italic;">
+                                            No se encontró ningún paciente con ese nombre.
+                                        </div>
+                                    </div>
+                                    <div id="badge-edit-examen-paciente" style="display: none; margin-top: 0.25rem; font-size: 0.75rem; color: #047857; font-weight: 600;">
+                                        ✓ Seleccionado: <span id="badge-name-edit-examen"></span>
+                                    </div>
+                                </div>
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.8rem; font-weight: 600; color: var(--gray-700);">Fecha del Examen</label>
-                                <input name="Fecha" id="edit-examen-fecha" type="date" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                                <input name="Fecha" id="edit-examen-fecha" type="date" style="padding: 0.45rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
                             </div>
                         </div>
 
@@ -1667,90 +1847,110 @@
                 </button>
             </div>
 
-            <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <div style="margin-bottom: 1.5rem;">
+                <div class="table-toolbar-purple">
+                    <div class="table-search-box">
+                        <span class="search-icon">🔍</span>
+                        <input type="text" id="searchFormulas" placeholder="Buscar fórmula por paciente o tipo de lente..." class="form-input" onkeyup="filterTable('searchFormulas', 'tableFormulas')" oninput="filterTable('searchFormulas', 'tableFormulas')" />
+                    </div>
+                    <div style="position: relative;">
+                        <button type="button" onclick="toggleFilterMenu('formulas')" class="btn-filter-dropdown">
+                            ⚙️ Filtro ▾
+                        </button>
+                        <div id="filter-menu-formulas" class="filter-dropdown-menu">
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchFormulas', 'tableFormulas', '')">Todos los estados</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchFormulas', 'tableFormulas', 'Vigente')">Vigentes</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchFormulas', 'tableFormulas', 'Vencida')">Vencidas</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-container-purple">
+                    <table id="tableFormulas" class="custom-table-modern">
                         <thead>
-                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                <th style="padding: 0.75rem;">Paciente</th>
-                                <th style="padding: 0.75rem;">Fecha</th>
-                                <th style="padding: 0.75rem;">Tipo Lente</th>
-                                <th style="padding: 0.75rem;">Esfera OD / OI</th>
-                                <th style="padding: 0.75rem;">Cilindro OD / OI</th>
-                                <th style="padding: 0.75rem;">Eje OD / OI</th>
-                                <th style="padding: 0.75rem;">Estado</th>
-                                <th style="padding: 0.75rem;">Acciones</th>
+                            <tr>
+                                <th>Paciente</th>
+                                <th>Fecha</th>
+                                <th>Tipo Lente</th>
+                                <th>Esfera OD / OI</th>
+                                <th>Cilindro OD / OI</th>
+                                <th>Eje OD / OI</th>
+                                <th style="text-align: center;">Estado</th>
+                                <th style="text-align: right;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @if (!Model.FormulasOpticas.Any())
                             {
                                 <tr>
-                                    <td colspan="8" style="padding: 1.5rem; text-align: center; color: var(--gray-500);">No hay fórmulas ópticas registradas.</td>
+                                    <td colspan="8" style="padding: 1.75rem; text-align: center; color: var(--gray-500);">No hay fórmulas ópticas registradas.</td>
                                 </tr>
                             }
                             else
                             {
                                 @foreach (var f in Model.FormulasOpticas)
                                 {
-                                    <tr style="border-bottom: 1px solid var(--purple-100);">
-                                        <td style="padding: 0.75rem; font-weight: 500;">@(f.User?.NombreCompleto ?? "N/A")</td>
-                                        <td style="padding: 0.75rem; color: var(--gray-600);">@f.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
-                                        <td style="padding: 0.75rem; font-weight: 500;">@f.TipoLente</td>
-                                        <td style="padding: 0.75rem;">OD: @f.EsferaOD / OI: @f.EsferaOI</td>
-                                        <td style="padding: 0.75rem;">OD: @f.CilindroOD / OI: @f.CilindroOI</td>
-                                        <td style="padding: 0.75rem;">OD: @f.EjeOD / OI: @f.EjeOI</td>
-                                        <td style="padding: 0.75rem;">
+                                    <tr>
+                                        <td style="font-weight: 600; color: var(--purple-800);">@(f.User?.NombreCompleto ?? "N/A")</td>
+                                        <td style="color: var(--gray-600);">@f.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                        <td style="font-weight: 500; color: var(--gray-700);">@f.TipoLente</td>
+                                        <td style="color: var(--gray-700);">OD: @f.EsferaOD / OI: @f.EsferaOI</td>
+                                        <td style="color: var(--gray-700);">OD: @f.CilindroOD / OI: @f.CilindroOI</td>
+                                        <td style="color: var(--gray-700);">OD: @f.EjeOD / OI: @f.EjeOI</td>
+                                        <td style="text-align: center;">
                                             @{
                                                 var vig = f.Estado == "Vigente";
-                                                var bgF = vig ? "#D1FAE5" : "#FEE2E2";
-                                                var fgF = vig ? "#065F46" : "#991B1B";
+                                                var badgeClsF = vig ? "badge-success" : "badge-danger";
                                             }
-                                            <span style="background-color: @bgF; color: @fgF; padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
+                                            <span class="badge-status-solid @badgeClsF">
                                                 @f.Estado
                                             </span>
                                         </td>
-                                        <td style="padding: 0.75rem; display: flex; gap: 0.4rem; align-items: center;">
-                                            <button onclick="abrirModalVerFormula(this)"
-                                                    data-id="@f.Id"
-                                                    data-paciente="@(f.User?.NombreCompleto ?? "N/A")"
-                                                    data-documento="@(f.User?.TipoDocumento): @(f.User?.NumeroDocumento)"
-                                                    data-fecha="@f.Fecha.ToLocalTime().ToString("dd/MM/yyyy")"
-                                                    data-esferaod="@f.EsferaOD"
-                                                    data-cilindrood="@f.CilindroOD"
-                                                    data-ejeod="@f.EjeOD"
-                                                    data-esferaoi="@f.EsferaOI"
-                                                    data-cilindrooi="@f.CilindroOI"
-                                                    data-ejeoi="@f.EjeOI"
-                                                    data-observaciones="@(f.Observaciones ?? "Sin observaciones.")"
-                                                    data-tipolente="@f.TipoLente"
-                                                    data-distanciapupilar="@(f.DistanciaPupilar ?? "N/A")"
-                                                    data-estado="@f.Estado"
-                                                    data-optometra="@(f.Optometra?.NombreCompleto ?? "N/A")"
-                                                    data-registroopto="@(f.Optometra?.RegistroMedico ?? "N/A")"
-                                                    class="btn" style="background-color: var(--purple-50); color: var(--purple-800); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Ver e Imprimir Receta">
-                                                👁️
-                                            </button>
-                                            <button onclick="abrirModalEditarFormula(this)"
-                                                    data-id="@f.Id"
-                                                    data-userid="@f.UserId"
-                                                    data-fecha="@f.Fecha.ToString("yyyy-MM-dd")"
-                                                    data-esferaod="@f.EsferaOD"
-                                                    data-cilindrood="@f.CilindroOD"
-                                                    data-ejeod="@f.EjeOD"
-                                                    data-esferaoi="@f.EsferaOI"
-                                                    data-cilindrooi="@f.CilindroOI"
-                                                    data-ejeoi="@f.EjeOI"
-                                                    data-observaciones="@f.Observaciones"
-                                                    data-tipolente="@f.TipoLente"
-                                                    data-distanciapupilar="@f.DistanciaPupilar"
-                                                    class="btn" style="background-color: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.6rem; border: none; border-radius: 0.25rem; font-size: 0.8rem; cursor: pointer; font-weight: 600;" title="Editar">
-                                                ✏️
-                                            </button>
-                                            <form id="form-delete-formula-@f.Id" asp-controller="Optometra" asp-action="DeleteFormula" method="post" style="display:inline;">
-                                                <input type="hidden" name="id" value="@f.Id" />
-                                                <button type="button" onclick="confirmDeleteFormula(@f.Id)" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; padding: 0.2rem;" title="Eliminar fórmula">🗑️</button>
-                                            </form>
+                                        <td style="text-align: right;">
+                                            <div style="display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                                                <button onclick="abrirModalVerFormula(this)"
+                                                        data-id="@f.Id"
+                                                        data-paciente="@(f.User?.NombreCompleto ?? "N/A")"
+                                                        data-documento="@(f.User?.TipoDocumento): @(f.User?.NumeroDocumento)"
+                                                        data-fecha="@f.Fecha.ToLocalTime().ToString("dd/MM/yyyy")"
+                                                        data-esferaod="@f.EsferaOD"
+                                                        data-cilindrood="@f.CilindroOD"
+                                                        data-ejeod="@f.EjeOD"
+                                                        data-esferaoi="@f.EsferaOI"
+                                                        data-cilindrooi="@f.CilindroOI"
+                                                        data-ejeoi="@f.EjeOI"
+                                                        data-observaciones="@(f.Observaciones ?? "Sin observaciones.")"
+                                                        data-tipolente="@f.TipoLente"
+                                                        data-distanciapupilar="@(f.DistanciaPupilar ?? "N/A")"
+                                                        data-estado="@f.Estado"
+                                                        data-optometra="@(f.Optometra?.NombreCompleto ?? "N/A")"
+                                                        data-registroopto="@(f.Optometra?.RegistroMedico ?? "N/A")"
+                                                        class="btn-action-icon btn-action-view" title="Ver e Imprimir Receta">
+                                                    👁️ Receta
+                                                </button>
+                                                <button onclick="abrirModalEditarFormula(this)"
+                                                        data-id="@f.Id"
+                                                        data-userid="@f.UserId"
+                                                        data-fecha="@f.Fecha.ToString("yyyy-MM-dd")"
+                                                        data-esferaod="@f.EsferaOD"
+                                                        data-cilindrood="@f.CilindroOD"
+                                                        data-ejeod="@f.EjeOD"
+                                                        data-esferaoi="@f.EsferaOI"
+                                                        data-cilindrooi="@f.CilindroOI"
+                                                        data-ejeoi="@f.EjeOI"
+                                                        data-observaciones="@f.Observaciones"
+                                                        data-tipolente="@f.TipoLente"
+                                                        data-distanciapupilar="@f.DistanciaPupilar"
+                                                        class="btn-action-icon btn-action-edit" title="Editar">
+                                                    ✏️ Editar
+                                                </button>
+                                                <form id="form-delete-formula-@f.Id" asp-controller="Optometra" asp-action="DeleteFormula" method="post" style="display:inline; margin: 0;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@f.Id" />
+                                                    <button type="button" onclick="confirmDeleteFormula(@f.Id)" class="btn-action-icon btn-action-delete" title="Eliminar fórmula">
+                                                        🗑️ Eliminar
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </td>
                                     </tr>
                                 }
@@ -1839,8 +2039,8 @@
                     <!-- Botones de Acción (Ocultar al Imprimir en CSS) -->
                     <div style="display: flex; gap: 1rem; margin-top: 1.5rem;" class="no-print">
                         <button type="button" onclick="document.getElementById('modal-ver-formula').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer; font-weight:600;">Cerrar</button>
-                        <button type="button" onclick="alertify.success('Generando archivo PDF... (Procesando descarga de receta médica)')" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-100); color: var(--purple-800); cursor: pointer; font-weight:600;">📄 Descargar PDF</button>
-                        <button type="button" onclick="window.print()" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight:600;">🖨️ Imprimir</button>
+                        <a id="btn-descargar-receta-pdf" href="#" style="flex: 1; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-100); color: var(--purple-800); cursor: pointer; font-weight:600;">📄 Descargar PDF</a>
+                        <button type="button" onclick="imprimirReceta()" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight:600;">🖨️ Imprimir</button>
                     </div>
                 </div>
             </div>
@@ -2315,23 +2515,39 @@
 
     function filterTable(inputId, tableId) {
         const input = document.getElementById(inputId);
+        if (!input) return;
         const filter = input.value.toLowerCase();
         const table = document.getElementById(tableId);
         if (!table) return;
-        const trs = table.getElementsByTagName('tr');
-
-        for (let i = 1; i < trs.length; i++) {
-            let show = false;
-            const tds = trs[i].getElementsByTagName('td');
-            for (let j = 0; j < tds.length; j++) {
-                if (tds[j] && tds[j].textContent.toLowerCase().includes(filter)) {
-                    show = true;
-                    break;
-                }
-            }
-            trs[i].style.display = show ? '' : 'none';
-        }
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(tr => {
+            const text = tr.textContent.toLowerCase();
+            tr.style.display = text.includes(filter) ? '' : 'none';
+        });
     }
+
+    function toggleFilterMenu(submodule) {
+        const menu = document.getElementById('filter-menu-' + submodule);
+        if (!menu) return;
+        const isVisible = menu.style.display === 'block';
+        document.querySelectorAll('[id^="filter-menu-"]').forEach(m => m.style.display = 'none');
+        menu.style.display = isVisible ? 'none' : 'block';
+    }
+
+    function filterTableByValue(inputId, tableId, value) {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.value = value;
+            filterTable(inputId, tableId);
+        }
+        document.querySelectorAll('[id^="filter-menu-"]').forEach(m => m.style.display = 'none');
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('[id^="filter-menu-"]') && !e.target.closest('.btn-filter-dropdown')) {
+            document.querySelectorAll('[id^="filter-menu-"]').forEach(m => m.style.display = 'none');
+        }
+    });
 
     function abrirModalEditarPaciente(btn) {
         document.getElementById('edit-paciente-id').value = btn.getAttribute('data-id');
@@ -2461,6 +2677,14 @@
         document.getElementById('edit-historial-fecha').value = btn.getAttribute('data-fecha');
         document.getElementById('edit-historial-diagnostico').value = btn.getAttribute('data-diagnostico');
         document.getElementById('edit-historial-tratamiento').value = btn.getAttribute('data-tratamiento');
+        var ant = document.getElementById('edit-historial-antecedentes');
+        if (ant) ant.value = btn.getAttribute('data-antecedentes') || '';
+        var ex = document.getElementById('edit-historial-examenes');
+        if (ex) ex.value = btn.getAttribute('data-examenes') || '';
+        var obs = document.getElementById('edit-historial-observaciones');
+        if (obs) obs.value = btn.getAttribute('data-observaciones') || '';
+        var est = document.getElementById('edit-historial-estado');
+        if (est) est.value = btn.getAttribute('data-estado') || 'Activo';
         document.getElementById('modal-editar-historial').style.display = 'flex';
     }
 
@@ -2490,7 +2714,9 @@
 
     function abrirModalEditarExamen(btn) {
         document.getElementById('edit-examen-id').value = btn.getAttribute('data-id');
-        document.getElementById('edit-examen-userid').value = btn.getAttribute('data-userid');
+        const userId = btn.getAttribute('data-userid');
+        const pacienteNombre = btn.getAttribute('data-paciente') || '';
+        seleccionarPacienteModal('edit-examen', userId, pacienteNombre, '');
         document.getElementById('edit-examen-fecha').value = btn.getAttribute('data-fecha');
         document.getElementById('edit-examen-tipoexamen').value = btn.getAttribute('data-tipoexamen');
         document.getElementById('edit-examen-ojoderecho').value = btn.getAttribute('data-ojoderecho');
@@ -2513,6 +2739,131 @@
         document.getElementById('modal-editar-examen').style.display = 'flex';
     }
 
+    // ── Autocomplete / Búsqueda de Pacientes en Examen Clínico ──
+    function mostrarListaPacientes(prefix) {
+        const dd = document.getElementById('dropdown-' + prefix + '-pacientes');
+        if (dd) dd.style.display = 'block';
+        filtrarPacientesModal(prefix);
+    }
+
+    function filtrarPacientesModal(prefix) {
+        const searchInput = document.getElementById('search-' + prefix + '-paciente');
+        const query = (searchInput ? searchInput.value : '').toLowerCase().trim();
+        const dd = document.getElementById('dropdown-' + prefix + '-pacientes');
+        if (!dd) return;
+        dd.style.display = 'block';
+
+        const items = dd.querySelectorAll('.patient-opt-item');
+        let count = 0;
+        items.forEach(function (item) {
+            const nombre = (item.getAttribute('data-nombre') || '').toLowerCase();
+            const doc = (item.getAttribute('data-doc') || '').toLowerCase();
+            if (!query || nombre.indexOf(query) !== -1 || doc.indexOf(query) !== -1) {
+                item.style.display = 'flex';
+                count++;
+            } else {
+                item.style.display = 'none';
+            }
+        });
+
+        const noRes = document.getElementById('no-patients-' + prefix);
+        if (noRes) {
+            noRes.style.display = count === 0 ? 'block' : 'none';
+        }
+    }
+
+    function seleccionarPacienteModal(prefix, id, nombre, doc) {
+        const hiddenId = prefix === 'nuevo-examen' ? 'hidden-nuevo-examen-userid' : 'edit-examen-userid';
+        const hiddenInput = document.getElementById(hiddenId);
+        const searchInput = document.getElementById('search-' + prefix + '-paciente');
+        const clearBtn = document.getElementById('clear-' + prefix + '-paciente');
+        const dd = document.getElementById('dropdown-' + prefix + '-pacientes');
+        const badge = document.getElementById('badge-' + prefix + '-paciente');
+        const badgeName = document.getElementById('badge-name-' + prefix);
+
+        if (hiddenInput) hiddenInput.value = id;
+        if (searchInput) searchInput.value = nombre;
+        if (clearBtn) clearBtn.style.display = 'block';
+        if (dd) dd.style.display = 'none';
+        if (badge && badgeName) {
+            badgeName.textContent = doc ? nombre + ' (Doc: ' + doc + ')' : nombre;
+            badge.style.display = 'block';
+        }
+    }
+
+    function limpiarPacienteSeleccionado(prefix) {
+        const hiddenId = prefix === 'nuevo-examen' ? 'hidden-nuevo-examen-userid' : 'edit-examen-userid';
+        const hiddenInput = document.getElementById(hiddenId);
+        const searchInput = document.getElementById('search-' + prefix + '-paciente');
+        const clearBtn = document.getElementById('clear-' + prefix + '-paciente');
+        const badge = document.getElementById('badge-' + prefix + '-paciente');
+        const dd = document.getElementById('dropdown-' + prefix + '-pacientes');
+
+        if (hiddenInput) hiddenInput.value = '';
+        if (searchInput) {
+            searchInput.value = '';
+            searchInput.focus();
+        }
+        if (clearBtn) clearBtn.style.display = 'none';
+        if (badge) badge.style.display = 'none';
+        if (dd) {
+            dd.style.display = 'block';
+            filtrarPacientesModal(prefix);
+        }
+    }
+
+    function validateNuevoExamenForm(form) {
+        const hiddenUserId = document.getElementById('hidden-nuevo-examen-userid');
+        if (!hiddenUserId || !hiddenUserId.value) {
+            if (typeof alertify !== 'undefined') {
+                alertify.error('Por favor busque y seleccione un paciente.');
+            } else {
+                alert('Por favor busque y seleccione un paciente.');
+            }
+            const input = document.getElementById('search-nuevo-examen-paciente');
+            if (input) input.focus();
+            return false;
+        }
+        const res = document.getElementById('new-examen-resultado');
+        const diag = document.getElementById('new-examen-diagnostico');
+        if (res && diag) {
+            res.value = diag.value || 'Examen Clínico Visual';
+        }
+        return true;
+    }
+
+    function validateEditExamenForm(form) {
+        const hiddenUserId = document.getElementById('edit-examen-userid');
+        if (!hiddenUserId || !hiddenUserId.value) {
+            if (typeof alertify !== 'undefined') {
+                alertify.error('Por favor busque y seleccione un paciente.');
+            } else {
+                alert('Por favor busque y seleccione un paciente.');
+            }
+            const input = document.getElementById('search-edit-examen-paciente');
+            if (input) input.focus();
+            return false;
+        }
+        const res = document.getElementById('edit-examen-resultado');
+        const diag = document.getElementById('edit-examen-diagnostico');
+        if (res && diag) {
+            res.value = diag.value || 'Examen Clínico Visual';
+        }
+        return true;
+    }
+
+    // Cerrar dropdowns de pacientes al hacer clic fuera
+    document.addEventListener('click', function (e) {
+        if (!e.target.closest('#wrapper-nuevo-examen-paciente')) {
+            const d1 = document.getElementById('dropdown-nuevo-examen-pacientes');
+            if (d1) d1.style.display = 'none';
+        }
+        if (!e.target.closest('#wrapper-edit-examen-paciente')) {
+            const d2 = document.getElementById('dropdown-edit-examen-pacientes');
+            if (d2) d2.style.display = 'none';
+        }
+    });
+
     function abrirModalVerFormula(btn) {
         document.getElementById('ver-formula-id').textContent = btn.getAttribute('data-id');
         document.getElementById('ver-formula-paciente').textContent = btn.getAttribute('data-paciente');
@@ -2530,7 +2881,35 @@
         document.getElementById('ver-formula-observaciones').textContent = btn.getAttribute('data-observaciones');
         document.getElementById('ver-formula-optometra').textContent = btn.getAttribute('data-optometra');
         document.getElementById('ver-formula-registroopto').textContent = btn.getAttribute('data-registroopto');
+        const dlLink = document.getElementById('btn-descargar-receta-pdf');
+        if (dlLink) {
+            dlLink.href = '/Optometra/DownloadRecetaPdf/' + btn.getAttribute('data-id');
+        }
         document.getElementById('modal-ver-formula').style.display = 'flex';
+    }
+
+    function imprimirReceta() {
+        const modal = document.getElementById('modal-ver-formula');
+        if (modal) modal.style.display = 'flex';
+        window.print();
+    }
+
+    function descargarRecetaPDF() {
+        const rawId = (document.getElementById('ver-formula-id')?.textContent || '').trim();
+        if (!rawId) {
+            if (typeof alertify !== 'undefined') {
+                alertify.error('No se pudo identificar la fórmula para descargar.');
+            }
+            return;
+        }
+
+        const id = rawId.replace(/^FOR-/i, '').replace(/^#/, '').trim();
+        if (typeof alertify !== 'undefined') {
+            alertify.message('Descargando archivo PDF desde el servidor...');
+        }
+
+        // Descarga directa desde el backend con cabecera Content-Disposition (igual que Facturas)
+        window.location.href = '/Optometra/DownloadRecetaPdf/' + encodeURIComponent(id);
     }
 
     function abrirModalEditarFormula(btn) {
@@ -2641,7 +3020,10 @@
             }
             return false;
         }
-        function mostrarResumenPeriodo(e) {
+        return true;
+    }
+
+    function mostrarResumenPeriodo(e) {
             if (e) e.preventDefault();
             const desde = document.getElementById('rep-desde').value;
             const hasta = document.getElementById('rep-hasta').value;
@@ -2699,25 +3081,240 @@
     </script>
 
 <style>
+    /* ==================== ESTILOS MODERNOS DE TABLAS (MÓDULO OPTÓMETRA) ==================== */
+    .table-toolbar-purple {
+        background: linear-gradient(135deg, var(--purple-900) 0%, var(--purple-800) 100%);
+        color: white;
+        padding: 0.85rem 1.25rem;
+        border-top-left-radius: 0.6rem;
+        border-top-right-radius: 0.6rem;
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .table-search-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+        flex: 1;
+        min-width: 260px;
+        max-width: 420px;
+    }
+    .table-search-box .search-icon {
+        position: absolute;
+        left: 0.75rem;
+        color: var(--purple-600);
+        font-size: 0.95rem;
+        pointer-events: none;
+    }
+    .table-search-box input.form-input {
+        width: 100%;
+        padding: 0.48rem 0.75rem 0.48rem 2.35rem;
+        border-radius: 0.4rem;
+        border: 1px solid var(--purple-300);
+        background: white;
+        color: var(--gray-900);
+        font-size: 0.875rem;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .table-search-box input.form-input:focus {
+        border-color: var(--purple-500);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+    }
+    .btn-filter-dropdown {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.48rem 0.9rem;
+        border: 1px solid var(--purple-300);
+        background: white;
+        color: var(--purple-900);
+        border-radius: 0.4rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-filter-dropdown:hover {
+        background-color: var(--purple-50);
+    }
+    .filter-dropdown-menu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 5px);
+        left: 0;
+        background: white;
+        border: 1px solid var(--purple-200);
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+        min-width: 170px;
+        padding: 0.4rem 0;
+    }
+    .filter-dropdown-menu a {
+        display: block;
+        padding: 0.45rem 1rem;
+        color: var(--gray-700);
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .filter-dropdown-menu a:hover {
+        background-color: var(--purple-50);
+        color: var(--purple-900);
+    }
+    .table-container-purple {
+        overflow-x: auto;
+        border: 1px solid var(--purple-200);
+        border-top: none;
+        border-bottom-left-radius: 0.6rem;
+        border-bottom-right-radius: 0.6rem;
+        background: white;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+    .custom-table-modern {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+    .custom-table-modern thead tr {
+        border-bottom: 2px solid var(--purple-200);
+        color: var(--gray-700);
+        font-size: 0.85rem;
+        font-weight: 700;
+        background-color: #FAF9FE;
+    }
+    .custom-table-modern thead th {
+        padding: 0.85rem 1rem;
+        letter-spacing: 0.01em;
+    }
+    .custom-table-modern tbody tr {
+        border-bottom: 1px solid var(--purple-100);
+        transition: background-color 0.15s ease;
+    }
+    .custom-table-modern tbody tr:hover {
+        background-color: #f9f8fe;
+    }
+    .custom-table-modern tbody td {
+        padding: 0.85rem 1rem;
+        font-size: 0.875rem;
+        vertical-align: middle;
+    }
+    .badge-status-solid {
+        display: inline-block;
+        padding: 0.28rem 0.8rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: white;
+        text-align: center;
+        letter-spacing: 0.02em;
+        line-height: 1.2;
+    }
+    .badge-status-solid.badge-success { background-color: #10B981; }
+    .badge-status-solid.badge-warning { background-color: #F59E0B; }
+    .badge-status-solid.badge-info    { background-color: #3B82F6; }
+    .badge-status-solid.badge-danger  { background-color: #EF4444; }
+
+    .btn-action-icon {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.65rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: all 0.15s ease;
+        text-decoration: none;
+        line-height: 1.2;
+    }
+    .btn-action-view {
+        background-color: #EDE9FE;
+        color: #5B21B6;
+        border-color: #DDD6FE;
+    }
+    .btn-action-view:hover {
+        background-color: #DDD6FE;
+        color: #4C1D95;
+    }
+    .btn-action-edit {
+        background-color: #DBEAFE;
+        color: #1E40AF;
+        border-color: #BFDBFE;
+    }
+    .btn-action-edit:hover {
+        background-color: #BFDBFE;
+        color: #1E3A8A;
+    }
+    .btn-action-delete {
+        background-color: #FEE2E2;
+        color: #991B1B;
+        border-color: #FECACA;
+    }
+    .btn-action-delete:hover {
+        background-color: #FCD34D;
+        color: #78350F;
+    }
+
+    /* Autocomplete de Pacientes en Examen Clínico */
+    .patient-opt-item {
+        padding: 0.55rem 0.85rem;
+        cursor: pointer;
+        border-bottom: 1px solid #ede9fe;
+        font-size: 0.85rem;
+        transition: background-color 0.15s ease, color 0.15s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: white;
+    }
+    .patient-opt-item:last-child {
+        border-bottom: none;
+    }
+    .patient-opt-item:hover {
+        background-color: #f5f3ff !important;
+        color: #4c1d95 !important;
+    }
     @@media print {
-        /* Ocultar el resto de la página en impresión */
-        body > *:not(#modal-ver-formula) {
+        /* Ocultar elementos de layout no necesarios en impresión */
+        nav, header, footer, .sidebar, #sidebar, .no-print, .table-toolbar-purple, .table-container-purple {
             display: none !important;
         }
-        #modal-ver-formula {
-            position: absolute !important;
-            inset: 0 !important;
+
+        body {
             background: white !important;
-            display: flex !important;
-            align-items: flex-start !important;
-            justify-content: center !important;
-            z-index: 99999 !important;
-            padding: 0 !important;
-            margin: 0 !important;
-            box-shadow: none !important;
-            max-height: none !important;
-            overflow-y: visible !important;
+            color: #111827 !important;
         }
+
+        body * {
+            visibility: hidden !important;
+        }
+
+        #modal-ver-formula,
+        #modal-ver-formula * {
+            visibility: visible !important;
+        }
+
+        #modal-ver-formula {
+            display: block !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
+            box-shadow: none !important;
+            border: none !important;
+            z-index: 999999 !important;
+        }
+
         #modal-ver-formula > div {
             width: 100% !important;
             max-width: 100% !important;
@@ -2725,13 +3322,18 @@
             box-shadow: none !important;
             padding: 0 !important;
             margin: 0 !important;
+            background: white !important;
         }
-        .no-print {
+
+        .no-print,
+        .no-print * {
             display: none !important;
+            visibility: hidden !important;
         }
     }
 </style>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 }
