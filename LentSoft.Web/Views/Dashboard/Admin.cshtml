@@ -127,7 +127,7 @@
                             {
                                 <tr style="border-bottom: 1px solid var(--purple-100);">
                                     <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">#ORD-@p.Id.ToString("D4")</td>
-                                    <td style="padding: 0.75rem;">@(p.User?.Nombre ?? "Cliente")</td>
+                                    <td style="padding: 0.75rem;">@(p.User != null ? p.User.NombreCompleto : "Cliente Genérico")</td>
                                     <td style="padding: 0.75rem; color: var(--gray-600);">@p.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                     <td style="padding: 0.75rem; font-weight: 600;">@p.Total.ToString("C")</td>
                                     <td style="padding: 0.75rem;">
@@ -2567,7 +2567,7 @@
             </div>
             <div>
                 <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Contraseña Inicial</label>
-                <input name="Password" type="password" class="form-input" placeholder="Opcional (por defecto: user123)" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                <input name="Password" type="password" class="form-input" placeholder="Opcional (si se deja vacío, se genera una automáticamente)" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
             </div>
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
                 <button type="button" onclick="document.getElementById('modal-crear-cliente').style.display='none'" class="btn" style="background: var(--gray-100); color: var(--gray-700); padding: 0.5rem 1rem;">Cancelar</button>
