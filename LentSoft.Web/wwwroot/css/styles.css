@@ -687,8 +687,9 @@ label, .form-label {
 
 /* ── Panel de chat ── */
 .morgana-panel {
-  width: 340px;
-  max-height: 520px;
+  width: 380px;
+  height: 600px;
+  max-height: 600px;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: 1.25rem;
@@ -783,6 +784,7 @@ label, .form-label {
 /* ── Área de mensajes ── */
 .morgana-messages {
   flex: 1;
+  min-height: 0;
   overflow-y: auto;
   padding: 1rem 0.85rem 0.5rem;
   display: flex;
@@ -890,15 +892,34 @@ label, .form-label {
   40% { transform: translateY(-6px); }
 }
 
-/* ── Chips de preguntas sugeridas (Lista Seleccionable) ── */
+/* ── Sección de preguntas predeterminadas (colapsable) ── */
+.morgana-chips-section {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  background: var(--gray-50);
+  border-top: 1px solid transparent;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  transition: max-height 0.25s ease,
+              opacity 0.25s ease,
+              border-color 0.25s ease;
+}
+
+.morgana-chips-section--open {
+  max-height: 320px;
+  opacity: 1;
+  border-top-color: var(--border);
+}
+
 .morgana-chips-header {
   padding: 0.65rem 0.85rem 0.35rem;
   font-family: var(--font-primary);
   font-size: 0.75rem;
   font-weight: 700;
   color: var(--purple-950);
-  background: var(--gray-50);
-  border-top: 1px solid var(--border);
+  background: transparent;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   flex-shrink: 0;
@@ -909,10 +930,10 @@ label, .form-label {
   display: flex;
   flex-direction: column;
   gap: 0.45rem;
-  max-height: 200px;
+  max-height: 260px;
   overflow-y: auto;
-  flex-shrink: 0;
-  background: var(--gray-50);
+  flex-shrink: 1;
+  background: transparent;
   transition: opacity 0.2s ease;
 }
 
@@ -1000,6 +1021,51 @@ label, .form-label {
   cursor: not-allowed;
 }
 
+/* Botón toggle FAQ */
+.morgana-faq-toggle-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--purple-200);
+  background: var(--white);
+  color: var(--purple-700);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.15s ease,
+              border-color 0.15s ease,
+              color 0.15s ease,
+              transform 0.15s ease,
+              box-shadow 0.15s ease;
+}
+
+.morgana-faq-toggle-btn:hover {
+  background: var(--purple-50);
+  border-color: var(--purple-500);
+  color: var(--purple-900);
+  transform: scale(1.05);
+}
+
+.morgana-faq-toggle-btn:active {
+  transform: scale(0.95);
+  background: var(--purple-100);
+}
+
+.morgana-faq-toggle-btn--active {
+  background: var(--purple-100);
+  border-color: var(--purple-500);
+  color: var(--purple-900);
+}
+
+.morgana-faq-toggle-btn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Botón enviar */
 .morgana-send-btn {
   width: 34px;
   height: 34px;
@@ -1039,6 +1105,7 @@ label, .form-label {
 
   .morgana-panel {
     width: calc(100vw - 2rem);
+    height: 75vh;
     max-height: 75vh;
   }
 }
