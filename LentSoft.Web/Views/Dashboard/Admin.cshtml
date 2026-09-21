@@ -1207,6 +1207,180 @@
                 </div>
             </div>
         }
+
+        <!-- ==================== SECCIÓN FACTURAS ==================== -->
+        @if (Model.ActiveSection == "facturas")
+        {
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;">Gestión de Facturas</h1>
+                <div>
+                    <button type="button" class="btn btn-primary" onclick="document.getElementById('modal-factura').style.display='flex'" style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-700)';" onmouseout="this.style.backgroundColor='var(--purple-600)';">
+                        + Nueva Factura
+                    </button>
+                </div>
+            </div>
+
+            <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <!-- Barra de filtros con fondo morado oscuro -->
+                <div style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem;">
+                    <form method="get" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin: 0;">
+                        <input type="hidden" name="section" value="facturas" />
+                        <input type="hidden" name="page" value="1" />
+
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <label for="facturasPageSize" style="font-size: 0.85rem; color: var(--purple-200); font-weight: 500;">Mostrar</label>
+                            <select id="facturasPageSize" name="pageSize" onchange="this.form.submit()" style="padding: 0.4rem 0.6rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); font-size: 0.85rem; font-weight: 600; cursor: pointer;">
+                                <!option value="5" @(Model.FacturasPageSize == 5 ? "selected" : "")>5</!option>
+                                <!option value="10" @(Model.FacturasPageSize == 10 ? "selected" : "")>10</!option>
+                                <!option value="25" @(Model.FacturasPageSize == 25 ? "selected" : "")>25</!option>
+                                <!option value="50" @(Model.FacturasPageSize == 50 ? "selected" : "")>50</!option>
+                            </select>
+                            <span style="font-size: 0.85rem; color: var(--purple-200); font-weight: 500;">registros</span>
+                        </div>
+
+                        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                            <div style="position: relative; display: flex; align-items: center;">
+                                <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
+                                <input type="text" name="searchTerm" value="@Model.FacturasSearchTerm" placeholder="Buscar por número o cliente..." class="form-input" style="padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); width: 260px; font-size: 0.85rem;" />
+                            </div>
+                            <button type="submit" class="btn" style="background-color: var(--purple-600); color: white; border: none; padding: 0.45rem 0.9rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-700)';" onmouseout="this.style.backgroundColor='var(--purple-600)';">
+                                Filtrar
+                            </button>
+                            @if (!string.IsNullOrWhiteSpace(Model.FacturasSearchTerm))
+                            {
+                                <a href="?section=facturas&pageSize=@Model.FacturasPageSize" class="btn" style="padding: 0.45rem 0.85rem; font-size: 0.85rem; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 0.375rem; font-weight: 500;">
+                                    Limpiar
+                                </a>
+                            }
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Tabla Facturas -->
+                <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
+                    <table id="tableFacturas" style="width: 100%; border-collapse: collapse; text-align: left;">
+                        <thead style="background-color: var(--purple-50); color: var(--purple-900);">
+                            <tr style="border-bottom: 2px solid var(--purple-200);">
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Número</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Cliente</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Fecha</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: right;">Total</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Estado</th>
+                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (Model.Facturas.Any())
+                            {
+                                foreach (var fac in Model.Facturas)
+                                {
+                                    var estadoNorm = (fac.Estado ?? "").ToLower();
+                                    var badgeBg = estadoNorm == "pagada" ? "var(--success)" : (estadoNorm == "pendiente" ? "var(--warning)" : "var(--error)");
+                                    var badgeText = string.IsNullOrEmpty(fac.Estado) ? "Pendiente" : (char.ToUpper(fac.Estado[0]) + fac.Estado.Substring(1).ToLower());
+                                    var clienteNombre = fac.Order?.User?.NombreCompleto ?? "Cliente Genérico";
+
+                                    <tr style="border-bottom: 1px solid var(--purple-100);">
+                                        <td style="padding: 0.75rem 1rem; font-weight: 600; color: var(--purple-900);">
+                                            @fac.NumeroFactura
+                                        </td>
+                                        <td style="padding: 0.75rem 1rem; color: var(--gray-700);">
+                                            @clienteNombre
+                                        </td>
+                                        <td style="padding: 0.75rem 1rem; color: var(--gray-600); font-size: 0.85rem;">
+                                            @fac.FechaEmision.ToString("dd/MM/yyyy HH:mm")
+                                        </td>
+                                        <td style="padding: 0.75rem 1rem; font-weight: 700; color: var(--purple-800); text-align: right;">
+                                            @fac.Total.ToString("C")
+                                        </td>
+                                        <td style="padding: 0.75rem 1rem; text-align: center;">
+                                            <span style="background-color: @badgeBg; color: white; padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; display: inline-block;">
+                                                @badgeText
+                                            </span>
+                                        </td>
+                                        <td style="padding: 0.75rem 1rem; text-align: center;">
+                                            <div class="table-actions-wrapper" style="justify-content: center;">
+                                                <a href="/Invoice/DownloadPdf/@fac.Id" target="_blank" class="btn-action-edit" aria-label="Descargar PDF">
+                                                    📄 PDF
+                                                </a>
+                                                <form asp-controller="Invoice" asp-action="Delete" asp-route-id="@fac.Id" method="post" class="form-delete-invoice" data-nombre="@fac.NumeroFactura" style="display:inline; margin:0;">
+                                                    <button type="submit" class="btn-action-delete" aria-label="Eliminar Factura">
+                                                        🗑️ Eliminar
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="6" style="padding: 2.5rem; text-align: center; color: var(--gray-500);">
+                                        No se encontraron facturas registradas.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Paginación Facturas -->
+                @if (Model.FacturasTotalPages > 1)
+                {
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+                        <span style="font-size: 0.85rem; color: var(--gray-600);">
+                            Página @Model.FacturasPage de @Model.FacturasTotalPages (Total: @Model.FacturasTotalCount facturas)
+                        </span>
+                        <div style="display: flex; gap: 0.35rem; align-items: center;">
+                            @if (Model.FacturasPage > 1)
+                            {
+                                <a href="?section=facturas&page=@(Model.FacturasPage - 1)&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
+                                   style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                    &laquo; Anterior
+                                </a>
+                            }
+                            else
+                            {
+                                <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                    &laquo; Anterior
+                                </span>
+                            }
+
+                            @for (int p = 1; p <= Model.FacturasTotalPages; p++)
+                            {
+                                if (p == Model.FacturasPage)
+                                {
+                                    <span style="padding: 0.35rem 0.75rem; border-radius: 0.375rem; background-color: var(--purple-600); color: white; font-weight: 700; font-size: 0.85rem;">
+                                        @p
+                                    </span>
+                                }
+                                else
+                                {
+                                    <a href="?section=facturas&page=@p&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
+                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                        @p
+                                    </a>
+                                }
+                            }
+
+                            @if (Model.FacturasPage < Model.FacturasTotalPages)
+                            {
+                                <a href="?section=facturas&page=@(Model.FacturasPage + 1)&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
+                                   style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                    Siguiente &raquo;
+                                </a>
+                            }
+                            else
+                            {
+                                <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                    Siguiente &raquo;
+                                </span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        }
         @section Scripts {
 
     <partial name="_ValidationScriptsPartial" />
@@ -1792,6 +1966,9 @@
                         form.submit();
                     }
                     return;
+                } else if (form.classList.contains('form-delete-invoice')) {
+                    const nombre = form.dataset.nombre || '';
+                    message = '¿Está seguro de que desea eliminar la factura ' + nombre + '? Esta acción no se puede deshacer.';
                 } else {
                     return; // Not one of our delegated forms
                 }
@@ -1799,6 +1976,25 @@
                 confirmDelete(e, message, form);
             });
         });
+
+        function updateNewInvoiceAmounts(selectElem) {
+            const selectedOpt = selectElem.options[selectElem.selectedIndex];
+            const total = parseFloat(selectedOpt.getAttribute('data-total') || '0');
+            const subtotalInput = document.getElementById('newInvoiceSubtotal');
+            const impuestosInput = document.getElementById('newInvoiceImpuestos');
+            const totalInput = document.getElementById('newInvoiceTotal');
+            if (total > 0) {
+                const subtotal = (total / 1.19).toFixed(2);
+                const impuestos = (total - subtotal).toFixed(2);
+                if (subtotalInput) subtotalInput.value = subtotal;
+                if (impuestosInput) impuestosInput.value = impuestos;
+                if (totalInput) totalInput.value = total.toFixed(2);
+            } else {
+                if (subtotalInput) subtotalInput.value = '';
+                if (impuestosInput) impuestosInput.value = '';
+                if (totalInput) totalInput.value = '';
+            }
+        }
     </script>
 }
 
@@ -2549,6 +2745,114 @@
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
                 <button type="button" onclick="document.getElementById('modal-editar-trabajador').style.display='none'" class="btn" style="background: var(--gray-100); color: var(--gray-700); padding: 0.5rem 1rem;">Cancelar</button>
                 <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1.25rem;">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ==================== MODAL NUEVA FACTURA ==================== -->
+<div id="modal-factura" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
+    <div style="width: 100%; max-width: 550px; background: white; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);">
+        
+        <!-- Header Morado Tipo DIAN -->
+        <div style="background: linear-gradient(135deg, var(--purple-700), var(--purple-600)); color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: flex-start;">
+            <div>
+                <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.2rem; font-weight: 700;">
+                    <span>📄</span> <span>Factura Electrónica de Venta</span>
+                </div>
+                <div style="font-size: 0.78rem; color: var(--purple-100); margin-top: 0.25rem; font-weight: 500;">
+                    Resolución DIAN Nº 18764028920000 | Rango: FAC-0001 a FAC-5000
+                </div>
+            </div>
+            <button type="button" onclick="document.getElementById('modal-factura').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: white; line-height: 1;">&times;</button>
+        </div>
+
+        <!-- Formulario DIAN -->
+        <form asp-controller="Invoice" asp-action="Create" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;">
+            @Html.AntiForgeryToken()
+
+            <!-- Seccion 1: Datos del Pedido -->
+            <div>
+                <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <span>📋 DATOS DEL PEDIDO</span>
+                </div>
+                <div class="form-group">
+                    <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Pedido Asociado *</label>
+                    <select name="OrderId" class="form-input" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" onchange="updateNewInvoiceAmounts(this)">
+                        <option value="">-- Seleccionar Pedido --</option>
+                        @foreach (var ord in Model.PedidosDisponibles)
+                        {
+                            var usrName = ord.User != null ? ord.User.NombreCompleto : "Cliente";
+                            <option value="@ord.Id" data-total="@ord.Total">#ORD-@ord.Id.ToString("D4") - @usrName (@ord.Total.ToString("C"))</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- Seccion 2: Datos de Facturación -->
+            <div>
+                <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <span>📑 DATOS DE FACTURACIÓN</span>
+                </div>
+                <div style="display: flex; gap: 1rem;">
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Estado *</label>
+                        <select name="Estado" class="form-input" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
+                            <option value="pendiente" selected>Pendiente</option>
+                            <option value="pagada">Pagada</option>
+                            <option value="cancelada">Cancelada</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Método de Pago *</label>
+                        <select name="MetodoPago" class="form-input" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
+                            <option value="Efectivo" selected>Efectivo</option>
+                            <option value="Tarjeta">Tarjeta Débito/Crédito</option>
+                            <option value="Transferencia">Transferencia / PSE</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Seccion 3: Valores -->
+            <div>
+                <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
+                    <span>💰 VALORES (IVA 19%)</span>
+                </div>
+                <div style="display: flex; gap: 0.75rem;">
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.35rem; display: block;">Subtotal</label>
+                        <input id="newInvoiceSubtotal" name="Subtotal" type="number" step="0.01" class="form-input" readonly placeholder="Auto-calculado" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--gray-300); background-color: var(--gray-50);" />
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.35rem; display: block;">IVA 19%</label>
+                        <input id="newInvoiceImpuestos" name="Impuestos" type="number" step="0.01" class="form-input" readonly placeholder="Auto-calculado" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--gray-300); background-color: var(--gray-50);" />
+                    </div>
+                    <div style="flex: 1;">
+                        <label class="form-label" style="font-weight: 700; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.35rem; display: block;">TOTAL</label>
+                        <input id="newInvoiceTotal" name="Total" type="number" step="0.01" class="form-input" readonly placeholder="Auto-calculado" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--purple-50); font-weight: 700; color: var(--purple-900);" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Warning Box CUFE DIAN -->
+            <div style="background-color: #FEFCE8; border: 1px solid #FDE047; color: #854D0E; padding: 0.75rem 1rem; border-radius: 0.5rem; font-size: 0.78rem; line-height: 1.4; display: flex; gap: 0.5rem; align-items: flex-start;">
+                <span style="font-size: 0.9rem;">⚠️</span>
+                <div>
+                    Al crear esta factura se generará un <strong>CUFE</strong> (Código Único de Factura Electrónica) y estará disponible para descarga en formato PDF conforme a la Resolución DIAN.
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+                <button type="button" onclick="document.getElementById('modal-factura').style.display='none'" 
+                        style="flex: 1; border: 2px solid var(--purple-600); color: var(--purple-600); background: transparent; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.88rem; cursor: pointer;">
+                    Cancelar
+                </button>
+                <button type="submit" 
+                        style="flex: 1.5; background-color: var(--purple-600); color: white; border: none; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
+                    <span>📄 Crear Factura</span>
+                </button>
             </div>
         </form>
     </div>
