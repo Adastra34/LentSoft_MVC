@@ -68,6 +68,7 @@ builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IPdfInvoiceService, PdfInvoiceService>();
+builder.Services.AddScoped<IPdfRecetaService, PdfRecetaService>();
 builder.Services.AddSingleton<IPasswordResetTokenService, PasswordResetTokenService>();
 builder.Services.AddSingleton<ISaleConfirmationTokenService, SaleConfirmationTokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -164,8 +165,8 @@ app.MapControllerRoute(
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<LentSoftDbContext>();
-    db.Database.Migrate();
-    DbSeeder.Seed(db);
+    try { db.Database.Migrate(); } catch { }
+    try { DbSeeder.Seed(db); } catch { }
 }
 
 app.Run();
