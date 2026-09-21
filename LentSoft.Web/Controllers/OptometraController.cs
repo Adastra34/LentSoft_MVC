@@ -18,10 +18,10 @@ public class OptometraController : Controller
     private readonly LentSoftDbContext _context;
     private readonly IPdfRecetaService _pdfRecetaService;
 
-    public OptometraController(LentSoftDbContext context, IPdfRecetaService pdfRecetaService)
+    public OptometraController(LentSoftDbContext context, IPdfRecetaService? pdfRecetaService = null)
     {
         _context = context;
-        _pdfRecetaService = pdfRecetaService;
+        _pdfRecetaService = pdfRecetaService ?? new PdfRecetaService();
     }
 
     public async Task<IActionResult> Index(string section = "dashboard", int? detalleId = null)
