@@ -230,6 +230,13 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateExamen(ExamenVisual model)
     {
+        ModelState.Remove("User");
+        ModelState.Remove("Optometra");
+        if (string.IsNullOrWhiteSpace(model.Resultado))
+        {
+            model.Resultado = string.IsNullOrWhiteSpace(model.Diagnostico) ? "Examen Clínico Visual" : model.Diagnostico;
+            ModelState.Remove("Resultado");
+        }
         if (!ModelState.IsValid)
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Error al registrar el examen visual.";
@@ -258,6 +265,13 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditExamen(ExamenVisual model)
     {
+        ModelState.Remove("User");
+        ModelState.Remove("Optometra");
+        if (string.IsNullOrWhiteSpace(model.Resultado))
+        {
+            model.Resultado = string.IsNullOrWhiteSpace(model.Diagnostico) ? "Examen Clínico Visual" : model.Diagnostico;
+            ModelState.Remove("Resultado");
+        }
         if (!ModelState.IsValid)
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos del examen no válidos.";
@@ -340,6 +354,8 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateFormula(FormulaOptica model)
     {
+        ModelState.Remove("User");
+        ModelState.Remove("Optometra");
         if (!ModelState.IsValid)
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Error al crear la fórmula óptica.";
@@ -368,6 +384,8 @@ public class OptometraController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditFormula(FormulaOptica model)
     {
+        ModelState.Remove("User");
+        ModelState.Remove("Optometra");
         if (!ModelState.IsValid)
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos de la fórmula no válidos.";
