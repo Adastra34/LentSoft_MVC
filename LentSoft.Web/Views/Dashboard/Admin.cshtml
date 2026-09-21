@@ -912,34 +912,41 @@
             <!-- CONTENIDO PESTAÑA CLIENTES -->
             <div id="subtab-content-clientes" style="display: @(initialTab == "clientes" ? "block" : "none");">
                 <div class="card" style="padding: 1.5rem; background: white;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
-                        <form method="get" style="display: flex; gap: 0.5rem; align-items: center;">
+                    <div style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                        <form method="get" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin: 0;">
                             <input type="hidden" name="section" value="usuarios" />
                             <input type="hidden" name="subtab" value="clientes" />
-                            <input type="text" name="searchTerm" value="@Model.ClientesSearchTerm" placeholder="Buscar cliente por nombre o correo..." class="form-input" style="width: 320px; padding: 0.4rem 0.75rem;" />
-                            <button type="submit" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">🔍 Buscar</button>
+                            <div style="position: relative; display: flex; align-items: center;">
+                                <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
+                                <input type="text" name="searchTerm" value="@Model.ClientesSearchTerm" placeholder="Buscar cliente por nombre o correo..." class="form-input" style="width: 320px; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); font-size: 0.85rem;" />
+                            </div>
+                            <button type="submit" class="btn" style="background-color: var(--purple-600); color: white; border: none; padding: 0.45rem 0.9rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-700)';" onmouseout="this.style.backgroundColor='var(--purple-600)';">
+                                Buscar
+                            </button>
                             @if (!string.IsNullOrWhiteSpace(Model.ClientesSearchTerm))
                             {
-                                <a href="?section=usuarios&subtab=clientes" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: var(--gray-200); color: var(--gray-700); text-decoration: none; border-radius: 0.375rem;">Limpiar</a>
+                                <a href="?section=usuarios&subtab=clientes" class="btn" style="padding: 0.45rem 0.85rem; font-size: 0.85rem; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 0.375rem; font-weight: 500;">
+                                    Limpiar
+                                </a>
                             }
                         </form>
-                        <span style="font-size: 0.85rem; color: var(--gray-600); font-weight: 500;">
-                            Total: <strong>@Model.ClientesTotalCount</strong> cliente(s)
+                        <span style="font-size: 0.85rem; color: var(--purple-200); font-weight: 500;">
+                            Total: <strong style="color: white;">@Model.ClientesTotalCount</strong> cliente(s)
                         </span>
                     </div>
 
-                    <div style="overflow-x: auto;">
+                    <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
                         <table id="tableClientes" style="width: 100%; border-collapse: collapse; text-align: left;">
-                            <thead>
-                                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                    <th style="padding: 0.75rem;">ID</th>
-                                    <th style="padding: 0.75rem;">Nombre Completo</th>
-                                    <th style="padding: 0.75rem;">Documento</th>
-                                    <th style="padding: 0.75rem;">Correo</th>
-                                    <th style="padding: 0.75rem;">Teléfono</th>
-                                    <th style="padding: 0.75rem;">Fecha Registro</th>
-                                    <th style="padding: 0.75rem;">Estado</th>
-                                    <th style="padding: 0.75rem;">Acciones</th>
+                            <thead style="background-color: var(--purple-50); color: var(--purple-900);">
+                                <tr style="border-bottom: 2px solid var(--purple-200);">
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">ID</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Nombre Completo</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Documento</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Correo</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Teléfono</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Fecha Registro</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Estado</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -947,20 +954,20 @@
                                 {
                                     foreach (var cli in Model.Clientes)
                                     {
-                                        <tr style="border-bottom: 1px solid var(--purple-100);">
-                                            <td style="padding: 0.75rem; color: var(--gray-500);">#@cli.Id</td>
-                                            <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-900);">@cli.NombreCompleto</td>
-                                            <td style="padding: 0.75rem; color: var(--gray-600);">@cli.TipoDocumento @cli.NumeroDocumento</td>
-                                            <td style="padding: 0.75rem; color: var(--gray-600);">@cli.Email</td>
-                                            <td style="padding: 0.75rem; color: var(--gray-600);">@(string.IsNullOrWhiteSpace(cli.Telefono) ? "—" : cli.Telefono)</td>
-                                            <td style="padding: 0.75rem; color: var(--gray-600); font-size: 0.85rem;">@cli.FechaRegistro.ToLocalTime().ToString("dd/MM/yyyy")</td>
-                                            <td style="padding: 0.75rem;">
+                                        <tr style="border-bottom: 1px solid var(--purple-100); transition: background-color 0.15s ease;" onmouseover="this.style.backgroundColor='var(--purple-50)';" onmouseout="this.style.backgroundColor='transparent';">
+                                            <td style="padding: 0.75rem 1rem; color: var(--gray-500);">#@cli.Id</td>
+                                            <td style="padding: 0.75rem 1rem; font-weight: 600; color: var(--purple-900);">@cli.NombreCompleto</td>
+                                            <td style="padding: 0.75rem 1rem; color: var(--gray-600);">@cli.TipoDocumento @cli.NumeroDocumento</td>
+                                            <td style="padding: 0.75rem 1rem; color: var(--gray-600);">@cli.Email</td>
+                                            <td style="padding: 0.75rem 1rem; color: var(--gray-600);">@(string.IsNullOrWhiteSpace(cli.Telefono) ? "—" : cli.Telefono)</td>
+                                            <td style="padding: 0.75rem 1rem; color: var(--gray-600); font-size: 0.85rem;">@cli.FechaRegistro.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                            <td style="padding: 0.75rem 1rem; text-align: center;">
                                                 <span style="background-color: @(cli.Activo ? "var(--success)" : "var(--error)"); color: white; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
                                                     @(cli.Activo ? "Activo" : "Inactivo")
                                                 </span>
                                             </td>
-                                            <td style="padding: 0.75rem;">
-                                                <div class="table-actions-wrapper">
+                                            <td style="padding: 0.75rem 1rem; text-align: center;">
+                                                <div class="table-actions-wrapper" style="justify-content: center;">
                                                     <button type="button" class="btn-action-edit btn-edit-client" aria-label="Editar"
                                                         data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = cli.Id, nombre = cli.Nombre, apellido = cli.Apellido, email = cli.Email, telefono = cli.Telefono ?? "", tipoDocumento = cli.TipoDocumento, numeroDocumento = cli.NumeroDocumento }))'>
                                                         ✏️ Editar
@@ -987,7 +994,7 @@
                                 else
                                 {
                                     <tr>
-                                        <td colspan="8" style="padding: 2rem; text-align: center; color: var(--gray-500);">
+                                        <td colspan="8" style="padding: 2.5rem; text-align: center; color: var(--gray-500);">
                                             No se encontraron clientes registrados.
                                         </td>
                                     </tr>
@@ -1057,36 +1064,43 @@
             <!-- CONTENIDO PESTAÑA TRABAJADORES -->
             <div id="subtab-content-trabajadores" style="display: @(initialTab == "trabajadores" ? "block" : "none");">
                 <div class="card" style="padding: 1.5rem; background: white;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
-                        <form method="get" style="display: flex; gap: 0.5rem; align-items: center;">
+                    <div style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
+                        <form method="get" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin: 0;">
                             <input type="hidden" name="section" value="usuarios" />
                             <input type="hidden" name="subtab" value="trabajadores" />
-                            <input type="text" name="searchTerm" value="@Model.TrabajadoresSearchTerm" placeholder="Buscar trabajador por nombre, correo o puesto..." class="form-input" style="width: 340px; padding: 0.4rem 0.75rem;" />
-                            <button type="submit" class="btn btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;">🔍 Buscar</button>
+                            <div style="position: relative; display: flex; align-items: center;">
+                                <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
+                                <input type="text" name="searchTerm" value="@Model.TrabajadoresSearchTerm" placeholder="Buscar trabajador por nombre, correo o puesto..." class="form-input" style="width: 340px; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); font-size: 0.85rem;" />
+                            </div>
+                            <button type="submit" class="btn" style="background-color: var(--purple-600); color: white; border: none; padding: 0.45rem 0.9rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-700)';" onmouseout="this.style.backgroundColor='var(--purple-600)';">
+                                Buscar
+                            </button>
                             @if (!string.IsNullOrWhiteSpace(Model.TrabajadoresSearchTerm))
                             {
-                                <a href="?section=usuarios&subtab=trabajadores" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; background: var(--gray-200); color: var(--gray-700); text-decoration: none; border-radius: 0.375rem;">Limpiar</a>
+                                <a href="?section=usuarios&subtab=trabajadores" class="btn" style="padding: 0.45rem 0.85rem; font-size: 0.85rem; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 0.375rem; font-weight: 500;">
+                                    Limpiar
+                                </a>
                             }
                         </form>
-                        <span style="font-size: 0.85rem; color: var(--gray-600); font-weight: 500;">
-                            Total: <strong>@Model.TrabajadoresTotalCount</strong> trabajador(es)
+                        <span style="font-size: 0.85rem; color: var(--purple-200); font-weight: 500;">
+                            Total: <strong style="color: white;">@Model.TrabajadoresTotalCount</strong> trabajador(es)
                         </span>
                     </div>
 
-                    <div style="overflow-x: auto;">
+                    <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
                         <table id="tableTrabajadores" style="width: 100%; border-collapse: collapse; text-align: left;">
-                            <thead>
-                                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                    <th style="padding: 0.75rem;">ID</th>
-                                    <th style="padding: 0.75rem;">Nombre</th>
-                                    <th style="padding: 0.75rem;">Correo</th>
-                                    <th style="padding: 0.75rem;">Teléfono</th>
-                                    <th style="padding: 0.75rem;">Puesto</th>
-                                    <th style="padding: 0.75rem;">Departamento</th>
-                                    <th style="padding: 0.75rem;">Rol</th>
-                                    <th style="padding: 0.75rem;">Salario</th>
-                                    <th style="padding: 0.75rem;">Estado</th>
-                                    <th style="padding: 0.75rem;">Acciones</th>
+                            <thead style="background-color: var(--purple-50); color: var(--purple-900);">
+                                <tr style="border-bottom: 2px solid var(--purple-200);">
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">ID</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Nombre</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Correo</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Teléfono</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Puesto</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Departamento</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Rol</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Salario</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Estado</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1094,26 +1108,26 @@
                                 {
                                     foreach (var emp in Model.Trabajadores)
                                     {
-                                        <tr style="border-bottom: 1px solid var(--purple-100);">
-                                            <td style="padding: 0.75rem; color: var(--gray-500);">#@emp.Id</td>
-                                            <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-900);">@emp.Nombre</td>
-                                            <td style="padding: 0.75rem; color: var(--gray-600);">@emp.Email</td>
-                                            <td style="padding: 0.75rem; color: var(--gray-600);">@(string.IsNullOrWhiteSpace(emp.Telefono) ? "—" : emp.Telefono)</td>
-                                            <td style="padding: 0.75rem; color: var(--gray-600);">@emp.Puesto</td>
-                                            <td style="padding: 0.75rem; color: var(--gray-600);">@emp.Departamento</td>
-                                            <td style="padding: 0.75rem;">
+                                        <tr style="border-bottom: 1px solid var(--purple-100); transition: background-color 0.15s ease;" onmouseover="this.style.backgroundColor='var(--purple-50)';" onmouseout="this.style.backgroundColor='transparent';">
+                                            <td style="padding: 0.75rem 1rem; color: var(--gray-500);">#@emp.Id</td>
+                                            <td style="padding: 0.75rem 1rem; font-weight: 600; color: var(--purple-900);">@emp.Nombre</td>
+                                            <td style="padding: 0.75rem 1rem; color: var(--gray-600);">@emp.Email</td>
+                                            <td style="padding: 0.75rem 1rem; color: var(--gray-600);">@(string.IsNullOrWhiteSpace(emp.Telefono) ? "—" : emp.Telefono)</td>
+                                            <td style="padding: 0.75rem 1rem; color: var(--gray-600);">@emp.Puesto</td>
+                                            <td style="padding: 0.75rem 1rem; color: var(--gray-600);">@emp.Departamento</td>
+                                            <td style="padding: 0.75rem 1rem;">
                                                 <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.2rem 0.5rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600;">
                                                     @emp.Rol
                                                 </span>
                                             </td>
-                                            <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-800);">$@emp.Salario.ToString("N0")</td>
-                                            <td style="padding: 0.75rem;">
+                                            <td style="padding: 0.75rem 1rem; font-weight: 600; color: var(--purple-800);">$@emp.Salario.ToString("N0")</td>
+                                            <td style="padding: 0.75rem 1rem; text-align: center;">
                                                 <span style="background-color: @(emp.Activo ? "var(--success)" : "var(--error)"); color: white; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
                                                     @(emp.Activo ? "Activo" : "Inactivo")
                                                 </span>
                                             </td>
-                                            <td style="padding: 0.75rem;">
-                                                <div class="table-actions-wrapper">
+                                            <td style="padding: 0.75rem 1rem; text-align: center;">
+                                                <div class="table-actions-wrapper" style="justify-content: center;">
                                                     <button type="button" class="btn-action-edit btn-edit-employee" aria-label="Editar"
                                                         data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = emp.Id, nombre = emp.Nombre, email = emp.Email, telefono = emp.Telefono ?? "", puesto = emp.Puesto, departamento = emp.Departamento, salario = emp.Salario, rol = emp.Rol, activo = emp.Activo }))'>
                                                         ✏️ Editar
@@ -1140,7 +1154,7 @@
                                 else
                                 {
                                     <tr>
-                                        <td colspan="10" style="padding: 2rem; text-align: center; color: var(--gray-500);">
+                                        <td colspan="10" style="padding: 2.5rem; text-align: center; color: var(--gray-500);">
                                             No se encontraron trabajadores registrados.
                                         </td>
                                     </tr>
