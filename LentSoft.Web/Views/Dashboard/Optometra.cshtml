@@ -2897,10 +2897,24 @@
             return;
         }
 
-        const id = document.getElementById('ver-formula-id')?.textContent?.trim() || 'Receta';
-        const paciente = document.getElementById('ver-formula-paciente')?.textContent?.trim() || 'Paciente';
-        const cleanNombre = paciente.replace(/[^a-zA-Z0-9áéíóúÁÉÍÓÚñÑ]/g, '_');
-        const filename = 'Receta_Medica_FOR_' + id + '_' + cleanNombre + '.pdf';
+        // Obtener ID de fórmula con prefijo FOR-
+        const rawId = (document.getElementById('ver-formula-id')?.textContent || '').trim() || '1';
+        let numFormula = rawId.replace(/^#/, '').trim();
+        if (!numFormula.toUpperCase().startsWith('FOR-')) {
+            numFormula = 'FOR-' + numFormula;
+        }
+
+        // Obtener nombre del paciente, sin tildes, sin caracteres especiales y con guiones bajos
+        const rawPaciente = (document.getElementById('ver-formula-paciente')?.textContent || '').trim() || 'Paciente';
+        const cleanPaciente = rawPaciente
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+            .replace(/[^a-zA-Z0-9\s_-]/g, '')
+            .trim()
+            .replace(/\s+/g, '_') || 'Paciente';
+
+        // Formato requerido: Receta_[NombrePaciente]_[NumeroFormula].pdf
+        const filename = 'Receta_' + cleanPaciente + '_' + numFormula + '.pdf';
 
         if (typeof html2pdf !== 'undefined') {
             if (typeof alertify !== 'undefined') {
@@ -2919,9 +2933,28 @@
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
             };
 
-            html2pdf().set(opt).from(clone).save().then(function () {
+            // Usar outputPdf('blob') para garantizar descarga vía <a download="..."> con extensión .pdf y nombre exacto
+            html2pdf().set(opt).from(clone).outputPdf('blob').then(function (pdfBlob) {
+                const blob = (pdfBlob instanceof Blob && pdfBlob.type === 'application/pdf')
+                    ? pdfBlob
+                    : new Blob([pdfBlob], { type: 'application/pdf' });
+                const blobUrl = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = blobUrl;
+                a.download = filename;
+                a.setAttribute('download', filename);
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(function () {
+                    if (a.parentNode) {
+                        a.parentNode.removeChild(a);
+                    }
+                    URL.revokeObjectURL(blobUrl);
+                }, 2000);
+
                 if (typeof alertify !== 'undefined') {
-                    alertify.success('PDF descargado exitosamente.');
+                    alertify.success('PDF descargado exitosamente: ' + filename);
                 }
             }).catch(function (err) {
                 console.error('Error al generar PDF con html2pdf:', err);
