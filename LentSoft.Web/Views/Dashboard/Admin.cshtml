@@ -153,6 +153,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;" data-i18n="admin.inv.title">Gestión de Inventario</h1>
                 
+                <div id="top-btn-resumen" style="display: @(initialTab == "resumen" ? "inline-block" : "none");"></div>
                 <div id="top-btn-productos" style="display: @(initialTab == "productos" ? "inline-block" : "none");">
                     <button class="btn btn-primary" onclick="document.getElementById('modal-producto').style.display='flex'" data-i18n="admin.inv.newproduct">
                         + Nuevo Producto
@@ -181,7 +182,10 @@
             </div>
 
             <!-- Sub-tabs -->
-            <div style="display: flex; border-bottom: 2px solid var(--purple-200); margin-bottom: 1.5rem;">
+            <div style="display: flex; border-bottom: 2px solid var(--purple-200); margin-bottom: 1.5rem; flex-wrap: wrap;">
+                <button id="nav-subtab-resumen" type="button" onclick="switchInventorySubTab('resumen')" style="padding: 0.75rem 1.5rem; font-weight: 600; background: none; border: none; cursor: pointer; color: @(initialTab == "resumen" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(initialTab == "resumen" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;">
+                    📊 Resumen
+                </button>
                 <button id="nav-subtab-productos" type="button" onclick="switchInventorySubTab('productos')" style="padding: 0.75rem 1.5rem; font-weight: 600; background: none; border: none; cursor: pointer; color: @(initialTab == "productos" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(initialTab == "productos" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;" data-i18n="admin.inv.tab.products">
                     Productos
                 </button>
@@ -196,6 +200,223 @@
                 </button>
             </div>
 
+            <!-- CONTENIDO PESTAÑA RESUMEN (CAMBIO 1) -->
+            <div id="subtab-content-resumen" style="display: @(initialTab == "resumen" ? "block" : "none");">
+                <!-- 1. Notificaciones de inventario -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+                    <!-- Agotados (Stock == 0) -->
+                    <div class="card" style="padding: 1.25rem; background: white; border-radius: 0.75rem; border-left: 4px solid var(--error); box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="font-size: 1.25rem;">🚫</span>
+                                <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--purple-900);">Productos Agotados</h3>
+                            </div>
+                            <span style="background-color: var(--error); color: white; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700;">
+                                @Model.ProductosAgotados.Count Agotados
+                            </span>
+                        </div>
+                        <p style="font-size: 0.8rem; color: var(--gray-600); margin: 0 0 0.85rem 0;">
+                            Productos con stock en 0 inactivos automáticamente para prevenir ventas sin disponibilidad.
+                        </p>
+
+                        @if (!Model.ProductosAgotados.Any())
+                        {
+                            <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 0.5rem; padding: 0.85rem; text-align: center; color: #065f46; font-size: 0.85rem; font-weight: 500;">
+                                ✅ No hay productos con stock agotado actualmente.
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="display: flex; flex-direction: column; gap: 0.6rem; max-height: 250px; overflow-y: auto; padding-right: 0.25rem;">
+                                @foreach (var prod in Model.ProductosAgotados)
+                                {
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.8rem; background: var(--purple-50); border: 1px solid var(--purple-200); border-radius: 0.5rem;">
+                                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                            @if (!string.IsNullOrEmpty(prod.ImagenUrl))
+                                            {
+                                                <img src="@prod.ImagenUrl" alt="@prod.Nombre" style="width: 38px; height: 38px; object-fit: cover; border-radius: 0.375rem; border: 1px solid var(--purple-200);" />
+                                            }
+                                            else
+                                            {
+                                                <div style="width: 38px; height: 38px; border-radius: 0.375rem; background: var(--purple-200); display: flex; align-items: center; justify-content: center; font-size: 1rem;">👓</div>
+                                            }
+                                            <div>
+                                                <a href="/Product/Details/@prod.Id" style="font-weight: 600; font-size: 0.85rem; color: var(--purple-900); text-decoration: none; display: block;">@prod.Nombre</a>
+                                                <span style="font-size: 0.75rem; color: var(--gray-500);">@prod.Categoria &bull; Stock: <strong>0</strong></span>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <span style="background-color: var(--error); color: white; padding: 0.2rem 0.55rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 600;">Inactivo</span>
+                                            <button type="button" class="btn-action-edit btn-edit-product" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;"
+                                                data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = prod.Id, nombre = prod.Nombre, descripcion = prod.Descripcion ?? "", precio = prod.Precio, precioDescuento = prod.PrecioDescuento?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "", categoria = prod.Categoria, marca = prod.Marca ?? "", stock = prod.Stock, activo = prod.Activo, imagenUrl = prod.ImagenUrl ?? "" }))'>
+                                                ✏️ Reponer
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+
+                    <!-- Por Agotarse (0 < Stock <= 10) -->
+                    <div class="card" style="padding: 1.25rem; background: white; border-radius: 0.75rem; border-left: 4px solid #F59E0B; box-shadow: 0 2px 8px rgba(0,0,0,0.05);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                <span style="font-size: 1.25rem;">⚠️</span>
+                                <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--purple-900);">Por Agotarse</h3>
+                            </div>
+                            <span style="background-color: #F59E0B; color: white; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700;">
+                                @Model.ProductosPorAgotarse.Count Críticos
+                            </span>
+                        </div>
+                        <p style="font-size: 0.8rem; color: var(--gray-600); margin: 0 0 0.85rem 0;">
+                            Productos con inventario mínimo o próximo a agotarse (umbral &le; 10 unidades).
+                        </p>
+
+                        @if (!Model.ProductosPorAgotarse.Any())
+                        {
+                            <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 0.5rem; padding: 0.85rem; text-align: center; color: #065f46; font-size: 0.85rem; font-weight: 500;">
+                                ✅ Todos los productos cuentan con más de 10 unidades en stock.
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="display: flex; flex-direction: column; gap: 0.6rem; max-height: 250px; overflow-y: auto; padding-right: 0.25rem;">
+                                @foreach (var prod in Model.ProductosPorAgotarse)
+                                {
+                                    <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.8rem; background: #fffbeb; border: 1px solid #fde68a; border-radius: 0.5rem;">
+                                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                            @if (!string.IsNullOrEmpty(prod.ImagenUrl))
+                                            {
+                                                <img src="@prod.ImagenUrl" alt="@prod.Nombre" style="width: 38px; height: 38px; object-fit: cover; border-radius: 0.375rem; border: 1px solid #fde68a;" />
+                                            }
+                                            else
+                                            {
+                                                <div style="width: 38px; height: 38px; border-radius: 0.375rem; background: #fef3c7; display: flex; align-items: center; justify-content: center; font-size: 1rem;">👓</div>
+                                            }
+                                            <div>
+                                                <a href="/Product/Details/@prod.Id" style="font-weight: 600; font-size: 0.85rem; color: var(--purple-900); text-decoration: none; display: block;">@prod.Nombre</a>
+                                                <span style="font-size: 0.75rem; color: var(--gray-600);">@prod.Categoria</span>
+                                            </div>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <span style="background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 0.2rem 0.55rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700;">
+                                                @prod.Stock unid. ⚠️
+                                            </span>
+                                            <button type="button" class="btn-action-edit btn-edit-product" style="padding: 0.3rem 0.6rem; font-size: 0.75rem;"
+                                                data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = prod.Id, nombre = prod.Nombre, descripcion = prod.Descripcion ?? "", precio = prod.Precio, precioDescuento = prod.PrecioDescuento?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "", categoria = prod.Categoria, marca = prod.Marca ?? "", stock = prod.Stock, activo = prod.Activo, imagenUrl = prod.ImagenUrl ?? "" }))'>
+                                                ✏️ Reponer
+                                            </button>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <!-- 2. Gráfico de evolución de ventas -->
+                <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.75rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--purple-200);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.25rem;">
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--purple-900);">📈 Evolución de Ventas e Inventario</h3>
+                            <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: var(--gray-500);">Histórico de ingresos y volumen de pedidos registrados</p>
+                        </div>
+                        <div style="display: flex; gap: 1rem; align-items: center;">
+                            <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--purple-900); font-weight: 600;">
+                                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--purple-600);"></span>
+                                Ventas (COP $)
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #10B981; font-weight: 600;">
+                                <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #10B981;"></span>
+                                Pedidos
+                            </div>
+                        </div>
+                    </div>
+                    <div style="height: 300px; width: 100%; position: relative;">
+                        <canvas id="chartEvolucionVentas"></canvas>
+                    </div>
+                </div>
+
+                <!-- 3. Top Productos Más Vendidos -->
+                <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.75rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--purple-200);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+                        <div>
+                            <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--purple-900);">🏆 Productos Más Vendidos</h3>
+                            <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: var(--gray-500);">Ranking calculado a partir de órdenes de compra y pedidos de venta registrados</p>
+                        </div>
+                    </div>
+
+                    @if (!Model.ProductosMasVendidos.Any())
+                    {
+                        <div style="background-color: var(--purple-50); border: 1px solid var(--purple-200); border-radius: 0.5rem; padding: 1.5rem; text-align: center; color: var(--purple-800); font-size: 0.9rem;">
+                            🛒 Aún no se registran ventas para calcular los productos más vendidos.
+                        </div>
+                    }
+                    else
+                    {
+                        <div style="overflow-x: auto;">
+                            <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                                <thead style="background-color: var(--purple-50); color: var(--purple-900);">
+                                    <tr style="border-bottom: 2px solid var(--purple-200);">
+                                        <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; width: 60px; text-align: center;">#</th>
+                                        <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Producto</th>
+                                        <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Categoría</th>
+                                        <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Cant. Vendida</th>
+                                        <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: right;">Total Recaudado</th>
+                                        <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Stock Disponible</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @{ int ranking = 1; }
+                                    @foreach (var top in Model.ProductosMasVendidos)
+                                    {
+                                        <tr style="border-bottom: 1px solid var(--purple-100);">
+                                            <td style="padding: 0.75rem 1rem; text-align: center;">
+                                                @if (ranking == 1) { <span style="font-size: 1.15rem;">🥇</span> }
+                                                else if (ranking == 2) { <span style="font-size: 1.15rem;">🥈</span> }
+                                                else if (ranking == 3) { <span style="font-size: 1.15rem;">🥉</span> }
+                                                else { <span style="font-weight: 700; color: var(--gray-500); font-size: 0.85rem;">#@ranking</span> }
+                                            </td>
+                                            <td style="padding: 0.75rem 1rem;">
+                                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                                    @if (!string.IsNullOrEmpty(top.ImagenUrl))
+                                                    {
+                                                        <img src="@top.ImagenUrl" alt="@top.Nombre" style="width: 36px; height: 36px; object-fit: cover; border-radius: 0.375rem; border: 1px solid var(--purple-200);" />
+                                                    }
+                                                    else
+                                                    {
+                                                        <div style="width: 36px; height: 36px; border-radius: 0.375rem; background: var(--purple-100); display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">👓</div>
+                                                    }
+                                                    <a href="/Product/Details/@top.ProductId" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; text-decoration: none;">@top.Nombre</a>
+                                                </div>
+                                            </td>
+                                            <td style="padding: 0.75rem 1rem; text-align: center; color: var(--gray-600); font-size: 0.85rem;">
+                                                @top.Categoria
+                                            </td>
+                                            <td style="padding: 0.75rem 1rem; text-align: center;">
+                                                <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.25rem 0.65rem; border-radius: 9999px; font-weight: 700; font-size: 0.85rem;">
+                                                    @top.CantidadVendida unid.
+                                                </span>
+                                            </td>
+                                            <td style="padding: 0.75rem 1rem; text-align: right; font-weight: 700; color: var(--purple-900); font-size: 0.9rem;">
+                                                @top.TotalRecaudado.ToString("C")
+                                            </td>
+                                            <td style="padding: 0.75rem 1rem; text-align: center;">
+                                                <span style="font-weight: 600; color: @(top.StockActual <= 0 ? "var(--error)" : (top.StockActual <= 10 ? "#F59E0B" : "var(--success)")); font-size: 0.85rem;">
+                                                    @top.StockActual @(top.StockActual <= 0 ? "(Agotado)" : (top.StockActual <= 10 ? "⚠️" : ""))
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        ranking++;
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+
             <!-- CONTENIDO PESTAÑA PRODUCTOS -->
             <div id="subtab-content-productos" style="display: @(initialTab == "productos" ? "block" : "none");">
                 <div class="card" style="padding: 1.5rem; background: white;">
@@ -203,16 +424,16 @@
                         <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; flex: 1;">
                             <div style="position: relative; display: flex; align-items: center; flex: 1; min-width: 260px; max-width: 380px;">
                                 <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
-                                <input type="text" id="searchProducts" placeholder="Item, valor o código" data-i18n-placeholder="admin.inv.searchproduct" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900);" onkeyup="filterTable('searchProducts', 'tableProducts')" oninput="filterTable('searchProducts', 'tableProducts')" />
+                                <input type="text" id="searchProducts" placeholder="Item, valor o código" data-i18n-placeholder="admin.inv.searchproduct" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900);" onkeyup="onProductSearchInput(this)" oninput="onProductSearchInput(this)" />
                             </div>
                             <div style="position: relative;">
                                 <button type="button" onclick="toggleFilterMenu('productos')" class="btn" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; border: 1px solid var(--purple-300); background: white; color: var(--purple-900); border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
                                     ⚙️ Filtro ▾
                                 </button>
                                 <div id="filter-menu-productos" style="display: none; position: absolute; top: 110%; left: 0; background: white; border: 1px solid var(--purple-200); border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 160px; padding: 0.4rem 0;">
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchProducts', 'tableProducts', '')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Todos</a>
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchProducts', 'tableProducts', 'Activo')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Activos</a>
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchProducts', 'tableProducts', 'Inactivo')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Inactivos</a>
+                                    <a href="javascript:void(0)" onclick="setProductStatusFilter('')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Todos</a>
+                                    <a href="javascript:void(0)" onclick="setProductStatusFilter('activo')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Activos</a>
+                                    <a href="javascript:void(0)" onclick="setProductStatusFilter('inactivo')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Inactivos</a>
                                 </div>
                             </div>
                             <div style="position: relative;">
@@ -220,12 +441,12 @@
                                     🏷️ Categorías ▾
                                 </button>
                                 <div id="category-menu-productos" style="display: none; position: absolute; top: 110%; left: 0; background: white; border: 1px solid var(--purple-200); border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 190px; padding: 0.4rem 0;">
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchProducts', 'tableProducts', '')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Todas</a>
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchProducts', 'tableProducts', 'lentes-sol')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Gafas de Sol</a>
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchProducts', 'tableProducts', 'monturas')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Monturas</a>
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchProducts', 'tableProducts', 'lentes-contacto')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Lentes de Contacto</a>
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchProducts', 'tableProducts', 'lentes-graduados')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Lentes Graduados</a>
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchProducts', 'tableProducts', 'accesorios')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Accesorios</a>
+                                    <a href="javascript:void(0)" onclick="setProductCategoryFilter('')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Todas</a>
+                                    <a href="javascript:void(0)" onclick="setProductCategoryFilter('lentes-sol')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Gafas de Sol</a>
+                                    <a href="javascript:void(0)" onclick="setProductCategoryFilter('monturas')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Monturas</a>
+                                    <a href="javascript:void(0)" onclick="setProductCategoryFilter('lentes-contacto')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Lentes de Contacto</a>
+                                    <a href="javascript:void(0)" onclick="setProductCategoryFilter('lentes-graduados')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Lentes Graduados</a>
+                                    <a href="javascript:void(0)" onclick="setProductCategoryFilter('accesorios')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Accesorios</a>
                                 </div>
                             </div>
                         </div>
@@ -246,19 +467,21 @@
                             <tbody>
                                 @foreach (var prod in Model.Productos)
                                 {
-                                    <tr style="border-bottom: 1px solid var(--purple-100);">
+                                    var statusText = prod.Activo ? "Activo" : "Inactivo";
+                                    var catSlug = prod.Categoria?.ToLowerInvariant().Trim() ?? "";
+                                    <tr style="border-bottom: 1px solid var(--purple-100);" data-categoria="@catSlug" data-estado="@statusText.ToLowerInvariant()">
                                         <td style="padding: 0.75rem; color: var(--gray-500);">#@prod.Id</td>
                                         <td style="padding: 0.75rem; font-weight: 500;">
                                             <a href="/Product/Details/@prod.Id" style="color: var(--purple-700); font-weight: 600; text-decoration: underline;">@prod.Nombre</a>
                                         </td>
-                                        <td style="padding: 0.75rem; text-align: center; color: var(--gray-600);">@prod.Categoria</td>
+                                        <td style="padding: 0.75rem; text-align: center; color: var(--gray-600);" class="cell-categoria">@prod.Categoria</td>
                                         <td style="padding: 0.75rem; text-align: center; color: var(--gray-600);">@prod.Precio.ToString("C")</td>
                                         <td style="padding: 0.75rem; text-align: center; color: @(prod.Stock <= 10 ? "var(--error)" : "var(--gray-600)"); font-weight: @(prod.Stock <= 10 ? "bold" : "normal");">
                                             @prod.Stock @(prod.Stock <= 10 && prod.Stock > 0 ? "⚠️" : "")
                                         </td>
                                         <td style="padding: 0.75rem; text-align: center;">
-                                            <button type="button" onclick="toggleProductStatus(@prod.Id, this)" style="background-color: @(prod.Stock <= 0 ? "var(--error)" : "var(--success)"); color: white; border: none; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; cursor: pointer; font-weight: 600;">
-                                                @(prod.Stock <= 0 ? "Agotado" : "Activo")
+                                            <button type="button" onclick="toggleProductStatus(@prod.Id, this)" class="btn-product-status" style="background-color: @(prod.Activo ? "var(--success)" : "var(--error)"); color: white; border: none; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; cursor: pointer; font-weight: 600;">
+                                                @statusText
                                             </button>
                                         </td>
                                         <td style="padding: 0.75rem; text-align: center;">
@@ -1407,6 +1630,7 @@
         @section Scripts {
 
     <partial name="_ValidationScriptsPartial" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script>
         function toggleAuditoria() {
@@ -1425,14 +1649,122 @@
             if (typeof alertify !== 'undefined') {
                 if (type === 'success') alertify.success(msg);
                 else if (type === 'error') alertify.error(msg);
+                else if (type === 'warning') (alertify.warning ? alertify.warning(msg) : alertify.error(msg));
                 else alertify.message(msg);
             } else {
                 alert(msg);
             }
         }
 
+        // ==================== GRÁFICO RESUMEN INVENTARIO (CAMBIO 1) ====================
+        let inventoryChartInstance = null;
+        function initInventoryChart() {
+            const canvas = document.getElementById('chartEvolucionVentas');
+            if (!canvas) return;
+            if (inventoryChartInstance) {
+                inventoryChartInstance.resize();
+                return;
+            }
+            const ctx = canvas.getContext('2d');
+            const labels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.EvolucionVentas.Select(x => x.Periodo)));
+            const dataVentas = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.EvolucionVentas.Select(x => x.TotalVentas)));
+            const dataPedidos = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.EvolucionVentas.Select(x => x.CantidadPedidos)));
+
+            const gradient = ctx.createLinearGradient(0, 0, 0, 280);
+            gradient.addColorStop(0, 'rgba(124, 58, 237, 0.35)');
+            gradient.addColorStop(1, 'rgba(124, 58, 237, 0.02)');
+
+            inventoryChartInstance = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [
+                        {
+                            label: 'Ventas Totales ($)',
+                            data: dataVentas,
+                            borderColor: '#7c3aed',
+                            backgroundColor: gradient,
+                            borderWidth: 3,
+                            fill: true,
+                            tension: 0.35,
+                            pointBackgroundColor: '#7c3aed',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 5,
+                            pointHoverRadius: 7,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Cantidad de Pedidos',
+                            data: dataPedidos,
+                            borderColor: '#10B981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.08)',
+                            borderWidth: 2,
+                            borderDash: [5, 5],
+                            fill: false,
+                            tension: 0.35,
+                            pointBackgroundColor: '#10B981',
+                            pointBorderColor: '#ffffff',
+                            pointBorderWidth: 2,
+                            pointRadius: 4,
+                            pointHoverRadius: 6,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                boxWidth: 14,
+                                font: { family: 'inherit', weight: 600 }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    if (context.datasetIndex === 0) {
+                                        return context.dataset.label + ': $' + Number(context.parsed.y).toLocaleString();
+                                    }
+                                    return context.dataset.label + ': ' + context.parsed.y + ' pedidos';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false }
+                        },
+                        y: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+                            ticks: {
+                                callback: function(val) { return '$' + Number(val).toLocaleString(); }
+                            }
+                        },
+                        y1: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            grid: { drawOnChartArea: false },
+                            ticks: { stepSize: 1 }
+                        }
+                    }
+                }
+            });
+        }
+
         function switchInventorySubTab(subtabName) {
-            const tabs = ['productos', 'proveedores', 'historial', 'pedidos'];
+            const tabs = ['resumen', 'productos', 'proveedores', 'historial', 'pedidos'];
             tabs.forEach(t => {
                 const content = document.getElementById('subtab-content-' + t);
                 const btnNav = document.getElementById('nav-subtab-' + t);
@@ -1454,6 +1786,10 @@
                     if (topBtn) topBtn.style.display = 'none';
                 }
             });
+
+            if (subtabName === 'resumen') {
+                setTimeout(initInventoryChart, 50);
+            }
 
             if (window.history && window.history.pushState) {
                 const newUrl = '?section=inventario&subtab=' + subtabName;
@@ -1501,6 +1837,11 @@
                 if (data.success) {
                     btnElem.innerText = data.active ? 'Activo' : 'Inactivo';
                     btnElem.style.backgroundColor = data.active ? 'var(--success)' : 'var(--error)';
+                    const row = btnElem.closest('tr');
+                    if (row) {
+                        row.setAttribute('data-estado', data.active ? 'activo' : 'inactivo');
+                    }
+                    applyProductFilters();
                     showToast(data.message, 'success');
                 } else {
                     showToast(data.message || 'Error al cambiar estado', 'error');
@@ -1619,7 +1960,11 @@
                         const data = await resp.json();
 
                         if (data.success) {
-                            showToast(data.message || 'Operación realizada con éxito', 'success');
+                            if (data.stockAgotado) {
+                                showToast(data.message || 'El stock llegó a 0 y el producto fue inactivado automáticamente.', 'warning');
+                            } else {
+                                showToast(data.message || 'Operación realizada con éxito', 'success');
+                            }
                             if (item.modalId) {
                                 const modal = document.getElementById(item.modalId);
                                 if (modal) modal.style.display = 'none';
@@ -1714,6 +2059,7 @@
             document.getElementById('modal-editar-pedido-proveedor').style.display = 'flex';
         }
 
+        // ==================== MODAL EDITAR PROVEEDOR (CAMBIO 4) ====================
         function openEditSupplierModal(id, nombre, contacto, tipoProductos, telefono, correo, logoUrl) {
             document.getElementById('editSupplierId').value = id || '';
             document.getElementById('editSupplierNombre').value = nombre || '';
@@ -1721,25 +2067,141 @@
             document.getElementById('editSupplierTipoProductos').value = tipoProductos || '';
             document.getElementById('editSupplierTelefono').value = telefono || '';
             document.getElementById('editSupplierCorreo').value = correo || '';
-            document.getElementById('editSupplierLogoUrl').value = logoUrl || '';
+            
+            const existingLogoInput = document.getElementById('editSupplierExistingLogoUrl');
+            if (existingLogoInput) existingLogoInput.value = logoUrl || '';
+
+            const fileInput = document.getElementById('editSupplierLogoArchivo');
+            if (fileInput) fileInput.value = '';
+
+            const previewContainer = document.getElementById('editSupplierPreviewContainer');
+            const previewImg = document.getElementById('preview-editar-proveedor');
+            const previewInfo = document.getElementById('editSupplierImageInfo');
+
+            if (logoUrl && logoUrl.trim() !== '') {
+                if (previewImg) previewImg.src = logoUrl;
+                if (previewContainer) previewContainer.style.display = 'block';
+                if (previewInfo) previewInfo.textContent = 'Logo actual guardado';
+            } else {
+                if (previewImg) previewImg.src = '';
+                if (previewContainer) previewContainer.style.display = 'none';
+                if (previewInfo) previewInfo.textContent = '';
+            }
+
             document.getElementById('modal-editar-proveedor').style.display = 'flex';
         }
 
+        // ==================== FILTROS Y BÚSQUEDA DE PRODUCTOS (CAMBIO 3) ====================
+        const productFilters = {
+            search: '',
+            status: '',
+            category: ''
+        };
+
+        function onProductSearchInput(input) {
+            productFilters.search = (input.value || '').trim().toLowerCase();
+            applyProductFilters();
+        }
+
+        function setProductStatusFilter(status) {
+            productFilters.status = (status || '').trim().toLowerCase();
+            applyProductFilters();
+            document.querySelectorAll('[id^="filter-menu-"], [id^="category-menu-"]').forEach(m => m.style.display = 'none');
+        }
+
+        function setProductCategoryFilter(category) {
+            productFilters.category = (category || '').trim().toLowerCase();
+            applyProductFilters();
+            document.querySelectorAll('[id^="filter-menu-"], [id^="category-menu-"]').forEach(m => m.style.display = 'none');
+        }
+
+        function applyProductFilters() {
+            const table = document.getElementById('tableProducts');
+            if (!table) return;
+            const tbody = table.querySelector('tbody');
+            if (!tbody) return;
+            const rows = tbody.querySelectorAll('tr');
+
+            const catAliases = {
+                'lentes-sol': ['lentes-sol', 'gafas de sol', 'lentes de sol', 'gafas sol', 'sol'],
+                'monturas': ['monturas', 'montura'],
+                'lentes-contacto': ['lentes-contacto', 'lentes de contacto', 'contacto'],
+                'lentes-graduados': ['lentes-graduados', 'lentes graduados', 'graduados'],
+                'accesorios': ['accesorios', 'accesorio']
+            };
+
+            rows.forEach(row => {
+                // 1. Coincidencia por búsqueda de texto
+                let matchesSearch = true;
+                if (productFilters.search) {
+                    const rowText = row.textContent.toLowerCase();
+                    matchesSearch = rowText.includes(productFilters.search);
+                }
+
+                // 2. Coincidencia por estado (comparación exacta para evitar falso positivo Activo/Inactivo)
+                let matchesStatus = true;
+                if (productFilters.status) {
+                    const statusBtn = row.querySelector('.btn-product-status');
+                    const currentStatus = (row.getAttribute('data-estado') || (statusBtn ? statusBtn.textContent : '')).trim().toLowerCase();
+                    matchesStatus = (currentStatus === productFilters.status);
+                }
+
+                // 3. Coincidencia por categoría (slug o texto visible)
+                let matchesCategory = true;
+                if (productFilters.category) {
+                    const rowCat = (row.getAttribute('data-categoria') || '').toLowerCase().trim();
+                    const catCell = row.querySelector('.cell-categoria');
+                    const catCellText = (catCell ? catCell.textContent : '').toLowerCase().trim();
+                    
+                    const targetAliases = catAliases[productFilters.category] || [productFilters.category];
+                    matchesCategory = targetAliases.some(alias => rowCat === alias || catCellText === alias || rowCat.includes(alias) || catCellText.includes(alias));
+                }
+
+                row.style.display = (matchesSearch && matchesStatus && matchesCategory) ? '' : 'none';
+            });
+        }
+
+        // ==================== FILTRADO GENÉRICO DE TABLAS ====================
         function filterTable(inputId, tableId) {
+            if (tableId === 'tableProducts') {
+                const input = document.getElementById(inputId);
+                if (input) onProductSearchInput(input);
+                return;
+            }
+
             const input = document.getElementById(inputId);
             if (!input) return;
-            const filter = input.value.toLowerCase();
+            const filter = input.value.toLowerCase().trim();
             const table = document.getElementById(tableId);
             if (!table) return;
             const trs = table.getElementsByTagName('tr');
 
             for (let i = 1; i < trs.length; i++) {
+                if (!filter) {
+                    trs[i].style.display = '';
+                    continue;
+                }
                 let show = false;
                 const tds = trs[i].getElementsByTagName('td');
                 for (let j = 0; j < tds.length; j++) {
-                    if (tds[j] && tds[j].textContent.toLowerCase().includes(filter)) {
-                        show = true;
-                        break;
+                    if (!tds[j]) continue;
+                    const cellText = tds[j].textContent.toLowerCase().trim();
+                    if (filter === 'activo') {
+                        if (cellText === 'inactivo') continue; // Previene falso positivo con badge Inactivo
+                        if (cellText === 'activo' || cellText.includes(filter)) {
+                            show = true;
+                            break;
+                        }
+                    } else if (filter === 'inactivo') {
+                        if (cellText === 'inactivo' || cellText.includes(filter)) {
+                            show = true;
+                            break;
+                        }
+                    } else {
+                        if (cellText.includes(filter)) {
+                            show = true;
+                            break;
+                        }
                     }
                 }
                 trs[i].style.display = show ? '' : 'none';
@@ -1763,6 +2225,22 @@
         }
 
         function filterTableByValue(inputId, tableId, value) {
+            if (tableId === 'tableProducts') {
+                const valLower = (value || '').toLowerCase().trim();
+                if (valLower === 'activo' || valLower === 'inactivo') {
+                    setProductStatusFilter(valLower);
+                } else if (['lentes-sol', 'monturas', 'lentes-contacto', 'lentes-graduados', 'accesorios'].includes(valLower)) {
+                    setProductCategoryFilter(valLower);
+                } else {
+                    const input = document.getElementById(inputId);
+                    if (input) input.value = value;
+                    productFilters.search = valLower;
+                    applyProductFilters();
+                }
+                document.querySelectorAll('[id^="filter-menu-"], [id^="category-menu-"]').forEach(m => m.style.display = 'none');
+                return;
+            }
+
             const input = document.getElementById(inputId);
             if (input) {
                 input.value = value;
@@ -1890,8 +2368,8 @@
         document.addEventListener("DOMContentLoaded", function() {
             setupAjaxForms();
             const urlParams = new URLSearchParams(window.location.search);
-            const subtab = urlParams.get('subtab');
-            if (subtab && ['productos', 'proveedores', 'historial', 'pedidos'].includes(subtab)) {
+            const subtab = urlParams.get('subtab') || '@(Model.ActiveSubTab ?? "")';
+            if (subtab && ['resumen', 'productos', 'proveedores', 'historial', 'pedidos'].includes(subtab)) {
                 switchInventorySubTab(subtab);
             }
             if (subtab && ['clientes', 'trabajadores'].includes(subtab)) {
@@ -1902,6 +2380,11 @@
                 switchPedidosTab('proveedores');
             } else {
                 switchPedidosTab('ventas');
+            }
+
+            const chartCanvas = document.getElementById('chartEvolucionVentas');
+            if (chartCanvas && (subtab === 'resumen' || window.getComputedStyle(chartCanvas).display !== 'none')) {
+                setTimeout(initInventoryChart, 100);
             }
 
             // ── Delegated Edit Handlers (safe: no inline JS string interpolation) ──
@@ -2197,7 +2680,71 @@
     </div>
 </div>
 
-<!-- Modal Editar Proveedor -->
+<!-- Modal Crear Proveedor -->
+<div id="modal-crear-proveedor" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
+    <div class="card" style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✨ Nuevo Proveedor</h2>
+            <button type="button" onclick="document.getElementById('modal-crear-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+        </div>
+        
+        <form id="form-crear-proveedor" asp-controller="Supplier" asp-action="Create" method="post" enctype="multipart/form-data" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre de la Empresa *</label>
+                <input name="Nombre" type="text" class="form-input" required placeholder="Ej: Luxottica Colombia" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Persona de Contacto</label>
+                <input name="Contacto" type="text" class="form-input" placeholder="Ej: Carlos Gómez" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div>
+                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Tipo de Productos *</label>
+                <input name="TipoProductos" type="text" class="form-input" required placeholder="Ej: Monturas, Lentes de Contacto" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            </div>
+
+            <div style="display: flex; gap: 1rem;">
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Teléfono *</label>
+                    <input name="Telefono" type="text" class="form-input" required placeholder="Ej: +57 300 1234567" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+                <div style="flex: 1;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Email *</label>
+                    <input name="Correo" type="email" class="form-input" required placeholder="contacto@empresa.com" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                </div>
+            </div>
+
+            <!-- Campo de Subida de Logo con Vista Previa -->
+            <div style="background: var(--purple-50); border: 1.5px dashed var(--purple-300); border-radius: 0.5rem; padding: 1rem;">
+                <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">
+                    📷 Logo del Proveedor (Subir Archivo)
+                </label>
+                <p style="font-size: 0.75rem; color: var(--gray-500); margin: 0 0 0.5rem 0;">Formatos admitidos: .jpg, .jpeg, .png, .webp (máx. 5 MB)</p>
+                
+                <input id="crearSupplierLogoArchivo" name="LogoArchivo" type="file" accept=".jpg,.jpeg,.png,.webp,image/png,image/jpeg,image/webp" class="form-input"
+                       onchange="previewProductImage(this, 'preview-crear-proveedor', 'crearSupplierPreviewContainer', 'crearSupplierLogoInfo')"
+                       style="width: 100%; padding: 0.4rem; background: white; border-radius: 0.375rem; border: 1px solid var(--purple-200);" />
+
+                <div id="crearSupplierPreviewContainer" style="display: none; margin-top: 0.75rem; text-align: center; background: white; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-200);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span id="crearSupplierLogoInfo" style="font-size: 0.75rem; font-weight: 600; color: var(--purple-800);"></span>
+                        <button type="button" onclick="clearProductImagePreview('crearSupplierLogoArchivo', 'preview-crear-proveedor', 'crearSupplierPreviewContainer', 'crearSupplierLogoInfo')" style="background: none; border: none; color: var(--error); font-size: 0.75rem; font-weight: 600; cursor: pointer;">✕ Quitar</button>
+                    </div>
+                    <img id="preview-crear-proveedor" src="" alt="Vista previa" style="max-height: 120px; max-width: 100%; object-fit: contain; border-radius: 0.375rem; border: 1px solid var(--gray-200);" />
+                </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">
+                <button type="button" onclick="document.getElementById('modal-crear-proveedor').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Guardar Proveedor</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar Proveedor (CAMBIO 4) -->
 <div id="modal-editar-proveedor" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
     <div class="card" style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
@@ -2205,9 +2752,10 @@
             <button type="button" onclick="document.getElementById('modal-editar-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
-        <form id="form-editar-proveedor" asp-controller="Supplier" asp-action="Edit" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <form id="form-editar-proveedor" asp-controller="Supplier" asp-action="Edit" method="post" enctype="multipart/form-data" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
             @Html.AntiForgeryToken()
             <input type="hidden" id="editSupplierId" name="Id" />
+            <input type="hidden" id="editSupplierExistingLogoUrl" name="LogoUrl" />
             
             <div>
                 <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Nombre de la Empresa *</label>
@@ -2235,9 +2783,25 @@
                 </div>
             </div>
 
-            <div>
-                <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">URL del Logo</label>
-                <input id="editSupplierLogoUrl" name="LogoUrl" type="text" class="form-input" placeholder="Opcional (https://...)" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+            <!-- Campo de Edición/Reemplazo de Logo con Vista Previa (CAMBIO 4) -->
+            <div style="background: var(--purple-50); border: 1.5px dashed var(--purple-300); border-radius: 0.5rem; padding: 1rem;">
+                <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; display: block; margin-bottom: 0.25rem;">
+                    📷 Logo del Proveedor
+                </label>
+                <p style="font-size: 0.75rem; color: var(--gray-500); margin: 0 0 0.5rem 0;">Sube un archivo nuevo para reemplazar la imagen actual, o déjalo vacío para conservarla.</p>
+                
+                <input id="editSupplierLogoArchivo" name="LogoArchivo" type="file" accept=".jpg,.jpeg,.png,.webp,image/png,image/jpeg,image/webp" class="form-input"
+                       onchange="previewProductImage(this, 'preview-editar-proveedor', 'editSupplierPreviewContainer', 'editSupplierImageInfo')"
+                       style="width: 100%; padding: 0.4rem; background: white; border-radius: 0.375rem; border: 1px solid var(--purple-200);" />
+
+                <!-- Contenedor Vista Previa -->
+                <div id="editSupplierPreviewContainer" style="display: none; margin-top: 0.75rem; text-align: center; background: white; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-200);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span id="editSupplierImageInfo" style="font-size: 0.75rem; font-weight: 600; color: var(--purple-800);"></span>
+                        <button type="button" onclick="clearProductImagePreview('editSupplierLogoArchivo', 'preview-editar-proveedor', 'editSupplierPreviewContainer', 'editSupplierImageInfo', document.getElementById('editSupplierExistingLogoUrl').value)" style="background: none; border: none; color: var(--purple-700); font-size: 0.75rem; font-weight: 600; cursor: pointer;">↺ Restaurar actual</button>
+                    </div>
+                    <img id="preview-editar-proveedor" src="" alt="Vista previa" style="max-height: 120px; max-width: 100%; object-fit: contain; border-radius: 0.375rem; border: 1px solid var(--gray-200);" />
+                </div>
             </div>
 
             <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 1rem;">

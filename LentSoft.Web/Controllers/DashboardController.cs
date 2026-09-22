@@ -93,9 +93,7 @@ public class DashboardController : Controller
             .Take(10)
             .ToListAsync();
 
-        var productosQuery = _context.Products.AsQueryable();
-        if (!includeInactive) productosQuery = productosQuery.Where(p => p.Activo);
-        var productos = await productosQuery.OrderBy(p => p.Nombre).ToListAsync();
+        var productos = await _context.Products.OrderBy(p => p.Nombre).ToListAsync();
 
         // â”€â”€ Clientes (Paginados y Filtrados) â”€â”€
         var clientesQuery = _context.Users.Where(u => u.Role == "usuario");
@@ -185,6 +183,92 @@ public class DashboardController : Controller
         var (facturasList, facturasTotalCount) = await _invoiceService.GetAllAsync(searchTerm, page, pageSize);
         var pedidosDisponibles = await _invoiceService.GetOrdersAvailableForInvoicingAsync();
 
+        // ── Inventario: Resumen ──
+        // 1. Notificaciones de inventario: Agotados (Stock == 0) y Por agotarse (0 < Stock <= 10)
+        var productosAgotados = await _context.Products
+            .Where(p => p.Stock == 0)
+            .OrderBy(p => p.Nombre)
+            .ToListAsync();
+
+        var productosPorAgotarse = await _context.Products
+            .Where(p => p.Stock > 0 && p.Stock <= 10)
+            .OrderBy(p => p.Stock)
+            .ThenBy(p => p.Nombre)
+            .ToListAsync();
+
+        // 2. Productos más vendidos a partir de OrderItem / SalesOrder
+        var topItems = await _context.OrderItems
+            .Include(oi => oi.Product)
+            .Where(oi => oi.Order.Activo && oi.Order.Estado != "cancelado" && oi.Product != null)
+            .GroupBy(oi => new { oi.ProductId, oi.Product!.Nombre, oi.Product.Categoria, oi.Product.ImagenUrl, oi.Product.Stock, oi.Product.Activo })
+            .Select(g => new TopProductoVendidoViewModel
+            {
+                ProductId = g.Key.ProductId,
+                Nombre = g.Key.Nombre,
+                Categoria = g.Key.Categoria,
+                ImagenUrl = g.Key.ImagenUrl,
+                StockActual = g.Key.Stock,
+                Activo = g.Key.Activo,
+                CantidadVendida = g.Sum(x => x.Cantidad),
+                TotalRecaudado = g.Sum(x => x.Cantidad * x.PrecioUnitario)
+            })
+            .ToListAsync();
+
+        var salesOrders = await _context.SalesOrders
+            .Where(so => so.Activo && so.Estado != "cancelado")
+            .ToListAsync();
+
+        foreach (var so in salesOrders)
+        {
+            var existing = topItems.FirstOrDefault(t => t.Nombre.Equals(so.ProductoNombre, StringComparison.OrdinalIgnoreCase));
+            if (existing != null)
+            {
+                existing.CantidadVendida += so.Cantidad;
+                existing.TotalRecaudado += so.Total > 0 ? so.Total : (so.Cantidad * so.PrecioUnitario);
+            }
+            else
+            {
+                var matchedProd = await _context.Products.FirstOrDefaultAsync(p => p.Nombre.ToLower() == so.ProductoNombre.ToLower());
+                topItems.Add(new TopProductoVendidoViewModel
+                {
+                    ProductId = matchedProd?.Id ?? 0,
+                    Nombre = so.ProductoNombre,
+                    Categoria = matchedProd?.Categoria ?? "general",
+                    ImagenUrl = matchedProd?.ImagenUrl,
+                    StockActual = matchedProd?.Stock ?? 0,
+                    Activo = matchedProd?.Activo ?? true,
+                    CantidadVendida = so.Cantidad,
+                    TotalRecaudado = so.Total > 0 ? so.Total : (so.Cantidad * so.PrecioUnitario)
+                });
+            }
+        }
+
+        var productosMasVendidos = topItems
+            .OrderByDescending(x => x.CantidadVendida)
+            .ThenByDescending(x => x.TotalRecaudado)
+            .Take(10)
+            .ToList();
+
+        // 3. Gráfico de evolución de ventas en el tiempo (últimos 6 meses)
+        var fechaInicioEvolucion = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-5);
+        var pedidosHistoricos = await _context.Orders
+            .Where(o => o.Activo && o.Estado != "cancelado" && o.FechaPedido >= fechaInicioEvolucion)
+            .ToListAsync();
+
+        var evolucionVentas = new List<ChartDataPoint>();
+        for (int i = 5; i >= 0; i--)
+        {
+            var targetDate = now.AddMonths(-i);
+            var mesNombre = targetDate.ToString("MMM yyyy", new System.Globalization.CultureInfo("es-CO"));
+            var pedidosMes = pedidosHistoricos.Where(o => o.FechaPedido.Year == targetDate.Year && o.FechaPedido.Month == targetDate.Month).ToList();
+            evolucionVentas.Add(new ChartDataPoint
+            {
+                Periodo = char.ToUpper(mesNombre[0]) + mesNombre.Substring(1),
+                TotalVentas = pedidosMes.Sum(o => o.Total),
+                CantidadPedidos = pedidosMes.Count
+            });
+        }
+
         var viewModel = new DashboardAdminViewModel
         {
             // Stats
@@ -225,6 +309,12 @@ public class DashboardController : Controller
             FacturasPageSize = pageSize,
             FacturasTotalCount = facturasTotalCount,
             PedidosDisponibles = pedidosDisponibles,
+
+            // Inventario: Resumen
+            EvolucionVentas = evolucionVentas,
+            ProductosMasVendidos = productosMasVendidos,
+            ProductosAgotados = productosAgotados,
+            ProductosPorAgotarse = productosPorAgotarse,
 
             // Proveedores, Historial y Pedidos reales de Inventario
             Proveedores = await _context.Suppliers.Where(s => s.Activo).OrderBy(s => s.Nombre).ToListAsync(),
@@ -777,6 +867,13 @@ public class DashboardController : Controller
             }
             if (targetProduct != null)
             {
+                targetProduct.Stock = Math.Max(0, targetProduct.Stock - model.Cantidad);
+                if (targetProduct.Stock == 0)
+                {
+                    targetProduct.Activo = false;
+                }
+                _context.Products.Update(targetProduct);
+
                 var movement = new InventoryMovement
                 {
                     ProductId = targetProduct.Id,
