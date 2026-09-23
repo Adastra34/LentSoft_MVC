@@ -985,6 +985,37 @@
                             </div>
                         </div>
 
+                        @if (!string.IsNullOrEmpty(hcDetalle.EsferaOD) || !string.IsNullOrEmpty(hcDetalle.EsferaOI))
+                        {
+                            <div style="margin-top: 1rem; border-top: 1px solid var(--purple-200); padding-top: 0.75rem;">
+                                <h3 style="color: var(--purple-800); font-size: 0.95rem; margin-top: 0; margin-bottom: 0.5rem;">👓 Refracción Registrada en Historial</h3>
+                                <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.85rem; background: white; border: 1px solid var(--purple-200); border-radius: 0.25rem;">
+                                    <thead>
+                                        <tr style="background-color: var(--purple-600); color: white;">
+                                            <th style="padding: 0.4rem; border: 1px solid var(--purple-300);">Ojo</th>
+                                            <th style="padding: 0.4rem; border: 1px solid var(--purple-300);">Esfera</th>
+                                            <th style="padding: 0.4rem; border: 1px solid var(--purple-300);">Cilindro</th>
+                                            <th style="padding: 0.4rem; border: 1px solid var(--purple-300);">Eje</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="padding: 0.4rem; border: 1px solid var(--purple-200); font-weight: 600;">OD</td>
+                                            <td style="padding: 0.4rem; border: 1px solid var(--purple-200);">@(hcDetalle.EsferaOD ?? "-")</td>
+                                            <td style="padding: 0.4rem; border: 1px solid var(--purple-200);">@(hcDetalle.CilindroOD ?? "-")</td>
+                                            <td style="padding: 0.4rem; border: 1px solid var(--purple-200);">@(hcDetalle.EjeOD ?? "-")</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 0.4rem; border: 1px solid var(--purple-200); font-weight: 600;">OI</td>
+                                            <td style="padding: 0.4rem; border: 1px solid var(--purple-200);">@(hcDetalle.EsferaOI ?? "-")</td>
+                                            <td style="padding: 0.4rem; border: 1px solid var(--purple-200);">@(hcDetalle.CilindroOI ?? "-")</td>
+                                            <td style="padding: 0.4rem; border: 1px solid var(--purple-200);">@(hcDetalle.EjeOI ?? "-")</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+
                         <!-- Enlace a Fórmula Óptica -->
                         <div style="border-top: 1.5px dashed var(--purple-300); padding-top: 1rem; margin-top: 1rem;">
                             <h3 style="color: var(--purple-800); font-size: 1rem; margin-top: 0; margin-bottom: 0.5rem;">👓 Fórmula Óptica Reciente del Paciente</h3>
@@ -1139,6 +1170,12 @@
                                                         data-examenes="@(h.ExamenesRealizados ?? "")"
                                                         data-observaciones="@(h.Observaciones ?? "")"
                                                         data-estado="@(h.Estado ?? "Activo")"
+                                                        data-esferaod="@(h.EsferaOD ?? "")"
+                                                        data-cilindrood="@(h.CilindroOD ?? "")"
+                                                        data-ejeod="@(h.EjeOD ?? "")"
+                                                        data-esferaoi="@(h.EsferaOI ?? "")"
+                                                        data-cilindrooi="@(h.CilindroOI ?? "")"
+                                                        data-ejeoi="@(h.EjeOI ?? "")"
                                                         class="btn-action-icon btn-action-edit" title="Editar">
                                                     ✏️ Editar
                                                 </button>
@@ -1204,6 +1241,29 @@
                             <textarea name="Tratamiento" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2" required></textarea>
                         </div>
 
+                        <!-- Refracción Clínica (Receta) -->
+                        <div style="border: 1px solid var(--purple-100); border-radius: 0.375rem; padding: 0.75rem; background-color: var(--purple-50);">
+                            <h3 style="margin-top:0; margin-bottom:0.5rem; font-size:0.875rem; color:var(--purple-800);">Refracción Clínica / Receta (Opcional)</h3>
+                            <div style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 0.5rem; align-items:center; text-align:center; font-size:0.75rem; font-weight:600;">
+                                <div>Ojo</div>
+                                <div>Esfera</div>
+                                <div>Cilindro</div>
+                                <div>Eje</div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 0.5rem; align-items:center; margin-top:0.25rem;">
+                                <div style="font-size:0.8rem; font-weight:600; text-align:center;">OD</div>
+                                <input name="EsferaOD" placeholder="-0.25" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                                <input name="CilindroOD" placeholder="-0.50" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                                <input name="EjeOD" placeholder="180" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                            </div>
+                            <div style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 0.5rem; align-items:center; margin-top:0.25rem;">
+                                <div style="font-size:0.8rem; font-weight:600; text-align:center;">OI</div>
+                                <input name="EsferaOI" placeholder="-0.25" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                                <input name="CilindroOI" placeholder="-0.50" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                                <input name="EjeOI" placeholder="175" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                            </div>
+                        </div>
+
                         <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                             <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Observaciones Generales</label>
                             <textarea name="Observaciones" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
@@ -1262,6 +1322,29 @@
                         <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                             <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Tratamiento</label>
                             <textarea name="Tratamiento" id="edit-historial-tratamiento" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2" required></textarea>
+                        </div>
+
+                        <!-- Refracción Clínica (Receta) -->
+                        <div style="border: 1px solid var(--purple-100); border-radius: 0.375rem; padding: 0.75rem; background-color: var(--purple-50);">
+                            <h3 style="margin-top:0; margin-bottom:0.5rem; font-size:0.875rem; color:var(--purple-800);">Refracción Clínica / Receta (Opcional)</h3>
+                            <div style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 0.5rem; align-items:center; text-align:center; font-size:0.75rem; font-weight:600;">
+                                <div>Ojo</div>
+                                <div>Esfera</div>
+                                <div>Cilindro</div>
+                                <div>Eje</div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 0.5rem; align-items:center; margin-top:0.25rem;">
+                                <div style="font-size:0.8rem; font-weight:600; text-align:center;">OD</div>
+                                <input name="EsferaOD" id="edit-historial-esferaod" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                                <input name="CilindroOD" id="edit-historial-cilindrood" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                                <input name="EjeOD" id="edit-historial-ejeod" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                            </div>
+                            <div style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 0.5rem; align-items:center; margin-top:0.25rem;">
+                                <div style="font-size:0.8rem; font-weight:600; text-align:center;">OI</div>
+                                <input name="EsferaOI" id="edit-historial-esferaoi" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                                <input name="CilindroOI" id="edit-historial-cilindrooi" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                                <input name="EjeOI" id="edit-historial-ejeoi" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                            </div>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -1417,98 +1500,112 @@
             </div>
 
 
-            <!-- Modal para Ver Examen Clínico Detallado (Solo Lectura) -->
+            <!-- Modal para Ver Examen Clínico Detallado (Solo Lectura - Unificado con Fórmula) -->
             <div id="modal-ver-examen" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
-                <div style="width: 100%; max-width: 650px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--purple-100); padding-bottom: 0.5rem;">
-                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Resultados de Examen Clínico Visual</h2>
-                        <button onclick="document.getElementById('modal-ver-examen').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
-                    </div>
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem; margin-bottom: 1rem;">
-                        <p><strong>Paciente:</strong> <span id="ver-examen-paciente"></span></p>
-                        <p><strong>Fecha Examen:</strong> <span id="ver-examen-fecha"></span></p>
-                        <p><strong>Tipo de Examen:</strong> <span id="ver-examen-tipoexamen"></span></p>
-                    </div>
-
-                    <!-- Agudeza Visual & Tonometría -->
-                    <div style="border: 1px solid var(--purple-200); border-radius: 0.375rem; padding: 1rem; margin-bottom: 1rem; background-color: var(--purple-50);">
-                        <h3 style="margin-top:0; margin-bottom:0.75rem; font-size:0.95rem; color: var(--purple-900);">👁️ Agudeza Visual & Tonometría</h3>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.875rem;">
+                <div style="width: 100%; max-width: 650px; background: white; border-radius: 0.5rem; padding: 2rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 95vh; overflow-y: auto;" id="examen-imprimible">
+                    
+                    <!-- Formato Clínico Unificado -->
+                    <div style="border: 2px solid var(--purple-600); padding: 1.5rem; border-radius: 0.375rem; background-color: white;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.75rem; margin-bottom: 1rem;">
                             <div>
-                                <p><strong>Agudeza OD:</strong> <span id="ver-examen-ojoderecho"></span></p>
-                                <p><strong>Tonometría OD:</strong> <span id="ver-examen-tonometriaod"></span></p>
+                                <h2 style="color: var(--purple-900); margin: 0; font-size: 1.5rem; font-family: var(--font-primary, sans-serif); font-weight:700;">LentSoft Optometría</h2>
+                                <p style="margin:0; font-size:0.8rem; color:var(--gray-600);">Clínica de Especialidades Visuales</p>
                             </div>
-                            <div>
-                                <p><strong>Agudeza OI:</strong> <span id="ver-examen-ojoizquierdo"></span></p>
-                                <p><strong>Tonometría OI:</strong> <span id="ver-examen-tonometriaoi"></span></p>
+                            <div style="text-align:right;">
+                                <h3 style="color: var(--purple-600); margin:0; font-size: 1rem; font-weight:700;">INFORME DE EXAMEN CLÍNICO</h3>
+                                <p style="margin:0; font-size:0.75rem; color:var(--gray-600);">Examen #EXA-<span id="ver-examen-id"></span></p>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Refracción Clinica (Tabla) -->
-                    <div style="border: 1px solid var(--purple-200); border-radius: 0.375rem; padding: 1rem; margin-bottom: 1rem;">
-                        <h3 style="margin-top:0; margin-bottom:0.75rem; font-size:0.95rem; color: var(--purple-900);">👓 Refracción Clínica</h3>
-                        <table style="width:100%; border-collapse:collapse; text-align:center; font-size:0.85rem;">
+                        <!-- Información Paciente -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.85rem; margin-bottom: 1rem; background-color: var(--purple-50); padding: 0.75rem; border-radius:0.25rem;">
+                            <p style="margin:0;"><strong>Paciente:</strong> <span id="ver-examen-paciente"></span></p>
+                            <p style="margin:0;"><strong>Fecha del Examen:</strong> <span id="ver-examen-fecha"></span></p>
+                            <p style="margin:0; grid-column: span 2;"><strong>Tipo de Examen:</strong> <span id="ver-examen-tipoexamen" style="font-weight:600; color:var(--purple-800);"></span></p>
+                        </div>
+
+                        <!-- Agudeza Visual & Tonometría -->
+                        <div style="border: 1px solid var(--purple-200); border-radius: 0.375rem; padding: 0.75rem; margin-bottom: 1rem; background-color: #FAF5FF;">
+                            <h4 style="margin-top:0; margin-bottom:0.5rem; font-size:0.85rem; color: var(--purple-900);">👁️ 1. Agudeza Visual & Tonometría</h4>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.825rem;">
+                                <div style="background: white; padding: 0.5rem; border-radius: 0.25rem; border: 1px solid var(--purple-200);">
+                                    <p style="margin:0 0 0.25rem 0; font-weight:600; color:var(--purple-800);">Ojo Derecho (OD):</p>
+                                    <p style="margin:0;">Agudeza: <span id="ver-examen-ojoderecho" style="font-weight:600;"></span></p>
+                                    <p style="margin:0;">Tonometría: <span id="ver-examen-tonometriaod" style="font-weight:600;"></span></p>
+                                </div>
+                                <div style="background: white; padding: 0.5rem; border-radius: 0.25rem; border: 1px solid var(--purple-200);">
+                                    <p style="margin:0 0 0.25rem 0; font-weight:600; color:var(--purple-800);">Ojo Izquierdo (OI):</p>
+                                    <p style="margin:0;">Agudeza: <span id="ver-examen-ojoizquierdo" style="font-weight:600;"></span></p>
+                                    <p style="margin:0;">Tonometría: <span id="ver-examen-tonometriaoi" style="font-weight:600;"></span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Grilla de Refracción Visual (Mismo estilo que Fórmula) -->
+                        <h4 style="margin-top:0; margin-bottom:0.5rem; font-size:0.85rem; color: var(--purple-900);">👓 2. Refracción Clínica</h4>
+                        <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.85rem; margin-bottom: 1rem;">
                             <thead>
-                                <tr style="background-color: var(--purple-100); font-weight:600;">
-                                    <th style="padding:0.4rem; border:1px solid var(--purple-200);">Ojo</th>
-                                    <th style="padding:0.4rem; border:1px solid var(--purple-200);">Esfera</th>
-                                    <th style="padding:0.4rem; border:1px solid var(--purple-200);">Cilindro</th>
-                                    <th style="padding:0.4rem; border:1px solid var(--purple-200);">Eje</th>
-                                    <th style="padding:0.4rem; border:1px solid var(--purple-200);">Adición</th>
+                                <tr style="background-color: var(--purple-600); color: white; font-weight:600;">
+                                    <th style="padding: 0.5rem; border: 1px solid var(--purple-300);">Ojo</th>
+                                    <th style="padding: 0.5rem; border: 1px solid var(--purple-300);">Esfera (SPH)</th>
+                                    <th style="padding: 0.5rem; border: 1px solid var(--purple-300);">Cilindro (CYL)</th>
+                                    <th style="padding: 0.5rem; border: 1px solid var(--purple-300);">Eje (AXIS)</th>
+                                    <th style="padding: 0.5rem; border: 1px solid var(--purple-300);">Adición (ADD)</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td style="padding:0.4rem; border:1px solid var(--purple-200); font-weight:600;">OD</td>
-                                    <td style="padding:0.4rem; border:1px solid var(--purple-200);" id="ver-examen-esferaod"></td>
-                                    <td style="padding:0.4rem; border:1px solid var(--purple-200);" id="ver-examen-cilindrood"></td>
-                                    <td style="padding:0.4rem; border:1px solid var(--purple-200);" id="ver-examen-ejeod"></td>
-                                    <td style="padding:0.4rem; border:1px solid var(--purple-200);" id="ver-examen-adicionod"></td>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200); font-weight:600;">Ojo Derecho (OD)</td>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200);" id="ver-examen-esferaod"></td>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200);" id="ver-examen-cilindrood"></td>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200);" id="ver-examen-ejeod"></td>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200);" id="ver-examen-adicionod"></td>
                                 </tr>
                                 <tr>
-                                    <td style="padding:0.4rem; border:1px solid var(--purple-200); font-weight:600;">OI</td>
-                                    <td style="padding:0.4rem; border:1px solid var(--purple-200);" id="ver-examen-esferaoi"></td>
-                                    <td style="padding:0.4rem; border:1px solid var(--purple-200);" id="ver-examen-cilindrooi"></td>
-                                    <td style="padding:0.4rem; border:1px solid var(--purple-200);" id="ver-examen-ejeoi"></td>
-                                    <td style="padding:0.4rem; border:1px solid var(--purple-200);" id="ver-examen-adicionoi"></td>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200); font-weight:600;">Ojo Izquierdo (OI)</td>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200);" id="ver-examen-esferaoi"></td>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200);" id="ver-examen-cilindrooi"></td>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200);" id="ver-examen-ejeoi"></td>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200);" id="ver-examen-adicionoi"></td>
                                 </tr>
                             </tbody>
                         </table>
+
+                        <!-- Biomicroscopía -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.85rem; margin-bottom: 1rem;">
+                            <div>
+                                <p style="margin:0 0 0.25rem 0;"><strong>Segmento Anterior:</strong></p>
+                                <div id="ver-examen-segmentoanterior" style="background-color: var(--purple-50); padding: 0.5rem; border-radius: 0.25rem; font-style: italic; min-height: 40px; border: 1px solid var(--purple-100);"></div>
+                            </div>
+                            <div>
+                                <p style="margin:0 0 0.25rem 0;"><strong>Segmento Posterior / Fondo:</strong></p>
+                                <div id="ver-examen-segmentoposterior" style="background-color: var(--purple-50); padding: 0.5rem; border-radius: 0.25rem; font-style: italic; min-height: 40px; border: 1px solid var(--purple-100);"></div>
+                            </div>
+                        </div>
+
+                        <!-- Diagnóstico y Tratamiento -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.85rem; margin-bottom: 1rem; border-top: 1px solid var(--purple-200); padding-top: 0.75rem;">
+                            <div>
+                                <p style="margin:0 0 0.25rem 0;"><strong>Diagnóstico Clínico:</strong></p>
+                                <div id="ver-examen-diagnostico" style="font-weight: 600; color: var(--purple-950); background: white; padding: 0.5rem; border-radius: 0.25rem; border: 1px solid var(--purple-200);"></div>
+                            </div>
+                            <div>
+                                <p style="margin:0 0 0.25rem 0;"><strong>Tratamiento / Plan:</strong></p>
+                                <div id="ver-examen-tratamiento" style="font-weight: 600; color: var(--purple-950); background: white; padding: 0.5rem; border-radius: 0.25rem; border: 1px solid var(--purple-200);"></div>
+                            </div>
+                        </div>
+
+                        <!-- Observaciones -->
+                        <div style="font-size: 0.85rem; border-top: 1px dashed var(--purple-300); padding-top: 0.75rem;">
+                            <p style="margin:0 0 0.25rem 0; font-weight:600;">Observaciones y Recomendaciones:</p>
+                            <p style="font-style: italic; color: var(--gray-700); margin:0;" id="ver-examen-observaciones"></p>
+                        </div>
                     </div>
 
-                    <!-- Biomicroscopía Segmentos -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.875rem; margin-bottom: 1rem;">
-                        <div>
-                            <p><strong>Segmento Anterior:</strong></p>
-                            <p id="ver-examen-segmentoanterior" style="background-color: var(--purple-50); padding: 0.5rem; border-radius: 0.25rem; font-style: italic; min-height: 50px; margin: 0;"></p>
-                        </div>
-                        <div>
-                            <p><strong>Segmento Posterior / Fondo Ojo:</strong></p>
-                            <p id="ver-examen-segmentoposterior" style="background-color: var(--purple-50); padding: 0.5rem; border-radius: 0.25rem; font-style: italic; min-height: 50px; margin: 0;"></p>
-                        </div>
-                    </div>
-
-                    <!-- Diagnóstico y Tratamiento -->
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.875rem; margin-bottom: 1rem; border-top: 1px solid var(--purple-100); padding-top: 1rem;">
-                        <div>
-                            <p><strong>Diagnóstico Clínico:</strong></p>
-                            <p id="ver-examen-diagnostico" style="font-weight: 600; color: var(--purple-950); margin: 0;"></p>
-                        </div>
-                        <div>
-                            <p><strong>Tratamiento / Plan:</strong></p>
-                            <p id="ver-examen-tratamiento" style="font-weight: 600; color: var(--purple-950); margin: 0;"></p>
-                        </div>
-                    </div>
-
-                    <div style="margin-top: 1rem; border-top: 1px solid var(--purple-100); padding-top: 0.5rem; font-size: 0.875rem;">
-                        <p><strong>Observaciones:</strong></p>
-                        <p id="ver-examen-observaciones" style="color: var(--gray-700); margin: 0; font-style: italic;"></p>
-                    </div>
-
-                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <!-- Botones de Acción (no-print) -->
+                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;" class="no-print">
                         <button type="button" onclick="document.getElementById('modal-ver-examen').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer; font-weight: 600;">Cerrar</button>
+                        <button type="button" onclick="window.print()" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">🖨️ Imprimir</button>
                     </div>
                 </div>
             </div>
@@ -1576,7 +1673,7 @@
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.8rem; font-weight: 600; color: var(--gray-700);">Fecha del Examen</label>
-                                <input name="Fecha" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" style="padding: 0.45rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                                <input name="Fecha" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" value="@DateTime.Today.ToString("yyyy-MM-dd")" style="padding: 0.45rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
                             </div>
                         </div>
 
@@ -1638,15 +1735,27 @@
                             </div>
                         </div>
 
-                        <!-- Biomicroscopía -->
+                        <!-- Biomicroscopía con Datalists -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.8rem; font-weight: 600; color: var(--gray-700);">Segmento Anterior</label>
-                                <textarea name="SegmentoAnterior" placeholder="Córnea, iris, cristalino..." style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="1"></textarea>
+                                <input name="SegmentoAnterior" list="datalist-segmento-anterior" placeholder="Córnea, conjuntiva, cristalino..." type="text" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" />
+                                <datalist id="datalist-segmento-anterior">
+                                    <option value="Córnea transparente, cámara anterior normal" />
+                                    <option value="Conjuntiva normal, sin hiperemia" />
+                                    <option value="Cristalino transparente" />
+                                    <option value="Pupilas isocóricas y normorreactivas" />
+                                </datalist>
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.8rem; font-weight: 600; color: var(--gray-700);">Segmento Posterior / Fondo</label>
-                                <textarea name="SegmentoPosterior" placeholder="Papila, mácula, retina..." style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="1"></textarea>
+                                <input name="SegmentoPosterior" list="datalist-segmento-posterior" placeholder="Retina, papila, mácula..." type="text" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" />
+                                <datalist id="datalist-segmento-posterior">
+                                    <option value="Retina aplicada, sin alteraciones" />
+                                    <option value="Papila de bordes definidos" />
+                                    <option value="Mácula sin alteraciones" />
+                                    <option value="Vítreo transparente" />
+                                </datalist>
                             </div>
                         </div>
 
@@ -1738,7 +1847,7 @@
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.8rem; font-weight: 600; color: var(--gray-700);">Fecha del Examen</label>
-                                <input name="Fecha" id="edit-examen-fecha" type="date" style="padding: 0.45rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                                <input name="Fecha" id="edit-examen-fecha" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" style="padding: 0.45rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
                             </div>
                         </div>
 
@@ -1800,15 +1909,15 @@
                             </div>
                         </div>
 
-                        <!-- Biomicroscopía -->
+                        <!-- Biomicroscopía con Datalists -->
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.8rem; font-weight: 600; color: var(--gray-700);">Segmento Anterior</label>
-                                <textarea name="SegmentoAnterior" id="edit-examen-segmentoanterior" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="1"></textarea>
+                                <input name="SegmentoAnterior" id="edit-examen-segmentoanterior" list="datalist-segmento-anterior" placeholder="Córnea, conjuntiva, cristalino..." type="text" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" />
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.8rem; font-weight: 600; color: var(--gray-700);">Segmento Posterior / Fondo</label>
-                                <textarea name="SegmentoPosterior" id="edit-examen-segmentoposterior" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="1"></textarea>
+                                <input name="SegmentoPosterior" id="edit-examen-segmentoposterior" list="datalist-segmento-posterior" placeholder="Retina, papila, mácula..." type="text" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" />
                             </div>
                         </div>
 
@@ -1842,7 +1951,7 @@
         {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Fórmulas Ópticas</h1>
-                <button onclick="document.getElementById('modal-nueva-formula').style.display='flex'" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.6rem 1rem; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                <button onclick="abrirModalNuevaFormula()" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.6rem 1rem; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
                     👓 + Nueva Fórmula
                 </button>
             </div>
@@ -1930,6 +2039,8 @@
                                                 <button onclick="abrirModalEditarFormula(this)"
                                                         data-id="@f.Id"
                                                         data-userid="@f.UserId"
+                                                        data-paciente="@(f.User?.NombreCompleto ?? "")"
+                                                        data-documento="@(f.User?.NumeroDocumento ?? "")"
                                                         data-fecha="@f.Fecha.ToString("yyyy-MM-dd")"
                                                         data-esferaod="@f.EsferaOD"
                                                         data-cilindrood="@f.CilindroOD"
@@ -2053,22 +2164,67 @@
                         <button onclick="document.getElementById('modal-nueva-formula').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
                     </div>
 
-                    <form asp-controller="Optometra" asp-action="CreateFormula" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+                    <form asp-controller="Optometra" asp-action="CreateFormula" method="post" id="form-nueva-formula" onsubmit="return validateNuevoFormulaForm(this)" style="display:flex; flex-direction:column; gap:1rem;">
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
-                                <select name="UserId" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
-                                    @foreach (var cli in Model.Pacientes)
-                                    {
-                                        <option value="@cli.Id">@cli.NombreCompleto</option>
-                                    }
-                                </select>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem; position: relative;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente *</label>
+                                <div style="position: relative;" id="wrapper-nuevo-formula-paciente">
+                                    <div style="position: relative; display: flex; align-items: center;">
+                                        <span style="position: absolute; left: 0.6rem; color: var(--purple-500); font-size: 0.85rem; pointer-events: none;">🔍</span>
+                                        <input type="text"
+                                               id="search-nuevo-formula-paciente"
+                                               placeholder="Buscar paciente por nombre..."
+                                               autocomplete="off"
+                                               style="width: 100%; padding: 0.5rem 2rem 0.5rem 2rem; border: 1.5px solid var(--purple-200); border-radius: 0.375rem; font-size: 0.85rem; background: white;"
+                                               onfocus="mostrarListaPacientes('nuevo-formula')"
+                                               oninput="filtrarPacientesModal('nuevo-formula')" />
+                                        <button type="button"
+                                                id="clear-nuevo-formula-paciente"
+                                                onclick="limpiarPacienteSeleccionado('nuevo-formula')"
+                                                style="display: none; position: absolute; right: 0.5rem; background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 0.9rem; padding: 0 0.25rem;"
+                                                title="Limpiar selección">✕</button>
+                                    </div>
+                                    <input type="hidden" name="UserId" id="hidden-nuevo-formula-userid" />
+
+                                    <!-- Floating Dropdown Results -->
+                                    <div id="dropdown-nuevo-formula-pacientes"
+                                         style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: white; border: 1.5px solid var(--purple-300); border-radius: 0.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.18); max-height: 200px; overflow-y: auto; z-index: 1050;">
+                                        @foreach (var cli in Model.Pacientes)
+                                        {
+                                            <div class="patient-opt-item"
+                                                 data-id="@cli.Id"
+                                                 data-nombre="@cli.NombreCompleto"
+                                                 data-doc="@(cli.NumeroDocumento ?? "")"
+                                                 onclick="seleccionarPacienteModal('nuevo-formula', @cli.Id, '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(cli.NombreCompleto))', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(cli.NumeroDocumento ?? ""))')">
+                                                <div>
+                                                    <span style="font-weight: 600; color: var(--purple-950);">@cli.NombreCompleto</span>
+                                                    @if (!string.IsNullOrEmpty(cli.NumeroDocumento))
+                                                    {
+                                                        <span style="font-size: 0.75rem; color: var(--gray-500); margin-left: 0.5rem;">Doc: @cli.NumeroDocumento</span>
+                                                    }
+                                                </div>
+                                                <span style="font-size: 0.75rem; color: var(--purple-600); font-weight: 600;">Elegir</span>
+                                            </div>
+                                        }
+                                        <div id="no-patients-nuevo-formula" style="display: none; padding: 0.75rem; text-align: center; color: var(--gray-500); font-size: 0.8rem; font-style: italic;">
+                                            No se encontró ningún paciente con ese nombre.
+                                        </div>
+                                    </div>
+                                    <div id="badge-nuevo-formula-paciente" style="display: none; margin-top: 0.25rem; font-size: 0.75rem; color: #047857; font-weight: 600;">
+                                        ✓ Seleccionado: <span id="badge-name-nuevo-formula"></span>
+                                    </div>
+                                </div>
                             </div>
 
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha de Emisión</label>
                                 <input name="Fecha" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
                             </div>
+                        </div>
+
+                        <!-- Notificación de precarga de refracción -->
+                        <div id="aviso-auto-refraccion" style="display:none; font-size: 0.75rem; color: var(--purple-700); background: var(--purple-50); border: 1px solid var(--purple-200); padding: 0.4rem 0.6rem; border-radius: 0.25rem;">
+                            ✨ Datos de refracción precargados desde el último examen visual. Son totalmente editables.
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -2093,15 +2249,15 @@
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Esfera</label>
-                                <input name="EsferaOD" placeholder="Ej: -1.25" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                                <input name="EsferaOD" id="new-formula-esferaod" placeholder="Ej: -1.25" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Cilindro</label>
-                                <input name="CilindroOD" placeholder="Ej: -0.50" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                                <input name="CilindroOD" id="new-formula-cilindrood" placeholder="Ej: -0.50" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Eje</label>
-                                <input name="EjeOD" placeholder="Ej: 180" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                                <input name="EjeOD" id="new-formula-ejeod" placeholder="Ej: 180" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
                             </div>
                         </div>
 
@@ -2109,15 +2265,15 @@
                         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Esfera</label>
-                                <input name="EsferaOI" placeholder="Ej: -1.50" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                                <input name="EsferaOI" id="new-formula-esferaoi" placeholder="Ej: -1.50" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Cilindro</label>
-                                <input name="CilindroOI" placeholder="Ej: -0.75" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                                <input name="CilindroOI" id="new-formula-cilindrooi" placeholder="Ej: -0.75" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Eje</label>
-                                <input name="EjeOI" placeholder="Ej: 175" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                                <input name="EjeOI" id="new-formula-ejeoi" placeholder="Ej: 175" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
                             </div>
                         </div>
 
@@ -2142,18 +2298,58 @@
                         <button onclick="document.getElementById('modal-editar-formula').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
                     </div>
 
-                    <form asp-controller="Optometra" asp-action="EditFormula" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+                    <form asp-controller="Optometra" asp-action="EditFormula" method="post" style="display:flex; flex-direction:column; gap:1rem;" onsubmit="return validateEditFormulaForm(this)">
                         <input type="hidden" name="Id" id="edit-formula-id" />
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
-                                <select name="UserId" id="edit-formula-userid" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
-                                    @foreach (var cli in Model.Pacientes)
-                                    {
-                                        <option value="@cli.Id">@cli.NombreCompleto</option>
-                                    }
-                                </select>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem; position: relative;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente *</label>
+                                <div style="position: relative;" id="wrapper-edit-formula-paciente">
+                                    <div style="position: relative; display: flex; align-items: center;">
+                                        <span style="position: absolute; left: 0.6rem; color: var(--purple-500); font-size: 0.85rem; pointer-events: none;">🔍</span>
+                                        <input type="text"
+                                               id="search-edit-formula-paciente"
+                                               placeholder="Buscar paciente por nombre..."
+                                               autocomplete="off"
+                                               style="width: 100%; padding: 0.5rem 2rem 0.5rem 2rem; border: 1.5px solid var(--purple-200); border-radius: 0.375rem; font-size: 0.85rem; background: white;"
+                                               onfocus="mostrarListaPacientes('edit-formula')"
+                                               oninput="filtrarPacientesModal('edit-formula')" />
+                                        <button type="button"
+                                                id="clear-edit-formula-paciente"
+                                                onclick="limpiarPacienteSeleccionado('edit-formula')"
+                                                style="display: none; position: absolute; right: 0.5rem; background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 0.9rem; padding: 0 0.25rem;"
+                                                title="Limpiar selección">✕</button>
+                                    </div>
+                                    <input type="hidden" name="UserId" id="edit-formula-userid" />
+
+                                    <!-- Floating Dropdown Results -->
+                                    <div id="dropdown-edit-formula-pacientes"
+                                         style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: white; border: 1.5px solid var(--purple-300); border-radius: 0.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.18); max-height: 200px; overflow-y: auto; z-index: 1050;">
+                                        @foreach (var cli in Model.Pacientes)
+                                        {
+                                            <div class="patient-opt-item"
+                                                 data-id="@cli.Id"
+                                                 data-nombre="@cli.NombreCompleto"
+                                                 data-doc="@(cli.NumeroDocumento ?? "")"
+                                                 onclick="seleccionarPacienteModal('edit-formula', @cli.Id, '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(cli.NombreCompleto))', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(cli.NumeroDocumento ?? ""))')">
+                                                <div>
+                                                    <span style="font-weight: 600; color: var(--purple-950);">@cli.NombreCompleto</span>
+                                                    @if (!string.IsNullOrEmpty(cli.NumeroDocumento))
+                                                    {
+                                                        <span style="font-size: 0.75rem; color: var(--gray-500); margin-left: 0.5rem;">Doc: @cli.NumeroDocumento</span>
+                                                    }
+                                                </div>
+                                                <span style="font-size: 0.75rem; color: var(--purple-600); font-weight: 600;">Elegir</span>
+                                            </div>
+                                        }
+                                        <div id="no-patients-edit-formula" style="display: none; padding: 0.75rem; text-align: center; color: var(--gray-500); font-size: 0.8rem; font-style: italic;">
+                                            No se encontró ningún paciente con ese nombre.
+                                        </div>
+                                    </div>
+                                    <div id="badge-edit-formula-paciente" style="display: none; margin-top: 0.25rem; font-size: 0.75rem; color: #047857; font-weight: 600;">
+                                        ✓ Seleccionado: <span id="badge-name-edit-formula"></span>
+                                    </div>
+                                </div>
                             </div>
 
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
@@ -2685,6 +2881,15 @@
         if (obs) obs.value = btn.getAttribute('data-observaciones') || '';
         var est = document.getElementById('edit-historial-estado');
         if (est) est.value = btn.getAttribute('data-estado') || 'Activo';
+
+        // Campos de refracción
+        var eod = document.getElementById('edit-historial-esferaod'); if (eod) eod.value = btn.getAttribute('data-esferaod') || '';
+        var cod = document.getElementById('edit-historial-cilindrood'); if (cod) cod.value = btn.getAttribute('data-cilindrood') || '';
+        var ejod = document.getElementById('edit-historial-ejeod'); if (ejod) ejod.value = btn.getAttribute('data-ejeod') || '';
+        var eoi = document.getElementById('edit-historial-esferaoi'); if (eoi) eoi.value = btn.getAttribute('data-esferaoi') || '';
+        var coi = document.getElementById('edit-historial-cilindrooi'); if (coi) coi.value = btn.getAttribute('data-cilindrooi') || '';
+        var ejoi = document.getElementById('edit-historial-ejeoi'); if (ejoi) ejoi.value = btn.getAttribute('data-ejeoi') || '';
+
         document.getElementById('modal-editar-historial').style.display = 'flex';
     }
 
@@ -2773,8 +2978,8 @@
     }
 
     function seleccionarPacienteModal(prefix, id, nombre, doc) {
-        const hiddenId = prefix === 'nuevo-examen' ? 'hidden-nuevo-examen-userid' : 'edit-examen-userid';
-        const hiddenInput = document.getElementById(hiddenId);
+        const hiddenInput = document.getElementById('hidden-' + prefix + '-userid') 
+                         || document.getElementById(prefix + '-userid');
         const searchInput = document.getElementById('search-' + prefix + '-paciente');
         const clearBtn = document.getElementById('clear-' + prefix + '-paciente');
         const dd = document.getElementById('dropdown-' + prefix + '-pacientes');
@@ -2789,11 +2994,16 @@
             badgeName.textContent = doc ? nombre + ' (Doc: ' + doc + ')' : nombre;
             badge.style.display = 'block';
         }
+
+        // TAREA 5: Si estamos en "Nueva Fórmula", autollenar datos de refracción desde el último examen
+        if (prefix === 'nuevo-formula' && id) {
+            cargarRefraccionUltimoExamen(id);
+        }
     }
 
     function limpiarPacienteSeleccionado(prefix) {
-        const hiddenId = prefix === 'nuevo-examen' ? 'hidden-nuevo-examen-userid' : 'edit-examen-userid';
-        const hiddenInput = document.getElementById(hiddenId);
+        const hiddenInput = document.getElementById('hidden-' + prefix + '-userid') 
+                         || document.getElementById(prefix + '-userid');
         const searchInput = document.getElementById('search-' + prefix + '-paciente');
         const clearBtn = document.getElementById('clear-' + prefix + '-paciente');
         const badge = document.getElementById('badge-' + prefix + '-paciente');
@@ -2810,6 +3020,54 @@
             dd.style.display = 'block';
             filtrarPacientesModal(prefix);
         }
+
+        if (prefix === 'nuevo-formula') {
+            const aviso = document.getElementById('aviso-auto-refraccion');
+            if (aviso) aviso.style.display = 'none';
+        }
+    }
+
+    function cargarRefraccionUltimoExamen(userId) {
+        fetch('/Optometra/GetUltimoExamenPorPaciente?userId=' + encodeURIComponent(userId))
+            .then(function(res) { return res.json(); })
+            .then(function(data) {
+                const aviso = document.getElementById('aviso-auto-refraccion');
+                if (data && data.encontrado && data.examen) {
+                    const ex = data.examen;
+                    const esferaOD = document.getElementById('new-formula-esferaod');
+                    const cilOD = document.getElementById('new-formula-cilindrood');
+                    const ejeOD = document.getElementById('new-formula-ejeod');
+                    const esferaOI = document.getElementById('new-formula-esferaoi');
+                    const cilOI = document.getElementById('new-formula-cilindrooi');
+                    const ejeOI = document.getElementById('new-formula-ejeoi');
+
+                    if (esferaOD && ex.esferaOD) esferaOD.value = ex.esferaOD;
+                    if (cilOD && ex.cilindroOD) cilOD.value = ex.cilindroOD;
+                    if (ejeOD && ex.ejeOD) ejeOD.value = ex.ejeOD;
+                    if (esferaOI && ex.esferaOI) esferaOI.value = ex.esferaOI;
+                    if (cilOI && ex.cilindroOI) cilOI.value = ex.cilindroOI;
+                    if (ejeOI && ex.ejeOI) ejeOI.value = ex.ejeOI;
+
+                    if (aviso) {
+                        aviso.textContent = '✨ Datos de refracción precargados desde el último examen visual (' + ex.fecha + '). Son totalmente editables.';
+                        aviso.style.display = 'block';
+                    }
+                } else {
+                    if (aviso) aviso.style.display = 'none';
+                }
+            })
+            .catch(function(err) {
+                console.error('Error al consultar el último examen:', err);
+            });
+    }
+
+    function abrirModalNuevaFormula() {
+        limpiarPacienteSeleccionado('nuevo-formula');
+        const f = document.getElementById('form-nueva-formula');
+        if (f) f.reset();
+        const aviso = document.getElementById('aviso-auto-refraccion');
+        if (aviso) aviso.style.display = 'none';
+        document.getElementById('modal-nueva-formula').style.display = 'flex';
     }
 
     function validateNuevoExamenForm(form) {
@@ -2852,6 +3110,36 @@
         return true;
     }
 
+    function validateNuevoFormulaForm(form) {
+        const hiddenUserId = document.getElementById('hidden-nuevo-formula-userid');
+        if (!hiddenUserId || !hiddenUserId.value) {
+            if (typeof alertify !== 'undefined') {
+                alertify.error('Por favor busque y seleccione un paciente.');
+            } else {
+                alert('Por favor busque y seleccione un paciente.');
+            }
+            const input = document.getElementById('search-nuevo-formula-paciente');
+            if (input) input.focus();
+            return false;
+        }
+        return true;
+    }
+
+    function validateEditFormulaForm(form) {
+        const hiddenUserId = document.getElementById('edit-formula-userid');
+        if (!hiddenUserId || !hiddenUserId.value) {
+            if (typeof alertify !== 'undefined') {
+                alertify.error('Por favor busque y seleccione un paciente.');
+            } else {
+                alert('Por favor busque y seleccione un paciente.');
+            }
+            const input = document.getElementById('search-edit-formula-paciente');
+            if (input) input.focus();
+            return false;
+        }
+        return true;
+    }
+
     // Cerrar dropdowns de pacientes al hacer clic fuera
     document.addEventListener('click', function (e) {
         if (!e.target.closest('#wrapper-nuevo-examen-paciente')) {
@@ -2861,6 +3149,14 @@
         if (!e.target.closest('#wrapper-edit-examen-paciente')) {
             const d2 = document.getElementById('dropdown-edit-examen-pacientes');
             if (d2) d2.style.display = 'none';
+        }
+        if (!e.target.closest('#wrapper-nuevo-formula-paciente')) {
+            const d3 = document.getElementById('dropdown-nuevo-formula-pacientes');
+            if (d3) d3.style.display = 'none';
+        }
+        if (!e.target.closest('#wrapper-edit-formula-paciente')) {
+            const d4 = document.getElementById('dropdown-edit-formula-pacientes');
+            if (d4) d4.style.display = 'none';
         }
     });
 
@@ -2914,7 +3210,10 @@
 
     function abrirModalEditarFormula(btn) {
         document.getElementById('edit-formula-id').value = btn.getAttribute('data-id');
-        document.getElementById('edit-formula-userid').value = btn.getAttribute('data-userid');
+        const userId = btn.getAttribute('data-userid');
+        const pacienteNombre = btn.getAttribute('data-paciente') || '';
+        const pacienteDoc = btn.getAttribute('data-documento') || '';
+        seleccionarPacienteModal('edit-formula', userId, pacienteNombre, pacienteDoc);
         document.getElementById('edit-formula-fecha').value = btn.getAttribute('data-fecha');
         document.getElementById('edit-formula-esferaod').value = btn.getAttribute('data-esferaod');
         document.getElementById('edit-formula-cilindrood').value = btn.getAttribute('data-cilindrood');

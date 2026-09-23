@@ -187,6 +187,12 @@ public class OptometraController : Controller
                 existing.ExamenesRealizados = model.ExamenesRealizados;
                 existing.Observaciones = model.Observaciones;
                 existing.Estado = model.Estado;
+                existing.EsferaOD = model.EsferaOD;
+                existing.CilindroOD = model.CilindroOD;
+                existing.EjeOD = model.EjeOD;
+                existing.EsferaOI = model.EsferaOI;
+                existing.CilindroOI = model.CilindroOI;
+                existing.EjeOI = model.EjeOI;
 
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Historial clínico actualizado exitosamente.";
@@ -250,6 +256,12 @@ public class OptometraController : Controller
             return RedirectToAction("Index", new { section = "examenes" });
         }
 
+        if (model.Fecha.Date < DateTime.Today)
+        {
+            TempData["ErrorMessage"] = "La fecha del examen no puede ser anterior a hoy.";
+            return RedirectToAction("Index", new { section = "examenes" });
+        }
+
         try
         {
             model.OptometraId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
@@ -257,6 +269,31 @@ public class OptometraController : Controller
             model.Fecha = DateTime.SpecifyKind(model.Fecha, DateTimeKind.Utc);
             _context.ExamenesVisuales.Add(model);
             await _context.SaveChangesAsync();
+
+            // Auto-crear entrada en Historial Médico
+            var nuevoHistorial = new HistorialClinico
+            {
+                UserId = model.UserId,
+                OptometraId = model.OptometraId,
+                Fecha = model.Fecha,
+                Diagnostico = model.Diagnostico,
+                Tratamiento = string.IsNullOrWhiteSpace(model.Tratamiento) ? $"Ver examen visual del {model.Fecha:dd/MM/yyyy}" : model.Tratamiento,
+                Antecedentes = null,
+                ExamenesRealizados = model.TipoExamen,
+                Observaciones = model.Observaciones,
+                Estado = "Activo",
+                FechaCreacion = DateTime.UtcNow,
+                Activo = true,
+                EsferaOD = model.EsferaOD,
+                CilindroOD = model.CilindroOD,
+                EjeOD = model.EjeOD,
+                EsferaOI = model.EsferaOI,
+                CilindroOI = model.CilindroOI,
+                EjeOI = model.EjeOI
+            };
+            _context.HistorialesClinicos.Add(nuevoHistorial);
+            await _context.SaveChangesAsync();
+
             TempData["SuccessMessage"] = "Examen visual registrado exitosamente.";
         }
         catch (Exception ex)
@@ -282,6 +319,12 @@ public class OptometraController : Controller
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Datos del examen no válidos.";
             TempData["ErrorMessage"] = firstError;
+            return RedirectToAction("Index", new { section = "examenes" });
+        }
+
+        if (model.Fecha.Date < DateTime.Today)
+        {
+            TempData["ErrorMessage"] = "La fecha del examen no puede ser anterior a hoy.";
             return RedirectToAction("Index", new { section = "examenes" });
         }
 
@@ -927,5 +970,35 @@ public class OptometraController : Controller
         ViewBag.HistorialCompleto = resultados;
         ViewBag.PacienteId = pacienteId;
         return RedirectToAction("Index", new { section = "historial", detalleId = pacienteId });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetUltimoExamenPorPaciente(int userId)
+    {
+        var examen = await _context.ExamenesVisuales
+            .Where(e => e.UserId == userId && e.Activo)
+            .OrderByDescending(e => e.Fecha)
+            .FirstOrDefaultAsync();
+
+        if (examen == null)
+        {
+            return Json(new { encontrado = false });
+        }
+
+        return Json(new
+        {
+            encontrado = true,
+            examen = new
+            {
+                id = examen.Id,
+                fecha = examen.Fecha.ToString("yyyy-MM-dd"),
+                esferaOD = examen.EsferaOD ?? "",
+                cilindroOD = examen.CilindroOD ?? "",
+                ejeOD = examen.EjeOD ?? "",
+                esferaOI = examen.EsferaOI ?? "",
+                cilindroOI = examen.CilindroOI ?? "",
+                ejeOI = examen.EjeOI ?? ""
+            }
+        });
     }
 }
