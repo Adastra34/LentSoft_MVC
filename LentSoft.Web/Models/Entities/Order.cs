@@ -13,7 +13,7 @@ public class Order : IValidatableObject
 
     [Required]
     [Range(0, double.MaxValue, ErrorMessage = "El total no puede ser negativo")]
-    [Column(TypeName = "decimal(10,2)")]
+    [Column(TypeName = "decimal(18,2)")]
     public decimal Total { get; set; }
 
     [Required]
@@ -32,17 +32,28 @@ public class Order : IValidatableObject
 
     public bool Activo { get; set; } = true;
 
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal MontoPagado { get; set; } = 0m;
+
+    [StringLength(20)]
+    public string EstadoPago { get; set; } = "pendiente"; // pendiente, abonado, pagado, cancelado
+
+    [NotMapped]
+    public decimal SaldoPendiente => Math.Max(0m, Total - (Pagos != null && Pagos.Any() ? Pagos.Sum(p => p.Monto) : MontoPagado));
+
     // Navigation properties
     [ForeignKey(nameof(UserId))]
     public User User { get; set; } = null!;
 
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public ICollection<Invoice> Invoices { get; set; } = new List<Invoice>();
+    public ICollection<PagoVenta> Pagos { get; set; } = new List<PagoVenta>();
+    public ICollection<TransaccionPago> Transacciones { get; set; } = new List<TransaccionPago>();
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         var validEstados = new[] { "pendiente", "procesando", "enviado", "entregado", "cancelado", "pagado" };
-        if (!validEstados.Contains(Estado))
+        if (!validEstados.Contains(Estado?.ToLower()))
         {
             yield return new ValidationResult(
                 "El estado debe ser: pendiente, procesando, enviado, entregado, cancelado o pagado",

@@ -4,6 +4,7 @@ using LentSoft.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LentSoft.Web.Migrations
 {
     [DbContext(typeof(LentSoftDbContext))]
-    partial class LentSoftDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260924035109_AddAbonosTransaccionesAndDianFields")]
+    partial class AddAbonosTransaccionesAndDianFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -738,7 +741,7 @@ namespace LentSoft.Web.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("Impuestos")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<string>("MetodoPago")
                         .HasMaxLength(50)
@@ -768,10 +771,10 @@ namespace LentSoft.Web.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal>("Subtotal")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<decimal>("Total")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(10,2)");
 
                     b.HasKey("Id");
 
@@ -825,10 +828,10 @@ namespace LentSoft.Web.Migrations
                         .HasColumnType("nvarchar(100)");
 
                     b.Property<decimal>("MontoPagado")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<decimal>("Total")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -937,7 +940,7 @@ namespace LentSoft.Web.Migrations
                         .HasColumnType("nvarchar(50)");
 
                     b.Property<decimal>("Monto")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<string>("NumeroComprobante")
                         .IsRequired()
@@ -1508,7 +1511,7 @@ namespace LentSoft.Web.Migrations
                         .HasColumnType("nvarchar(250)");
 
                     b.Property<decimal>("Monto")
-                        .HasColumnType("decimal(18,2)");
+                        .HasColumnType("decimal(10,2)");
 
                     b.Property<string>("UltimosDigitosTarjeta")
                         .HasMaxLength(10)

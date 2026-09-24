@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LentSoft.Web.Data;
+using LentSoft.Web.Models.Entities;
 using LentSoft.Web.Models.ViewModels;
 using LentSoft.Web.Services;
 
@@ -14,18 +15,35 @@ public class VentasController : Controller
     private readonly LentSoftDbContext _context;
     private readonly IInvoiceService _invoiceService;
     private readonly ISaleConfirmationTokenService _saleConfirmationTokenService;
+    private readonly IPagoVentaService _pagoVentaService;
+    private readonly IPdfReciboService _pdfReciboService;
+    private readonly IPasarelaPagoService _pasarelaPagoService;
 
     public VentasController(
         LentSoftDbContext context, 
         IInvoiceService invoiceService, 
-        ISaleConfirmationTokenService saleConfirmationTokenService)
+        ISaleConfirmationTokenService saleConfirmationTokenService,
+        IPagoVentaService pagoVentaService,
+        IPdfReciboService pdfReciboService,
+        IPasarelaPagoService pasarelaPagoService)
     {
         _context = context;
         _invoiceService = invoiceService;
         _saleConfirmationTokenService = saleConfirmationTokenService;
+        _pagoVentaService = pagoVentaService;
+        _pdfReciboService = pdfReciboService;
+        _pasarelaPagoService = pasarelaPagoService;
     }
 
-    public async Task<IActionResult> Index(string section = "general", string subtab = "productos", string? searchTerm = null, int page = 1, int pageSize = 5)
+    public async Task<IActionResult> Index(
+        string section = "general", 
+        string subtab = "productos", 
+        string? searchTerm = null, 
+        int page = 1, 
+        int pageSize = 5,
+        DateTime? fechaDesde = null,
+        DateTime? fechaHasta = null,
+        string? filtroRapido = null)
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var usuario = await _context.Users.FindAsync(userId);
@@ -33,9 +51,52 @@ public class VentasController : Controller
         var now = DateTime.UtcNow;
         var inicioMes = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
 
-        var ventas = await _context.Orders
+        // ── Filtrado Backend por Fechas (Requisito 4) ──
+        DateTime? desde = fechaDesde;
+        DateTime? hasta = fechaHasta;
+
+        if (!string.IsNullOrWhiteSpace(filtroRapido))
+        {
+            switch (filtroRapido.ToLower())
+            {
+                case "hoy":
+                    desde = now.Date;
+                    hasta = now.Date.AddDays(1).AddTicks(-1);
+                    break;
+                case "semana":
+                    var diff = (int)now.DayOfWeek - (int)DayOfWeek.Monday;
+                    if (diff < 0) diff += 7;
+                    desde = now.Date.AddDays(-diff);
+                    hasta = now.Date.AddDays(1).AddTicks(-1);
+                    break;
+                case "mes":
+                    desde = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
+                    hasta = desde.Value.AddMonths(1).AddTicks(-1);
+                    break;
+                case "anio":
+                    desde = new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                    hasta = new DateTime(now.Year, 12, 31, 23, 59, 59, DateTimeKind.Utc);
+                    break;
+            }
+        }
+
+        var queryVentas = _context.Orders
             .Include(o => o.User)
             .Include(o => o.OrderItems).ThenInclude(oi => oi.Product)
+            .Include(o => o.Pagos)
+            .Include(o => o.Transacciones)
+            .AsQueryable();
+
+        if (desde.HasValue)
+        {
+            queryVentas = queryVentas.Where(o => o.FechaPedido >= desde.Value);
+        }
+        if (hasta.HasValue)
+        {
+            queryVentas = queryVentas.Where(o => o.FechaPedido <= hasta.Value);
+        }
+
+        var ventas = await queryVentas
             .OrderByDescending(o => o.FechaPedido)
             .ToListAsync();
 
@@ -80,6 +141,9 @@ public class VentasController : Controller
             ClientesAtendidos = clientesAtendidos,
             TicketPromedio = ticketPromedio,
             Ventas = ventas,
+            FiltroFechaDesde = fechaDesde,
+            FiltroFechaHasta = fechaHasta,
+            FiltroRapido = filtroRapido,
             Facturas = facturasList,
             FacturasSearchTerm = searchTerm,
             FacturasPage = page,
@@ -104,12 +168,33 @@ public class VentasController : Controller
     {
         try
         {
-            var order = await _context.Orders.FindAsync(id);
+            var order = await _context.Orders
+                .Include(o => o.Pagos)
+                .FirstOrDefaultAsync(o => o.Id == id);
+
             if (order != null)
             {
-                order.Estado = estado;
+                var estadoLower = estado?.ToLower();
+                var saldoPendiente = order.SaldoPendiente;
+
+                if (estadoLower == "pagado" && saldoPendiente > 0)
+                {
+                    TempData["ErrorMessage"] = $"No se puede marcar el pedido como 'Pagado' porque tiene un saldo pendiente de ${saldoPendiente:N0}. Registre el abono correspondiente.";
+                    return RedirectToAction("Index", new { section = "ventas" });
+                }
+
+                if (estadoLower == "cancelado" && order.Pagos != null && order.Pagos.Any())
+                {
+                    TempData["ErrorMessage"] = $"No se puede cancelar el pedido #ORD-{order.Id:D4} porque ya cuenta con abonos registrados (${order.Pagos.Sum(p => p.Monto):N0}). Por favor reverse o audite los abonos primero.";
+                    return RedirectToAction("Index", new { section = "ventas" });
+                }
+
+                order.Estado = estadoLower ?? order.Estado;
+                if (estadoLower == "pagado") order.EstadoPago = "pagado";
+                else if (estadoLower == "cancelado") order.EstadoPago = "cancelado";
+
                 await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Estado del pedido actualizado.";
+                TempData["SuccessMessage"] = "Estado del pedido actualizado correctamente.";
             }
             else
             {
@@ -119,6 +204,77 @@ public class VentasController : Controller
         catch (Exception ex)
         {
             TempData["ErrorMessage"] = $"Error al actualizar el estado del pedido: {ex.Message}";
+        }
+
+        return RedirectToAction("Index", new { section = "ventas" });
+    }
+
+    // ── Endpoint Registrar Abono (Requisito 1) ──
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RegistrarAbono(int ventaId, decimal monto, string metodoPago)
+    {
+        try
+        {
+            var responsable = User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "Vendedor";
+            var pago = await _pagoVentaService.RegistrarAbonoAsync(ventaId, monto, metodoPago, responsable);
+
+            TempData["SuccessMessage"] = $"Abono de ${monto:N0} registrado correctamente. Comprobante N° {pago.NumeroComprobante}.";
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al registrar abono: {ex.Message}";
+        }
+
+        return RedirectToAction("Index", new { section = "ventas" });
+    }
+
+    // ── Endpoint Descargar Comprobante PDF (Requisito 1) ──
+    [HttpGet]
+    public async Task<IActionResult> DescargarComprobante(int pagoId)
+    {
+        var pago = await _pagoVentaService.ObtenerPagoPorIdAsync(pagoId);
+        if (pago == null)
+        {
+            TempData["ErrorMessage"] = "No se encontró el comprobante de pago solicitado.";
+            return RedirectToAction("Index", new { section = "ventas" });
+        }
+
+        try
+        {
+            var pdfBytes = _pdfReciboService.GenerateReciboPdf(pago);
+            var filename = $"Recibo-{pago.NumeroComprobante}.pdf";
+            return File(pdfBytes, "application/pdf", filename);
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al generar el comprobante PDF: {ex.Message}";
+            return RedirectToAction("Index", new { section = "ventas" });
+        }
+    }
+
+    // ── Endpoint Cobrar con Tarjeta de Crédito en Ventas (Requisito 3) ──
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CobrarTarjeta(TarjetaPagoDTO dto)
+    {
+        try
+        {
+            dto.Responsable = User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "Vendedor";
+            var resultado = await _pasarelaPagoService.ProcesarPagoTarjetaAsync(dto);
+
+            if (resultado.Exitoso)
+            {
+                TempData["SuccessMessage"] = $"¡Cobro con tarjeta exitoso! {resultado.Mensaje}";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = $"Cobro con tarjeta rechazado: {resultado.Mensaje}";
+            }
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error en procesamiento de cobro con tarjeta: {ex.Message}";
         }
 
         return RedirectToAction("Index", new { section = "ventas" });

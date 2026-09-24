@@ -14,11 +14,16 @@ public class CheckoutController : Controller
 {
     private readonly ICartService _cartService;
     private readonly LentSoftDbContext _context;
+    private readonly IPasarelaPagoService _pasarelaPagoService;
 
-    public CheckoutController(ICartService cartService, LentSoftDbContext context)
+    public CheckoutController(
+        ICartService cartService, 
+        LentSoftDbContext context,
+        IPasarelaPagoService pasarelaPagoService)
     {
         _cartService = cartService;
         _context = context;
+        _pasarelaPagoService = pasarelaPagoService;
     }
 
     private int GetCurrentUserId()
@@ -27,9 +32,6 @@ public class CheckoutController : Controller
         return int.TryParse(userIdStr, out var userId) ? userId : 0;
     }
 
-    /// <summary>
-    /// GET /Checkout/Index
-    /// </summary>
     public async Task<IActionResult> Index()
     {
         var userId = GetCurrentUserId();
@@ -48,9 +50,6 @@ public class CheckoutController : Controller
         return View(viewModel);
     }
 
-    /// <summary>
-    /// POST /Checkout/ConfirmarPago
-    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ConfirmarPago(CheckoutViewModel model)
@@ -70,22 +69,49 @@ public class CheckoutController : Controller
             return View("Index", model);
         }
 
+        var total = cart.CartItems.Sum(ci => ci.Subtotal);
+
+        // 1. Procesar pago a través del servicio de pasarela de tarjetas
+        var dto = new TarjetaPagoDTO
+        {
+            NumeroTarjeta = model.NumeroTarjeta,
+            NombreTitular = model.NombreTarjeta,
+            FechaExpiracion = model.Expiracion,
+            Cvv = model.Cvv,
+            Monto = total,
+            Responsable = "Cliente (Checkout Web)"
+        };
+
+        var resultadoPasarela = await _pasarelaPagoService.ProcesarPagoTarjetaAsync(dto);
+
+        if (!resultadoPasarela.Exitoso)
+        {
+            ModelState.AddModelError("", $"Error en la pasarela de pago: {resultadoPasarela.Mensaje}");
+            TempData["ErrorMessage"] = $"Pago rechazado por la pasarela: {resultadoPasarela.Mensaje}";
+            model.Cart = cart;
+            return View("Index", model);
+        }
+
         try
         {
-            // Create Order and OrderItems
+            // 2. Crear Order y OrderItems tras aprobación
+            var marca = _pasarelaPagoService.DetectarMarcaTarjeta(model.NumeroTarjeta);
+            var ultimos4 = model.NumeroTarjeta.Substring(Math.Max(0, model.NumeroTarjeta.Length - 4));
+
             var order = new Order
             {
                 UserId = userId,
                 FechaPedido = DateTime.UtcNow,
                 Estado = "pagado",
+                EstadoPago = "pagado",
                 DireccionEnvio = model.DireccionEnvio,
-                Total = cart.CartItems.Sum(ci => ci.Subtotal),
-                MetodoPagoSimulado = "Tarjeta terminada en " + model.NumeroTarjeta.Substring(Math.Max(0, model.NumeroTarjeta.Length - 4))
+                Total = total,
+                MontoPagado = total,
+                MetodoPagoSimulado = $"Tarjeta {marca} (****{ultimos4})"
             };
 
             foreach (var item in cart.CartItems)
             {
-                // Reduce stock and enforce limits
                 var product = await _context.Products.FindAsync(item.ProductId);
                 if (product != null)
                 {
@@ -120,23 +146,41 @@ public class CheckoutController : Controller
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 
-            // Clear the cart
+            // Vincular la transacción de pasarela creada a esta nueva Orden
+            if (resultadoPasarela.Transaccion != null)
+            {
+                resultadoPasarela.Transaccion.VentaId = order.Id;
+                _context.TransaccionesPagos.Update(resultadoPasarela.Transaccion);
+            }
+
+            // Registrar el abono / pago completo automáticamente
+            var pago = new PagoVenta
+            {
+                VentaId = order.Id,
+                Monto = total,
+                FechaPago = DateTime.UtcNow,
+                MetodoPago = $"Tarjeta {marca} (****{ultimos4})",
+                Responsable = "Cliente (Pasarela Web)",
+                NumeroComprobante = $"REC-{DateTime.UtcNow.Year}-{(await _context.PagosVentas.CountAsync()) + 1:D4}"
+            };
+            _context.PagosVentas.Add(pago);
+
+            await _context.SaveChangesAsync();
+
+            // Clear cart
             await _cartService.ClearCartAsync(userId);
 
-            TempData["SuccessMessage"] = "¡Pago simulado procesado correctamente!";
+            TempData["SuccessMessage"] = $"¡Pago procesado exitosamente por pasarela! {resultadoPasarela.Mensaje}";
             return RedirectToAction("Confirmacion", new { orderId = order.Id });
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al procesar el pago: {ex.Message}";
+            TempData["ErrorMessage"] = $"Error al registrar la orden: {ex.Message}";
             model.Cart = cart;
             return View("Index", model);
         }
     }
 
-    /// <summary>
-    /// GET /Checkout/Confirmacion/{orderId}
-    /// </summary>
     public async Task<IActionResult> Confirmacion(int orderId)
     {
         var userId = GetCurrentUserId();
