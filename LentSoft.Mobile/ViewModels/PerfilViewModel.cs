@@ -41,6 +41,9 @@ public partial class PerfilViewModel : ObservableObject
     [ObservableProperty]
     private string _currentLanguageDisplay = "🌐 ES";
 
+    [ObservableProperty]
+    private string _currentThemeDisplay = "☀️ Claro";
+
     // Dynamic Localized UI String Properties
     [ObservableProperty] private string _myFavoritesText = "Mis favoritos";
     [ObservableProperty] private string _myOrdersText = "Mis pedidos";
@@ -207,6 +210,28 @@ public partial class PerfilViewModel : ObservableObject
             case "Idioma":
                 ToggleLanguage();
                 break;
+
+            case "Tema":
+                ToggleTheme();
+                break;
+        }
+    }
+
+    [RelayCommand]
+    private void ToggleTheme()
+    {
+        if (Application.Current != null)
+        {
+            if (Application.Current.UserAppTheme == AppTheme.Dark)
+            {
+                Application.Current.UserAppTheme = AppTheme.Light;
+                CurrentThemeDisplay = "☀️ Claro";
+            }
+            else
+            {
+                Application.Current.UserAppTheme = AppTheme.Dark;
+                CurrentThemeDisplay = "🌙 Oscuro";
+            }
         }
     }
 

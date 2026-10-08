@@ -558,10 +558,34 @@ namespace LentSoft.Web.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<string>("CilindroOD")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("CilindroOI")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<string>("Diagnostico")
                         .IsRequired()
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("EjeOD")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("EjeOI")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("EsferaOD")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("EsferaOI")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<string>("Estado")
                         .IsRequired()
@@ -694,6 +718,10 @@ namespace LentSoft.Web.Migrations
                     b.Property<bool>("Activo")
                         .HasColumnType("bit");
 
+                    b.Property<string>("CUFE")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("Estado")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -710,7 +738,7 @@ namespace LentSoft.Web.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<decimal>("Impuestos")
-                        .HasColumnType("decimal(10,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("MetodoPago")
                         .HasMaxLength(50)
@@ -724,11 +752,26 @@ namespace LentSoft.Web.Migrations
                     b.Property<int>("OrderId")
                         .HasColumnType("int");
 
+                    b.Property<string>("RangoAutorizadoDesde")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("RangoAutorizadoHasta")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("ResolucionDianNumero")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<decimal>("Subtotal")
-                        .HasColumnType("decimal(10,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("Total")
-                        .HasColumnType("decimal(10,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
@@ -764,6 +807,11 @@ namespace LentSoft.Web.Migrations
                         .HasColumnType("nvarchar(20)")
                         .HasDefaultValue("pendiente");
 
+                    b.Property<string>("EstadoPago")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<DateTime?>("FechaEntrega")
                         .HasColumnType("datetime2");
 
@@ -776,8 +824,11 @@ namespace LentSoft.Web.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<decimal>("MontoPagado")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<decimal>("Total")
-                        .HasColumnType("decimal(10,2)");
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
@@ -800,7 +851,9 @@ namespace LentSoft.Web.Migrations
                             Activo = true,
                             DireccionEnvio = "Calle 123 #45-67",
                             Estado = "entregado",
+                            EstadoPago = "pendiente",
                             FechaPedido = new DateTime(2026, 5, 15, 10, 0, 0, 0, DateTimeKind.Utc),
+                            MontoPagado = 0m,
                             Total = 2500000.00m,
                             UserId = 2
                         },
@@ -810,7 +863,9 @@ namespace LentSoft.Web.Migrations
                             Activo = true,
                             DireccionEnvio = "Calle 123 #45-67",
                             Estado = "enviado",
+                            EstadoPago = "pendiente",
                             FechaPedido = new DateTime(2026, 5, 20, 14, 30, 0, 0, DateTimeKind.Utc),
+                            MontoPagado = 0m,
                             Total = 1800000.00m,
                             UserId = 2
                         });
@@ -861,6 +916,50 @@ namespace LentSoft.Web.Migrations
                             PrecioUnitario = 1800000.00m,
                             ProductId = 3
                         });
+                });
+
+            modelBuilder.Entity("LentSoft.Web.Models.Entities.PagoVenta", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("FechaPago")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("MetodoPago")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<decimal>("Monto")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("NumeroComprobante")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Responsable")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("VentaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("NumeroComprobante")
+                        .IsUnique();
+
+                    b.HasIndex("VentaId");
+
+                    b.ToTable("PagosVentas");
                 });
 
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Product", b =>
@@ -1405,6 +1504,56 @@ namespace LentSoft.Web.Migrations
                         });
                 });
 
+            modelBuilder.Entity("LentSoft.Web.Models.Entities.TransaccionPago", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CodigoAutorizacion")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Estado")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime>("Fecha")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("GETUTCDATE()");
+
+                    b.Property<string>("MarcaTarjeta")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("MensajeRespuesta")
+                        .HasMaxLength(250)
+                        .HasColumnType("nvarchar(250)");
+
+                    b.Property<decimal>("Monto")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("UltimosDigitosTarjeta")
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<int?>("VentaId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Fecha")
+                        .IsDescending();
+
+                    b.HasIndex("VentaId");
+
+                    b.ToTable("TransaccionesPagos");
+                });
+
             modelBuilder.Entity("LentSoft.Web.Models.Entities.User", b =>
                 {
                     b.Property<int>("Id")
@@ -1770,6 +1919,17 @@ namespace LentSoft.Web.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("LentSoft.Web.Models.Entities.PagoVenta", b =>
+                {
+                    b.HasOne("LentSoft.Web.Models.Entities.Order", "Venta")
+                        .WithMany("Pagos")
+                        .HasForeignKey("VentaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Venta");
+                });
+
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Product", b =>
                 {
                     b.HasOne("LentSoft.Web.Models.Entities.Supplier", "Supplier")
@@ -1798,6 +1958,16 @@ namespace LentSoft.Web.Migrations
                     b.Navigation("Supplier");
                 });
 
+            modelBuilder.Entity("LentSoft.Web.Models.Entities.TransaccionPago", b =>
+                {
+                    b.HasOne("LentSoft.Web.Models.Entities.Order", "Venta")
+                        .WithMany("Transacciones")
+                        .HasForeignKey("VentaId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("Venta");
+                });
+
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Cart", b =>
                 {
                     b.Navigation("CartItems");
@@ -1808,6 +1978,10 @@ namespace LentSoft.Web.Migrations
                     b.Navigation("Invoices");
 
                     b.Navigation("OrderItems");
+
+                    b.Navigation("Pagos");
+
+                    b.Navigation("Transacciones");
                 });
 
             modelBuilder.Entity("LentSoft.Web.Models.Entities.Product", b =>

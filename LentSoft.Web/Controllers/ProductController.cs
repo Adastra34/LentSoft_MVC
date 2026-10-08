@@ -119,6 +119,11 @@ public class ProductController : Controller
             return RedirectToAction("Admin", "Dashboard");
         }
 
+        if (product.Stock == 0)
+        {
+            product.Activo = false;
+        }
+
         try
         {
             var created = await _productService.CreateAsync(product);
@@ -231,6 +236,11 @@ public class ProductController : Controller
             return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "productos" });
         }
 
+        if (product.Stock == 0)
+        {
+            product.Activo = false;
+        }
+
         try
         {
             var updated = await _productService.UpdateAsync(product.Id, product);
@@ -247,8 +257,29 @@ public class ProductController : Controller
                     DeleteLocalProductImage(oldImageUrlToDelete);
                 }
 
-                if (isAjax) return Json(new { success = true, message = "Producto actualizado exitosamente.", data = updated });
-                TempData["SuccessMessage"] = "Producto actualizado exitosamente.";
+                bool stockAgotado = updated.Stock == 0;
+                string msg = stockAgotado
+                    ? $"Producto actualizado. El stock llegó a 0 y fue inactivado automáticamente."
+                    : "Producto actualizado exitosamente.";
+
+                if (isAjax)
+                {
+                    return Json(new { 
+                        success = true, 
+                        message = msg, 
+                        data = updated, 
+                        stockAgotado = stockAgotado 
+                    });
+                }
+
+                if (stockAgotado)
+                {
+                    TempData["WarningMessage"] = msg;
+                }
+                else
+                {
+                    TempData["SuccessMessage"] = msg;
+                }
             }
         }
         catch (Exception ex)

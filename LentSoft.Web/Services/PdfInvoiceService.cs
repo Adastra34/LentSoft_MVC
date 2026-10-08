@@ -77,10 +77,13 @@ public class PdfInvoiceService : IPdfInvoiceService
             });
 
             // Banner Resolución DIAN
+            var resDian = !string.IsNullOrWhiteSpace(invoice.ResolucionDianNumero) ? invoice.ResolucionDianNumero : "18764028920000";
+            var rangoDesde = !string.IsNullOrWhiteSpace(invoice.RangoAutorizadoDesde) ? invoice.RangoAutorizadoDesde : "FAC-2026-0001";
+            var rangoHasta = !string.IsNullOrWhiteSpace(invoice.RangoAutorizadoHasta) ? invoice.RangoAutorizadoHasta : "FAC-2026-9999";
             col.Item().PaddingTop(8).Background("#F3E8FF").Padding(4).AlignCenter().Text(x =>
             {
-                x.Span("Autorización de Facturación DIAN Nº 18764028920000 ").Bold().FontSize(7.5f).FontColor("#4C1D95");
-                x.Span("| Rango Autorizado: FAC-2026-0001 a FAC-2026-9999 | Vigencia: 24 Meses").FontSize(7.5f).FontColor("#4C1D95");
+                x.Span($"Autorización de Facturación DIAN Nº {resDian} ").Bold().FontSize(7.5f).FontColor("#4C1D95");
+                x.Span($"| Rango Autorizado: {rangoDesde} a {rangoHasta} | Vigencia: 24 Meses").FontSize(7.5f).FontColor("#4C1D95");
             });
         });
     }

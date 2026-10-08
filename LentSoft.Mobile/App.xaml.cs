@@ -17,16 +17,19 @@ public partial class App : Application
         var shell = new AppShell();
         var window = new Window(shell);
 
-        window.Created += async (s, e) =>
+        window.Created += (s, e) =>
         {
-            try
+            MainThread.BeginInvokeOnMainThread(async () =>
             {
-                if (await _storageService.HasValidTokenAsync())
+                try
                 {
-                    await shell.GoToAsync("//main/inicio");
+                    if (await _storageService.HasValidTokenAsync())
+                    {
+                        await shell.GoToAsync("//main/inicio");
+                    }
                 }
-            }
-            catch { }
+                catch { }
+            });
         };
 
         return window;

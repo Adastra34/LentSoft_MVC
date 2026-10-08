@@ -6,7 +6,7 @@
              x:DataType="vm:AgendarCitaViewModel"
              Shell.PresentationMode="ModalAnimated"
              Shell.NavBarIsVisible="False"
-             BackgroundColor="{StaticResource Lavender}">
+             BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkPageBg}}">
 
     <ScrollView>
         <Grid RowDefinitions="Auto,*" VerticalOptions="FillAndExpand">
@@ -38,7 +38,10 @@
 
             <!-- Form Card -->
             <Border Grid.Row="1"
-                    Style="{StaticResource LentSoftCard}"
+                    BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkModalBg}}"
+                    Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkModalBorder}}"
+                    StrokeThickness="1"
+                    StrokeShape="RoundRectangle 20"
                     Margin="16,-16,16,24"
                     Padding="20">
                 <VerticalStackLayout Spacing="16">
@@ -59,17 +62,18 @@
                         <Label Text="Servicio Requerido"
                                FontSize="13"
                                FontAttributes="Bold"
-                               TextColor="{StaticResource Ink}"/>
+                               TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
                         <Border StrokeShape="RoundRectangle 12"
-                                Stroke="{StaticResource Line}"
+                                Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"
                                 StrokeThickness="1.5"
-                                BackgroundColor="White"
+                                BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkInputBg}}"
                                 Padding="12,0"
                                 HeightRequest="48">
                             <Picker ItemsSource="{Binding Servicios}"
                                     SelectedItem="{Binding SelectedServicio}"
-                                    TextColor="{StaticResource Ink}"
+                                    TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"
                                     Title="Selecciona un servicio"
+                                    TitleColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"
                                     FontSize="13"
                                     VerticalOptions="Center"
                                     HorizontalOptions="FillAndExpand"/>
@@ -81,15 +85,15 @@
                         <Label Text="Servicio a Reprogramar"
                                FontSize="13"
                                FontAttributes="Bold"
-                               TextColor="{StaticResource Ink}"/>
-                        <Border BackgroundColor="{StaticResource PurpleLight}"
-                                Stroke="{StaticResource Line}"
+                               TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
+                        <Border BackgroundColor="{AppThemeBinding Light={StaticResource PurpleLight}, Dark={StaticResource DarkInnerBoxBg}}"
+                                Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"
                                 StrokeShape="RoundRectangle 12"
                                 Padding="14,12">
                             <Label Text="{Binding SelectedServicio}"
                                    FontSize="14"
                                    FontAttributes="Bold"
-                                   TextColor="{StaticResource PurpleDeep}"/>
+                                   TextColor="{AppThemeBinding Light={StaticResource PurpleDeep}, Dark=#A78BFA}"/>
                         </Border>
                     </VerticalStackLayout>
 
@@ -98,12 +102,16 @@
                         <Label Text="Fecha de la Cita"
                                FontSize="13"
                                FontAttributes="Bold"
-                               TextColor="{StaticResource Ink}"/>
-                        <Border Style="{StaticResource InputContainer}">
+                               TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
+                        <Border StrokeShape="RoundRectangle 10"
+                                Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"
+                                BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkInputBg}}"
+                                Padding="12,0"
+                                HeightRequest="44">
                             <DatePicker Date="{Binding SelectedDate}"
                                         MinimumDate="{Binding MinimumDate}"
                                         MaximumDate="{Binding MaximumDate}"
-                                        TextColor="{StaticResource Ink}"
+                                        TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"
                                         VerticalOptions="Center"/>
                         </Border>
                         <Label Text="{Binding DateValidationHint}"
@@ -117,10 +125,14 @@
                         <Label Text="Hora de Atención"
                                FontSize="13"
                                FontAttributes="Bold"
-                               TextColor="{StaticResource Ink}"/>
-                        <Border Style="{StaticResource InputContainer}">
+                               TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
+                        <Border StrokeShape="RoundRectangle 10"
+                                Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"
+                                BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkInputBg}}"
+                                Padding="12,0"
+                                HeightRequest="44">
                             <TimePicker Time="{Binding SelectedTime}"
-                                        TextColor="{StaticResource Ink}"
+                                        TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"
                                         VerticalOptions="Center"/>
                         </Border>
                         <Label Text="{Binding TimeValidationHint}"
@@ -130,13 +142,13 @@
                     </VerticalStackLayout>
 
                     <!-- Horario info note -->
-                    <Border BackgroundColor="{StaticResource PurpleLight}"
-                            Stroke="{StaticResource Line}"
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource PurpleLight}, Dark={StaticResource DarkInnerBoxBg}}"
+                            Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"
                             StrokeShape="RoundRectangle 8"
                             Padding="10,8">
                         <Label Text="ℹ️ Horario: Lunes a Sábado de 8:00 a.m. a 6:00 p.m. Asignaremos automáticamente un optómetra disponible."
                                FontSize="11"
-                               TextColor="{StaticResource PurpleDeep}"/>
+                               TextColor="{AppThemeBinding Light={StaticResource PurpleDeep}, Dark=#A78BFA}"/>
                     </Border>
 
                     <!-- Notas -->
@@ -144,16 +156,17 @@
                         <Label Text="Motivo de Consulta o Síntomas (Opcional)"
                                FontSize="13"
                                FontAttributes="Bold"
-                               TextColor="{StaticResource Ink}"/>
+                               TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
                         <Border StrokeShape="RoundRectangle 12"
-                                Stroke="{StaticResource Line}"
+                                Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"
                                 StrokeThickness="1"
-                                BackgroundColor="White"
+                                BackgroundColor="{AppThemeBinding Light=White, Dark={StaticResource DarkInputBg}}"
                                 HeightRequest="80"
                                 Padding="10">
                             <Editor Text="{Binding Notas}"
                                     Placeholder="Ej: molestia en ojo derecho, control anual..."
-                                    TextColor="{StaticResource Ink}"
+                                    PlaceholderColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"
+                                    TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"
                                     FontSize="13"/>
                         </Border>
                     </VerticalStackLayout>
@@ -167,7 +180,7 @@
                     <Button Text="Cancelar"
                             Command="{Binding CancelarCommand}"
                             BackgroundColor="Transparent"
-                            TextColor="{StaticResource Muted}"
+                            TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"
                             FontSize="14"/>
 
                     <ActivityIndicator IsRunning="{Binding IsBusy}"

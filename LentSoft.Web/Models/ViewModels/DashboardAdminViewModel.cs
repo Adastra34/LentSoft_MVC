@@ -24,6 +24,12 @@ public class DashboardAdminViewModel
     public List<SalesOrder> PedidosVentas { get; set; } = new();
     public List<SupplierOrder> PedidosProveedores { get; set; } = new();
 
+    // ── Inventario: Resumen ──
+    public List<ChartDataPoint> EvolucionVentas { get; set; } = new();
+    public List<TopProductoVendidoViewModel> ProductosMasVendidos { get; set; } = new();
+    public List<Product> ProductosAgotados { get; set; } = new();
+    public List<Product> ProductosPorAgotarse { get; set; } = new();
+
     // ── Ventas ──
     public List<Order> Ventas { get; set; } = new();
 
@@ -97,3 +103,23 @@ public class TrabajadorItemViewModel
     public bool Activo { get; set; } = true;
     public int PedidosCount { get; set; }
 }
+
+public class ChartDataPoint
+{
+    public string Periodo { get; set; } = string.Empty;
+    public decimal TotalVentas { get; set; }
+    public int CantidadPedidos { get; set; }
+}
+
+public class TopProductoVendidoViewModel
+{
+    public int ProductId { get; set; }
+    public string Nombre { get; set; } = string.Empty;
+    public string Categoria { get; set; } = string.Empty;
+    public string? ImagenUrl { get; set; }
+    public int CantidadVendida { get; set; }
+    public decimal TotalRecaudado { get; set; }
+    public int StockActual { get; set; }
+    public bool Activo { get; set; } = true;
+}
+

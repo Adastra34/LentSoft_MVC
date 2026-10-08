@@ -28,6 +28,8 @@ public class LentSoftDbContext : DbContext
     public DbSet<InventoryMovement> InventoryMovements => Set<InventoryMovement>();
     public DbSet<SalesOrder> SalesOrders => Set<SalesOrder>();
     public DbSet<SupplierOrder> SupplierOrders => Set<SupplierOrder>();
+    public DbSet<PagoVenta> PagosVentas => Set<PagoVenta>();
+    public DbSet<TransaccionPago> TransaccionesPagos => Set<TransaccionPago>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -210,6 +212,32 @@ public class LentSoftDbContext : DbContext
                   .WithMany(o => o.Invoices)
                   .HasForeignKey(e => e.OrderId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── PagosVentas ──
+        modelBuilder.Entity<PagoVenta>(entity =>
+        {
+            entity.HasIndex(e => e.VentaId);
+            entity.HasIndex(e => e.NumeroComprobante).IsUnique();
+            entity.Property(e => e.FechaPago).HasDefaultValueSql("GETUTCDATE()");
+
+            entity.HasOne(e => e.Venta)
+                  .WithMany(o => o.Pagos)
+                  .HasForeignKey(e => e.VentaId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ── TransaccionesPagos ──
+        modelBuilder.Entity<TransaccionPago>(entity =>
+        {
+            entity.HasIndex(e => e.VentaId);
+            entity.HasIndex(e => e.Fecha).IsDescending();
+            entity.Property(e => e.Fecha).HasDefaultValueSql("GETUTCDATE()");
+
+            entity.HasOne(e => e.Venta)
+                  .WithMany(o => o.Transacciones)
+                  .HasForeignKey(e => e.VentaId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
 
         // ── Appointments ──

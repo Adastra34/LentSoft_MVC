@@ -31,6 +31,25 @@ public class HistorialClinico
     [StringLength(1000, ErrorMessage = "Las observaciones no pueden superar los 1000 caracteres")]
     public string? Observaciones { get; set; }
 
+    // Campos de receta / refracción clínica
+    [StringLength(50)]
+    public string? EsferaOD { get; set; }
+
+    [StringLength(50)]
+    public string? CilindroOD { get; set; }
+
+    [StringLength(50)]
+    public string? EjeOD { get; set; }
+
+    [StringLength(50)]
+    public string? EsferaOI { get; set; }
+
+    [StringLength(50)]
+    public string? CilindroOI { get; set; }
+
+    [StringLength(50)]
+    public string? EjeOI { get; set; }
+
     [Required]
     [StringLength(20)]
     public string Estado { get; set; } = "Activo";

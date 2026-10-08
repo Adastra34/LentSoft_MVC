@@ -38,6 +38,9 @@ public class InvoiceDto
     [JsonPropertyName("metodoPago")]
     public string? MetodoPago { get; set; }
 
+    [JsonPropertyName("itemsSummary")]
+    public string? ItemsSummary { get; set; }
+
     public bool IsPagada => EstadoRaw.Equals("pagada", StringComparison.OrdinalIgnoreCase);
 
     public string BadgeBackgroundColor => IsPagada ? "#DCFCE7" : "#FEF3C7";

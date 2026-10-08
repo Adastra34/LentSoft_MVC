@@ -18,24 +18,51 @@ public static class MauiProgram
                 fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
             });
 
+        // ── Unhandled Exception Traps ──
+        AppDomain.CurrentDomain.UnhandledException += (s, e) =>
+        {
+            System.Diagnostics.Debug.WriteLine($"[CRITICAL UNHANDLED EXCEPTION] {e.ExceptionObject}");
+        };
+        TaskScheduler.UnobservedTaskException += (s, e) =>
+        {
+            System.Diagnostics.Debug.WriteLine($"[UNOBSERVED TASK EXCEPTION] {e.Exception}");
+            e.SetObserved();
+        };
+
         // ── Client Services ──
         builder.Services.AddSingleton<IAuthStorageService, AuthStorageService>();
         builder.Services.AddSingleton<ICartService, CartService>();
         builder.Services.AddSingleton<ILocalizationService, LocalizationService>();
         builder.Services.AddSingleton<IFavoriteService, FavoriteService>();
         builder.Services.AddSingleton<IOrderHistoryService, OrderHistoryService>();
+        builder.Services.AddSingleton<IInvoiceService, InvoiceService>();
         builder.Services.AddTransient<AuthenticatedHttpClientHandler>();
 
-        string baseUrl = (DeviceInfo.Platform == DevicePlatform.Android && DeviceInfo.DeviceType == DeviceType.Virtual)
-            ? "http://10.0.2.2:5000/"
-            : "http://localhost:5000/";
+        string baseUrl;
+        if (DeviceInfo.Platform == DevicePlatform.Android)
+        {
+            baseUrl = (DeviceInfo.DeviceType == DeviceType.Virtual)
+                ? "http://10.0.2.2:5000/"
+                : "http://172.16.6.121:5000/";
+        }
+        else
+        {
+            baseUrl = "http://localhost:5000/";
+        }
 
-        builder.Services.AddHttpClient<IApiService, ApiService>(client =>
+        var httpClientBuilder = builder.Services.AddHttpClient<IApiService, ApiService>(client =>
         {
             client.BaseAddress = new Uri(baseUrl);
             client.Timeout = TimeSpan.FromSeconds(15);
         })
         .AddHttpMessageHandler<AuthenticatedHttpClientHandler>();
+
+#if ANDROID
+        httpClientBuilder.ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
+        {
+            ServerCertificateCustomValidationCallback = (sender, cert, chain, sslPolicyErrors) => true
+        });
+#endif
 
         // ── ViewModels ──
         builder.Services.AddTransient<LoginViewModel>();

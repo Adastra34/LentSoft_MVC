@@ -1,4 +1,7 @@
+using System.IO;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LentSoft.Web.Data;
@@ -10,10 +13,82 @@ namespace LentSoft.Web.Controllers;
 public class SupplierController : Controller
 {
     private readonly LentSoftDbContext _context;
+    private readonly IWebHostEnvironment _webHostEnvironment;
 
-    public SupplierController(LentSoftDbContext context)
+    private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
+    private const long MaxImageSizeBytes = 5 * 1024 * 1024; // 5 MB
+
+    public SupplierController(LentSoftDbContext context, IWebHostEnvironment webHostEnvironment)
     {
         _context = context;
+        _webHostEnvironment = webHostEnvironment;
+    }
+
+    private async Task<(bool success, string? relativePath, string? errorMessage)> ProcessSupplierLogoAsync(IFormFile file)
+    {
+        if (file.Length == 0)
+        {
+            return (false, null, "El archivo de imagen está vacío.");
+        }
+
+        if (file.Length > MaxImageSizeBytes)
+        {
+            return (false, null, "El tamaño del logo no debe superar los 5 MB.");
+        }
+
+        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (!AllowedImageExtensions.Contains(ext))
+        {
+            return (false, null, "Formato de imagen no permitido. Solo se aceptan archivos .jpg, .jpeg, .png y .webp.");
+        }
+
+        try
+        {
+            var webRoot = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+            var uploadsDir = Path.Combine(webRoot, "uploads", "suppliers");
+            if (!Directory.Exists(uploadsDir))
+            {
+                Directory.CreateDirectory(uploadsDir);
+            }
+
+            var uniqueFileName = $"{Guid.NewGuid():N}{ext}";
+            var fullPath = Path.Combine(uploadsDir, uniqueFileName);
+
+            using (var stream = new FileStream(fullPath, FileMode.Create))
+            {
+                await file.CopyToAsync(stream);
+            }
+
+            var relativePath = $"/uploads/suppliers/{uniqueFileName}";
+            return (true, relativePath, null);
+        }
+        catch (Exception ex)
+        {
+            return (false, null, $"Error al guardar el logo en el servidor: {ex.Message}");
+        }
+    }
+
+    private void DeleteLocalSupplierLogo(string? logoUrl)
+    {
+        if (string.IsNullOrWhiteSpace(logoUrl)) return;
+
+        var normalized = logoUrl.Replace('\\', '/').TrimStart('/');
+        if (normalized.StartsWith("uploads/suppliers/", StringComparison.OrdinalIgnoreCase))
+        {
+            try
+            {
+                var webRoot = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
+                var fullPath = Path.Combine(webRoot, normalized.Replace('/', Path.DirectorySeparatorChar));
+                if (System.IO.File.Exists(fullPath))
+                {
+                    System.IO.File.Delete(fullPath);
+                }
+            }
+            catch
+            {
+                // No bloquear
+            }
+        }
     }
 
     /// <summary>
@@ -21,7 +96,7 @@ public class SupplierController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Supplier supplier)
+    public async Task<IActionResult> Create(Supplier supplier, IFormFile? LogoArchivo)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
 
@@ -41,6 +116,18 @@ public class SupplierController : Controller
             if (isAjax) return Json(new { success = false, message = msg });
             TempData["ErrorMessage"] = msg;
             return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
+        }
+
+        if (LogoArchivo != null && LogoArchivo.Length > 0)
+        {
+            var (success, relativePath, error) = await ProcessSupplierLogoAsync(LogoArchivo);
+            if (!success)
+            {
+                if (isAjax) return Json(new { success = false, message = error });
+                TempData["ErrorMessage"] = error;
+                return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
+            }
+            supplier.LogoUrl = relativePath;
         }
 
         if (!ModelState.IsValid)
@@ -80,9 +167,40 @@ public class SupplierController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Supplier supplier)
+    public async Task<IActionResult> Edit(Supplier supplier, IFormFile? LogoArchivo)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
+        var existing = await _context.Suppliers.FindAsync(supplier.Id);
+        if (existing == null)
+        {
+            if (isAjax) return Json(new { success = false, message = "Proveedor no encontrado." });
+            TempData["ErrorMessage"] = "Proveedor no encontrado.";
+            return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
+        }
+
+        string? oldLogoToDelete = null;
+
+        if (LogoArchivo != null && LogoArchivo.Length > 0)
+        {
+            var (success, relativePath, error) = await ProcessSupplierLogoAsync(LogoArchivo);
+            if (!success)
+            {
+                if (isAjax) return Json(new { success = false, message = error });
+                TempData["ErrorMessage"] = error;
+                return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
+            }
+            oldLogoToDelete = existing.LogoUrl;
+            supplier.LogoUrl = relativePath;
+        }
+        else
+        {
+            // Conservar el logo existente si no se sube nada nuevo
+            if (string.IsNullOrWhiteSpace(supplier.LogoUrl))
+            {
+                supplier.LogoUrl = existing.LogoUrl;
+            }
+        }
 
         if (!ModelState.IsValid)
         {
@@ -94,14 +212,6 @@ public class SupplierController : Controller
 
         try
         {
-            var existing = await _context.Suppliers.FindAsync(supplier.Id);
-            if (existing == null)
-            {
-                if (isAjax) return Json(new { success = false, message = "Proveedor no encontrado." });
-                TempData["ErrorMessage"] = "Proveedor no encontrado.";
-                return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
-            }
-
             existing.Nombre = supplier.Nombre.Trim();
             existing.Contacto = supplier.Contacto?.Trim();
             existing.TipoProductos = (string.IsNullOrWhiteSpace(supplier.TipoProductos) ? supplier.TipoProducto : supplier.TipoProductos)?.Trim() ?? string.Empty;
@@ -110,6 +220,11 @@ public class SupplierController : Controller
             existing.LogoUrl = supplier.LogoUrl?.Trim();
 
             await _context.SaveChangesAsync();
+
+            if (!string.IsNullOrEmpty(oldLogoToDelete))
+            {
+                DeleteLocalSupplierLogo(oldLogoToDelete);
+            }
 
             if (isAjax) return Json(new { success = true, message = "Proveedor actualizado exitosamente.", data = existing });
             TempData["SuccessMessage"] = "Proveedor actualizado exitosamente.";

@@ -27,7 +27,17 @@ public class AuthenticatedHttpClientHandler : DelegatingHandler
         }
         catch (HttpRequestException ex)
         {
-            throw new InvalidOperationException("No hay conexión con el servidor. Verifica tu conexión a internet o el estado del servicio.", ex);
+            return new HttpResponseMessage(HttpStatusCode.ServiceUnavailable)
+            {
+                Content = new StringContent($"{{\"message\": \"No hay conexión con el servidor: {ex.Message}\"}}")
+            };
+        }
+        catch (Exception ex)
+        {
+            return new HttpResponseMessage(HttpStatusCode.InternalServerError)
+            {
+                Content = new StringContent($"{{\"message\": \"Error de red: {ex.Message}\"}}")
+            };
         }
 
         if (response.StatusCode == HttpStatusCode.Unauthorized)
@@ -35,10 +45,14 @@ public class AuthenticatedHttpClientHandler : DelegatingHandler
             await _storageService.ClearAsync();
             MainThread.BeginInvokeOnMainThread(async () =>
             {
-                if (Shell.Current != null)
+                try
                 {
-                    await Shell.Current.GoToAsync("//login");
+                    if (Shell.Current != null)
+                    {
+                        await Shell.Current.GoToAsync("//login");
+                    }
                 }
+                catch { }
             });
         }
 

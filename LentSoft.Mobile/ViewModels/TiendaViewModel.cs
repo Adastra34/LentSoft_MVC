@@ -74,6 +74,21 @@ public partial class TiendaViewModel : ObservableObject
     [ObservableProperty]
     private string _selectedProductFavHeart = "🤍";
 
+    [ObservableProperty]
+    private bool _isChatModalVisible;
+
+    [ObservableProperty]
+    private string _chatInputText = string.Empty;
+
+    public ObservableCollection<ChatMessageDto> ChatMessages { get; } = new()
+    {
+        new ChatMessageDto
+        {
+            Sender = "Bot",
+            Message = "¡Hola! 👋 Soy Morgana, tu asistente experta en salud visual de LentSoft AI. ¿En qué te puedo ayudar hoy?"
+        }
+    };
+
     // Dynamic Localized UI String Properties
     [ObservableProperty] private string _shopTitle = "Tienda Óptica";
     [ObservableProperty] private string _searchPlaceholderText = "Buscar monturas, lentes...";
@@ -314,7 +329,48 @@ public partial class TiendaViewModel : ObservableObject
         bool isFav = _favService.IsFavorite(target.Id);
         SelectedProductFavHeart = isFav ? "❤️" : "🤍";
 
+        // Trigger CollectionView update
+        int index = Products.IndexOf(target);
+        if (index >= 0)
+        {
+            Products[index] = target;
+        }
+
         ShowGreenToast(isFav ? $"❤️ {target.DisplayNombre} {_locService.GetString("MyFavorites")}" : $"🤍 {target.DisplayNombre}");
+    }
+
+    [RelayCommand]
+    private void OpenChatModal()
+    {
+        IsChatModalVisible = true;
+    }
+
+    [RelayCommand]
+    private void CloseChatModal()
+    {
+        IsChatModalVisible = false;
+    }
+
+    [RelayCommand]
+    private async Task SendChatMessageAsync()
+    {
+        if (string.IsNullOrWhiteSpace(ChatInputText)) return;
+
+        string userText = ChatInputText.Trim();
+        ChatInputText = string.Empty;
+
+        ChatMessages.Add(new ChatMessageDto
+        {
+            Sender = "User",
+            Message = userText
+        });
+
+        var botReply = await _apiService.AskChatBotAsync(userText, ChatMessages.ToList());
+        ChatMessages.Add(new ChatMessageDto
+        {
+            Sender = "Bot",
+            Message = botReply
+        });
     }
 
     [RelayCommand]
@@ -413,17 +469,37 @@ public partial class TiendaViewModel : ObservableObject
             return;
         }
 
-        string totalPurchased = CartTotalDisplay;
+        int randomId = Random.Shared.Next(1000, 9999);
         var cartSnapshot = _cartService.Items.ToList();
+        decimal totalAmount = _cartService.TotalAmount;
+        decimal subtotalAmount = Math.Round(totalAmount / 1.19m, 2);
+        decimal ivaAmount = totalAmount - subtotalAmount;
+        string itemsSummary = string.Join(", ", cartSnapshot.Select(i => $"{i.Cantidad}x {i.Product.DisplayNombre}"));
 
         // Record order in order history
         _orderService.AddOrder(new OrderRecordDto
         {
-            OrderNumber = $"ORD-2026-{Random.Shared.Next(1000, 9999)}",
+            OrderNumber = $"ORD-2026-{randomId}",
             Date = DateTime.Now,
             Status = _locService.CurrentLanguage == "ES" ? "En camino" : "Shipped",
-            Total = _cartService.TotalAmount,
+            Total = totalAmount,
             Items = cartSnapshot
+        });
+
+        // Generate official electronic invoice
+        InvoiceService.Instance.AddInvoice(new InvoiceDto
+        {
+            Id = randomId,
+            NumeroFactura = $"FAC-2026-{randomId}",
+            Subtotal = subtotalAmount,
+            Impuestos = ivaAmount,
+            Total = totalAmount,
+            Estado = "Pagada",
+            EstadoRaw = "pagada",
+            FechaEmision = DateTime.Now,
+            FechaPago = DateTime.Now,
+            MetodoPago = $"Tarjeta ({CardHolderName})",
+            ItemsSummary = itemsSummary
         });
 
         _cartService.Clear();

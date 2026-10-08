@@ -12,6 +12,9 @@ public class DashboardVentasViewModel
 
     // ── Ventas ──
     public List<Order> Ventas { get; set; } = new();
+    public DateTime? FiltroFechaDesde { get; set; }
+    public DateTime? FiltroFechaHasta { get; set; }
+    public string? FiltroRapido { get; set; }
 
     // ── Facturas (Paginadas y Filtradas) ──
     public List<Invoice> Facturas { get; set; } = new();

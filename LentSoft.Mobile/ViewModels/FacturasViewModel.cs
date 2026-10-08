@@ -9,6 +9,7 @@ namespace LentSoft.Mobile.ViewModels;
 public partial class FacturasViewModel : ObservableObject
 {
     private readonly IApiService _apiService;
+    private readonly IInvoiceService _invoiceService;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -19,11 +20,28 @@ public partial class FacturasViewModel : ObservableObject
     [ObservableProperty]
     private bool _isEmpty;
 
+    [ObservableProperty]
+    private InvoiceDto? _selectedInvoice;
+
+    [ObservableProperty]
+    private bool _isDetailModalVisible;
+
     public ObservableCollection<InvoiceDto> Invoices { get; } = new();
 
-    public FacturasViewModel(IApiService apiService)
+    public FacturasViewModel(IApiService apiService, IInvoiceService invoiceService)
     {
         _apiService = apiService;
+        _invoiceService = invoiceService;
+
+        _invoiceService.InvoicesChanged += OnInvoicesChanged;
+    }
+
+    private void OnInvoicesChanged(object? sender, EventArgs e)
+    {
+        MainThread.BeginInvokeOnMainThread(() =>
+        {
+            _ = LoadInvoicesAsync();
+        });
     }
 
     [RelayCommand]
@@ -36,8 +54,14 @@ public partial class FacturasViewModel : ObservableObject
             IsBusy = true;
             Invoices.Clear();
 
-            var list = await _apiService.GetInvoicesAsync();
-            foreach (var inv in list)
+            var apiList = await _apiService.GetInvoicesAsync();
+            if (apiList != null && apiList.Count > 0)
+            {
+                _invoiceService.SyncInvoices(apiList);
+            }
+
+            var allInvoices = _invoiceService.Invoices;
+            foreach (var inv in allInvoices)
             {
                 Invoices.Add(inv);
             }
@@ -46,7 +70,7 @@ public partial class FacturasViewModel : ObservableObject
         }
         catch
         {
-            IsEmpty = true;
+            IsEmpty = Invoices.Count == 0;
         }
         finally
         {
@@ -56,13 +80,17 @@ public partial class FacturasViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private async Task InvoiceSelectedAsync(InvoiceDto invoice)
+    private void InvoiceSelected(InvoiceDto invoice)
     {
         if (invoice == null) return;
+        SelectedInvoice = invoice;
+        IsDetailModalVisible = true;
+    }
 
-        await Shell.Current.DisplayAlert(
-            $"Factura {invoice.NumeroFactura}",
-            $"Fecha: {invoice.DisplayFecha}\nEstado: {invoice.Estado}\nTotal: {invoice.DisplayTotal}\nMétodo de pago: {invoice.MetodoPago ?? "Tarjeta"}",
-            "Aceptar");
+    [RelayCommand]
+    private void CloseDetailModal()
+    {
+        IsDetailModalVisible = false;
+        SelectedInvoice = null;
     }
 }
