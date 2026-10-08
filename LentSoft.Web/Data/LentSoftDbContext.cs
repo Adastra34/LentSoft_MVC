@@ -418,7 +418,10 @@ public class LentSoftDbContext : DbContext
                 Proteccion = "UV400",
                 Estilo = "Aviador",
                 Tamanio = "58-14-135",
-                ImagenOverlayUrl = "/img/overlays/rayban_aviator_final.png"
+                ImagenOverlayUrl = "/img/overlays/rayban_aviator.svg",
+                EscalaOverlay = 2.30m,
+                OffsetXOverlay = 0.00m,
+                OffsetYOverlay = 0.12m
             },
             new Product
             {
@@ -435,7 +438,10 @@ public class LentSoftDbContext : DbContext
                 Rating = 4.7m,
                 ReviewCount = 42,
                 EsDestacado = true,
-                FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                EscalaOverlay = 2.30m,
+                OffsetXOverlay = 0.00m,
+                OffsetYOverlay = 0.12m
             },
             new Product
             {
@@ -457,7 +463,10 @@ public class LentSoftDbContext : DbContext
                 Proteccion = "Filtro UV",
                 Estilo = "Deportivo",
                 Tamanio = "55-18-140",
-                ImagenOverlayUrl = "/img/overlays/oakley_sport.svg"
+                ImagenOverlayUrl = "/img/overlays/oakley_sport.svg",
+                EscalaOverlay = 2.30m,
+                OffsetXOverlay = 0.00m,
+                OffsetYOverlay = 0.12m
             },
             new Product
             {
@@ -479,7 +488,10 @@ public class LentSoftDbContext : DbContext
                 Proteccion = "Antirreflejo / Luz Azul",
                 Estilo = "Wayfarer",
                 Tamanio = "52-19-145",
-                ImagenOverlayUrl = "/img/overlays/lentes_graduados_classic_final.png"
+                ImagenOverlayUrl = "/img/overlays/classic.svg",
+                EscalaOverlay = 2.30m,
+                OffsetXOverlay = 0.00m,
+                OffsetYOverlay = 0.12m
             },
             new Product
             {
@@ -496,7 +508,10 @@ public class LentSoftDbContext : DbContext
                 Rating = 4.5m,
                 ReviewCount = 8,
                 EsDestacado = false,
-                FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                EscalaOverlay = 2.30m,
+                OffsetXOverlay = 0.00m,
+                OffsetYOverlay = 0.12m
             },
             new Product
             {
@@ -512,7 +527,10 @@ public class LentSoftDbContext : DbContext
                 Rating = 4.9m,
                 ReviewCount = 33,
                 EsDestacado = false,
-                FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                EscalaOverlay = 2.30m,
+                OffsetXOverlay = 0.00m,
+                OffsetYOverlay = 0.12m
             }
         );
 

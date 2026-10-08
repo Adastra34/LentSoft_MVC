@@ -173,12 +173,21 @@
                 </div>
 
                 <!-- Muestra de Montura -->
-                <a asp-action="MuestraMontura" asp-route-id="@Model.Product.Id"
-                   style="width: 100%; background: var(--purple-700); color: white; border: none; border-radius: 0.75rem; padding: 0.9rem; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 12px rgba(147,51,234,0.3); text-align: center; text-decoration: none;"
-                   onmouseover="this.style.background='var(--purple-800)'; this.style.transform='translateY(-2px)';"
-                   onmouseout="this.style.background='var(--purple-700)'; this.style.transform='translateY(0)';">
-                    <span data-i18n="product.frametryon">👓 MUESTRA DE MONTURA</span>
-                </a>
+                @if (!string.IsNullOrWhiteSpace(Model.Product.ImagenOverlayUrl))
+                {
+                    <a asp-action="MuestraMontura" asp-route-id="@Model.Product.Id"
+                       style="width: 100%; background: var(--purple-700); color: white; border: none; border-radius: 0.75rem; padding: 0.9rem; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 12px rgba(147,51,234,0.3); text-align: center; text-decoration: none;"
+                       onmouseover="this.style.background='var(--purple-800)'; this.style.transform='translateY(-2px)';"
+                       onmouseout="this.style.background='var(--purple-700)'; this.style.transform='translateY(0)';">
+                        <span data-i18n="product.frametryon">👓 MUESTRA DE MONTURA</span>
+                    </a>
+                }
+                else
+                {
+                    <div style="width: 100%; background: var(--purple-50); color: var(--purple-700); border: 1.5px dashed var(--purple-300); border-radius: 0.75rem; padding: 0.85rem; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-align: center;">
+                        <span>👓 Previsualización no disponible para esta montura</span>
+                    </div>
+                }
 
                 <!-- Collapsible "Detalles de la Montura" -->
                 <details style="border: 1px solid var(--gray-200); border-radius: 0.75rem; background: white; overflow: hidden; transition: all 0.2s;"

@@ -69,6 +69,15 @@ public class Product : IValidatableObject
     [StringLength(255)]
     public string? ImagenOverlayUrl { get; set; }
 
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal EscalaOverlay { get; set; } = 2.30m;
+
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal OffsetXOverlay { get; set; } = 0.00m;
+
+    [Column(TypeName = "decimal(5,2)")]
+    public decimal OffsetYOverlay { get; set; } = 0.12m;
+
     [StringLength(20)]
     public string? SupplierId { get; set; }
     public Supplier? Supplier { get; set; }

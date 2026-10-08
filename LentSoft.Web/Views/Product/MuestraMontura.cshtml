@@ -38,7 +38,11 @@
                         Vista Previa Interactiva
                     </h3>
                     
-                    <div id="cameraPreviewContainer" style="background: var(--purple-900); border-radius: 1.25rem; height: 340px; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: var(--shadow-lg); border: 2px solid var(--purple-700);">
+                    <div id="cameraPreviewContainer" 
+                         data-escala="@(defaultProduct?.EscalaOverlay.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "2.30")"
+                         data-offset-x="@(defaultProduct?.OffsetXOverlay.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "0.00")"
+                         data-offset-y="@(defaultProduct?.OffsetYOverlay.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "0.12")"
+                         style="background: var(--purple-900); border-radius: 1.25rem; height: 340px; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: var(--shadow-lg); border: 2px solid var(--purple-700);">
                         
                         <!-- Camera Placeholder -->
                         <div id="cameraPlaceholder" style="text-align: center; color: white; padding: 2rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; z-index: 2;">
@@ -57,23 +61,33 @@
                         <!-- Live Video Element (Hidden initially) -->
                         <video id="webcamVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; display: none; transform: scaleX(-1);"></video>
 
-                        <!-- Canvas Overlay (Espejado y posicionado igual que el video) -->
-                        <canvas id="webcamCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; pointer-events: none; transform: scaleX(-1);"></canvas>
+                        <!-- Canvas Overlay (Espejado y posicionado igual que el video, con data-attributes de calibración) -->
+                        <canvas id="webcamCanvas" 
+                                data-escala="@(defaultProduct?.EscalaOverlay.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "2.30")"
+                                data-offset-x="@(defaultProduct?.OffsetXOverlay.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "0.00")"
+                                data-offset-y="@(defaultProduct?.OffsetYOverlay.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "0.12")"
+                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; pointer-events: none; transform: scaleX(-1);"></canvas>
 
-                        <!-- No Face Warning Overlay -->
-                        <div id="noFaceWarning" style="position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); background: rgba(220, 38, 38, 0.85); backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.2); color: white; padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; display: none; z-index: 4; text-align: center; white-space: nowrap; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: opacity 0.2s ease;">
-                            ⚠️ Rostro no detectado. Acércate o mejora la iluminación.
+                        <!-- No Face Warning Overlay (Estilo morado distintivo de LentSoft) -->
+                        <div id="noFaceWarning" style="position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); background: rgba(88, 28, 135, 0.90); backdrop-filter: blur(8px); border: 1.5px solid var(--purple-400); color: white; padding: 0.5rem 1.25rem; border-radius: 9999px; font-size: 0.82rem; font-weight: 600; display: none; z-index: 4; text-align: center; white-space: nowrap; box-shadow: 0 8px 20px rgba(88, 28, 135, 0.4); transition: opacity 0.2s ease;">
+                            🔍 Rostro no detectado. Centra tu rostro frente a la cámara.
                         </div>
 
-                        <!-- Error Message Container (Hidden initially) -->
-                        <div id="cameraError" style="position: absolute; inset: 0; background: rgba(15, 10, 25, 0.95); display: none; align-items: center; justify-content: center; flex-direction: column; padding: 2rem; text-align: center; color: white; z-index: 3;">
-                            <span style="font-size: 3rem; margin-bottom: 1rem;">⚠️</span>
-                            <h4 style="font-weight: 700; font-family: var(--font-primary); color: #fca5a5; margin-bottom: 0.5rem;" data-i18n="montura.camera.errortitle">Error de Acceso a la Cámara</h4>
-                            <p id="cameraErrorMessage" style="font-size: 0.85rem; color: var(--gray-300); max-width: 320px; margin-bottom: 1.5rem; line-height: 1.4;" data-i18n="montura.camera.errordesc">
+                        <!-- Low Light Warning Overlay (Aviso de poca luz en morado/ámbar) -->
+                        <div id="lowLightWarning" style="position: absolute; top: 3.5rem; left: 50%; transform: translateX(-50%); background: rgba(76, 29, 149, 0.92); backdrop-filter: blur(8px); border: 1.5px solid #fbbf24; color: #fef08a; padding: 0.45rem 1rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; display: none; z-index: 4; text-align: center; white-space: nowrap; box-shadow: 0 6px 16px rgba(0,0,0,0.3); transition: opacity 0.2s ease;">
+                            💡 Poca luz detectada. Para una mejor previsualización, acércate a una fuente de luz.
+                        </div>
+
+                        <!-- Error Message Container (Fondo morado oscuro consistente) -->
+                        <div id="cameraError" style="position: absolute; inset: 0; background: rgba(25, 10, 45, 0.96); display: none; align-items: center; justify-content: center; flex-direction: column; padding: 2rem; text-align: center; color: white; z-index: 5; border: 2px solid var(--purple-600);">
+                            <span style="font-size: 3rem; margin-bottom: 0.75rem;">⚠️</span>
+                            <h4 id="cameraErrorTitle" style="font-weight: 800; font-family: var(--font-primary); color: #fbcfe8; margin-bottom: 0.5rem; font-size: 1.15rem;" data-i18n="montura.camera.errortitle">Acceso a Cámara no Disponible</h4>
+                            <p id="cameraErrorMessage" style="font-size: 0.85rem; color: var(--purple-100); max-width: 330px; margin-bottom: 1.5rem; line-height: 1.45;" data-i18n="montura.camera.errordesc">
                                 No se pudo acceder a la cámara. Asegúrate de dar los permisos correspondientes.
                             </p>
-                            <button type="button" onclick="retryCamera()" style="background: var(--purple-700); color: white; border: none; border-radius: 0.5rem; padding: 0.5rem 1.25rem; font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: background 0.2s;" data-i18n="montura.camera.retry">
-                                Reintentar
+                            <button type="button" onclick="retryCamera()" style="background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white; border: none; border-radius: 0.5rem; padding: 0.6rem 1.4rem; font-weight: 700; font-size: 0.85rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 12px rgba(124,58,237,0.3);"
+                                    onmouseover="this.style.transform='scale(1.05)';" onmouseout="this.style.transform='scale(1)';" data-i18n="montura.camera.retry">
+                                ↺ Reintentar
                             </button>
                         </div>
 
@@ -94,24 +108,39 @@
                         <span style="background: var(--purple-100); color: var(--purple-700); font-size: 0.75rem; font-weight: 700; padding: 0.25rem 0.65rem; border-radius: 9999px; text-transform: uppercase; letter-spacing: 0.5px;" data-i18n="montura.selected.badge">
                             Marco Seleccionado
                         </span>
-                        <span id="selectedPrice" style="font-size: 1.35rem; font-weight: 800; color: var(--purple-900);">
-                            $0.00
-                        </span>
+                        <!-- Price display container with discount support -->
+                        <div id="selectedPriceContainer" style="display: flex; flex-direction: column; align-items: flex-end;">
+                            <span id="selectedPrice" style="font-size: 1.35rem; font-weight: 800; color: var(--purple-900); transition: color 0.2s, transform 0.2s;">
+                                $0.00
+                            </span>
+                            <div id="selectedDiscountRow" style="display: none; gap: 0.4rem; align-items: center; margin-top: 0.15rem;">
+                                <span id="selectedRegularPrice" style="font-size: 0.8rem; text-decoration: line-through; color: var(--gray-400); font-weight: 500;"></span>
+                                <span id="selectedDiscountBadge" style="background: var(--success); color: white; padding: 0.1rem 0.35rem; border-radius: 9999px; font-size: 0.65rem; font-weight: 700;"></span>
+                            </div>
+                        </div>
                     </div>
 
                     <h4 id="selectedName" style="color: var(--purple-900); font-size: 1.25rem; font-weight: 800; margin: 0 0 0.5rem 0; font-family: var(--font-primary);" data-i18n="montura.loading">
                         Cargando...
                     </h4>
 
-                    <div style="display: flex; gap: 1rem; margin-bottom: 1rem; font-size: 0.85rem; color: var(--gray-600); flex-wrap: wrap;">
+                    <div style="display: flex; gap: 0.75rem; margin-bottom: 0.85rem; font-size: 0.85rem; color: var(--gray-600); flex-wrap: wrap;">
+                        <div><strong data-i18n="montura.selected.color">Color:</strong> <span id="selectedColor">-</span></div>
+                        <div style="color: var(--gray-300);">|</div>
                         <div><strong data-i18n="montura.selected.style">Estilo:</strong> <span id="selectedStyle">-</span></div>
                         <div style="color: var(--gray-300);">|</div>
                         <div><strong data-i18n="montura.selected.size">Medidas:</strong> <span id="selectedSize">-</span></div>
                     </div>
 
                     <!-- AR Preview Availability Notice -->
-                    <div id="arUnavailableNotice" style="display: none; background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); color: #d97706; padding: 0.6rem 0.85rem; border-radius: 0.75rem; font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem; align-items: center; gap: 0.4rem;">
-                        ⚠️ Este marco aún no tiene vista previa en AR disponible
+                    <div id="arUnavailableNotice" style="display: none; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #b45309; padding: 0.6rem 0.85rem; border-radius: 0.75rem; font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem; align-items: center; gap: 0.4rem;">
+                        ⚠️ Previsualización no disponible para esta montura
+                    </div>
+
+                    <!-- Selector de Variante / Color Rápido si aplica -->
+                    <div id="variantsSection" style="display: none; margin-bottom: 1rem;">
+                        <label style="font-size: 0.75rem; font-weight: 700; color: var(--purple-900); text-transform: uppercase; letter-spacing: 0.5px; display: block; margin-bottom: 0.4rem;">Variantes disponibles:</label>
+                        <div id="variantsList" style="display: flex; gap: 0.4rem; flex-wrap: wrap;"></div>
                     </div>
 
                     <p id="selectedDesc" style="color: var(--gray-500); font-size: 0.85rem; line-height: 1.5; margin: 0 0 1.25rem 0; min-height: 45px;">
@@ -214,19 +243,28 @@
 @section Scripts {
     <script type="module" src="~/js/face-tracking.js"></script>
     <script>
-        // Embed the products JSON safely
+        // Embed the products JSON safely with overlay calibration and variant pricing
         const productsData = @Html.Raw(JsonSerializer.Serialize(allProductsList.Select(p => new {
             id = p.Id,
             nombre = p.Nombre,
+            color = p.Color ?? "Estándar",
             estilo = p.Estilo ?? "No especificado",
             tamanio = p.Tamanio ?? "No especificado",
+            precio = p.Precio,
+            precioDescuento = p.PrecioDescuento,
             precioStr = p.PrecioDescuento.HasValue && p.PrecioDescuento < p.Precio 
                 ? p.PrecioDescuento.Value.ToString("C") 
                 : p.Precio.ToString("C"),
+            precioRegularStr = p.Precio.ToString("C"),
+            descuentoPorcentaje = p.GetDiscountPercentage(),
+            hasDiscount = p.PrecioDescuento.HasValue && p.PrecioDescuento < p.Precio,
             descripcion = p.Descripcion ?? "Excelente diseño y materiales de alta calidad, seleccionados para garantizar tu bienestar visual.",
             imagenUrl = p.ImagenUrl ?? "",
             imagenOverlayUrl = p.ImagenOverlayUrl ?? "",
-            hasStock = p.HasStock(1)
+            hasStock = p.HasStock(1),
+            escalaOverlay = p.EscalaOverlay,
+            offsetXOverlay = p.OffsetXOverlay,
+            offsetYOverlay = p.OffsetYOverlay
         })));
 
         let currentSelectedId = @defaultId;
@@ -242,27 +280,15 @@
             });
         }
 
-        // Initialize display with default/preselected product
-        document.addEventListener('DOMContentLoaded', async () => {
+        // Initialize display with default/preselected product (WITHOUT downloading MediaPipe on page load)
+        document.addEventListener('DOMContentLoaded', () => {
             if (currentSelectedId !== 0) {
                 selectProduct(currentSelectedId);
-                
-                // Set initial overlay once tracking module is loaded
-                try {
-                    const tracking = await ensureFaceTracking();
-                    const product = productsData.find(p => p.id === currentSelectedId);
-                    if (product) {
-                        tracking.cambiarMontura(product.imagenOverlayUrl);
-                    }
-                } catch (err) {
-                    console.warn("Failed to set initial frame overlay on load:", err);
-                }
             }
         });
 
-        // Function to select product in gallery
+        // Function to select product/variant in gallery or variant chips
         function selectProduct(id) {
-            // Find in JSON data
             const product = productsData.find(p => p.id === id);
             if (!product) return;
 
@@ -270,7 +296,21 @@
             const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'es';
             const translate = typeof translateProductText === 'function' ? translateProductText : (t => t);
 
-            // Remove highlighted borders
+            // Update container and canvas data attributes for maintainability
+            const previewContainer = document.getElementById('cameraPreviewContainer');
+            if (previewContainer) {
+                previewContainer.setAttribute('data-escala', product.escalaOverlay);
+                previewContainer.setAttribute('data-offset-x', product.offsetXOverlay);
+                previewContainer.setAttribute('data-offset-y', product.offsetYOverlay);
+            }
+            const canvasEl = document.getElementById('webcamCanvas');
+            if (canvasEl) {
+                canvasEl.setAttribute('data-escala', product.escalaOverlay);
+                canvasEl.setAttribute('data-offset-x', product.offsetXOverlay);
+                canvasEl.setAttribute('data-offset-y', product.offsetYOverlay);
+            }
+
+            // Remove highlighted borders in gallery
             productsData.forEach(p => {
                 const card = document.getElementById('product-card-' + p.id);
                 if (card) {
@@ -288,18 +328,86 @@
 
             // Update details card on the left
             document.getElementById('selectedName').textContent = translate(product.nombre, lang);
-            document.getElementById('selectedPrice').textContent = product.precioStr;
+            document.getElementById('selectedColor').textContent = translate(product.color, lang);
             document.getElementById('selectedStyle').textContent = translate(product.estilo, lang);
             document.getElementById('selectedSize').textContent = translate(product.tamanio, lang);
             document.getElementById('selectedDesc').textContent = translate(product.descripcion, lang);
 
-            // Update AR availability notice
-            const arNotice = document.getElementById('arUnavailableNotice');
-            if (arNotice) {
-                if (product.imagenOverlayUrl) {
-                    arNotice.style.display = 'none';
+            // Price by variant: update real-time without reloading
+            const priceEl = document.getElementById('selectedPrice');
+            const discountRow = document.getElementById('selectedDiscountRow');
+            const regularPriceEl = document.getElementById('selectedRegularPrice');
+            const discountBadgeEl = document.getElementById('selectedDiscountBadge');
+
+            if (priceEl) {
+                priceEl.textContent = product.precioStr;
+                // Micro-animación visual para feedback instantáneo de precio
+                priceEl.style.transform = 'scale(1.08)';
+                setTimeout(() => { priceEl.style.transform = 'scale(1)'; }, 200);
+            }
+
+            if (product.hasDiscount) {
+                if (regularPriceEl) regularPriceEl.textContent = product.precioRegularStr;
+                if (discountBadgeEl) discountBadgeEl.textContent = `-${product.descuentoPorcentaje}%`;
+                if (discountRow) discountRow.style.display = 'flex';
+            } else {
+                if (discountRow) discountRow.style.display = 'none';
+            }
+
+            // Variants / Colors quick chips: group by style or offer related frames
+            const variantsSection = document.getElementById('variantsSection');
+            const variantsList = document.getElementById('variantsList');
+            if (variantsSection && variantsList) {
+                // Find products with similar style or frames to offer variants
+                const relatedVariants = productsData.filter(p => p.estilo === product.estilo || p.id === product.id);
+                if (relatedVariants.length > 1) {
+                    variantsSection.style.display = 'block';
+                    variantsList.innerHTML = '';
+                    relatedVariants.forEach(v => {
+                        const chip = document.createElement('button');
+                        chip.type = 'button';
+                        chip.textContent = v.color || v.nombre;
+                        chip.title = `${v.nombre} - ${v.precioStr}`;
+                        const isCurrent = v.id === product.id;
+                        chip.style.cssText = `
+                            padding: 0.3rem 0.65rem;
+                            border-radius: 9999px;
+                            font-size: 0.75rem;
+                            font-weight: 600;
+                            cursor: pointer;
+                            border: 1.5px solid ${isCurrent ? 'var(--purple-600)' : 'var(--purple-200)'};
+                            background: ${isCurrent ? 'var(--purple-600)' : 'var(--purple-50)'};
+                            color: ${isCurrent ? 'white' : 'var(--purple-800)'};
+                            transition: all 0.15s;
+                        `;
+                        chip.onclick = () => selectProduct(v.id);
+                        variantsList.appendChild(chip);
+                    });
                 } else {
-                    arNotice.style.display = 'flex';
+                    variantsSection.style.display = 'none';
+                }
+            }
+
+            // Update AR availability notice & Try-On button state
+            const arNotice = document.getElementById('arUnavailableNotice');
+            const startBtn = document.getElementById('startCameraBtn');
+            const hasOverlay = Boolean(product.imagenOverlayUrl && product.imagenOverlayUrl.trim() !== '');
+
+            if (arNotice) {
+                arNotice.style.display = hasOverlay ? 'none' : 'flex';
+            }
+
+            if (startBtn) {
+                if (hasOverlay) {
+                    startBtn.disabled = false;
+                    startBtn.style.opacity = '1';
+                    startBtn.style.cursor = 'pointer';
+                    startBtn.textContent = 'Activar Cámara 📸';
+                } else {
+                    startBtn.disabled = true;
+                    startBtn.style.opacity = '0.6';
+                    startBtn.style.cursor = 'not-allowed';
+                    startBtn.textContent = 'Previsualización no disponible para esta montura';
                 }
             }
 
@@ -319,9 +427,13 @@
                 }
             }
 
-            // Update frame overlay dynamically in real-time
+            // Update frame overlay dynamically in real-time if faceTracking is active
             if (window.faceTracking) {
-                window.faceTracking.cambiarMontura(product.imagenOverlayUrl);
+                window.faceTracking.cambiarMontura(product.imagenOverlayUrl, {
+                    escala: product.escalaOverlay,
+                    offsetX: product.offsetXOverlay,
+                    offsetY: product.offsetYOverlay
+                });
             }
         }
 
@@ -337,61 +449,96 @@
             addToCart(currentSelectedId);
         }
 
-        // Camera Activation (getUserMedia)
+        // Camera Activation with Lazy Load, Low Resolution and Strict Compatibility Checks
         async function startCamera() {
             const placeholder = document.getElementById('cameraPlaceholder');
             const video = document.getElementById('webcamVideo');
             const errorContainer = document.getElementById('cameraError');
             const controls = document.getElementById('cameraControls');
             const canvas = document.getElementById('webcamCanvas');
+            const startBtn = document.getElementById('startCameraBtn');
 
             errorContainer.style.display = 'none';
 
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                showCameraError('Tu navegador no soporta el acceso a la cámara. Por favor utiliza un navegador moderno.');
+            // 1. Validaciones previas de compatibilidad (HTTPS, getUserMedia, WebAssembly)
+            const trackingModule = await ensureFaceTracking();
+            if (trackingModule.validarCompatibilidad) {
+                const check = trackingModule.validarCompatibilidad();
+                if (!check.compatible) {
+                    showCameraError(check.mensaje, 'Incompatibilidad de Sistema');
+                    return;
+                }
+            } else if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                showCameraError('Tu navegador no soporta el acceso a la cámara mediante WebRTC. Por favor utiliza un navegador moderno como Chrome, Safari, Firefox o Edge.', 'Navegador no compatible');
                 return;
             }
 
+            // Verificar si el producto actual tiene overlay disponible
+            const product = productsData.find(p => p.id === currentSelectedId);
+            if (!product || !product.imagenOverlayUrl) {
+                showCameraError('Esta montura no dispone de una imagen de previsualización AR.', 'Montura sin previsualización');
+                return;
+            }
+
+            if (startBtn) {
+                startBtn.disabled = true;
+                startBtn.textContent = 'Iniciando cámara y AR... ⏳';
+            }
+
             try {
+                // 2. Reducción de resolución a 640x480 para celulares de gama baja
                 cameraStream = await navigator.mediaDevices.getUserMedia({ 
                     video: { 
                         facingMode: "user",
-                        width: { ideal: 640 },
-                        height: { ideal: 480 }
+                        width: { ideal: 640, max: 640 },
+                        height: { ideal: 480, max: 480 },
+                        frameRate: { ideal: 30, max: 30 }
                     } 
                 });
 
                 video.srcObject = cameraStream;
+                await video.play();
+
                 video.style.display = 'block';
                 placeholder.style.display = 'none';
                 controls.style.display = 'block';
 
-                // Try-On AR initialization and detection start
+                // 3. Lazy Load real del modelo MediaPipe solo al activar la cámara
                 try {
                     const tracking = await ensureFaceTracking();
                     if (!tracking.isReady()) {
                         await tracking.init();
                     }
                     
-                    // Set active product overlay frame before starting detection
-                    const product = productsData.find(p => p.id === currentSelectedId);
-                    if (product) {
-                        tracking.cambiarMontura(product.imagenOverlayUrl);
-                    }
+                    // Configurar montura con valores calibrados del modelo
+                    tracking.cambiarMontura(product.imagenOverlayUrl, {
+                        escala: product.escalaOverlay,
+                        offsetX: product.offsetXOverlay,
+                        offsetY: product.offsetYOverlay
+                    });
 
                     tracking.iniciarDeteccion(video, canvas);
                     canvas.style.display = 'block';
                 } catch (trackErr) {
-                    console.error("Error starting face tracking:", trackErr);
+                    console.error("Error al inicializar detector facial:", trackErr);
                     stopCamera();
-                    showCameraError('No se pudo inicializar el detector de rostro (AR). Inténtalo de nuevo.');
+                    showCameraError('No se pudo inicializar el modelo de reconocimiento facial. Por favor verifica tu conexión a internet y vuelve a intentar.', 'Error en Reconocimiento Facial');
                 }
             } catch (err) {
-                console.error("Camera access error:", err);
+                console.error("Error al acceder a la cámara:", err);
+                if (startBtn) {
+                    startBtn.disabled = false;
+                    startBtn.textContent = 'Activar Cámara 📸';
+                }
+
                 if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                    showCameraError('Acceso denegado. Permite el uso de la cámara en la barra de direcciones y vuelve a intentarlo.');
+                    showCameraError('Permiso de cámara denegado. Haz clic en el ícono de permisos/candado en la barra de direcciones de tu navegador y autoriza el acceso.', 'Permiso Denegado');
+                } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
+                    showCameraError('No se detectó ninguna cámara disponible en tu dispositivo.', 'Cámara no Encontrada');
+                } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
+                    showCameraError('La cámara está siendo utilizada por otra aplicación. Por favor cierra otras apps que usen la cámara y reintenta.', 'Cámara Ocupada');
                 } else {
-                    showCameraError('No se encontró ningún dispositivo de cámara o el dispositivo está en uso.');
+                    showCameraError('Ocurrió un inconveniente al conectar con la cámara: ' + (err.message || 'Error desconocido'), 'Error de Conexión');
                 }
             }
         }
@@ -401,6 +548,7 @@
             const video = document.getElementById('webcamVideo');
             const controls = document.getElementById('cameraControls');
             const canvas = document.getElementById('webcamCanvas');
+            const startBtn = document.getElementById('startCameraBtn');
 
             if (window.faceTracking) {
                 window.faceTracking.detenerDeteccion();
@@ -419,11 +567,25 @@
             video.style.display = 'none';
             placeholder.style.display = 'flex';
             controls.style.display = 'none';
+
+            if (startBtn) {
+                startBtn.disabled = false;
+                startBtn.textContent = 'Activar Cámara 📸';
+            }
         }
 
-        function showCameraError(msg) {
-            document.getElementById('cameraErrorMessage').textContent = msg;
+        function showCameraError(msg, title = 'Acceso a Cámara no Disponible') {
+            const errTitle = document.getElementById('cameraErrorTitle');
+            const errMsg = document.getElementById('cameraErrorMessage');
+            if (errTitle) errTitle.textContent = title;
+            if (errMsg) errMsg.textContent = msg;
             document.getElementById('cameraError').style.display = 'flex';
+
+            const startBtn = document.getElementById('startCameraBtn');
+            if (startBtn) {
+                startBtn.disabled = false;
+                startBtn.textContent = 'Activar Cámara 📸';
+            }
         }
 
         function retryCamera() {

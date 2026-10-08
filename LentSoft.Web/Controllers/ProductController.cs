@@ -394,8 +394,8 @@ public class ProductController : Controller
         }
 
         var isFavorite = false;
-        var isAuthenticated = User.Identity?.IsAuthenticated == true;
-        if (isAuthenticated)
+        var isAuthenticated = User?.Identity?.IsAuthenticated == true;
+        if (isAuthenticated && User != null)
         {
             var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
             if (int.TryParse(userIdStr, out var userId))

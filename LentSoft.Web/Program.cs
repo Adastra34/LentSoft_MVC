@@ -4,7 +4,6 @@ using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -44,12 +43,6 @@ if (string.IsNullOrEmpty(geminiApiKey) || geminiApiKey == "CONFIGURAR_TU_API_KEY
 {
     throw new InvalidOperationException("La API key de Gemini no está configurada. Establece 'Gemini:ApiKey' en appsettings.Development.json o en variables de entorno.");
 }
-
-// ── Data Protection (Persistent keys across restarts) ──
-var keysFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LentSoft-Keys");
-builder.Services.AddDataProtection()
-    .PersistKeysToFileSystem(new DirectoryInfo(keysFolder))
-    .SetApplicationName("LentSoft");
 
 // ── Database ──
 builder.Services.AddDbContext<LentSoftDbContext>(options =>
@@ -148,10 +141,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-if (!app.Environment.IsDevelopment())
-{
-    app.UseHttpsRedirection();
-}
+app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();
@@ -163,12 +153,15 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// ── Database migration + seed on startup (development only) ──
-using (var scope = app.Services.CreateScope())
+// ── Database migration + seed on startup (solo en desarrollo) ──
+if (app.Environment.IsDevelopment())
 {
-    var db = scope.ServiceProvider.GetRequiredService<LentSoftDbContext>();
-    db.Database.Migrate();
-    DbSeeder.Seed(db);
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<LentSoftDbContext>();
+        db.Database.Migrate();
+        DbSeeder.Seed(db);
+    }
 }
 
 app.Run();

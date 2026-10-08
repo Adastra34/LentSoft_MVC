@@ -110,10 +110,11 @@ public class Appointment : IValidatableObject
         return true;
     }
 
+    public static readonly string[] EstadosValidos = new[] { "pendiente", "confirmada", "completada", "cancelada" };
+
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        var validEstados = new[] { "pendiente", "confirmada", "completada", "cancelada" };
-        if (!validEstados.Contains(Estado))
+        if (!EstadosValidos.Contains(Estado))
         {
             yield return new ValidationResult(
                 "El estado de la cita debe ser: pendiente, confirmada, completada o cancelada",
