@@ -38,7 +38,11 @@
                         Vista Previa Interactiva
                     </h3>
                     
-                    <div id="cameraPreviewContainer" style="background: var(--purple-900); border-radius: 1.25rem; height: 340px; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: var(--shadow-lg); border: 2px solid var(--purple-700);">
+                    <div id="cameraPreviewContainer" 
+                         data-escala="@(defaultProduct?.EscalaOverlay.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "2.30")"
+                         data-offset-x="@(defaultProduct?.OffsetXOverlay.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "0.00")"
+                         data-offset-y="@(defaultProduct?.OffsetYOverlay.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "0.12")"
+                         style="background: var(--purple-900); border-radius: 1.25rem; height: 340px; position: relative; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: var(--shadow-lg); border: 2px solid var(--purple-700);">
                         
                         <!-- Camera Placeholder -->
                         <div id="cameraPlaceholder" style="text-align: center; color: white; padding: 2rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; z-index: 2;">
@@ -57,8 +61,12 @@
                         <!-- Live Video Element (Hidden initially) -->
                         <video id="webcamVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; display: none; transform: scaleX(-1);"></video>
 
-                        <!-- Canvas Overlay (Espejado y posicionado igual que el video) -->
-                        <canvas id="webcamCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; pointer-events: none; transform: scaleX(-1);"></canvas>
+                        <!-- Canvas Overlay (Espejado y posicionado igual que el video, con data-attributes de calibración) -->
+                        <canvas id="webcamCanvas" 
+                                data-escala="@(defaultProduct?.EscalaOverlay.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "2.30")"
+                                data-offset-x="@(defaultProduct?.OffsetXOverlay.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "0.00")"
+                                data-offset-y="@(defaultProduct?.OffsetYOverlay.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "0.12")"
+                                style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; pointer-events: none; transform: scaleX(-1);"></canvas>
 
                         <!-- No Face Warning Overlay (Estilo morado distintivo de LentSoft) -->
                         <div id="noFaceWarning" style="position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); background: rgba(88, 28, 135, 0.90); backdrop-filter: blur(8px); border: 1.5px solid var(--purple-400); color: white; padding: 0.5rem 1.25rem; border-radius: 9999px; font-size: 0.82rem; font-weight: 600; display: none; z-index: 4; text-align: center; white-space: nowrap; box-shadow: 0 8px 20px rgba(88, 28, 135, 0.4); transition: opacity 0.2s ease;">
@@ -288,12 +296,18 @@
             const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'es';
             const translate = typeof translateProductText === 'function' ? translateProductText : (t => t);
 
-            // Update container data attributes for maintainability
+            // Update container and canvas data attributes for maintainability
             const previewContainer = document.getElementById('cameraPreviewContainer');
             if (previewContainer) {
                 previewContainer.setAttribute('data-escala', product.escalaOverlay);
                 previewContainer.setAttribute('data-offset-x', product.offsetXOverlay);
                 previewContainer.setAttribute('data-offset-y', product.offsetYOverlay);
+            }
+            const canvasEl = document.getElementById('webcamCanvas');
+            if (canvasEl) {
+                canvasEl.setAttribute('data-escala', product.escalaOverlay);
+                canvasEl.setAttribute('data-offset-x', product.offsetXOverlay);
+                canvasEl.setAttribute('data-offset-y', product.offsetYOverlay);
             }
 
             // Remove highlighted borders in gallery
@@ -393,7 +407,7 @@
                     startBtn.disabled = true;
                     startBtn.style.opacity = '0.6';
                     startBtn.style.cursor = 'not-allowed';
-                    startBtn.textContent = 'Previsualización no disponible';
+                    startBtn.textContent = 'Previsualización no disponible para esta montura';
                 }
             }
 

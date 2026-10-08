@@ -103,4 +103,63 @@ public class ProductControllerTests
         Assert.NotNull(jsonSufficient.Value);
         Assert.NotNull(jsonInsufficient.Value);
     }
+
+    [Fact]
+    public async Task Details_ReturnsViewWithProductAndCorrectPrice()
+    {
+        // Arrange
+        var fakeProductService = new FakeProductService();
+        var fakeFavService = new FakeFavoriteService();
+        var fakeEnv = new FakeWebHostEnvironment();
+
+        var product = new Product
+        {
+            Id = 15,
+            Nombre = "Montura Ray-Ban Especial",
+            Precio = 750000m,
+            PrecioDescuento = 600000m,
+            Stock = 12,
+            Activo = true,
+            EscalaOverlay = 2.35m,
+            OffsetXOverlay = 0.02m,
+            OffsetYOverlay = 0.14m
+        };
+        fakeProductService.Products.Add(product);
+
+        var controller = new ProductController(fakeProductService, fakeFavService, fakeEnv);
+
+        // Act
+        var result = await controller.Details(15);
+
+        // Assert
+        var viewResult = Assert.IsType<ViewResult>(result);
+        var model = Assert.IsType<ProductDetailsViewModel>(viewResult.Model);
+
+        Assert.NotNull(model.Product);
+        Assert.Equal(15, model.Product.Id);
+        Assert.Equal("Montura Ray-Ban Especial", model.Product.Nombre);
+        Assert.Equal(750000m, model.Product.Precio);
+        Assert.Equal(600000m, model.Product.PrecioDescuento);
+        Assert.Equal(2.35m, model.Product.EscalaOverlay);
+        Assert.Equal(0.02m, model.Product.OffsetXOverlay);
+        Assert.Equal(0.14m, model.Product.OffsetYOverlay);
+    }
+
+    [Fact]
+    public async Task Details_ReturnsNotFound_WhenProductDoesNotExist()
+    {
+        // Arrange
+        var fakeProductService = new FakeProductService();
+        var fakeFavService = new FakeFavoriteService();
+        var fakeEnv = new FakeWebHostEnvironment();
+
+        var controller = new ProductController(fakeProductService, fakeFavService, fakeEnv);
+
+        // Act
+        var result = await controller.Details(999);
+
+        // Assert
+        Assert.IsType<NotFoundResult>(result);
+    }
 }
+

@@ -14,10 +14,35 @@ let ctx = null;
 
 // Configuración de calibración de overlay activa
 let currentOverlayConfig = {
-    escala: 2.30,
-    offsetX: 0.00,
-    offsetY: 0.12
+    escala: null,
+    offsetX: null,
+    offsetY: null
 };
+
+// Función para leer valores de ajuste de calibración directamente desde data-attributes de la vista
+export function obtenerCalibracionDesdeVista() {
+    const el = (canvasEl && (canvasEl.getAttribute('data-escala') || canvasEl.dataset?.escala))
+        ? canvasEl
+        : document.getElementById('cameraPreviewContainer');
+
+    if (el) {
+        const dEscala = el.getAttribute('data-escala') || el.dataset?.escala;
+        const dOffsetX = el.getAttribute('data-offset-x') || el.dataset?.offsetX;
+        const dOffsetY = el.getAttribute('data-offset-y') || el.dataset?.offsetY;
+
+        const parsedEscala = parseFloat(dEscala);
+        const parsedOffsetX = parseFloat(dOffsetX);
+        const parsedOffsetY = parseFloat(dOffsetY);
+
+        return {
+            escala: !isNaN(parsedEscala) && parsedEscala > 0 ? parsedEscala : 2.30,
+            offsetX: !isNaN(parsedOffsetX) ? parsedOffsetX : 0.00,
+            offsetY: !isNaN(parsedOffsetY) ? parsedOffsetY : 0.12
+        };
+    }
+
+    return { escala: 2.30, offsetX: 0.00, offsetY: 0.12 };
+}
 
 // Control de FPS y rendimiento adaptativo
 let targetFps = 30; // Objetivo inicial 30 FPS
@@ -248,7 +273,10 @@ function iniciarDeteccion(video, canvas) {
                             const rawDist = Math.sqrt(dx * dx + dy * dy);
                             const rawAngle = Math.atan2(dy, dx);
 
-                            const escala = currentOverlayConfig.escala || 2.30;
+                            const viewConfig = obtenerCalibracionDesdeVista();
+                            const escala = (currentOverlayConfig.escala !== null && currentOverlayConfig.escala !== undefined)
+                                ? currentOverlayConfig.escala
+                                : viewConfig.escala;
                             const rawWidth = rawDist * escala;
                             const ratio = (currentMonturaImg.naturalWidth > 0)
                                 ? (currentMonturaImg.naturalHeight / currentMonturaImg.naturalWidth)
@@ -311,8 +339,16 @@ function iniciarDeteccion(video, canvas) {
                 ctx.translate(s.midX, s.midY);
                 ctx.rotate(s.angle);
 
-                const offsetX = s.width * (currentOverlayConfig.offsetX || 0.00);
-                const offsetY = s.height * (currentOverlayConfig.offsetY !== undefined ? currentOverlayConfig.offsetY : 0.12);
+                const viewConfig = obtenerCalibracionDesdeVista();
+                const resolvedOffsetX = (currentOverlayConfig.offsetX !== null && currentOverlayConfig.offsetX !== undefined)
+                    ? currentOverlayConfig.offsetX
+                    : viewConfig.offsetX;
+                const resolvedOffsetY = (currentOverlayConfig.offsetY !== null && currentOverlayConfig.offsetY !== undefined)
+                    ? currentOverlayConfig.offsetY
+                    : viewConfig.offsetY;
+
+                const offsetX = s.width * resolvedOffsetX;
+                const offsetY = s.height * resolvedOffsetY;
 
                 ctx.drawImage(
                     currentMonturaImg,
@@ -354,11 +390,18 @@ function detenerDeteccion() {
 
 // 7. Cambiar montura activa con soporte de parámetros de calibración
 function cambiarMontura(url, config = {}) {
-    // Actualizar configuración de calibración
+    const viewConfig = obtenerCalibracionDesdeVista();
+    // Actualizar configuración de calibración priorizando config o leyendo data-attributes de la vista
     currentOverlayConfig = {
-        escala: typeof config.escala === 'number' && config.escala > 0 ? config.escala : (parseFloat(config.escala) || 2.30),
-        offsetX: typeof config.offsetX === 'number' ? config.offsetX : (parseFloat(config.offsetX) || 0.00),
-        offsetY: typeof config.offsetY === 'number' ? config.offsetY : (parseFloat(config.offsetY) || 0.12)
+        escala: (config.escala !== undefined && config.escala !== null)
+            ? (typeof config.escala === 'number' && config.escala > 0 ? config.escala : (parseFloat(config.escala) || viewConfig.escala))
+            : viewConfig.escala,
+        offsetX: (config.offsetX !== undefined && config.offsetX !== null)
+            ? (typeof config.offsetX === 'number' ? config.offsetX : (parseFloat(config.offsetX) || viewConfig.offsetX))
+            : viewConfig.offsetX,
+        offsetY: (config.offsetY !== undefined && config.offsetY !== null)
+            ? (typeof config.offsetY === 'number' ? config.offsetY : (parseFloat(config.offsetY) || viewConfig.offsetY))
+            : viewConfig.offsetY
     };
 
     if (!url || typeof url !== 'string' || url.trim() === '') {
@@ -395,6 +438,7 @@ window.faceTracking = {
     detenerDeteccion: detenerDeteccion,
     cambiarMontura: cambiarMontura,
     validarCompatibilidad: validarCompatibilidad,
+    obtenerCalibracionDesdeVista: obtenerCalibracionDesdeVista,
     isReady: () => faceLandmarker !== null,
     getTargetFps: () => targetFps
 };
