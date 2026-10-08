@@ -96,12 +96,6 @@ public class ProductService : IProductService
 
     public async Task<Product> CreateAsync(Product product)
     {
-        product.Stock = Math.Min(85, Math.Max(0, product.Stock));
-        if (product.Stock == 0)
-        {
-            product.Activo = false;
-        }
-
         product.FechaCreacion = DateTime.UtcNow;
         _context.Products.Add(product);
 
@@ -135,8 +129,6 @@ public class ProductService : IProductService
         var product = await _context.Products.FindAsync(id);
         if (product == null) return null;
 
-        updated.Stock = Math.Min(85, Math.Max(0, updated.Stock));
-
         int stockDelta = updated.Stock - product.Stock;
 
         product.Nombre = updated.Nombre;
@@ -147,16 +139,10 @@ public class ProductService : IProductService
         product.Marca = updated.Marca;
         product.Stock = updated.Stock;
         product.ImagenUrl = updated.ImagenUrl;
-        
-        if (product.Stock == 0)
-        {
-            product.Activo = false;
-        }
-        else
-        {
-            product.Activo = updated.Activo;
-        }
-
+        product.Activo = updated.Activo;
+        product.EscalaOverlay = updated.EscalaOverlay;
+        product.OffsetXOverlay = updated.OffsetXOverlay;
+        product.OffsetYOverlay = updated.OffsetYOverlay;
         if (!string.IsNullOrEmpty(updated.SupplierId)) product.SupplierId = updated.SupplierId;
 
         try

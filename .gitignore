@@ -15,10 +15,12 @@ LentSoft.Web/obj/
 *.mdf
 *.ldf
 
-# Local config
+# Local config & Secrets
 appsettings.Development.json
+appsettings.Production.json
 appsettings.Local.json
-
-# Agents workspace directory
-.agents/
-
+secrets.json
+*.env
+*.env.*
+TestResults/
+publish/

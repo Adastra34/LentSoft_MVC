@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LentSoft.Web", "LentSoft.We
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LentSoft.Mobile", "LentSoft.Mobile\LentSoft.Mobile.csproj", "{DE1E6B68-6DB9-4346-B3B3-12FAA1242624}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LentSoft.Tests", "LentSoft.Tests\LentSoft.Tests.csproj", "{9D74B4C9-D754-4C04-890A-57373D1F8896}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -41,6 +43,18 @@ Global
 		{DE1E6B68-6DB9-4346-B3B3-12FAA1242624}.Release|x64.Build.0 = Release|Any CPU
 		{DE1E6B68-6DB9-4346-B3B3-12FAA1242624}.Release|x86.ActiveCfg = Release|Any CPU
 		{DE1E6B68-6DB9-4346-B3B3-12FAA1242624}.Release|x86.Build.0 = Release|Any CPU
+		{9D74B4C9-D754-4C04-890A-57373D1F8896}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9D74B4C9-D754-4C04-890A-57373D1F8896}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9D74B4C9-D754-4C04-890A-57373D1F8896}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{9D74B4C9-D754-4C04-890A-57373D1F8896}.Debug|x64.Build.0 = Debug|Any CPU
+		{9D74B4C9-D754-4C04-890A-57373D1F8896}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{9D74B4C9-D754-4C04-890A-57373D1F8896}.Debug|x86.Build.0 = Debug|Any CPU
+		{9D74B4C9-D754-4C04-890A-57373D1F8896}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9D74B4C9-D754-4C04-890A-57373D1F8896}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9D74B4C9-D754-4C04-890A-57373D1F8896}.Release|x64.ActiveCfg = Release|Any CPU
+		{9D74B4C9-D754-4C04-890A-57373D1F8896}.Release|x64.Build.0 = Release|Any CPU
+		{9D74B4C9-D754-4C04-890A-57373D1F8896}.Release|x86.ActiveCfg = Release|Any CPU
+		{9D74B4C9-D754-4C04-890A-57373D1F8896}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
