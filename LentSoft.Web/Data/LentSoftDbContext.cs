@@ -183,6 +183,11 @@ public class LentSoftDbContext : DbContext
                   .WithMany(u => u.Orders)
                   .HasForeignKey(e => e.UserId)
                   .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.FormulaOptica)
+                  .WithMany()
+                  .HasForeignKey(e => e.FormulaOpticaId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
 
         // ── OrderItems ──
