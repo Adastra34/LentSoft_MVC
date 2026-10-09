@@ -4,6 +4,7 @@ using LentSoft.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LentSoft.Web.Migrations
 {
     [DbContext(typeof(LentSoftDbContext))]
-    partial class LentSoftDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261007214500_AddFormulaOpticaToOrder")]
+    partial class AddFormulaOpticaToOrder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -998,9 +1000,6 @@ namespace LentSoft.Web.Migrations
                         .HasColumnType("bit")
                         .HasDefaultValue(false);
 
-                    b.Property<decimal>("EscalaOverlay")
-                        .HasColumnType("decimal(5,2)");
-
                     b.Property<string>("Estilo")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
@@ -1031,12 +1030,6 @@ namespace LentSoft.Web.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
-                    b.Property<decimal>("OffsetXOverlay")
-                        .HasColumnType("decimal(5,2)");
-
-                    b.Property<decimal>("OffsetYOverlay")
-                        .HasColumnType("decimal(5,2)");
-
                     b.Property<decimal>("PorcentajeIva")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("decimal(5,2)")
@@ -1061,12 +1054,6 @@ namespace LentSoft.Web.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasDefaultValue(12);
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .IsRequired()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("rowversion");
 
                     b.Property<int>("Stock")
                         .ValueGeneratedOnAdd()
@@ -1104,22 +1091,18 @@ namespace LentSoft.Web.Migrations
                             Color = "Negro / Verde G-15",
                             Descripcion = "Lentes de sol clásicos estilo aviador",
                             EsDestacado = true,
-                            EscalaOverlay = 2.30m,
                             Estilo = "Aviador",
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ImagenOverlayUrl = "/img/overlays/rayban_aviator.svg",
+                            ImagenOverlayUrl = "/img/overlays/rayban_aviator_final.png",
                             ImagenUrl = "https://images.unsplash.com/photo-1572635196237-14b3f281503f",
                             Marca = "Ray-Ban",
                             Material = "Metal",
                             Nombre = "Lentes Ray-Ban Aviator",
-                            OffsetXOverlay = 0.00m,
-                            OffsetYOverlay = 0.12m,
                             PorcentajeIva = 19.00m,
                             Precio = 2500000.00m,
                             Proteccion = "UV400",
                             Rating = 4.9m,
                             ReviewCount = 28,
-                            RowVersion = new byte[0],
                             Stock = 50,
                             Tamanio = "58-14-135"
                         },
@@ -1130,18 +1113,14 @@ namespace LentSoft.Web.Migrations
                             Categoria = "lentes-contacto",
                             Descripcion = "Lentes de contacto mensuales",
                             EsDestacado = true,
-                            EscalaOverlay = 2.30m,
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Marca = "Acuvue",
                             Nombre = "Lentes de Contacto Acuvue",
-                            OffsetXOverlay = 0.00m,
-                            OffsetYOverlay = 0.12m,
                             PorcentajeIva = 19.00m,
                             Precio = 450000.00m,
                             PrecioDescuento = 399000.00m,
                             Rating = 4.7m,
                             ReviewCount = 42,
-                            RowVersion = new byte[0],
                             Stock = 100
                         },
                         new
@@ -1152,21 +1131,17 @@ namespace LentSoft.Web.Migrations
                             Color = "Negro Mate",
                             Descripcion = "Montura deportiva ultraligera",
                             EsDestacado = true,
-                            EscalaOverlay = 2.30m,
                             Estilo = "Deportivo",
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             ImagenOverlayUrl = "/img/overlays/oakley_sport.svg",
                             Marca = "Oakley",
                             Material = "O-Matter (Plástico)",
                             Nombre = "Montura Oakley Sport",
-                            OffsetXOverlay = 0.00m,
-                            OffsetYOverlay = 0.12m,
                             PorcentajeIva = 19.00m,
                             Precio = 1800000.00m,
                             Proteccion = "Filtro UV",
                             Rating = 4.8m,
                             ReviewCount = 15,
-                            RowVersion = new byte[0],
                             Stock = 30,
                             Tamanio = "55-18-140"
                         },
@@ -1178,21 +1153,17 @@ namespace LentSoft.Web.Migrations
                             Color = "Carey",
                             Descripcion = "Lentes graduados con diseño clásico",
                             EsDestacado = true,
-                            EscalaOverlay = 2.30m,
                             Estilo = "Wayfarer",
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
-                            ImagenOverlayUrl = "/img/overlays/classic.svg",
+                            ImagenOverlayUrl = "/img/overlays/lentes_graduados_classic_final.png",
                             Marca = "LentSoft",
                             Material = "Acetato",
                             Nombre = "Lentes Graduados Classic",
-                            OffsetXOverlay = 0.00m,
-                            OffsetYOverlay = 0.12m,
                             PorcentajeIva = 19.00m,
                             Precio = 1200000.00m,
                             Proteccion = "Antirreflejo / Luz Azul",
                             Rating = 4.6m,
                             ReviewCount = 19,
-                            RowVersion = new byte[0],
                             Stock = 40,
                             Tamanio = "52-19-145"
                         },
@@ -1203,18 +1174,14 @@ namespace LentSoft.Web.Migrations
                             Categoria = "accesorios",
                             Descripcion = "Estuche rígido para lentes",
                             EsDestacado = false,
-                            EscalaOverlay = 2.30m,
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Marca = "LentSoft",
                             Nombre = "Estuche Premium",
-                            OffsetXOverlay = 0.00m,
-                            OffsetYOverlay = 0.12m,
                             PorcentajeIva = 19.00m,
                             Precio = 150000.00m,
                             PrecioDescuento = 99000.00m,
                             Rating = 4.5m,
                             ReviewCount = 8,
-                            RowVersion = new byte[0],
                             Stock = 200
                         },
                         new
@@ -1224,17 +1191,13 @@ namespace LentSoft.Web.Migrations
                             Categoria = "accesorios",
                             Descripcion = "Solución limpiadora para lentes 360ml",
                             EsDestacado = false,
-                            EscalaOverlay = 2.30m,
                             FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Marca = "Opti-Free",
                             Nombre = "Líquido Limpiador",
-                            OffsetXOverlay = 0.00m,
-                            OffsetYOverlay = 0.12m,
                             PorcentajeIva = 5.00m,
                             Precio = 120000.00m,
                             Rating = 4.9m,
                             ReviewCount = 33,
-                            RowVersion = new byte[0],
                             Stock = 150
                         });
                 });
