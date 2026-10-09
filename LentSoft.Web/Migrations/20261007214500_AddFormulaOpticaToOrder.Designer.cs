@@ -4,6 +4,7 @@ using LentSoft.Web.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,10 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace LentSoft.Web.Migrations
 {
     [DbContext(typeof(LentSoftDbContext))]
-    partial class LentSoftDbContextModelSnapshot : ModelSnapshot
+    [Migration("20261007214500_AddFormulaOpticaToOrder")]
+    partial class AddFormulaOpticaToOrder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -1,15 +1,26 @@
-var users = new[]
-{
-    ("admin@lentsoft.com",     "$2a$11$MJPUqK7jAM6tEvUkExo1cO/3cmh4MpxnXNVPg./4kKzlsqAwPW/oq"),
-    ("user@lentsoft.com",      "$2a$11$q43GcbtmtTn9FyysOC73SO4HUFfBAF43GzPuZ6y0d0EZeDitCKqGa"),
-    ("optometra@lentsoft.com", "$2a$11$MJPUqK7jAM6tEvUkExo1cO/3cmh4MpxnXNVPg./4kKzlsqAwPW/oq"),
-    ("ventas@lentsoft.com",    "$2a$11$MJPUqK7jAM6tEvUkExo1cO/3cmh4MpxnXNVPg./4kKzlsqAwPW/oq"),
-};
-var passwords = new[] { "user123", "admin123", "Admin123", "optometra123", "ventas123", "lentsoft123" };
+var dbHash = "$2a$11$zS4jhsOZIuoY.K4nHl7k3O3bCEQcDwWHxGLODZVl/v5Gs3J4J7yYK";
+var seedHash = "$2a$11$MJPUqK7jAM6tEvUkExo1cO/3cmh4MpxnXNVPg./4kKzlsqAwPW/oq";
+var userHash = "$2a$11$q43GcbtmtTn9FyysOC73SO4HUFfBAF43GzPuZ6y0d0EZeDitCKqGa";
 
-Console.WriteLine($"{"Email",-30} {"Password",-15} {"Match"}");
-Console.WriteLine(new string('-', 60));
-foreach (var (email, hash) in users)
-    foreach (var pass in passwords)
-        if (BCrypt.Net.BCrypt.Verify(pass, hash))
-            Console.WriteLine($"{email,-30} {pass,-15} ✅ CORRECTO");
+var passwords = new[] { "admin123", "ventas123", "optometra123", "user123", "Admin123", "admin", "123456" };
+
+Console.WriteLine("--- EVALUANDO HASH EN BASE DE DATOS (optometra, ventas, admin) ---");
+foreach (var pass in passwords)
+{
+    if (BCrypt.Net.BCrypt.Verify(pass, dbHash))
+        Console.WriteLine($"[BD HASH MATCH] -> Password es: '{pass}'");
+}
+
+Console.WriteLine("\n--- EVALUANDO HASH EN SEED DE DBCONTEXT (admin123) ---");
+foreach (var pass in passwords)
+{
+    if (BCrypt.Net.BCrypt.Verify(pass, seedHash))
+        Console.WriteLine($"[SEED HASH MATCH] -> Password es: '{pass}'");
+}
+
+Console.WriteLine("\n--- EVALUANDO HASH EN SEED DE USUARIO COMUN (user123) ---");
+foreach (var pass in passwords)
+{
+    if (BCrypt.Net.BCrypt.Verify(pass, userHash))
+        Console.WriteLine($"[USER HASH MATCH] -> Password es: '{pass}'");
+}
