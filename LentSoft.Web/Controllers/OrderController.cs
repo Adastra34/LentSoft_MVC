@@ -74,7 +74,8 @@ public class OrderController : Controller
         int DescuentoPercent, 
         string Estado, 
         string MetodoPagoSimulado, 
-        string? ItemsJson)
+        string? ItemsJson,
+        int? FormulaOpticaId = null)
     {
         if (string.IsNullOrWhiteSpace(Nombre) || string.IsNullOrWhiteSpace(Apellido))
         {
@@ -188,15 +189,31 @@ public class OrderController : Controller
             var descPercent = Math.Clamp(DescuentoPercent, 0, 30);
             decimal totalFinal = subtotalVenta * (1m - (descPercent / 100m));
 
-            // 4. Crear Orden
+            // 4. Determinar si se vincula una Fórmula Óptica
+            int? formulaVinculadaId = FormulaOpticaId;
+            if (!formulaVinculadaId.HasValue && existingUser != null)
+            {
+                var formulaActiva = await _context.FormulasOpticas
+                    .Where(f => f.UserId == existingUser.Id && f.Activo)
+                    .OrderByDescending(f => f.Fecha)
+                    .FirstOrDefaultAsync();
+
+                if (formulaActiva != null && formulaActiva.Fecha.AddMonths(12).Date >= DateTime.UtcNow.Date)
+                {
+                    formulaVinculadaId = formulaActiva.Id;
+                }
+            }
+
+            // Crear Orden
             var order = new Order
             {
-                UserId = existingUser.Id,
+                UserId = existingUser!.Id,
                 Total = Math.Round(totalFinal, 2),
                 Estado = string.IsNullOrWhiteSpace(Estado) ? "pendiente" : Estado,
                 MetodoPagoSimulado = string.IsNullOrWhiteSpace(MetodoPagoSimulado) ? "Efectivo" : MetodoPagoSimulado,
                 DireccionEnvio = Direccion,
                 FechaPedido = DateTime.UtcNow,
+                FormulaOpticaId = formulaVinculadaId,
                 OrderItems = orderItemsList
             };
 
@@ -207,7 +224,7 @@ public class OrderController : Controller
 
             // TAREA 3: Send email confirmation if it's a registered customer with a valid email
             // (e.g. UserId was selected from dropdown, exists in database, and is not the auto-created CLI client)
-            if (UserId.HasValue && UserId.Value > 0 && !string.IsNullOrWhiteSpace(existingUser.Email) && !existingUser.Email.EndsWith("@cliente.com", StringComparison.OrdinalIgnoreCase))
+            if (UserId.HasValue && UserId.Value > 0 && !string.IsNullOrWhiteSpace(existingUser?.Email) && !existingUser.Email.EndsWith("@cliente.com", StringComparison.OrdinalIgnoreCase))
             {
                 try
                 {

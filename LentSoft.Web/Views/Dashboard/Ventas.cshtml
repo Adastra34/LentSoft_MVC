@@ -3,6 +3,109 @@
     ViewData["Title"] = "Panel de Ventas";
 }
 
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />
+<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css" />
+<style>
+    /* ── Personalización de DataTables para LentSoft (Tema Morado) ── */
+    .dataTables_wrapper {
+        font-family: inherit;
+        padding-top: 0.5rem;
+    }
+    .dataTables_wrapper .dt-top-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+    .dataTables_wrapper .dt-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .dataTables_wrapper .dt-button.btn-dt-export {
+        background: linear-gradient(135deg, var(--purple-600), var(--purple-700)) !important;
+        color: white !important;
+        border: none !important;
+        border-radius: 0.375rem !important;
+        padding: 0.45rem 0.9rem !important;
+        font-size: 0.82rem !important;
+        font-weight: 600 !important;
+        box-shadow: 0 2px 4px rgba(109, 40, 217, 0.25) !important;
+        cursor: pointer !important;
+        transition: all 0.2s ease !important;
+    }
+    .dataTables_wrapper .dt-button.btn-dt-export:hover {
+        background: linear-gradient(135deg, var(--purple-700), var(--purple-800)) !important;
+        transform: translateY(-1px) !important;
+        box-shadow: 0 4px 6px rgba(109, 40, 217, 0.35) !important;
+    }
+    .dataTables_wrapper .dataTables_filter input,
+    .dataTables_wrapper .dataTables_length select {
+        border: 1px solid var(--purple-300) !important;
+        border-radius: 0.375rem !important;
+        padding: 0.4rem 0.75rem !important;
+        font-size: 0.85rem !important;
+        outline: none;
+        background: white;
+    }
+    .dataTables_wrapper .dataTables_filter input:focus,
+    .dataTables_wrapper .dataTables_length select:focus {
+        border-color: var(--purple-600) !important;
+        box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.2) !important;
+    }
+    .dataTables_wrapper .dataTables_info {
+        color: var(--purple-900) !important;
+        font-size: 0.85rem !important;
+        font-weight: 500 !important;
+        padding-top: 0.75rem !important;
+    }
+    .dataTables_wrapper .dataTables_paginate {
+        padding-top: 0.75rem !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button {
+        border-radius: 0.375rem !important;
+        border: 1px solid var(--purple-200) !important;
+        background: white !important;
+        color: var(--purple-900) !important;
+        font-size: 0.82rem !important;
+        font-weight: 600 !important;
+        padding: 0.35rem 0.75rem !important;
+        margin: 0 2px !important;
+        transition: all 0.15s ease !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button:hover {
+        background: var(--purple-100) !important;
+        color: var(--purple-900) !important;
+        border-color: var(--purple-400) !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.current:hover {
+        background: var(--purple-600) !important;
+        color: white !important;
+        border-color: var(--purple-600) !important;
+        box-shadow: 0 2px 4px rgba(124, 58, 237, 0.25) !important;
+    }
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled,
+    .dataTables_wrapper .dataTables_paginate .paginate_button.disabled:hover {
+        opacity: 0.5;
+        background: #F3F4F6 !important;
+        border-color: #E5E7EB !important;
+        color: #9CA3AF !important;
+        cursor: not-allowed !important;
+    }
+    table.dataTable.no-footer {
+        border-bottom: 2px solid var(--purple-200) !important;
+    }
+    table.dataTable thead th {
+        border-bottom: 2px solid var(--purple-300) !important;
+        background-color: var(--purple-50) !important;
+        color: var(--purple-900) !important;
+        font-weight: 700 !important;
+        padding: 0.75rem !important;
+    }
+</style>
+
 <div style="display: flex; min-height: 85vh; background-color: var(--purple-50);">
     <!-- Sidebar Navigation -->
     <aside style="width: 260px; background-color: var(--purple-900); color: white; padding: 1.5rem 1rem; flex-shrink: 0;">
@@ -188,11 +291,11 @@
                                         }
                                     </td>
                                     <td style="padding: 0.75rem; font-weight: 500;">@(v.User?.NombreCompleto ?? "Cliente Genérico")</td>
-                                    <td style="padding: 0.75rem; color: var(--gray-600);">@v.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td style="padding: 0.75rem; font-weight: 700; color: var(--purple-900);">@v.Total.ToString("C")</td>
-                                    <td style="padding: 0.75rem; font-weight: 600; color: #16A34A;">@totalAbonado.ToString("C")</td>
-                                    <td style="padding: 0.75rem; font-weight: 700; color: @(saldoPendiente > 0 ? "#DC2626" : "#16A34A");">@saldoPendiente.ToString("C")</td>
-                                    <td style="padding: 0.75rem;">
+                                    <td data-order="@v.FechaPedido.Ticks" style="padding: 0.75rem; color: var(--gray-600);">@v.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td data-order="@v.Total" style="padding: 0.75rem; font-weight: 700; color: var(--purple-900);">@v.Total.ToString("C")</td>
+                                    <td data-order="@totalAbonado" style="padding: 0.75rem; font-weight: 600; color: #16A34A;">@totalAbonado.ToString("C")</td>
+                                    <td data-order="@saldoPendiente" style="padding: 0.75rem; font-weight: 700; color: @(saldoPendiente > 0 ? "#DC2626" : "#16A34A");">@saldoPendiente.ToString("C")</td>
+                                    <td data-order="@estadoPago" style="padding: 0.75rem;">
                                         <span style="background-color: @badgeColorPago; color: white; padding: 0.2rem 0.5rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 700;">
                                             @estadoPago
                                         </span>
@@ -326,12 +429,14 @@
                                     {
                                         "pagada" => "var(--success)",
                                         "cancelada" => "var(--error)",
+                                        "parcial" => "#D97706",
                                         _ => "var(--warning)"
                                     };
                                     var estadoDisplay = fac.Estado.ToLower() switch
                                     {
                                         "pagada" => "Pagada",
                                         "cancelada" => "Cancelada",
+                                        "parcial" => "Parcial",
                                         _ => "Pendiente"
                                     };
 
@@ -550,6 +655,7 @@
                     <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Estado de Factura *</label>
                     <select id="invoiceEstadoSelect" name="Estado" class="form-input" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
                         <option value="pendiente" selected>Pendiente</option>
+                        <option value="parcial">Parcial</option>
                         <option value="pagada">Pagada</option>
                         <option value="cancelada">Cancelada</option>
                     </select>
@@ -814,9 +920,15 @@
 
         document.getElementById('invoiceMetodoPagoInput').value = metodo;
 
-        if (saldo > 0) {
-            const estadoSelect = document.getElementById('invoiceEstadoSelect');
-            estadoSelect.value = 'pendiente';
+        const estadoSelect = document.getElementById('invoiceEstadoSelect');
+        if (estadoSelect) {
+            if (saldo <= 0) {
+                estadoSelect.value = 'pagada';
+            } else if (saldo < total) {
+                estadoSelect.value = 'parcial';
+            } else {
+                estadoSelect.value = 'pendiente';
+            }
         }
 
         if (total > 0) {
@@ -1000,4 +1112,90 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    <!-- DataTables CDN Scripts -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
+    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            if ($('#tableVentasSales').length && !$.fn.DataTable.isDataTable('#tableVentasSales')) {
+                // Ocultar buscador plano para no duplicar con el de DataTables
+                $('#searchVentasSales').hide();
+
+                var dtVentas = $('#tableVentasSales').DataTable({
+                    language: {
+                        search: "🔍 Buscar en ventas:",
+                        searchPlaceholder: "Cliente, pedido, estado...",
+                        lengthMenu: "Mostrar _MENU_ ventas",
+                        info: "Mostrando _START_ a _END_ de _TOTAL_ ventas",
+                        infoEmpty: "Mostrando 0 a 0 de 0 ventas",
+                        infoFiltered: "(filtrado de _MAX_ ventas en total)",
+                        zeroRecords: "No se encontraron ventas que coincidan con la búsqueda",
+                        paginate: {
+                            first: "«",
+                            last: "»",
+                            next: "Siguiente ›",
+                            previous: "‹ Anterior"
+                        }
+                    },
+                    dom: '<"dt-top-container"<"dt-buttons-group"B><"dt-search-group"f>l>rt<"dt-bottom-container"ip>',
+                    buttons: [
+                        {
+                            extend: 'excelHtml5',
+                            text: '📊 Exportar a Excel',
+                            className: 'btn-dt-export btn-dt-excel',
+                            title: 'LentSoft_Reporte_Ventas',
+                            exportOptions: {
+                                columns: [0, 1, 2, 3, 4, 5, 6, 7],
+                                format: {
+                                    body: function (data, row, column, node) {
+                                        if (column === 7) {
+                                            var sel = $(node).find('select');
+                                            return sel.length ? sel.val() : $(node).text().trim();
+                                        }
+                                        return $(node).text().trim().replace(/🔗/g, '').replace(/\s+/g, ' ');
+                                    }
+                                }
+                            }
+                        },
+                        {
+                            extend: 'pdfHtml5',
+                            text: '📄 Exportar a PDF',
+                            className: 'btn-dt-export btn-dt-pdf',
+                            title: 'LentSoft - Reporte de Ventas',
+                            orientation: 'landscape',
+                            pageSize: 'A4',
+                            exportOptions: {
+                                columns: [0, 1, 2, 3, 4, 5, 6, 7],
+                                format: {
+                                    body: function (data, row, column, node) {
+                                        if (column === 7) {
+                                            var sel = $(node).find('select');
+                                            return sel.length ? sel.val() : $(node).text().trim();
+                                        }
+                                        return $(node).text().trim().replace(/🔗/g, '').replace(/\s+/g, ' ');
+                                    }
+                                }
+                            }
+                        }
+                    ],
+                    pageLength: 10,
+                    lengthMenu: [10, 25, 50, 100],
+                    order: [[2, 'desc']], // Fecha descendente
+                    columnDefs: [
+                        { orderable: false, targets: [8] }, // Columna acciones
+                        { orderable: false, targets: [7] }  // Columna form estado orden
+                    ],
+                    responsive: true
+                });
+            }
+        });
+    </script>
 }

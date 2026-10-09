@@ -64,11 +64,11 @@ public class Invoice : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
-        var validEstados = new[] { "pendiente", "pagada", "cancelada" };
+        var validEstados = new[] { "pendiente", "parcial", "pagada", "cancelada" };
         if (!validEstados.Contains(Estado?.ToLower()))
         {
             yield return new ValidationResult(
-                "El estado de factura debe ser: pendiente, pagada o cancelada",
+                "El estado de factura debe ser: pendiente, parcial, pagada o cancelada",
                 new[] { nameof(Estado) });
         }
     }

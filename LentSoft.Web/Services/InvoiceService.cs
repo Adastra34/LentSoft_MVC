@@ -19,6 +19,8 @@ public class InvoiceService : IInvoiceService
             .Where(i => i.Activo)
             .Include(i => i.Order)
                 .ThenInclude(o => o!.User)
+            .Include(i => i.Order)
+                .ThenInclude(o => o!.Pagos)
             .AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(searchTerm))
@@ -57,6 +59,8 @@ public class InvoiceService : IInvoiceService
             .Include(i => i.Order)
                 .ThenInclude(o => o!.OrderItems)
                     .ThenInclude(oi => oi.Product)
+            .Include(i => i.Order)
+                .ThenInclude(o => o!.Pagos)
             .FirstOrDefaultAsync(i => i.Id == id);
     }
 
@@ -88,12 +92,8 @@ public class InvoiceService : IInvoiceService
             invoice.MetodoPago = order.MetodoPagoSimulado;
         }
 
-        // 4. Validar estado respecto al saldo del pedido
-        var saldoPendiente = order.SaldoPendiente;
-        if (saldoPendiente > 0 && invoice.Estado == "pagada")
-        {
-            invoice.Estado = "pendiente";
-        }
+        // 4. Calcular estado real automáticamente según el saldo del pedido (Requisito 2)
+        invoice.Estado = CalcularEstadoSegunPedido(order, invoice.Estado);
 
         // 5. Garantizar número de factura único predeterminado (DIAN)
         var year = DateTime.UtcNow.Year;
@@ -190,13 +190,16 @@ public class InvoiceService : IInvoiceService
 
         if (existing == null) return null;
 
-        // Si el pedido tiene saldo pendiente, no permitir marcar la factura como pagada manualmente
-        if (existing.Order != null && existing.Order.SaldoPendiente > 0 && invoice.Estado == "pagada")
+        // Calcular estado automáticamente según el saldo contable real del pedido
+        if (existing.Order != null)
         {
-            throw new InvalidOperationException("No se puede marcar la factura como 'Pagada' manualmente porque el pedido asociado aún tiene un saldo pendiente de pago.");
+            existing.Estado = CalcularEstadoSegunPedido(existing.Order, invoice.Estado);
+        }
+        else
+        {
+            existing.Estado = invoice.Estado;
         }
 
-        existing.Estado = invoice.Estado;
         if (!string.IsNullOrWhiteSpace(existing.Order?.MetodoPagoSimulado))
         {
             existing.MetodoPago = existing.Order.MetodoPagoSimulado;
@@ -256,5 +259,31 @@ public class InvoiceService : IInvoiceService
             .Include(o => o.User)
             .OrderByDescending(o => o.FechaPedido)
             .ToListAsync();
+    }
+
+    private static string CalcularEstadoSegunPedido(Order order, string? estadoSolicitado = null)
+    {
+        if (order == null) return "pendiente";
+        if (string.Equals(order.Estado, "cancelado", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(estadoSolicitado, "cancelada", StringComparison.OrdinalIgnoreCase))
+        {
+            return "cancelada";
+        }
+
+        var total = order.Total;
+        var saldo = order.SaldoPendiente;
+
+        if (saldo <= 0)
+        {
+            return "pagada";
+        }
+        else if (saldo >= total)
+        {
+            return "pendiente";
+        }
+        else
+        {
+            return "parcial";
+        }
     }
 }

@@ -20,7 +20,6 @@ public class SupplierOrderController : Controller
     }
 
     [HttpPost]
-    [HttpPost("Dashboard/CreateSupplierOrder")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Create(SupplierOrder model)
     {
@@ -94,7 +93,6 @@ public class SupplierOrderController : Controller
     }
 
     [HttpPost]
-    [HttpPost("Dashboard/EditSupplierOrder")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Edit(SupplierOrder model)
     {
@@ -164,7 +162,6 @@ public class SupplierOrderController : Controller
     }
 
     [HttpPost]
-    [HttpPost("Dashboard/DeleteSupplierOrder")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Delete(int id)
     {

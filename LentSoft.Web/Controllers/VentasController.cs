@@ -9,7 +9,7 @@ using LentSoft.Web.Services;
 
 namespace LentSoft.Web.Controllers;
 
-[Authorize(Roles = "ventas")]
+[Authorize(Roles = "ventas,admin")]
 public class VentasController : Controller
 {
     private readonly LentSoftDbContext _context;
@@ -392,5 +392,46 @@ public class VentasController : Controller
         viewModel.IsValid = true;
         viewModel.Order = order;
         return View("~/Views/Ventas/ConfirmarCompra.cshtml", viewModel);
+    }
+
+    /// <summary>
+    /// Requisito 3: Consulta de solo lectura de fórmula óptica vigente por cliente para el módulo de ventas
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> GetFormulaVigentePorCliente(int userId)
+    {
+        var formula = await _context.FormulasOpticas
+            .Where(f => f.UserId == userId && f.Activo)
+            .OrderByDescending(f => f.Fecha)
+            .FirstOrDefaultAsync();
+
+        if (formula == null)
+        {
+            return Json(new { encontrado = false, message = "El cliente no tiene fórmulas ópticas registradas." });
+        }
+
+        bool esVigente = formula.Fecha.AddMonths(12).Date >= DateTime.UtcNow.Date;
+
+        return Json(new
+        {
+            encontrado = true,
+            esVigente = esVigente,
+            formula = new
+            {
+                id = formula.Id,
+                fecha = formula.Fecha.ToString("yyyy-MM-dd"),
+                fechaFormato = formula.Fecha.ToString("dd/MM/yyyy"),
+                esferaOD = formula.EsferaOD ?? "",
+                cilindroOD = formula.CilindroOD ?? "",
+                ejeOD = formula.EjeOD ?? "",
+                esferaOI = formula.EsferaOI ?? "",
+                cilindroOI = formula.CilindroOI ?? "",
+                ejeOI = formula.EjeOI ?? "",
+                tipoLente = formula.TipoLente ?? "",
+                distanciaPupilar = formula.DistanciaPupilar ?? "",
+                observaciones = formula.Observaciones ?? "",
+                estado = formula.Estado
+            }
+        });
     }
 }

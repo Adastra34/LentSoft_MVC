@@ -68,6 +68,7 @@ public class PdfInvoiceService : IPdfInvoiceService
                         {
                             "pagada" => "#10B981",
                             "cancelada" => "#EF4444",
+                            "parcial" => "#D97706",
                             _ => "#F59E0B"
                         };
                         c.Item().AlignRight().Text($"ESTADO: {invoice.Estado.ToUpper()}")
@@ -194,6 +195,23 @@ public class PdfInvoiceService : IPdfInvoiceService
                     r.ConstantItem(150).Text("TOTAL FACTURA:").FontSize(11).Bold().FontColor("#4C1D95").AlignRight();
                     r.ConstantItem(110).Text($"COP ${invoice.Total:N0}").FontSize(11).Bold().FontColor("#4C1D95").AlignRight();
                 });
+
+                if (string.Equals(invoice.Estado, "parcial", StringComparison.OrdinalIgnoreCase))
+                {
+                    var saldoPendiente = invoice.Order?.SaldoPendiente ?? 0m;
+                    var montoAbonado = Math.Max(0m, invoice.Total - saldoPendiente);
+
+                    totCol.Item().PaddingTop(4).Row(r =>
+                    {
+                        r.ConstantItem(150).Text("Total Abonado:").FontColor("#16A34A").Bold().AlignRight();
+                        r.ConstantItem(110).Text($"COP ${montoAbonado:N0}").FontColor("#16A34A").Bold().AlignRight();
+                    });
+                    totCol.Item().Row(r =>
+                    {
+                        r.ConstantItem(150).Text("Saldo Pendiente:").FontColor("#DC2626").Bold().AlignRight();
+                        r.ConstantItem(110).Text($"COP ${saldoPendiente:N0}").FontColor("#DC2626").Bold().AlignRight();
+                    });
+                }
             });
 
             // Bloque Representación Gráfica DIAN CUFE
