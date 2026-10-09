@@ -35,13 +35,16 @@ public class LentSoftDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        var isSqlite = Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true;
+        var utcDateSql = isSqlite ? "CURRENT_TIMESTAMP" : "GETUTCDATE()";
+
         // ── Suppliers ──
         modelBuilder.Entity<Supplier>(entity =>
         {
             entity.HasIndex(e => e.Nombre);
             entity.HasIndex(e => e.Activo);
             entity.Property(e => e.Activo).HasDefaultValue(true);
-            entity.Property(e => e.FechaRegistro).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.FechaRegistro).HasDefaultValueSql(utcDateSql);
         });
 
         // ── InventoryMovements ──
@@ -49,7 +52,7 @@ public class LentSoftDbContext : DbContext
         {
             entity.HasIndex(e => e.ProductId);
             entity.HasIndex(e => e.Fecha).IsDescending();
-            entity.Property(e => e.Fecha).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.Fecha).HasDefaultValueSql(utcDateSql);
 
             entity.HasOne(e => e.Product)
                   .WithMany()
@@ -63,7 +66,7 @@ public class LentSoftDbContext : DbContext
             entity.HasIndex(e => e.NumeroPedido);
             entity.HasIndex(e => e.SupplierId);
             entity.HasIndex(e => e.ProductId);
-            entity.Property(e => e.Fecha).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.Fecha).HasDefaultValueSql(utcDateSql);
 
             entity.HasOne(e => e.Supplier)
                   .WithMany()
@@ -80,7 +83,7 @@ public class LentSoftDbContext : DbContext
         modelBuilder.Entity<SalesOrder>(entity =>
         {
             entity.HasIndex(e => e.NumeroPedido);
-            entity.Property(e => e.Fecha).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.Fecha).HasDefaultValueSql(utcDateSql);
         });
 
         // ── Users ──
@@ -91,8 +94,8 @@ public class LentSoftDbContext : DbContext
             entity.HasIndex(e => e.Role);
             entity.Property(e => e.Role).HasDefaultValue("usuario");
             entity.Property(e => e.TipoDocumento).HasDefaultValue("CC");
-            entity.Property(e => e.FechaRegistro).HasDefaultValueSql("GETUTCDATE()");
-            entity.ToTable(t => t.HasCheckConstraint("CK_Users_Role", "[Role] IN ('usuario', 'admin', 'optometra', 'ventas')"));
+            entity.Property(e => e.FechaRegistro).HasDefaultValueSql(utcDateSql);
+            entity.ToTable(t => t.HasCheckConstraint("CK_Users_Role", isSqlite ? "Role IN ('usuario', 'admin', 'optometra', 'ventas')" : "[Role] IN ('usuario', 'admin', 'optometra', 'ventas')"));
         });
 
         // ── Products ──
@@ -108,14 +111,24 @@ public class LentSoftDbContext : DbContext
             entity.Property(e => e.Rating).HasDefaultValue(4.8m);
             entity.Property(e => e.ReviewCount).HasDefaultValue(12);
             entity.Property(e => e.EsDestacado).HasDefaultValue(false);
-            entity.Property(e => e.FechaCreacion).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.FechaCreacion).HasDefaultValueSql(utcDateSql);
+            if (Database.ProviderName == "Microsoft.EntityFrameworkCore.Sqlite")
+            {
+                entity.Property(e => e.RowVersion)
+                    .IsRowVersion()
+                    .HasDefaultValueSql("randomblob(8)");
+            }
+            else
+            {
+                entity.Property(e => e.RowVersion).IsRowVersion();
+            }
         });
 
         // ── Favorites ──
         modelBuilder.Entity<Favorite>(entity =>
         {
             entity.HasIndex(e => new { e.UserId, e.ProductId }).IsUnique();
-            entity.Property(e => e.FechaAgregado).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.FechaAgregado).HasDefaultValueSql(utcDateSql);
 
             entity.HasOne(e => e.User)
                   .WithMany(u => u.Favorites)
@@ -132,7 +145,7 @@ public class LentSoftDbContext : DbContext
         modelBuilder.Entity<Cart>(entity =>
         {
             entity.HasIndex(e => e.UserId).IsUnique();
-            entity.Property(e => e.FechaCreacion).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.FechaCreacion).HasDefaultValueSql(utcDateSql);
 
             entity.HasOne(e => e.User)
                   .WithOne()
@@ -164,7 +177,7 @@ public class LentSoftDbContext : DbContext
             entity.HasIndex(e => e.Estado);
             entity.HasIndex(e => e.FechaPedido).IsDescending();
             entity.Property(e => e.Estado).HasDefaultValue("pendiente");
-            entity.Property(e => e.FechaPedido).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.FechaPedido).HasDefaultValueSql(utcDateSql);
 
             entity.HasOne(e => e.User)
                   .WithMany(u => u.Orders)
@@ -196,7 +209,7 @@ public class LentSoftDbContext : DbContext
             entity.HasIndex(e => e.Departamento);
             entity.HasIndex(e => e.Activo);
             entity.Property(e => e.Activo).HasDefaultValue(true);
-            entity.Property(e => e.FechaContratacion).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.FechaContratacion).HasDefaultValueSql(utcDateSql);
         });
 
         // ── Invoices ──
@@ -206,7 +219,7 @@ public class LentSoftDbContext : DbContext
             entity.HasIndex(e => e.OrderId);
             entity.HasIndex(e => e.Estado);
             entity.Property(e => e.Estado).HasDefaultValue("pendiente");
-            entity.Property(e => e.FechaEmision).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.FechaEmision).HasDefaultValueSql(utcDateSql);
 
             entity.HasOne(e => e.Order)
                   .WithMany(o => o.Invoices)
@@ -219,7 +232,7 @@ public class LentSoftDbContext : DbContext
         {
             entity.HasIndex(e => e.VentaId);
             entity.HasIndex(e => e.NumeroComprobante).IsUnique();
-            entity.Property(e => e.FechaPago).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.FechaPago).HasDefaultValueSql(utcDateSql);
 
             entity.HasOne(e => e.Venta)
                   .WithMany(o => o.Pagos)
@@ -232,7 +245,7 @@ public class LentSoftDbContext : DbContext
         {
             entity.HasIndex(e => e.VentaId);
             entity.HasIndex(e => e.Fecha).IsDescending();
-            entity.Property(e => e.Fecha).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.Fecha).HasDefaultValueSql(utcDateSql);
 
             entity.HasOne(e => e.Venta)
                   .WithMany(o => o.Transacciones)
@@ -243,18 +256,21 @@ public class LentSoftDbContext : DbContext
         // ── Appointments ──
         modelBuilder.Entity<Appointment>(entity =>
         {
-            entity.ToTable(tb => 
+            if (!isSqlite)
             {
-                tb.HasTrigger("trg_Appointment_PreventOverlap");
-                tb.HasTrigger("trg_Appointment_Auditoria");
-            });
+                entity.ToTable(tb => 
+                {
+                    tb.HasTrigger("trg_Appointment_PreventOverlap");
+                    tb.HasTrigger("trg_Appointment_Auditoria");
+                });
+            }
 
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.OptometraId);
             entity.HasIndex(e => e.FechaHora);
             entity.HasIndex(e => e.Estado);
             entity.Property(e => e.Estado).HasDefaultValue("pendiente");
-            entity.Property(e => e.FechaCreacion).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.FechaCreacion).HasDefaultValueSql(utcDateSql);
             entity.Property(e => e.VecesReprogramada).HasDefaultValue(0);
 
             entity.HasOne(e => e.User)
@@ -273,7 +289,7 @@ public class LentSoftDbContext : DbContext
         {
             entity.HasIndex(e => e.AppointmentId);
             entity.HasIndex(e => e.FechaCambio).IsDescending();
-            entity.Property(e => e.FechaCambio).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.FechaCambio).HasDefaultValueSql(utcDateSql);
 
             entity.HasOne(e => e.Appointment)
                   .WithMany()
@@ -284,11 +300,14 @@ public class LentSoftDbContext : DbContext
         // ── HistorialesClinicos ──
         modelBuilder.Entity<HistorialClinico>(entity =>
         {
-            entity.ToTable(tb => tb.HasTrigger("trg_HistorialClinico_PrevenirEliminacionConFormula"));
+            if (!isSqlite)
+            {
+                entity.ToTable(tb => tb.HasTrigger("trg_HistorialClinico_PrevenirEliminacionConFormula"));
+            }
 
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.OptometraId);
-            entity.Property(e => e.FechaCreacion).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.FechaCreacion).HasDefaultValueSql(utcDateSql);
 
             entity.HasOne(e => e.User)
                   .WithMany()
@@ -306,7 +325,7 @@ public class LentSoftDbContext : DbContext
         {
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.OptometraId);
-            entity.Property(e => e.FechaCreacion).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.FechaCreacion).HasDefaultValueSql(utcDateSql);
 
             entity.HasOne(e => e.User)
                   .WithMany()
@@ -324,7 +343,7 @@ public class LentSoftDbContext : DbContext
         {
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.OptometraId);
-            entity.Property(e => e.FechaCreacion).HasDefaultValueSql("GETUTCDATE()");
+            entity.Property(e => e.FechaCreacion).HasDefaultValueSql(utcDateSql);
 
             entity.HasOne(e => e.User)
                   .WithMany()
@@ -421,7 +440,8 @@ public class LentSoftDbContext : DbContext
                 ImagenOverlayUrl = "/img/overlays/rayban_aviator.svg",
                 EscalaOverlay = 2.30m,
                 OffsetXOverlay = 0.00m,
-                OffsetYOverlay = 0.12m
+                OffsetYOverlay = 0.12m,
+                RowVersion = new byte[] { 0, 0, 0, 0, 0, 0, 0, 1 }
             },
             new Product
             {
@@ -441,7 +461,8 @@ public class LentSoftDbContext : DbContext
                 FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 EscalaOverlay = 2.30m,
                 OffsetXOverlay = 0.00m,
-                OffsetYOverlay = 0.12m
+                OffsetYOverlay = 0.12m,
+                RowVersion = new byte[] { 0, 0, 0, 0, 0, 0, 0, 1 }
             },
             new Product
             {
@@ -466,7 +487,8 @@ public class LentSoftDbContext : DbContext
                 ImagenOverlayUrl = "/img/overlays/oakley_sport.svg",
                 EscalaOverlay = 2.30m,
                 OffsetXOverlay = 0.00m,
-                OffsetYOverlay = 0.12m
+                OffsetYOverlay = 0.12m,
+                RowVersion = new byte[] { 0, 0, 0, 0, 0, 0, 0, 1 }
             },
             new Product
             {
@@ -491,7 +513,8 @@ public class LentSoftDbContext : DbContext
                 ImagenOverlayUrl = "/img/overlays/classic.svg",
                 EscalaOverlay = 2.30m,
                 OffsetXOverlay = 0.00m,
-                OffsetYOverlay = 0.12m
+                OffsetYOverlay = 0.12m,
+                RowVersion = new byte[] { 0, 0, 0, 0, 0, 0, 0, 1 }
             },
             new Product
             {
@@ -511,7 +534,8 @@ public class LentSoftDbContext : DbContext
                 FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 EscalaOverlay = 2.30m,
                 OffsetXOverlay = 0.00m,
-                OffsetYOverlay = 0.12m
+                OffsetYOverlay = 0.12m,
+                RowVersion = new byte[] { 0, 0, 0, 0, 0, 0, 0, 1 }
             },
             new Product
             {
@@ -530,7 +554,8 @@ public class LentSoftDbContext : DbContext
                 FechaCreacion = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 EscalaOverlay = 2.30m,
                 OffsetXOverlay = 0.00m,
-                OffsetYOverlay = 0.12m
+                OffsetYOverlay = 0.12m,
+                RowVersion = new byte[] { 0, 0, 0, 0, 0, 0, 0, 1 }
             }
         );
 

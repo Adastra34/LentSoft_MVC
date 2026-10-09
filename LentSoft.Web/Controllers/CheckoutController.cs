@@ -15,15 +15,18 @@ public class CheckoutController : Controller
     private readonly ICartService _cartService;
     private readonly LentSoftDbContext _context;
     private readonly IPasarelaPagoService _pasarelaPagoService;
+    private readonly IInventoryService _inventoryService;
 
     public CheckoutController(
         ICartService cartService, 
         LentSoftDbContext context,
-        IPasarelaPagoService pasarelaPagoService)
+        IPasarelaPagoService pasarelaPagoService,
+        IInventoryService inventoryService)
     {
         _cartService = cartService;
         _context = context;
         _pasarelaPagoService = pasarelaPagoService;
+        _inventoryService = inventoryService;
     }
 
     private int GetCurrentUserId()
@@ -92,6 +95,7 @@ public class CheckoutController : Controller
             return View("Index", model);
         }
 
+        using var dbTransaction = await _context.Database.BeginTransactionAsync();
         try
         {
             // 2. Crear Order y OrderItems tras aprobación
@@ -112,28 +116,11 @@ public class CheckoutController : Controller
 
             foreach (var item in cart.CartItems)
             {
-                var product = await _context.Products.FindAsync(item.ProductId);
-                if (product != null)
-                {
-                    product.Stock = Math.Max(0, product.Stock - item.Cantidad);
-                    if (product.Stock > 85) product.Stock = 85;
-
-                    if (product.Stock == 0)
-                    {
-                        product.Activo = false;
-                    }
-
-                    var movement = new InventoryMovement
-                    {
-                        ProductId = product.Id,
-                        NombreProducto = product.Nombre,
-                        Tipo = "Salida",
-                        Cantidad = item.Cantidad,
-                        Fecha = DateTime.UtcNow,
-                        Responsable = "Venta Online (Cliente)"
-                    };
-                    _context.InventoryMovements.Add(movement);
-                }
+                await _inventoryService.DisminuirStockAsync(
+                    item.ProductId, 
+                    item.Cantidad, 
+                    InventoryConstants.MovementTypes.Salida, 
+                    "Venta Online (Cliente)");
 
                 order.OrderItems.Add(new OrderItem
                 {
@@ -166,6 +153,7 @@ public class CheckoutController : Controller
             _context.PagosVentas.Add(pago);
 
             await _context.SaveChangesAsync();
+            await dbTransaction.CommitAsync();
 
             // Clear cart
             await _cartService.ClearCartAsync(userId);
@@ -173,8 +161,23 @@ public class CheckoutController : Controller
             TempData["SuccessMessage"] = $"¡Pago procesado exitosamente por pasarela! {resultadoPasarela.Mensaje}";
             return RedirectToAction("Confirmacion", new { orderId = order.Id });
         }
+        catch (DbUpdateConcurrencyException)
+        {
+            await dbTransaction.RollbackAsync();
+            TempData["ErrorMessage"] = "El producto fue modificado por otro usuario, vuelve a intentarlo.";
+            model.Cart = cart;
+            return View("Index", model);
+        }
+        catch (InvalidOperationException ex)
+        {
+            await dbTransaction.RollbackAsync();
+            TempData["ErrorMessage"] = ex.Message;
+            model.Cart = cart;
+            return View("Index", model);
+        }
         catch (Exception ex)
         {
+            await dbTransaction.RollbackAsync();
             TempData["ErrorMessage"] = $"Error al registrar la orden: {ex.Message}";
             model.Cart = cart;
             return View("Index", model);

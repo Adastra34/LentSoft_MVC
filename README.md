@@ -82,12 +82,37 @@ Puedes probar los diferentes roles con las siguientes credenciales:
 
 ## Manejo de Configuración Local y Secretos
 
+### Cadena de Conexión (Portabilidad)
+En `appsettings.json`, las cadenas de conexión no tienen valores fijos locales por seguridad y portabilidad. Puedes configurarla de dos formas recomendadas:
+
+#### Opción A: Secretos de Usuario (.NET User Secrets - Recomendado para desarrollo local)
+```bash
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=(localdb)\mssqllocaldb;Database=LentSoftDB_Dev;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True" --project LentSoft.Web
+```
+
+#### Opción B: Variables de Entorno (Recomendado para servidores y CI/CD)
+```bash
+# PowerShell / Windows:
+$env:ConnectionStrings__DefaultConnection = "Server=(localdb)\mssqllocaldb;Database=LentSoftDB_Dev;Trusted_Connection=True;MultipleActiveResultSets=true;TrustServerCertificate=True"
+
+# Linux / macOS / Bash:
+export ConnectionStrings__DefaultConnection="Server=tcp:tudbserver,1433;Database=LentSoftDB;User Id=usr;Password=pass;TrustServerCertificate=True;"
+```
+
+*Nota:* Si no se especifica una cadena de conexión a SQL Server o se habilita `"UseSqlite": true`, el sistema alternará automáticamente a SQLite (`LentSoft.db`), ideal para desarrollo rápido y entornos portátiles.
+
 ### Desarrollo Local (`appsettings.Development.json`)
 Para evitar subir credenciales sensibles al control de versiones (`git`), el proyecto utiliza un archivo de configuración local `appsettings.Development.json` (el cual está excluido en `.gitignore`).
 
 Para correr el proyecto localmente:
 1. Copia `LentSoft.Web/appsettings.Development.example.json` a `LentSoft.Web/appsettings.Development.json`.
 2. Completa tus propios valores de prueba (puede ser una cuenta Gmail descartable con contraseña de aplicación para el envío de correos).
+
+### Ejecución de Pruebas Unitarias
+Para ejecutar la suite de pruebas unitarias automatizadas (xUnit):
+```bash
+dotnet test
+```
 
 ### Producción y Despliegue en Otro Servidor
 

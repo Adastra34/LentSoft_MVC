@@ -110,8 +110,6 @@ public class Appointment : IValidatableObject
         return true;
     }
 
-    public static readonly string[] EstadosValidos = new[] { "pendiente", "confirmada", "completada", "cancelada" };
-
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
         if (!EstadosValidos.Contains(Estado))

@@ -82,6 +82,9 @@ public class Product : IValidatableObject
     public string? SupplierId { get; set; }
     public Supplier? Supplier { get; set; }
 
+    [Timestamp]
+    public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+
     // Navigation properties
     public ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
     public ICollection<Favorite> Favorites { get; set; } = new List<Favorite>();

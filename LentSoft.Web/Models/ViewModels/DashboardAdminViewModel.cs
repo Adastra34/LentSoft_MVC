@@ -19,16 +19,43 @@ public class DashboardAdminViewModel
 
     // ── Inventario ──
     public List<Product> Productos { get; set; } = new();
+    public List<Product> TodosLosProductos { get; set; } = new();
+    public string? ProdSearchTerm { get; set; }
+    public string? ProdEstado { get; set; }
+    public string? ProdCategoria { get; set; }
+    public int ProdPage { get; set; } = 1;
+    public int ProdPageSize { get; set; } = 20;
+    public int ProdTotalCount { get; set; }
+    public int ProdTotalPages => (int)Math.Ceiling((double)ProdTotalCount / (ProdPageSize > 0 ? ProdPageSize : 20));
+
     public List<Supplier> Proveedores { get; set; } = new();
+
     public List<InventoryMovement> HistorialMovimientos { get; set; } = new();
+    public string? MovSearchTerm { get; set; }
+    public string? MovTipo { get; set; }
+    public string MovSort { get; set; } = "desc";
+    public int MovPage { get; set; } = 1;
+    public int MovPageSize { get; set; } = 20;
+    public int MovTotalCount { get; set; }
+    public int MovTotalPages => (int)Math.Ceiling((double)MovTotalCount / (MovPageSize > 0 ? MovPageSize : 20));
+
     public List<SalesOrder> PedidosVentas { get; set; } = new();
+
     public List<SupplierOrder> PedidosProveedores { get; set; } = new();
+    public string? PedidosProvSearchTerm { get; set; }
+    public string? PedidosProvEstado { get; set; }
+    public int PedidosProvPage { get; set; } = 1;
+    public int PedidosProvPageSize { get; set; } = 20;
+    public int PedidosProvTotalCount { get; set; }
+    public int PedidosProvTotalPages => (int)Math.Ceiling((double)PedidosProvTotalCount / (PedidosProvPageSize > 0 ? PedidosProvPageSize : 20));
 
     // ── Inventario: Resumen ──
     public List<ChartDataPoint> EvolucionVentas { get; set; } = new();
     public List<TopProductoVendidoViewModel> ProductosMasVendidos { get; set; } = new();
     public List<Product> ProductosAgotados { get; set; } = new();
+    public int ProductosAgotadosCount { get; set; }
     public List<Product> ProductosPorAgotarse { get; set; } = new();
+    public int ProductosPorAgotarseCount { get; set; }
 
     // ── Ventas ──
     public List<Order> Ventas { get; set; } = new();

@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LentSoft.Web.Data;
 using LentSoft.Web.Models.Entities;
+using LentSoft.Web.Services;
 
 namespace LentSoft.Web.Controllers;
 
@@ -13,82 +14,15 @@ namespace LentSoft.Web.Controllers;
 public class SupplierController : Controller
 {
     private readonly LentSoftDbContext _context;
-    private readonly IWebHostEnvironment _webHostEnvironment;
+    private readonly IFileStorageService _fileStorageService;
 
     private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
     private const long MaxImageSizeBytes = 5 * 1024 * 1024; // 5 MB
 
-    public SupplierController(LentSoftDbContext context, IWebHostEnvironment webHostEnvironment)
+    public SupplierController(LentSoftDbContext context, IFileStorageService fileStorageService)
     {
         _context = context;
-        _webHostEnvironment = webHostEnvironment;
-    }
-
-    private async Task<(bool success, string? relativePath, string? errorMessage)> ProcessSupplierLogoAsync(IFormFile file)
-    {
-        if (file.Length == 0)
-        {
-            return (false, null, "El archivo de imagen está vacío.");
-        }
-
-        if (file.Length > MaxImageSizeBytes)
-        {
-            return (false, null, "El tamaño del logo no debe superar los 5 MB.");
-        }
-
-        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-        if (!AllowedImageExtensions.Contains(ext))
-        {
-            return (false, null, "Formato de imagen no permitido. Solo se aceptan archivos .jpg, .jpeg, .png y .webp.");
-        }
-
-        try
-        {
-            var webRoot = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            var uploadsDir = Path.Combine(webRoot, "uploads", "suppliers");
-            if (!Directory.Exists(uploadsDir))
-            {
-                Directory.CreateDirectory(uploadsDir);
-            }
-
-            var uniqueFileName = $"{Guid.NewGuid():N}{ext}";
-            var fullPath = Path.Combine(uploadsDir, uniqueFileName);
-
-            using (var stream = new FileStream(fullPath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
-
-            var relativePath = $"/uploads/suppliers/{uniqueFileName}";
-            return (true, relativePath, null);
-        }
-        catch (Exception ex)
-        {
-            return (false, null, $"Error al guardar el logo en el servidor: {ex.Message}");
-        }
-    }
-
-    private void DeleteLocalSupplierLogo(string? logoUrl)
-    {
-        if (string.IsNullOrWhiteSpace(logoUrl)) return;
-
-        var normalized = logoUrl.Replace('\\', '/').TrimStart('/');
-        if (normalized.StartsWith("uploads/suppliers/", StringComparison.OrdinalIgnoreCase))
-        {
-            try
-            {
-                var webRoot = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                var fullPath = Path.Combine(webRoot, normalized.Replace('/', Path.DirectorySeparatorChar));
-                if (System.IO.File.Exists(fullPath))
-                {
-                    System.IO.File.Delete(fullPath);
-                }
-            }
-            catch
-            {
-                // No bloquear
-            }
-        }
+        _fileStorageService = fileStorageService;
     }
 
     /// <summary>
@@ -120,7 +54,7 @@ public class SupplierController : Controller
 
         if (LogoArchivo != null && LogoArchivo.Length > 0)
         {
-            var (success, relativePath, error) = await ProcessSupplierLogoAsync(LogoArchivo);
+            var (success, relativePath, error) = await _fileStorageService.SaveImageAsync(LogoArchivo, "suppliers", AllowedImageExtensions, MaxImageSizeBytes);
             if (!success)
             {
                 if (isAjax) return Json(new { success = false, message = error });
@@ -183,7 +117,7 @@ public class SupplierController : Controller
 
         if (LogoArchivo != null && LogoArchivo.Length > 0)
         {
-            var (success, relativePath, error) = await ProcessSupplierLogoAsync(LogoArchivo);
+            var (success, relativePath, error) = await _fileStorageService.SaveImageAsync(LogoArchivo, "suppliers", AllowedImageExtensions, MaxImageSizeBytes);
             if (!success)
             {
                 if (isAjax) return Json(new { success = false, message = error });
@@ -223,7 +157,7 @@ public class SupplierController : Controller
 
             if (!string.IsNullOrEmpty(oldLogoToDelete))
             {
-                DeleteLocalSupplierLogo(oldLogoToDelete);
+                _fileStorageService.DeleteFile(oldLogoToDelete);
             }
 
             if (isAjax) return Json(new { success = true, message = "Proveedor actualizado exitosamente.", data = existing });
@@ -277,6 +211,7 @@ public class SupplierController : Controller
     /// Admin: Toggle supplier active status (POST)
     /// </summary>
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleStatus(string id)
     {
         try

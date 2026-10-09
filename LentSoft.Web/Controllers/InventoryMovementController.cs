@@ -1,20 +1,19 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using LentSoft.Web.Data;
 using LentSoft.Web.Models.Entities;
+using LentSoft.Web.Services;
 
 namespace LentSoft.Web.Controllers;
 
 [Authorize(Roles = "admin")]
 public class InventoryMovementController : Controller
 {
-    private readonly LentSoftDbContext _context;
+    private readonly IInventoryService _inventoryService;
 
-    public InventoryMovementController(LentSoftDbContext context)
+    public InventoryMovementController(IInventoryService inventoryService)
     {
-        _context = context;
+        _inventoryService = inventoryService;
     }
 
     /// <summary>
@@ -30,65 +29,37 @@ public class InventoryMovementController : Controller
             return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "historial" });
         }
 
-        var product = await _context.Products.FindAsync(movement.ProductId);
-        if (product == null)
-        {
-            TempData["ErrorMessage"] = "El producto seleccionado no existe.";
-            return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "historial" });
-        }
-
-        var tipo = movement.Tipo?.Trim();
-        if (string.Equals(tipo, "Salida", StringComparison.OrdinalIgnoreCase))
-        {
-            tipo = "Salida";
-            if (product.Stock < movement.Cantidad)
-            {
-                TempData["ErrorMessage"] = $"Stock insuficiente. Stock actual de {product.Nombre}: {product.Stock}, intentó retirar: {movement.Cantidad}.";
-                return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "historial" });
-            }
-            product.Stock -= movement.Cantidad;
-            if (product.Stock == 0)
-            {
-                product.Activo = false;
-                TempData["WarningMessage"] = $"Se inhabilitó el producto {product.Nombre}";
-            }
-            else if (product.Stock <= 10)
-            {
-                TempData["WarningMessage"] = $"¡Alerta de Stock Mínimo! El producto {product.Nombre} está por agotarse (Stock: {product.Stock}).";
-            }
-        }
-        else
-        {
-            tipo = "Entrada";
-            if (product.Stock + movement.Cantidad > 85)
-            {
-                TempData["ErrorMessage"] = $"El stock no puede superar las 85 unidades. Stock actual de {product.Nombre}: {product.Stock}, intentó agregar: {movement.Cantidad}.";
-                return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "historial" });
-            }
-            product.Stock += movement.Cantidad;
-            if (product.Stock > 0 && !product.Activo)
-            {
-                product.Activo = true;
-            }
-        }
-
-        movement.Tipo = tipo;
-        movement.NombreProducto = product.Nombre;
-        movement.Fecha = DateTime.UtcNow;
-
-        if (string.IsNullOrWhiteSpace(movement.Responsable))
-        {
-            var userName = User.Identity?.Name;
-            movement.Responsable = string.IsNullOrWhiteSpace(userName) ? "Administrador" : userName;
-        }
+        var isSalida = string.Equals(movement.Tipo?.Trim(), InventoryConstants.MovementTypes.Salida, StringComparison.OrdinalIgnoreCase);
 
         try
         {
-            _context.InventoryMovements.Add(movement);
-            _context.Products.Update(product);
-            await _context.SaveChangesAsync();
+            Product product;
+            if (isSalida)
+            {
+                product = await _inventoryService.DisminuirStockAsync(
+                    movement.ProductId, 
+                    movement.Cantidad, 
+                    InventoryConstants.MovementTypes.Salida);
 
-            var successMsg = $"Movimiento de {tipo} registrado exitosamente. Nuevo stock: {product.Stock}.";
+                if (product.Stock == 0)
+                {
+                    TempData["WarningMessage"] = $"Se inhabilitó el producto {product.Nombre}";
+                }
+                else if (product.Stock <= _inventoryService.LowStockThreshold)
+                {
+                    TempData["WarningMessage"] = $"¡Alerta de Stock Mínimo! El producto {product.Nombre} está por agotarse (Stock: {product.Stock}).";
+                }
+            }
+            else
+            {
+                product = await _inventoryService.AumentarStockAsync(
+                    movement.ProductId, 
+                    movement.Cantidad, 
+                    InventoryConstants.MovementTypes.Entrada);
+            }
+
+            var tipoStr = isSalida ? InventoryConstants.MovementTypes.Salida : InventoryConstants.MovementTypes.Entrada;
+            var successMsg = $"Movimiento de {tipoStr} registrado exitosamente. Nuevo stock: {product.Stock}.";
             if (TempData["WarningMessage"] != null)
             {
                 TempData["SuccessMessage"] = successMsg + " " + TempData["WarningMessage"];
@@ -98,29 +69,19 @@ public class InventoryMovementController : Controller
                 TempData["SuccessMessage"] = successMsg;
             }
         }
+        catch (DbUpdateConcurrencyException)
+        {
+            TempData["ErrorMessage"] = "El producto fue modificado por otro usuario, vuelve a intentarlo.";
+        }
+        catch (InvalidOperationException ex)
+        {
+            TempData["ErrorMessage"] = ex.Message;
+        }
         catch (Exception ex)
         {
             TempData["ErrorMessage"] = $"Error al registrar el movimiento de inventario: {ex.Message}";
         }
 
-        return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "historial" });
-    }
-
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Delete(int id)
-    {
-        var movement = await _context.InventoryMovements.FindAsync(id);
-        if (movement != null)
-        {
-            _context.InventoryMovements.Remove(movement);
-            await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Movimiento de inventario eliminado correctamente.";
-        }
-        else
-        {
-            TempData["ErrorMessage"] = "No se encontró el movimiento especificado.";
-        }
         return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "historial" });
     }
 }

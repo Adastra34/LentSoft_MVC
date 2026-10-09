@@ -106,6 +106,7 @@ public class VentasController : Controller
         var productos = await _context.Products
             .Where(p => p.Activo)
             .OrderBy(p => p.Nombre)
+            .Take(50)
             .ToListAsync();
 
         var clientes = await _context.Users
@@ -114,19 +115,24 @@ public class VentasController : Controller
             .ThenBy(u => u.Apellido)
             .ToListAsync();
 
-        var ventasDelMes = ventas
-            .Where(v => v.Estado != "cancelado" && v.FechaPedido >= inicioMes)
-            .Sum(v => v.Total);
+        var ventasDelMes = await _context.Orders
+            .Where(o => o.Activo && o.Estado != "cancelado" && o.FechaPedido >= inicioMes)
+            .SumAsync(o => (decimal?)o.Total) ?? 0;
 
-        var pedidosActivos = ventas
-            .Count(v => v.Estado == "pendiente" || v.Estado == "procesando" || v.Estado == "enviado");
+        var pedidosActivos = await _context.Orders
+            .Where(o => o.Activo && (o.Estado == "pendiente" || o.Estado == "procesando" || o.Estado == "enviado"))
+            .CountAsync();
 
-        var clientesAtendidos = ventas
-            .Select(v => v.UserId)
+        var clientesAtendidos = await _context.Orders
+            .Where(o => o.Activo)
+            .Select(o => o.UserId)
             .Distinct()
-            .Count();
+            .CountAsync();
 
-        var totalVentasConteo = ventas.Count(v => v.Estado != "cancelado");
+        var totalVentasConteo = await _context.Orders
+            .Where(o => o.Activo && o.Estado != "cancelado")
+            .CountAsync();
+
         var ticketPromedio = totalVentasConteo > 0 ? (ventasDelMes / totalVentasConteo) : 0;
 
         var pedidosVentas = await _context.SalesOrders
@@ -152,7 +158,7 @@ public class VentasController : Controller
             PedidosDisponibles = pedidosDisponibles,
             Productos = productos,
             PedidosVentas = pedidosVentas,
-            HistorialMovimientos = await _context.InventoryMovements.Include(m => m.Product).OrderByDescending(m => m.Fecha).ToListAsync(),
+            HistorialMovimientos = await _context.InventoryMovements.Include(m => m.Product).OrderByDescending(m => m.Fecha).Take(20).ToListAsync(),
             Clientes = clientes,
             UsuarioActual = usuario,
             ActiveSection = section,

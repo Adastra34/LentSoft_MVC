@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using LentSoft.Web.Models.Entities;
 using LentSoft.Web.Models.ViewModels;
 using LentSoft.Web.Services;
@@ -14,7 +15,7 @@ public class ProductController : Controller
 {
     private readonly IProductService _productService;
     private readonly IFavoriteService _favoriteService;
-    private readonly IWebHostEnvironment _webHostEnvironment;
+    private readonly IFileStorageService _fileStorageService;
 
     private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
     private const long MaxImageSizeBytes = 5 * 1024 * 1024; // 5 MB
@@ -22,11 +23,19 @@ public class ProductController : Controller
     public ProductController(
         IProductService productService,
         IFavoriteService favoriteService,
-        IWebHostEnvironment webHostEnvironment)
+        IFileStorageService fileStorageService)
     {
         _productService = productService;
         _favoriteService = favoriteService;
-        _webHostEnvironment = webHostEnvironment;
+        _fileStorageService = fileStorageService;
+    }
+
+    public ProductController(
+        IProductService productService,
+        IFavoriteService favoriteService,
+        IWebHostEnvironment webHostEnvironment)
+        : this(productService, favoriteService, new LocalFileStorageService(webHostEnvironment, Microsoft.Extensions.Options.Options.Create(new FileStorageSettings())))
+    {
     }
 
     /// <summary>
@@ -101,7 +110,7 @@ public class ProductController : Controller
 
         if (ImagenArchivo != null && ImagenArchivo.Length > 0)
         {
-            var (success, relativePath, error) = await ProcessProductImageAsync(ImagenArchivo);
+            var (success, relativePath, error) = await _fileStorageService.SaveImageAsync(ImagenArchivo, "products", AllowedImageExtensions, MaxImageSizeBytes);
             if (!success)
             {
                 if (isAjax) return Json(new { success = false, message = error });
@@ -129,6 +138,12 @@ public class ProductController : Controller
             var created = await _productService.CreateAsync(product);
             if (isAjax) return Json(new { success = true, message = "Producto creado exitosamente.", data = created });
             TempData["SuccessMessage"] = "Producto creado exitosamente.";
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            var msg = "El producto fue modificado por otro usuario, vuelve a intentarlo.";
+            if (isAjax) return Json(new { success = false, message = msg });
+            TempData["ErrorMessage"] = msg;
         }
         catch (Exception ex)
         {
@@ -162,6 +177,12 @@ public class ProductController : Controller
                 if (isAjax) return Json(new { success = false, message = "Producto no encontrado." });
                 TempData["ErrorMessage"] = "Producto no encontrado.";
             }
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            var msg = "El producto fue modificado por otro usuario, vuelve a intentarlo.";
+            if (isAjax) return Json(new { success = false, message = msg });
+            TempData["ErrorMessage"] = msg;
         }
         catch (Exception ex)
         {
@@ -209,7 +230,7 @@ public class ProductController : Controller
 
         if (ImagenArchivo != null && ImagenArchivo.Length > 0)
         {
-            var (success, relativePath, error) = await ProcessProductImageAsync(ImagenArchivo);
+            var (success, relativePath, error) = await _fileStorageService.SaveImageAsync(ImagenArchivo, "products", AllowedImageExtensions, MaxImageSizeBytes);
             if (!success)
             {
                 if (isAjax) return Json(new { success = false, message = error });
@@ -254,7 +275,7 @@ public class ProductController : Controller
                 // Si la actualización fue exitosa y se subió una nueva imagen, borrar la previa si era local
                 if (!string.IsNullOrEmpty(oldImageUrlToDelete))
                 {
-                    DeleteLocalProductImage(oldImageUrlToDelete);
+                    _fileStorageService.DeleteFile(oldImageUrlToDelete);
                 }
 
                 bool stockAgotado = updated.Stock == 0;
@@ -282,6 +303,12 @@ public class ProductController : Controller
                 }
             }
         }
+        catch (DbUpdateConcurrencyException)
+        {
+            var msg = "El producto fue modificado por otro usuario, vuelve a intentarlo.";
+            if (isAjax) return Json(new { success = false, message = msg });
+            TempData["ErrorMessage"] = msg;
+        }
         catch (Exception ex)
         {
             if (isAjax) return Json(new { success = false, message = $"Error al actualizar el producto: {ex.Message}" });
@@ -289,73 +316,6 @@ public class ProductController : Controller
         }
 
         return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "productos" });
-    }
-
-    private async Task<(bool success, string? relativePath, string? errorMessage)> ProcessProductImageAsync(IFormFile file)
-    {
-        if (file.Length == 0)
-        {
-            return (false, null, "El archivo de imagen está vacío.");
-        }
-
-        if (file.Length > MaxImageSizeBytes)
-        {
-            return (false, null, "El tamaño de la imagen no debe superar los 5 MB.");
-        }
-
-        var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
-        if (!AllowedImageExtensions.Contains(ext))
-        {
-            return (false, null, "Formato de imagen no permitido. Solo se aceptan archivos .jpg, .jpeg, .png y .webp.");
-        }
-
-        try
-        {
-            var webRoot = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            var uploadsDir = Path.Combine(webRoot, "uploads", "products");
-            if (!Directory.Exists(uploadsDir))
-            {
-                Directory.CreateDirectory(uploadsDir);
-            }
-
-            var uniqueFileName = $"{Guid.NewGuid():N}{ext}";
-            var fullPath = Path.Combine(uploadsDir, uniqueFileName);
-
-            using (var stream = new FileStream(fullPath, FileMode.Create))
-            {
-                await file.CopyToAsync(stream);
-            }
-
-            var relativePath = $"/uploads/products/{uniqueFileName}";
-            return (true, relativePath, null);
-        }
-        catch (Exception ex)
-        {
-            return (false, null, $"Error al guardar la imagen en el servidor: {ex.Message}");
-        }
-    }
-
-    private void DeleteLocalProductImage(string? imageUrl)
-    {
-        if (string.IsNullOrWhiteSpace(imageUrl)) return;
-
-        var normalized = imageUrl.Replace('\\', '/').TrimStart('/');
-        if (normalized.StartsWith("uploads/products/", StringComparison.OrdinalIgnoreCase))
-        {
-            try
-            {
-                var webRoot = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-                var fullPath = Path.Combine(webRoot, normalized.Replace('/', Path.DirectorySeparatorChar));
-                if (System.IO.File.Exists(fullPath))
-                {
-                    System.IO.File.Delete(fullPath);
-                }
-            }
-            catch
-            {
-                // No bloquear si ocurre un problema al remover el archivo viejo
-            }
-        }
     }
 
     /// <summary>
