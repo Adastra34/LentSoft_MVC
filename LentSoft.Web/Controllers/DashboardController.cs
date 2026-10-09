@@ -19,6 +19,7 @@ public class DashboardController : Controller
     private readonly IFavoriteService _favoriteService;
     private readonly IInvoiceService _invoiceService;
     private readonly LentSoftDbContext _context;
+    private readonly InventorySettings _inventorySettings;
 
     public DashboardController(
         IDashboardService dashboardService,
@@ -27,7 +28,8 @@ public class DashboardController : Controller
         IOrderService orderService,
         IFavoriteService favoriteService,
         IInvoiceService invoiceService,
-        LentSoftDbContext context)
+        LentSoftDbContext context,
+        Microsoft.Extensions.Options.IOptions<InventorySettings> inventoryOptions)
     {
         _dashboardService = dashboardService;
         _productService = productService;
@@ -36,6 +38,7 @@ public class DashboardController : Controller
         _favoriteService = favoriteService;
         _invoiceService = invoiceService;
         _context = context;
+        _inventorySettings = inventoryOptions?.Value ?? new InventorySettings();
     }
 
     /// <summary>
@@ -55,7 +58,20 @@ public class DashboardController : Controller
         int trabajadoresPage = 1,
         int trabajadoresPageSize = 5,
         bool includeInactive = false,
-        string movSort = "desc")
+        string movSort = "desc",
+        string? prodSearch = null,
+        string? prodEstado = null,
+        string? prodCategoria = null,
+        int prodPage = 1,
+        int prodPageSize = 20,
+        string? movSearch = null,
+        string? movTipo = null,
+        int movPage = 1,
+        int movPageSize = 20,
+        string? pedidosProvSearch = null,
+        string? pedidosProvEstado = null,
+        int pedidosProvPage = 1,
+        int pedidosProvPageSize = 20)
     {
         ViewBag.IncludeInactive = includeInactive;
         ViewBag.MovSort = movSort;
@@ -93,7 +109,57 @@ public class DashboardController : Controller
             .Take(10)
             .ToListAsync();
 
-        var productos = await _context.Products.OrderBy(p => p.Nombre).ToListAsync();
+        // Fallback para searchTerm genérico
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            if (section == "inventario" && subtab == "productos" && string.IsNullOrWhiteSpace(prodSearch)) prodSearch = searchTerm;
+            if (section == "inventario" && subtab == "historial" && string.IsNullOrWhiteSpace(movSearch)) movSearch = searchTerm;
+            if (section == "inventario" && subtab == "pedidos" && string.IsNullOrWhiteSpace(pedidosProvSearch)) pedidosProvSearch = searchTerm;
+        }
+
+        // ── Productos (Paginados y Filtrados en BD) ──
+        var prodQuery = _context.Products.AsQueryable();
+        if (!string.IsNullOrWhiteSpace(prodSearch))
+        {
+            var s = prodSearch.Trim().ToLower();
+            prodQuery = prodQuery.Where(p => p.Nombre.ToLower().Contains(s)
+                || (p.Marca != null && p.Marca.ToLower().Contains(s))
+                || (p.Categoria != null && p.Categoria.ToLower().Contains(s))
+                || p.Id.ToString().Contains(s));
+        }
+
+        if (!string.IsNullOrWhiteSpace(prodEstado))
+        {
+            var est = prodEstado.Trim().ToLower();
+            if (est == "activo") prodQuery = prodQuery.Where(p => p.Activo);
+            else if (est == "inactivo") prodQuery = prodQuery.Where(p => !p.Activo);
+        }
+
+        if (!string.IsNullOrWhiteSpace(prodCategoria))
+        {
+            var cat = prodCategoria.Trim().ToLower();
+            if (cat == "lentes-sol")
+                prodQuery = prodQuery.Where(p => p.Categoria != null && (p.Categoria.ToLower().Contains("sol") || p.Categoria.ToLower().Contains("lentes-sol")));
+            else if (cat == "monturas")
+                prodQuery = prodQuery.Where(p => p.Categoria != null && p.Categoria.ToLower().Contains("montura"));
+            else if (cat == "lentes-contacto")
+                prodQuery = prodQuery.Where(p => p.Categoria != null && (p.Categoria.ToLower().Contains("contacto") || p.Categoria.ToLower().Contains("lentes-contacto")));
+            else if (cat == "lentes-graduados")
+                prodQuery = prodQuery.Where(p => p.Categoria != null && (p.Categoria.ToLower().Contains("graduado") || p.Categoria.ToLower().Contains("lentes-graduados")));
+            else if (cat == "accesorios")
+                prodQuery = prodQuery.Where(p => p.Categoria != null && p.Categoria.ToLower().Contains("accesorio"));
+            else
+                prodQuery = prodQuery.Where(p => p.Categoria != null && p.Categoria.ToLower().Contains(cat));
+        }
+
+        var prodTotalCount = await prodQuery.CountAsync();
+        var productos = await prodQuery
+            .OrderBy(p => p.Nombre)
+            .Skip((prodPage - 1) * prodPageSize)
+            .Take(prodPageSize)
+            .ToListAsync();
+
+        var todosLosProductos = await _context.Products.AsNoTracking().OrderBy(p => p.Nombre).ToListAsync();
 
         // â”€â”€ Clientes (Paginados y Filtrados) â”€â”€
         var clientesQuery = _context.Users.Where(u => u.Role == "usuario");
@@ -184,16 +250,21 @@ public class DashboardController : Controller
         var pedidosDisponibles = await _invoiceService.GetOrdersAvailableForInvoicingAsync();
 
         // ── Inventario: Resumen ──
-        // 1. Notificaciones de inventario: Agotados (Stock == 0) y Por agotarse (0 < Stock <= 10)
+        // 1. Notificaciones de inventario: Agotados (Stock == 0) y Por agotarse (0 < Stock <= 10) usando CountAsync agregado
+        var productosAgotadosCount = await _context.Products.CountAsync(p => p.Stock == 0);
+        var productosPorAgotarseCount = await _context.Products.CountAsync(p => p.Stock > 0 && p.Stock <= _inventorySettings.LowStockThreshold);
+
         var productosAgotados = await _context.Products
             .Where(p => p.Stock == 0)
             .OrderBy(p => p.Nombre)
+            .Take(10)
             .ToListAsync();
 
         var productosPorAgotarse = await _context.Products
-            .Where(p => p.Stock > 0 && p.Stock <= 10)
+            .Where(p => p.Stock > 0 && p.Stock <= _inventorySettings.LowStockThreshold)
             .OrderBy(p => p.Stock)
             .ThenBy(p => p.Nombre)
+            .Take(10)
             .ToListAsync();
 
         // 2. Productos más vendidos a partir de OrderItem / SalesOrder
@@ -269,65 +340,136 @@ public class DashboardController : Controller
             });
         }
 
-        var viewModel = new DashboardAdminViewModel
-        {
-            // Stats
-            VentasDelMes = ventasMes,
-            VentasDelMesAnterior = ventasMesAnterior,
-            PedidosActivos = pedidosActivos,
-            PedidosActivosAnterior = pedidosActivosAnterior,
-            ClientesTotales = clientesTotales,
-            ClientesTotalesAnterior = clientesAnterior,
-            ProductosEnStock = productosEnStock,
-            ProductosEnStockAnterior = productosAnterior,
+            // ── Historial de Movimientos (Paginado y Filtrado en BD) ──
+            var movQuery = _context.InventoryMovements.Include(m => m.Product).AsQueryable();
+            if (!string.IsNullOrWhiteSpace(movSearch))
+            {
+                var s = movSearch.Trim().ToLower();
+                movQuery = movQuery.Where(m => (m.NombreProducto != null && m.NombreProducto.ToLower().Contains(s))
+                    || (m.Product != null && m.Product.Nombre.ToLower().Contains(s))
+                    || (m.Responsable != null && m.Responsable.ToLower().Contains(s))
+                    || m.Id.ToString().Contains(s));
+            }
+            if (!string.IsNullOrWhiteSpace(movTipo))
+            {
+                var t = movTipo.Trim().ToLower();
+                movQuery = movQuery.Where(m => m.Tipo != null && m.Tipo.ToLower() == t);
+            }
+            movQuery = (movSort == "asc")
+                ? movQuery.OrderBy(m => m.Fecha)
+                : movQuery.OrderByDescending(m => m.Fecha);
 
-            // Secciones
-            PedidosRecientes = pedidosRecientes,
-            Productos = productos,
-            Ventas = ventas,
-            Citas = citas,
+            var movTotalCount = await movQuery.CountAsync();
+            var historialMovimientos = await movQuery
+                .Skip((movPage - 1) * movPageSize)
+                .Take(movPageSize)
+                .ToListAsync();
 
-            // Clientes
-            Clientes = clientesList,
-            TodosLosClientes = await _context.Users.Where(u => u.Activo && u.Role == "usuario").OrderBy(u => u.Nombre).ThenBy(u => u.Apellido).ToListAsync(),
-            ClientesSearchTerm = clientesSearch,
-            ClientesPage = clientesPage,
-            ClientesPageSize = clientesPageSize,
-            ClientesTotalCount = clientesTotalCount,
+            // ── Pedidos a Proveedores (Paginados y Filtrados en BD) ──
+            var pedidosProvQuery = _context.SupplierOrders
+                .Include(o => o.Supplier)
+                .Include(o => o.Product)
+                .Where(o => o.Activo)
+                .AsQueryable();
 
-            // Trabajadores
-            Trabajadores = trabajadoresList,
-            TrabajadoresSearchTerm = trabajadoresSearch,
-            TrabajadoresPage = trabajadoresPage,
-            TrabajadoresPageSize = trabajadoresPageSize,
-            TrabajadoresTotalCount = trabajadoresTotalCount,
+            if (!string.IsNullOrWhiteSpace(pedidosProvSearch))
+            {
+                var s = pedidosProvSearch.Trim().ToLower();
+                pedidosProvQuery = pedidosProvQuery.Where(o => (o.NumeroPedido != null && o.NumeroPedido.ToLower().Contains(s))
+                    || (o.Supplier != null && o.Supplier.Nombre.ToLower().Contains(s))
+                    || (o.Product != null && o.Product.Nombre.ToLower().Contains(s)));
+            }
+            if (!string.IsNullOrWhiteSpace(pedidosProvEstado))
+            {
+                var est = pedidosProvEstado.Trim().ToLower();
+                pedidosProvQuery = pedidosProvQuery.Where(o => o.Estado != null && o.Estado.ToLower() == est);
+            }
+            pedidosProvQuery = pedidosProvQuery.OrderByDescending(o => o.Fecha);
 
-            // Facturas
-            Facturas = facturasList,
-            FacturasSearchTerm = searchTerm,
-            FacturasPage = page,
-            FacturasPageSize = pageSize,
-            FacturasTotalCount = facturasTotalCount,
-            PedidosDisponibles = pedidosDisponibles,
+            var pedidosProvTotalCount = await pedidosProvQuery.CountAsync();
+            var pedidosProveedores = await pedidosProvQuery
+                .Skip((pedidosProvPage - 1) * pedidosProvPageSize)
+                .Take(pedidosProvPageSize)
+                .ToListAsync();
 
-            // Inventario: Resumen
-            EvolucionVentas = evolucionVentas,
-            ProductosMasVendidos = productosMasVendidos,
-            ProductosAgotados = productosAgotados,
-            ProductosPorAgotarse = productosPorAgotarse,
+            var viewModel = new DashboardAdminViewModel
+            {
+                // Stats
+                VentasDelMes = ventasMes,
+                VentasDelMesAnterior = ventasMesAnterior,
+                PedidosActivos = pedidosActivos,
+                PedidosActivosAnterior = pedidosActivosAnterior,
+                ClientesTotales = clientesTotales,
+                ClientesTotalesAnterior = clientesAnterior,
+                ProductosEnStock = productosEnStock,
+                ProductosEnStockAnterior = productosAnterior,
 
-            // Proveedores, Historial y Pedidos reales de Inventario
-            Proveedores = await _context.Suppliers.Where(s => s.Activo).OrderBy(s => s.Nombre).ToListAsync(),
-            HistorialMovimientos = await (movSort == "asc" 
-                ? _context.InventoryMovements.Include(m => m.Product).OrderBy(m => m.Fecha).ToListAsync()
-                : _context.InventoryMovements.Include(m => m.Product).OrderByDescending(m => m.Fecha).ToListAsync()),
-            PedidosVentas = await _context.SalesOrders.Where(o => o.Activo).OrderByDescending(o => o.Fecha).ToListAsync(),
-            PedidosProveedores = await _context.SupplierOrders.Include(o => o.Supplier).Include(o => o.Product).Where(o => o.Activo).OrderByDescending(o => o.Fecha).ToListAsync(),
+                // Secciones
+                PedidosRecientes = pedidosRecientes,
+                Productos = productos,
+                TodosLosProductos = todosLosProductos,
+                ProdSearchTerm = prodSearch,
+                ProdEstado = prodEstado,
+                ProdCategoria = prodCategoria,
+                ProdPage = prodPage,
+                ProdPageSize = prodPageSize,
+                ProdTotalCount = prodTotalCount,
+                Ventas = ventas,
+                Citas = citas,
 
-            // Navigation
-            ActiveSection = section,
-            ActiveSubTab = subtab
-        };
+                // Clientes
+                Clientes = clientesList,
+                TodosLosClientes = await _context.Users.Where(u => u.Activo && u.Role == "usuario").OrderBy(u => u.Nombre).ThenBy(u => u.Apellido).ToListAsync(),
+                ClientesSearchTerm = clientesSearch,
+                ClientesPage = clientesPage,
+                ClientesPageSize = clientesPageSize,
+                ClientesTotalCount = clientesTotalCount,
+
+                // Trabajadores
+                Trabajadores = trabajadoresList,
+                TrabajadoresSearchTerm = trabajadoresSearch,
+                TrabajadoresPage = trabajadoresPage,
+                TrabajadoresPageSize = trabajadoresPageSize,
+                TrabajadoresTotalCount = trabajadoresTotalCount,
+
+                // Facturas
+                Facturas = facturasList,
+                FacturasSearchTerm = searchTerm,
+                FacturasPage = page,
+                FacturasPageSize = pageSize,
+                FacturasTotalCount = facturasTotalCount,
+                PedidosDisponibles = pedidosDisponibles,
+
+                // Inventario: Resumen
+                EvolucionVentas = evolucionVentas,
+                ProductosMasVendidos = productosMasVendidos,
+                ProductosAgotados = productosAgotados,
+                ProductosAgotadosCount = productosAgotadosCount,
+                ProductosPorAgotarse = productosPorAgotarse,
+                ProductosPorAgotarseCount = productosPorAgotarseCount,
+
+                // Proveedores, Historial y Pedidos reales de Inventario
+                Proveedores = await _context.Suppliers.Where(s => s.Activo).OrderBy(s => s.Nombre).ToListAsync(),
+                HistorialMovimientos = historialMovimientos,
+                MovSearchTerm = movSearch,
+                MovTipo = movTipo,
+                MovSort = movSort,
+                MovPage = movPage,
+                MovPageSize = movPageSize,
+                MovTotalCount = movTotalCount,
+
+                PedidosVentas = await _context.SalesOrders.Where(o => o.Activo).OrderByDescending(o => o.Fecha).ToListAsync(),
+                PedidosProveedores = pedidosProveedores,
+                PedidosProvSearchTerm = pedidosProvSearch,
+                PedidosProvEstado = pedidosProvEstado,
+                PedidosProvPage = pedidosProvPage,
+                PedidosProvPageSize = pedidosProvPageSize,
+                PedidosProvTotalCount = pedidosProvTotalCount,
+
+                // Navigation
+                ActiveSection = section,
+                ActiveSubTab = subtab
+            };
 
         ViewBag.Optometras = await _context.Users
             .Where(u => u.Role == "optometra" && u.Activo)
@@ -964,94 +1106,26 @@ public class DashboardController : Controller
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
     }
 
-    // ── GESTIÓN DE PEDIDOS A PROVEEDORES (VINCULADOS A INVENTARIO DB) ──
-    [HttpPost]
+    [HttpGet]
     [Authorize(Roles = "admin")]
-    public async Task<IActionResult> CreateSupplierOrder(SupplierOrder model)
+    public async Task<IActionResult> ExportMovimientosData()
     {
-        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
-
-        if (ModelState.IsValid)
-        {
-            model.Total = model.Cantidad * model.PrecioUnitario;
-            if (model.Fecha == default) model.Fecha = DateTime.UtcNow;
-            model.Activo = true;
-            _context.SupplierOrders.Add(model);
-
-            // Registro automático en Historial de Movimientos (ENTRADA)
-            var targetProd = await _context.Products.FindAsync(model.ProductId);
-            var movement = new InventoryMovement
+        var movimientos = await _context.InventoryMovements
+            .Include(m => m.Product)
+            .OrderByDescending(m => m.Fecha)
+            .Select(m => new
             {
-                ProductId = model.ProductId,
-                NombreProducto = targetProd?.Nombre,
-                Tipo = "Entrada",
-                Cantidad = model.Cantidad,
-                Fecha = DateTime.UtcNow,
-                Responsable = User.Identity?.Name ?? $"Pedido Proveedor ({model.NumeroPedido})"
-            };
-            _context.InventoryMovements.Add(movement);
+                Id = "#MOV-" + m.Id,
+                Producto = m.NombreProducto ?? (m.Product != null ? m.Product.Nombre : "Producto #" + m.ProductId),
+                Tipo = m.Tipo,
+                Cantidad = m.Cantidad,
+                Fecha = m.Fecha.ToLocalTime().ToString("dd/MM/yyyy"),
+                Hora = m.Fecha.ToLocalTime().ToString("HH:mm"),
+                Responsable = m.Responsable ?? "Sistema / Admin"
+            })
+            .ToListAsync();
 
-            await _context.SaveChangesAsync();
-            if (isAjax) return Json(new { success = true, message = "Pedido a proveedor registrado correctamente.", data = model });
-            TempData["SuccessMessage"] = "Pedido a proveedor registrado correctamente.";
-        }
-        else
-        {
-            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Verifique los datos del pedido a proveedor.";
-            if (isAjax) return Json(new { success = false, message = firstError });
-            TempData["ErrorMessage"] = firstError;
-        }
-        return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "proveedores" });
-    }
-
-    [HttpPost]
-    [Authorize(Roles = "admin")]
-    public async Task<IActionResult> EditSupplierOrder(SupplierOrder model)
-    {
-        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
-
-        var existing = await _context.SupplierOrders.FindAsync(model.Id);
-        if (existing != null)
-        {
-            existing.NumeroPedido = model.NumeroPedido;
-            existing.SupplierId = model.SupplierId;
-            existing.ProductId = model.ProductId;
-            existing.Cantidad = model.Cantidad;
-            existing.PrecioUnitario = model.PrecioUnitario;
-            existing.Total = model.Cantidad * model.PrecioUnitario;
-            existing.Estado = model.Estado;
-            existing.Notas = model.Notas;
-            await _context.SaveChangesAsync();
-            if (isAjax) return Json(new { success = true, message = "Pedido a proveedor actualizado correctamente.", data = existing });
-            TempData["SuccessMessage"] = "Pedido a proveedor actualizado correctamente.";
-        }
-        else
-        {
-            if (isAjax) return Json(new { success = false, message = "No se encontró el pedido a proveedor especificado." });
-            TempData["ErrorMessage"] = "No se encontró el pedido a proveedor especificado.";
-        }
-        return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "proveedores" });
-    }
-
-    [HttpPost]
-    [Authorize(Roles = "admin")]
-    public async Task<IActionResult> DeleteSupplierOrder(int id)
-    {
-        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
-
-        var existing = await _context.SupplierOrders.FindAsync(id);
-        if (existing != null)
-        {
-            existing.Activo = false;
-            await _context.SaveChangesAsync();
-            if (isAjax) return Json(new { success = true, message = "Pedido a proveedor eliminado correctamente.", id });
-            TempData["SuccessMessage"] = "Pedido a proveedor eliminado correctamente.";
-        }
-        else
-        {
-            if (isAjax) return Json(new { success = false, message = "No se encontró el pedido a proveedor especificado." });
-        }
-        return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "proveedores" });
+        return Json(movimientos);
     }
 
 }

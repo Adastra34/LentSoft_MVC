@@ -47,12 +47,34 @@ if (string.IsNullOrEmpty(geminiApiKey) || geminiApiKey == "CONFIGURAR_TU_API_KEY
 // ── Database ──
 builder.Services.AddDbContext<LentSoftDbContext>(options =>
 {
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    var useSqlite = builder.Configuration.GetValue<bool>("UseSqlite", false) 
+                    || string.IsNullOrEmpty(connectionString) 
+                    || connectionString.Contains(".db", StringComparison.OrdinalIgnoreCase);
+
+    if (useSqlite)
+    {
+        var dbPath = connectionString?.Contains(".db", StringComparison.OrdinalIgnoreCase) == true
+            ? connectionString
+            : "Data Source=LentSoft.db";
+        options.UseSqlite(dbPath);
+    }
+    else
+    {
+        options.UseSqlServer(connectionString);
+    }
     options.ConfigureWarnings(w => w.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
 });
 
+// ── Configuration Options ──
+builder.Services.Configure<InventorySettings>(builder.Configuration.GetSection(InventorySettings.SectionName));
+builder.Services.Configure<FileStorageSettings>(builder.Configuration.GetSection(FileStorageSettings.SectionName));
+builder.Services.AddHttpContextAccessor();
+
 // ── Services (DI) ──
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -159,7 +181,14 @@ if (app.Environment.IsDevelopment())
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<LentSoftDbContext>();
-        db.Database.Migrate();
+        if (db.Database.IsSqlite())
+        {
+            db.Database.EnsureCreated();
+        }
+        else
+        {
+            db.Database.Migrate();
+        }
         DbSeeder.Seed(db);
     }
 }

@@ -15,17 +15,20 @@ public class OrderController : Controller
     private readonly LentSoftDbContext _context;
     private readonly ISaleConfirmationTokenService _saleConfirmationTokenService;
     private readonly IEmailService _emailService;
+    private readonly IInventoryService _inventoryService;
 
     public OrderController(
         IOrderService orderService, 
         LentSoftDbContext context,
         ISaleConfirmationTokenService saleConfirmationTokenService,
-        IEmailService emailService)
+        IEmailService emailService,
+        IInventoryService inventoryService)
     {
         _orderService = orderService;
         _context = context;
         _saleConfirmationTokenService = saleConfirmationTokenService;
         _emailService = emailService;
+        _inventoryService = inventoryService;
     }
 
     /// <summary>
@@ -153,39 +156,13 @@ public class OrderController : Controller
 
                     foreach (var item in groupedItems)
                     {
-                        var product = await _context.Products.FindAsync(item.ProductId);
-                        if (product == null)
-                        {
-                            throw new InvalidOperationException($"El producto con ID {item.ProductId} no existe.");
-                        }
-
                         var qty = Math.Max(1, item.Cantidad);
-                        if (product.Stock < qty)
-                        {
-                            throw new InvalidOperationException($"El producto '{product.Nombre}' no cuenta con stock suficiente en el inventario. Disponible: {product.Stock}, solicitado: {qty}.");
-                        }
-
-                        // Deduct stock and enforce limits
-                        product.Stock = Math.Max(0, product.Stock - qty);
-                        if (product.Stock > 85) product.Stock = 85;
-
-                        // Auto-inactivate if stock reaches 0
-                        if (product.Stock == 0)
-                        {
-                            product.Activo = false;
-                        }
-
-                        // Record movement in inventory history
-                        var movement = new LentSoft.Web.Models.Entities.InventoryMovement
-                        {
-                            ProductId = product.Id,
-                            NombreProducto = product.Nombre,
-                            Tipo = "Salida",
-                            Cantidad = qty,
-                            Fecha = DateTime.UtcNow,
-                            Responsable = User.Identity?.Name ?? $"Ventas ({existingUser.Nombre})"
-                        };
-                        _context.InventoryMovements.Add(movement);
+                        var responsableVenta = User.Identity?.Name ?? $"Ventas ({existingUser.Nombre})";
+                        var product = await _inventoryService.DisminuirStockAsync(
+                            item.ProductId, 
+                            qty, 
+                            InventoryConstants.MovementTypes.Salida, 
+                            responsableVenta);
 
                         var precioUnit = product.PrecioDescuento ?? product.Precio;
                         var itemSubtotal = precioUnit * qty;
@@ -252,6 +229,11 @@ public class OrderController : Controller
                     Console.WriteLine($"Error al enviar correo de confirmación de venta: {mailEx.Message}");
                 }
             }
+        }
+        catch (DbUpdateConcurrencyException)
+        {
+            await dbTransaction.RollbackAsync();
+            TempData["ErrorMessage"] = "El producto fue modificado por otro usuario, vuelve a intentarlo.";
         }
         catch (InvalidOperationException ex)
         {

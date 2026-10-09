@@ -10,10 +10,17 @@ namespace LentSoft.Web.Services;
 public class ProductService : IProductService
 {
     private readonly LentSoftDbContext _context;
+    private readonly InventorySettings _inventorySettings;
+    private readonly IHttpContextAccessor? _httpContextAccessor;
 
-    public ProductService(LentSoftDbContext context)
+    public ProductService(
+        LentSoftDbContext context,
+        Microsoft.Extensions.Options.IOptions<InventorySettings>? options = null,
+        IHttpContextAccessor? httpContextAccessor = null)
     {
         _context = context;
+        _inventorySettings = options?.Value ?? new InventorySettings();
+        _httpContextAccessor = httpContextAccessor;
     }
 
     public async Task<List<Product>> GetAllAsync(bool includeInactive = false)
@@ -96,30 +103,49 @@ public class ProductService : IProductService
 
     public async Task<Product> CreateAsync(Product product)
     {
+        if (product.Stock > _inventorySettings.MaxStock)
+        {
+            throw new InvalidOperationException($"El stock no puede superar las {_inventorySettings.MaxStock} unidades.");
+        }
+
+        if (product.Stock == 0)
+        {
+            product.Activo = false;
+        }
+
         product.FechaCreacion = DateTime.UtcNow;
         _context.Products.Add(product);
 
+        using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {
             await _context.SaveChangesAsync();
 
+            var responsable = ResolveCurrentUser();
             // Registro automático en Historial de Movimientos de Inventario
             var movement = new InventoryMovement
             {
                 ProductId = product.Id,
                 NombreProducto = product.Nombre,
-                Tipo = "Alta",
+                Tipo = InventoryConstants.MovementTypes.Alta,
                 Cantidad = product.Stock > 0 ? product.Stock : 1,
                 Fecha = DateTime.UtcNow,
-                Responsable = "Sistema / Admin"
+                Responsable = responsable
             };
             _context.InventoryMovements.Add(movement);
             await _context.SaveChangesAsync();
 
+            await transaction.CommitAsync();
             return product;
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            await transaction.RollbackAsync();
+            throw new InvalidOperationException("El producto fue modificado por otro usuario, vuelve a intentarlo.", ex);
         }
         catch (DbUpdateException ex)
         {
+            await transaction.RollbackAsync();
             throw new InvalidOperationException("No se pudo crear el producto debido a una restricción de datos.", ex);
         }
     }
@@ -128,6 +154,11 @@ public class ProductService : IProductService
     {
         var product = await _context.Products.FindAsync(id);
         if (product == null) return null;
+
+        if (updated.Stock > _inventorySettings.MaxStock)
+        {
+            throw new InvalidOperationException($"El stock no puede superar las {_inventorySettings.MaxStock} unidades.");
+        }
 
         int stockDelta = updated.Stock - product.Stock;
 
@@ -139,15 +170,23 @@ public class ProductService : IProductService
         product.Marca = updated.Marca;
         product.Stock = updated.Stock;
         product.ImagenUrl = updated.ImagenUrl;
-        product.Activo = updated.Activo;
+        product.Activo = updated.Stock == 0 ? false : updated.Activo;
         product.EscalaOverlay = updated.EscalaOverlay;
         product.OffsetXOverlay = updated.OffsetXOverlay;
         product.OffsetYOverlay = updated.OffsetYOverlay;
         if (!string.IsNullOrEmpty(updated.SupplierId)) product.SupplierId = updated.SupplierId;
 
+        if (updated.RowVersion != null && updated.RowVersion.Length > 0)
+        {
+            _context.Entry(product).Property(p => p.RowVersion).OriginalValue = updated.RowVersion;
+        }
+
         try
         {
-            var movementTipo = stockDelta > 0 ? "Entrada" : (stockDelta < 0 ? "Salida" : "Edición");
+            var responsable = ResolveCurrentUser();
+            var movementTipo = stockDelta > 0 
+                ? InventoryConstants.MovementTypes.Entrada 
+                : (stockDelta < 0 ? InventoryConstants.MovementTypes.Salida : InventoryConstants.MovementTypes.Edicion);
             var movementCantidad = Math.Abs(stockDelta) > 0 ? Math.Abs(stockDelta) : (product.Stock > 0 ? product.Stock : 1);
             var movement = new InventoryMovement
             {
@@ -156,7 +195,7 @@ public class ProductService : IProductService
                 Tipo = movementTipo,
                 Cantidad = movementCantidad,
                 Fecha = DateTime.UtcNow,
-                Responsable = "Sistema / Admin"
+                Responsable = responsable
             };
             _context.InventoryMovements.Add(movement);
 
@@ -165,7 +204,7 @@ public class ProductService : IProductService
         }
         catch (DbUpdateConcurrencyException ex)
         {
-            throw new InvalidOperationException("El producto fue modificado por otro usuario.", ex);
+            throw new InvalidOperationException("El producto fue modificado por otro usuario, vuelve a intentarlo.", ex);
         }
         catch (DbUpdateException ex)
         {
@@ -181,14 +220,15 @@ public class ProductService : IProductService
         product.Activo = false;
         _context.Products.Update(product);
 
+        var responsable = ResolveCurrentUser();
         var movement = new InventoryMovement
         {
             ProductId = product.Id,
             NombreProducto = product.Nombre,
-            Tipo = "Baja",
+            Tipo = InventoryConstants.MovementTypes.Baja,
             Cantidad = product.Stock > 0 ? product.Stock : 1,
             Fecha = DateTime.UtcNow,
-            Responsable = "Sistema / Admin"
+            Responsable = responsable
         };
         _context.InventoryMovements.Add(movement);
 
@@ -196,6 +236,10 @@ public class ProductService : IProductService
         {
             await _context.SaveChangesAsync();
             return true;
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            throw new InvalidOperationException("El producto fue modificado por otro usuario, vuelve a intentarlo.", ex);
         }
         catch (DbUpdateException ex)
         {
@@ -211,14 +255,15 @@ public class ProductService : IProductService
         product.Activo = true;
         _context.Products.Update(product);
 
+        var responsable = ResolveCurrentUser();
         var movement = new InventoryMovement
         {
             ProductId = product.Id,
             NombreProducto = product.Nombre,
-            Tipo = "Reactivación",
+            Tipo = InventoryConstants.MovementTypes.Reactivacion,
             Cantidad = product.Stock > 0 ? product.Stock : 1,
             Fecha = DateTime.UtcNow,
-            Responsable = "Sistema / Admin"
+            Responsable = responsable
         };
         _context.InventoryMovements.Add(movement);
 
@@ -227,10 +272,24 @@ public class ProductService : IProductService
             await _context.SaveChangesAsync();
             return true;
         }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            throw new InvalidOperationException("El producto fue modificado por otro usuario, vuelve a intentarlo.", ex);
+        }
         catch (DbUpdateException ex)
         {
             throw new InvalidOperationException("No se pudo reactivar el producto debido a una restricción de base de datos.", ex);
         }
+    }
+
+    private string ResolveCurrentUser()
+    {
+        var user = _httpContextAccessor?.HttpContext?.User;
+        var name = user?.Identity?.Name 
+                   ?? user?.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value 
+                   ?? user?.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value;
+
+        return string.IsNullOrWhiteSpace(name) ? "Administrador" : name;
     }
 
     public async Task<List<Product>> GetBestSellersAsync(int count = 3)

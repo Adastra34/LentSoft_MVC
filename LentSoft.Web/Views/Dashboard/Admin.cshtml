@@ -1,4 +1,5 @@
 @model DashboardAdminViewModel
+@inject Microsoft.Extensions.Options.IOptions<LentSoft.Web.Services.InventorySettings> InventoryOptions
 @{
     Layout = "_LayoutDashboard";
     ViewData["Title"] = "Panel de Administración";
@@ -215,14 +216,14 @@
                                 <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--purple-900);">Productos Agotados</h3>
                             </div>
                             <span style="background-color: var(--error); color: white; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700;">
-                                @Model.ProductosAgotados.Count Agotados
+                                @Model.ProductosAgotadosCount Agotados
                             </span>
                         </div>
                         <p style="font-size: 0.8rem; color: var(--gray-600); margin: 0 0 0.85rem 0;">
                             Productos con stock en 0 inactivos automáticamente para prevenir ventas sin disponibilidad.
                         </p>
 
-                        @if (!Model.ProductosAgotados.Any())
+                        @if (Model.ProductosAgotadosCount == 0)
                         {
                             <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 0.5rem; padding: 0.85rem; text-align: center; color: #065f46; font-size: 0.85rem; font-weight: 500;">
                                 ✅ No hay productos con stock agotado actualmente.
@@ -269,14 +270,14 @@
                                 <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--purple-900);">Por Agotarse</h3>
                             </div>
                             <span style="background-color: #F59E0B; color: white; padding: 0.2rem 0.65rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700;">
-                                @Model.ProductosPorAgotarse.Count Críticos
+                                @Model.ProductosPorAgotarseCount Críticos
                             </span>
                         </div>
                         <p style="font-size: 0.8rem; color: var(--gray-600); margin: 0 0 0.85rem 0;">
                             Productos con inventario mínimo o próximo a agotarse (umbral &le; 10 unidades).
                         </p>
 
-                        @if (!Model.ProductosPorAgotarse.Any())
+                        @if (Model.ProductosPorAgotarseCount == 0)
                         {
                             <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 0.5rem; padding: 0.85rem; text-align: center; color: #065f46; font-size: 0.85rem; font-weight: 500;">
                                 ✅ Todos los productos cuentan con más de 10 unidades en stock.
@@ -406,8 +407,8 @@
                                                 @top.TotalRecaudado.ToString("C")
                                             </td>
                                             <td style="padding: 0.75rem 1rem; text-align: center;">
-                                                <span style="font-weight: 600; color: @(top.StockActual <= 0 ? "var(--error)" : (top.StockActual <= 10 ? "#F59E0B" : "var(--success)")); font-size: 0.85rem;">
-                                                    @top.StockActual @(top.StockActual <= 0 ? "(Agotado)" : (top.StockActual <= 10 ? "⚠️" : ""))
+                                                <span style="font-weight: 600; color: @(top.StockActual <= 0 ? "var(--error)" : (top.StockActual <= InventoryOptions.Value.LowStockThreshold ? "#F59E0B" : "var(--success)")); font-size: 0.85rem;">
+                                                    @top.StockActual @(top.StockActual <= 0 ? "(Agotado)" : (top.StockActual <= InventoryOptions.Value.LowStockThreshold ? "⚠️" : ""))
                                                 </span>
                                             </td>
                                         </tr>
@@ -427,11 +428,14 @@
                         <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; flex: 1;">
                             <div style="position: relative; display: flex; align-items: center; flex: 1; min-width: 260px; max-width: 380px;">
                                 <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
-                                <input type="text" id="searchProducts" placeholder="Item, valor o código" data-i18n-placeholder="admin.inv.searchproduct" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900);" onkeyup="onProductSearchInput(this)" oninput="onProductSearchInput(this)" />
+                                <input type="text" id="searchProducts" placeholder="Item, valor o código" data-i18n-placeholder="admin.inv.searchproduct" value="@Model.ProdSearchTerm" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900);" onkeydown="if(event.key === 'Enter') searchProductsSubmit();" />
                             </div>
+                            <button type="button" onclick="searchProductsSubmit()" class="btn" style="padding: 0.45rem 0.85rem; border: 1px solid var(--purple-300); background: white; color: var(--purple-900); border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                                Buscar
+                            </button>
                             <div style="position: relative;">
                                 <button type="button" onclick="toggleFilterMenu('productos')" class="btn" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; border: 1px solid var(--purple-300); background: white; color: var(--purple-900); border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
-                                    ⚙️ Filtro ▾
+                                    ⚙️ Filtro: @(string.IsNullOrEmpty(Model.ProdEstado) ? "Todos" : char.ToUpper(Model.ProdEstado[0]) + Model.ProdEstado.Substring(1)) ▾
                                 </button>
                                 <div id="filter-menu-productos" style="display: none; position: absolute; top: 110%; left: 0; background: white; border: 1px solid var(--purple-200); border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 160px; padding: 0.4rem 0;">
                                     <a href="javascript:void(0)" onclick="setProductStatusFilter('')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Todos</a>
@@ -441,7 +445,7 @@
                             </div>
                             <div style="position: relative;">
                                 <button type="button" onclick="toggleCategoryMenu('productos')" class="btn" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; border: 1px solid var(--purple-300); background: white; color: var(--purple-900); border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
-                                    🏷️ Categorías ▾
+                                    🏷️ Categorías: @(string.IsNullOrEmpty(Model.ProdCategoria) ? "Todas" : Model.ProdCategoria) ▾
                                 </button>
                                 <div id="category-menu-productos" style="display: none; position: absolute; top: 110%; left: 0; background: white; border: 1px solid var(--purple-200); border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 190px; padding: 0.4rem 0;">
                                     <a href="javascript:void(0)" onclick="setProductCategoryFilter('')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Todas</a>
@@ -479,8 +483,8 @@
                                         </td>
                                         <td style="padding: 0.75rem; text-align: center; color: var(--gray-600);" class="cell-categoria">@prod.Categoria</td>
                                         <td style="padding: 0.75rem; text-align: center; color: var(--gray-600);">@prod.Precio.ToString("C")</td>
-                                        <td style="padding: 0.75rem; text-align: center; color: @(prod.Stock <= 10 ? "var(--error)" : "var(--gray-600)"); font-weight: @(prod.Stock <= 10 ? "bold" : "normal");">
-                                            @prod.Stock @(prod.Stock <= 10 && prod.Stock > 0 ? "⚠️" : "")
+                                        <td style="padding: 0.75rem; text-align: center; color: @(prod.Stock <= InventoryOptions.Value.LowStockThreshold ? "var(--error)" : "var(--gray-600)"); font-weight: @(prod.Stock <= InventoryOptions.Value.LowStockThreshold ? "bold" : "normal");">
+                                            @prod.Stock @(prod.Stock <= InventoryOptions.Value.LowStockThreshold && prod.Stock > 0 ? "⚠️" : "")
                                         </td>
                                         <td style="padding: 0.75rem; text-align: center;">
                                             <button type="button" onclick="toggleProductStatus(@prod.Id, this)" class="btn-product-status" style="background-color: @(prod.Activo ? "var(--success)" : "var(--error)"); color: white; border: none; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; cursor: pointer; font-weight: 600;">
@@ -502,6 +506,62 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Paginación Productos -->
+                    @if (Model.ProdTotalPages > 1)
+                    {
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+                            <span style="font-size: 0.85rem; color: var(--gray-600);">
+                                Página @Model.ProdPage de @Model.ProdTotalPages (Total: @Model.ProdTotalCount productos)
+                            </span>
+                            <div style="display: flex; gap: 0.35rem; align-items: center;">
+                                @if (Model.ProdPage > 1)
+                                {
+                                    <a href="?section=inventario&subtab=productos&prodPage=@(Model.ProdPage - 1)&prodSearch=@Model.ProdSearchTerm&prodEstado=@Model.ProdEstado&prodCategoria=@Model.ProdCategoria"
+                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                        &laquo; Anterior
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                        &laquo; Anterior
+                                    </span>
+                                }
+
+                                @for (int p = 1; p <= Model.ProdTotalPages; p++)
+                                {
+                                    if (p == Model.ProdPage)
+                                    {
+                                        <span style="padding: 0.35rem 0.75rem; border-radius: 0.375rem; background-color: var(--purple-600); color: white; font-weight: 700; font-size: 0.85rem;">
+                                            @p
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <a href="?section=inventario&subtab=productos&prodPage=@p&prodSearch=@Model.ProdSearchTerm&prodEstado=@Model.ProdEstado&prodCategoria=@Model.ProdCategoria"
+                                           style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                            @p
+                                        </a>
+                                    }
+                                }
+
+                                @if (Model.ProdPage < Model.ProdTotalPages)
+                                {
+                                    <a href="?section=inventario&subtab=productos&prodPage=@(Model.ProdPage + 1)&prodSearch=@Model.ProdSearchTerm&prodEstado=@Model.ProdEstado&prodCategoria=@Model.ProdCategoria"
+                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                        Siguiente &raquo;
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                        Siguiente &raquo;
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
 
@@ -602,35 +662,28 @@
                         <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; flex: 1;">
                             <div style="position: relative; display: flex; align-items: center; flex: 1; min-width: 260px; max-width: 380px;">
                                 <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
-                                <input type="text" id="searchHistorial" placeholder="Item, valor o código" data-i18n-placeholder="admin.inv.searchhistory" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900);" onkeyup="filterTable('searchHistorial', 'tableHistorial')" oninput="filterTable('searchHistorial', 'tableHistorial')" />
+                                <input type="text" id="searchHistorial" placeholder="Item, valor o código" data-i18n-placeholder="admin.inv.searchhistory" value="@Model.MovSearchTerm" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900);" onkeydown="if(event.key === 'Enter') searchHistorialSubmit();" />
                             </div>
+                            <button type="button" onclick="searchHistorialSubmit()" class="btn" style="padding: 0.45rem 0.85rem; border: 1px solid var(--purple-300); background: white; color: var(--purple-900); border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                                Buscar
+                            </button>
                             <div style="position: relative;">
                                 <button type="button" onclick="toggleFilterMenu('historial')" class="btn" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; border: 1px solid var(--purple-300); background: white; color: var(--purple-900); border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
-                                    ⚙️ Filtro ▾
+                                    ⚙️ Tipo: @(string.IsNullOrEmpty(Model.MovTipo) ? "Todos" : Model.MovTipo) ▾
                                 </button>
                                 <div id="filter-menu-historial" style="display: none; position: absolute; top: 110%; left: 0; background: white; border: 1px solid var(--purple-200); border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 160px; padding: 0.4rem 0;">
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorial', 'tableHistorial', '')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Todos los tipos</a>
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorial', 'tableHistorial', 'Entrada')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Entrada</a>
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorial', 'tableHistorial', 'Salida')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Salida</a>
-                                </div>
-                            </div>
-                            <div style="position: relative;">
-                                <button type="button" onclick="toggleCategoryMenu('historial')" class="btn" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; border: 1px solid var(--purple-300); background: white; color: var(--purple-900); border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
-                                    🏷️ Categorías ▾
-                                </button>
-                                <div id="category-menu-historial" style="display: none; position: absolute; top: 110%; left: 0; background: white; border: 1px solid var(--purple-200); border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 190px; padding: 0.4rem 0;">
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorial', 'tableHistorial', '')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Todas</a>
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorial', 'tableHistorial', 'Admin')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Admin / Sistema</a>
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorial', 'tableHistorial', 'Ventas')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Ventas</a>
+                                    <a href="javascript:void(0)" onclick="setMovTipoFilter('')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Todos los tipos</a>
+                                    <a href="javascript:void(0)" onclick="setMovTipoFilter('Entrada')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Entrada</a>
+                                    <a href="javascript:void(0)" onclick="setMovTipoFilter('Salida')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Salida</a>
                                 </div>
                             </div>
                         </div>
 
                         <div style="display: flex; gap: 0.75rem; align-items: center;">
                             <label style="font-weight: 600; font-size: 0.85rem; color: white;">Orden por Fecha:</label>
-                            <select onchange="location.href='?section=inventario&subtab=historial&movSort=' + this.value" class="form-input" style="padding: 0.4rem 0.75rem; font-size: 0.85rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900);">
-                                <option value="desc" selected="@(ViewBag.MovSort != "asc")">Más recientes primero (Descendente)</option>
-                                <option value="asc" selected="@(ViewBag.MovSort == "asc")">Más antiguos primero (Ascendente)</option>
+                            <select onchange="location.href='?section=inventario&subtab=historial&movSort=' + this.value + '&movSearch=@(Model.MovSearchTerm)&movTipo=@(Model.MovTipo)'" class="form-input" style="padding: 0.4rem 0.75rem; font-size: 0.85rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900);">
+                                <option value="desc" selected="@(Model.MovSort != "asc")">Más recientes primero (Descendente)</option>
+                                <option value="asc" selected="@(Model.MovSort == "asc")">Más antiguos primero (Ascendente)</option>
                             </select>
                         </div>
                     </div>
@@ -642,10 +695,9 @@
                                     <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="modal.sale.selectproduct">Seleccionar Producto</th>
                                     <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;" data-i18n="admin.inv.type">Tipo</th>
                                     <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;" data-i18n="admin.inv.qty">Cantidad</th>
-                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center; cursor: pointer;" onclick="location.href='?section=inventario&subtab=historial&movSort=@(ViewBag.MovSort == "asc" ? "desc" : "asc")'">Fecha @(ViewBag.MovSort == "asc" ? "▲" : "▼")</th>
+                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center; cursor: pointer;" onclick="location.href='?section=inventario&subtab=historial&movSort=@(Model.MovSort == "asc" ? "desc" : "asc")&movSearch=@(Model.MovSearchTerm)&movTipo=@(Model.MovTipo)'">Fecha @(Model.MovSort == "asc" ? "▲" : "▼")</th>
                                     <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Hora</th>
                                     <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;" data-i18n="admin.inv.responsible">Responsable</th>
-                                    <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: right;" data-i18n="sales.table.actions">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -666,16 +718,67 @@
                                         <td style="padding: 0.75rem; text-align: center; color: var(--gray-600);">@mov.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
                                         <td style="padding: 0.75rem; text-align: center; color: var(--gray-600);">@mov.Fecha.ToLocalTime().ToString("HH:mm")</td>
                                         <td style="padding: 0.75rem; text-align: center;">@(mov.Responsable ?? "Sistema / Admin")</td>
-                                        <td style="padding: 0.75rem; text-align: right;">
-                                            <form asp-controller="InventoryMovement" asp-action="Delete" asp-route-id="@mov.Id" method="post" style="display:inline;" class="form-delete-movement" data-nombre="#MOV-@mov.Id">
-                                                <button type="submit" class="btn-action-delete" aria-label="Eliminar" data-i18n="admin.inv.delete">🗑️ Eliminar</button>
-                                            </form>
-                                        </td>
                                     </tr>
                                 }
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Paginación Historial de Movimientos -->
+                    @if (Model.MovTotalPages > 1)
+                    {
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+                            <span style="font-size: 0.85rem; color: var(--gray-600);">
+                                Página @Model.MovPage de @Model.MovTotalPages (Total: @Model.MovTotalCount movimientos)
+                            </span>
+                            <div style="display: flex; gap: 0.35rem; align-items: center;">
+                                @if (Model.MovPage > 1)
+                                {
+                                    <a href="?section=inventario&subtab=historial&movPage=@(Model.MovPage - 1)&movSearch=@Model.MovSearchTerm&movTipo=@Model.MovTipo&movSort=@Model.MovSort"
+                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                        &laquo; Anterior
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                        &laquo; Anterior
+                                    </span>
+                                }
+
+                                @for (int p = 1; p <= Model.MovTotalPages; p++)
+                                {
+                                    if (p == Model.MovPage)
+                                    {
+                                        <span style="padding: 0.35rem 0.75rem; border-radius: 0.375rem; background-color: var(--purple-600); color: white; font-weight: 700; font-size: 0.85rem;">
+                                            @p
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <a href="?section=inventario&subtab=historial&movPage=@p&movSearch=@Model.MovSearchTerm&movTipo=@Model.MovTipo&movSort=@Model.MovSort"
+                                           style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                            @p
+                                        </a>
+                                    }
+                                }
+
+                                @if (Model.MovPage < Model.MovTotalPages)
+                                {
+                                    <a href="?section=inventario&subtab=historial&movPage=@(Model.MovPage + 1)&movSearch=@Model.MovSearchTerm&movTipo=@Model.MovTipo&movSort=@Model.MovSort"
+                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                        Siguiente &raquo;
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                        Siguiente &raquo;
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
 
@@ -782,26 +885,20 @@
                         <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; flex: 1;">
                             <div style="position: relative; display: flex; align-items: center; flex: 1; min-width: 260px; max-width: 380px;">
                                 <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
-                                <input type="text" id="searchPedidosProveedores" placeholder="Item, valor o código" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900);" onkeyup="filterTable('searchPedidosProveedores', 'tablePedidosProveedores')" oninput="filterTable('searchPedidosProveedores', 'tablePedidosProveedores')" />
+                                <input type="text" id="searchPedidosProveedores" placeholder="Item, valor o código" value="@Model.PedidosProvSearchTerm" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900);" onkeydown="if(event.key === 'Enter') searchPedidosProvSubmit();" />
                             </div>
+                            <button type="button" onclick="searchPedidosProvSubmit()" class="btn" style="padding: 0.45rem 0.85rem; border: 1px solid var(--purple-300); background: white; color: var(--purple-900); border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                                Buscar
+                            </button>
                             <div style="position: relative;">
                                 <button type="button" onclick="toggleFilterMenu('pedidosProveedores')" class="btn" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; border: 1px solid var(--purple-300); background: white; color: var(--purple-900); border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
-                                    ⚙️ Filtro ▾
+                                    ⚙️ Estado: @(string.IsNullOrEmpty(Model.PedidosProvEstado) ? "Todos" : char.ToUpper(Model.PedidosProvEstado[0]) + Model.PedidosProvEstado.Substring(1)) ▾
                                 </button>
                                 <div id="filter-menu-pedidosProveedores" style="display: none; position: absolute; top: 110%; left: 0; background: white; border: 1px solid var(--purple-200); border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 160px; padding: 0.4rem 0;">
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchPedidosProveedores', 'tablePedidosProveedores', '')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Todos</a>
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchPedidosProveedores', 'tablePedidosProveedores', 'recibido')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Recibidos</a>
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchPedidosProveedores', 'tablePedidosProveedores', 'pendiente')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Pendientes</a>
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchPedidosProveedores', 'tablePedidosProveedores', 'cancelado')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Cancelados</a>
-                                </div>
-                            </div>
-                            <div style="position: relative;">
-                                <button type="button" onclick="toggleCategoryMenu('pedidosProveedores')" class="btn" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.85rem; border: 1px solid var(--purple-300); background: white; color: var(--purple-900); border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
-                                    🏷️ Categorías ▾
-                                </button>
-                                <div id="category-menu-pedidosProveedores" style="display: none; position: absolute; top: 110%; left: 0; background: white; border: 1px solid var(--purple-200); border-radius: 0.5rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 100; min-width: 190px; padding: 0.4rem 0;">
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchPedidosProveedores', 'tablePedidosProveedores', '')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Todos los proveedores</a>
-                                    <a href="javascript:void(0)" onclick="filterTableByValue('searchPedidosProveedores', 'tablePedidosProveedores', 'PED-')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Por Código Pedido</a>
+                                    <a href="javascript:void(0)" onclick="setPedidosProvEstadoFilter('')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Todos</a>
+                                    <a href="javascript:void(0)" onclick="setPedidosProvEstadoFilter('recibido')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Recibidos</a>
+                                    <a href="javascript:void(0)" onclick="setPedidosProvEstadoFilter('pendiente')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Pendientes</a>
+                                    <a href="javascript:void(0)" onclick="setPedidosProvEstadoFilter('cancelado')" style="display: block; padding: 0.4rem 1rem; color: var(--gray-700); text-decoration: none; font-size: 0.85rem;">Cancelados</a>
                                 </div>
                             </div>
                         </div>
@@ -850,7 +947,8 @@
                                                 <button type="button" class="btn-action-edit btn-edit-supplier-order" aria-label="Editar"
                                                     data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = p.Id, numeroPedido = p.NumeroPedido, supplierId = p.SupplierId, productId = p.ProductId, cantidad = p.Cantidad, precioUnitario = p.PrecioUnitario, estado = p.Estado, notas = p.Notas ?? "" }))'
                                                     data-i18n="admin.inv.edit">✏️ Editar</button>
-                                                <form asp-action="DeleteSupplierOrder" asp-controller="Dashboard" method="post" style="display: inline;" class="form-delete-supplier-order">
+                                                <form asp-action="Delete" asp-controller="SupplierOrder" method="post" style="display: inline;" class="form-delete-supplier-order">
+                                                    @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@p.Id" />
                                                     <button type="submit" class="btn-action-delete" aria-label="Eliminar" data-i18n="admin.inv.delete">🗑️ Eliminar</button>
                                                 </form>
@@ -861,6 +959,62 @@
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Paginación Pedidos Proveedores -->
+                    @if (Model.PedidosProvTotalPages > 1)
+                    {
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
+                            <span style="font-size: 0.85rem; color: var(--gray-600);">
+                                Página @Model.PedidosProvPage de @Model.PedidosProvTotalPages (Total: @Model.PedidosProvTotalCount pedidos)
+                            </span>
+                            <div style="display: flex; gap: 0.35rem; align-items: center;">
+                                @if (Model.PedidosProvPage > 1)
+                                {
+                                    <a href="?section=inventario&subtab=pedidos&pedidosProvPage=@(Model.PedidosProvPage - 1)&pedidosProvSearch=@Model.PedidosProvSearchTerm&pedidosProvEstado=@Model.PedidosProvEstado"
+                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                        &laquo; Anterior
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                        &laquo; Anterior
+                                    </span>
+                                }
+
+                                @for (int p = 1; p <= Model.PedidosProvTotalPages; p++)
+                                {
+                                    if (p == Model.PedidosProvPage)
+                                    {
+                                        <span style="padding: 0.35rem 0.75rem; border-radius: 0.375rem; background-color: var(--purple-600); color: white; font-weight: 700; font-size: 0.85rem;">
+                                            @p
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <a href="?section=inventario&subtab=pedidos&pedidosProvPage=@p&pedidosProvSearch=@Model.PedidosProvSearchTerm&pedidosProvEstado=@Model.PedidosProvEstado"
+                                           style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                            @p
+                                        </a>
+                                    }
+                                }
+
+                                @if (Model.PedidosProvPage < Model.PedidosProvTotalPages)
+                                {
+                                    <a href="?section=inventario&subtab=pedidos&pedidosProvPage=@(Model.PedidosProvPage + 1)&pedidosProvSearch=@Model.PedidosProvSearchTerm&pedidosProvEstado=@Model.PedidosProvEstado"
+                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
+                                        Siguiente &raquo;
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
+                                        Siguiente &raquo;
+                                    </span>
+                                }
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
         }
@@ -1856,9 +2010,13 @@
 
         async function toggleSupplierStatus(id, btnElem) {
             try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
                 const res = await fetch('/Supplier/ToggleStatus/' + id, {
                     method: 'POST',
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    headers: { 
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'RequestVerificationToken': token
+                    }
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -2027,15 +2185,23 @@
             }
         }
 
-        function exportMovimientosToExcel() {
-            const table = document.getElementById('tableHistorial');
-            if (!table) {
-                alert('No se encontró la tabla de historial de movimientos.');
-                return;
+        async function exportMovimientosToExcel() {
+            try {
+                const response = await fetch('/Dashboard/ExportMovimientosData');
+                if (!response.ok) throw new Error('Error al obtener los datos de exportación.');
+                const data = await response.json();
+                if (!data || data.length === 0) {
+                    alert('No hay movimientos registrados para exportar.');
+                    return;
+                }
+                const worksheet = XLSX.utils.json_to_sheet(data);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, "Historial de Movimientos");
+                XLSX.writeFile(workbook, "Historial_Movimientos_LentSoft.xlsx");
+            } catch (e) {
+                console.error(e);
+                alert('No se pudo generar el archivo Excel: ' + e.message);
             }
-
-            const wb = XLSX.utils.table_to_book(table, { sheet: "Historial de Movimientos" });
-            XLSX.writeFile(wb, "Historial_Movimientos_LentSoft.xlsx");
         }
 
         function openEditSalesOrderModal(id, numero, cliente, producto, cantidad, precio, estado, notas) {
@@ -2094,81 +2260,53 @@
             document.getElementById('modal-editar-proveedor').style.display = 'flex';
         }
 
-        // ==================== FILTROS Y BÚSQUEDA DE PRODUCTOS (CAMBIO 3) ====================
-        const productFilters = {
-            search: '',
-            status: '',
-            category: ''
-        };
-
-        function onProductSearchInput(input) {
-            productFilters.search = (input.value || '').trim().toLowerCase();
-            applyProductFilters();
+        // ==================== FILTROS Y BÚSQUEDA EN SERVIDOR ====================
+        function searchProductsSubmit() {
+            const input = document.getElementById('searchProducts');
+            const searchVal = input ? encodeURIComponent(input.value.trim()) : '';
+            location.href = `?section=inventario&subtab=productos&prodSearch=${searchVal}&prodEstado=@(Model.ProdEstado ?? "")&prodCategoria=@(Model.ProdCategoria ?? "")&prodPage=1`;
         }
 
         function setProductStatusFilter(status) {
-            productFilters.status = (status || '').trim().toLowerCase();
-            applyProductFilters();
-            document.querySelectorAll('[id^="filter-menu-"], [id^="category-menu-"]').forEach(m => m.style.display = 'none');
+            const input = document.getElementById('searchProducts');
+            const searchVal = input ? encodeURIComponent(input.value.trim()) : '@(Model.ProdSearchTerm ?? "")';
+            location.href = `?section=inventario&subtab=productos&prodEstado=${encodeURIComponent(status)}&prodCategoria=@(Model.ProdCategoria ?? "")&prodSearch=${searchVal}&prodPage=1`;
         }
 
         function setProductCategoryFilter(category) {
-            productFilters.category = (category || '').trim().toLowerCase();
-            applyProductFilters();
-            document.querySelectorAll('[id^="filter-menu-"], [id^="category-menu-"]').forEach(m => m.style.display = 'none');
+            const input = document.getElementById('searchProducts');
+            const searchVal = input ? encodeURIComponent(input.value.trim()) : '@(Model.ProdSearchTerm ?? "")';
+            location.href = `?section=inventario&subtab=productos&prodCategoria=${encodeURIComponent(category)}&prodEstado=@(Model.ProdEstado ?? "")&prodSearch=${searchVal}&prodPage=1`;
         }
 
-        function applyProductFilters() {
-            const table = document.getElementById('tableProducts');
-            if (!table) return;
-            const tbody = table.querySelector('tbody');
-            if (!tbody) return;
-            const rows = tbody.querySelectorAll('tr');
+        function searchHistorialSubmit() {
+            const input = document.getElementById('searchHistorial');
+            const searchVal = input ? encodeURIComponent(input.value.trim()) : '';
+            location.href = `?section=inventario&subtab=historial&movSearch=${searchVal}&movTipo=@(Model.MovTipo ?? "")&movSort=@(Model.MovSort)&movPage=1`;
+        }
 
-            const catAliases = {
-                'lentes-sol': ['lentes-sol', 'gafas de sol', 'lentes de sol', 'gafas sol', 'sol'],
-                'monturas': ['monturas', 'montura'],
-                'lentes-contacto': ['lentes-contacto', 'lentes de contacto', 'contacto'],
-                'lentes-graduados': ['lentes-graduados', 'lentes graduados', 'graduados'],
-                'accesorios': ['accesorios', 'accesorio']
-            };
+        function setMovTipoFilter(tipo) {
+            const input = document.getElementById('searchHistorial');
+            const searchVal = input ? encodeURIComponent(input.value.trim()) : '@(Model.MovSearchTerm ?? "")';
+            location.href = `?section=inventario&subtab=historial&movTipo=${encodeURIComponent(tipo)}&movSearch=${searchVal}&movSort=@(Model.MovSort)&movPage=1`;
+        }
 
-            rows.forEach(row => {
-                // 1. Coincidencia por búsqueda de texto
-                let matchesSearch = true;
-                if (productFilters.search) {
-                    const rowText = row.textContent.toLowerCase();
-                    matchesSearch = rowText.includes(productFilters.search);
-                }
+        function searchPedidosProvSubmit() {
+            const input = document.getElementById('searchPedidosProveedores');
+            const searchVal = input ? encodeURIComponent(input.value.trim()) : '';
+            location.href = `?section=inventario&subtab=pedidos&pedidosProvSearch=${searchVal}&pedidosProvEstado=@(Model.PedidosProvEstado ?? "")&pedidosProvPage=1`;
+        }
 
-                // 2. Coincidencia por estado (comparación exacta para evitar falso positivo Activo/Inactivo)
-                let matchesStatus = true;
-                if (productFilters.status) {
-                    const statusBtn = row.querySelector('.btn-product-status');
-                    const currentStatus = (row.getAttribute('data-estado') || (statusBtn ? statusBtn.textContent : '')).trim().toLowerCase();
-                    matchesStatus = (currentStatus === productFilters.status);
-                }
-
-                // 3. Coincidencia por categoría (slug o texto visible)
-                let matchesCategory = true;
-                if (productFilters.category) {
-                    const rowCat = (row.getAttribute('data-categoria') || '').toLowerCase().trim();
-                    const catCell = row.querySelector('.cell-categoria');
-                    const catCellText = (catCell ? catCell.textContent : '').toLowerCase().trim();
-                    
-                    const targetAliases = catAliases[productFilters.category] || [productFilters.category];
-                    matchesCategory = targetAliases.some(alias => rowCat === alias || catCellText === alias || rowCat.includes(alias) || catCellText.includes(alias));
-                }
-
-                row.style.display = (matchesSearch && matchesStatus && matchesCategory) ? '' : 'none';
-            });
+        function setPedidosProvEstadoFilter(estado) {
+            const input = document.getElementById('searchPedidosProveedores');
+            const searchVal = input ? encodeURIComponent(input.value.trim()) : '@(Model.PedidosProvSearchTerm ?? "")';
+            location.href = `?section=inventario&subtab=pedidos&pedidosProvEstado=${encodeURIComponent(estado)}&pedidosProvSearch=${searchVal}&pedidosProvPage=1`;
         }
 
         // ==================== FILTRADO GENÉRICO DE TABLAS ====================
         function filterTable(inputId, tableId) {
             if (tableId === 'tableProducts') {
-                const input = document.getElementById(inputId);
-                if (input) onProductSearchInput(input);
+                searchProductsSubmit();
                 return;
             }
 
@@ -2550,8 +2688,8 @@
                     <input name="PrecioDescuento" type="number" step="100" min="0" class="form-input" placeholder="Opcional" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
                 <div style="width: 110px;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Stock * (Máx. 85)</label>
-                    <input name="Stock" type="number" min="0" max="85" value="10" required class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Stock * (Máx. @InventoryOptions.Value.MaxStock)</label>
+                    <input name="Stock" type="number" min="0" max="@InventoryOptions.Value.MaxStock" value="@InventoryOptions.Value.LowStockThreshold" required class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
             </div>
 
@@ -2639,8 +2777,8 @@
                     <input id="editProductPrecioDescuento" name="PrecioDescuento" type="number" step="100" min="0" class="form-input" placeholder="Opcional" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
                 <div style="width: 110px;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Stock * (Máx. 85)</label>
-                    <input id="editProductStock" name="Stock" type="number" min="0" max="85" required class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Stock * (Máx. @InventoryOptions.Value.MaxStock)</label>
+                    <input id="editProductStock" name="Stock" type="number" min="0" max="@InventoryOptions.Value.MaxStock" required class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
             </div>
 
@@ -2940,7 +3078,7 @@
             <button onclick="document.getElementById('modal-crear-pedido-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
-        <form id="form-crear-pedido-proveedor" asp-controller="Dashboard" asp-action="CreateSupplierOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <form id="form-crear-pedido-proveedor" asp-controller="SupplierOrder" asp-action="Create" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
             @Html.AntiForgeryToken()
             <div>
                 <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Número de Pedido *</label>
@@ -2962,7 +3100,7 @@
                 <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Producto de Inventario *</label>
                 <select name="ProductId" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
                     <option value="">-- Seleccionar Producto --</option>
-                    @foreach (var p in Model.Productos)
+                    @foreach (var p in Model.TodosLosProductos)
                     {
                         <option value="@p.Id">@p.Nombre (Stock: @p.Stock)</option>
                     }
@@ -3009,7 +3147,7 @@
             <button onclick="document.getElementById('modal-editar-pedido-proveedor').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         
-        <form id="form-editar-pedido-proveedor" asp-controller="Dashboard" asp-action="EditSupplierOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <form id="form-editar-pedido-proveedor" asp-controller="SupplierOrder" asp-action="Edit" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
             @Html.AntiForgeryToken()
             <input type="hidden" id="editSupplierOrderId" name="Id" />
             <div>
@@ -3030,7 +3168,7 @@
             <div>
                 <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Producto de Inventario *</label>
                 <select id="editSupplierOrderProductId" name="ProductId" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
-                    @foreach (var p in Model.Productos)
+                    @foreach (var p in Model.TodosLosProductos)
                     {
                         <option value="@p.Id">@p.Nombre (Stock: @p.Stock)</option>
                     }
