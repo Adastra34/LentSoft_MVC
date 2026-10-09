@@ -31,6 +31,9 @@ public class TransaccionPago
     [StringLength(250)]
     public string? MensajeRespuesta { get; set; }
 
+    [StringLength(100)]
+    public string? ClaveIdempotencia { get; set; }
+
     public DateTime Fecha { get; set; } = DateTime.UtcNow;
 
     // Navigation Property

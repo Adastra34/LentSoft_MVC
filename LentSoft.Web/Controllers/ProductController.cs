@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using LentSoft.Web.Models.Entities;
 using LentSoft.Web.Models.ViewModels;
 using LentSoft.Web.Services;
@@ -20,6 +21,7 @@ public class ProductController : Controller
     private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
     private const long MaxImageSizeBytes = 5 * 1024 * 1024; // 5 MB
 
+    [ActivatorUtilitiesConstructor]
     public ProductController(
         IProductService productService,
         IFavoriteService favoriteService,

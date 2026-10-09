@@ -41,6 +41,9 @@ public class Order : IValidatableObject
     [NotMapped]
     public decimal SaldoPendiente => Math.Max(0m, Total - (Pagos != null && Pagos.Any() ? Pagos.Sum(p => p.Monto) : MontoPagado));
 
+    [Timestamp]
+    public byte[] RowVersion { get; set; } = Array.Empty<byte>();
+
     public int? FormulaOpticaId { get; set; }
 
     [ForeignKey(nameof(FormulaOpticaId))]

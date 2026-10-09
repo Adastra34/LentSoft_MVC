@@ -1,0 +1,243 @@
+@model LentSoft.Web.Models.ViewModels.DashboardVentasViewModel
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;" data-i18n="sales.management.title">Gestión de Ventas</h1>
+        <p style="color: var(--gray-500); font-size: 0.88rem; margin: 0.25rem 0 0 0;">Control de pedidos comerciales, pagos y trazabilidad</p>
+    </div>
+    <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+        <!-- Botón Exportar CSV (Requisito Rendimiento y Calidad) -->
+        <a href="/Ventas/ExportarVentasCsv?searchTerm=@(Model.VentasSearchTerm)&fechaDesde=@(Model.FiltroFechaDesde?.ToString("yyyy-MM-dd"))&fechaHasta=@(Model.FiltroFechaHasta?.ToString("yyyy-MM-dd"))&filtroRapido=@(Model.FiltroRapido)"
+           class="btn" style="background-color: #059669; color: white; border: none; padding: 0.6rem 1.1rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.88rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; box-shadow: 0 2px 4px rgba(5, 150, 105, 0.25);">
+            📥 Exportar CSV
+        </a>
+
+        <!-- Botón + Registrar Nueva Venta -->
+        <button type="button" onclick="document.getElementById('modal-venta').style.display='flex'" 
+                style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease; box-shadow: 0 2px 4px rgba(124, 58, 237, 0.25);"
+                onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
+            <span data-i18n="sales.btn.new">+ Registrar Nueva Venta</span>
+        </button>
+    </div>
+</div>
+
+<!-- Filtros por Fecha y Búsqueda en Servidor -->
+<div class="card" style="padding: 1.25rem; background: white; margin-bottom: 1.5rem; border-left: 4px solid var(--purple-600);">
+    <form method="get" action="/Ventas" id="salesFilterForm" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
+        <input type="hidden" name="section" value="ventas" />
+        <input type="hidden" name="ventasPage" value="1" />
+
+        <!-- Búsqueda en Servidor -->
+        <div style="flex: 1; min-width: 220px;">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--purple-900); display: block; margin-bottom: 0.25rem;">Buscar Ventas:</label>
+            <input type="text" name="ventasSearchTerm" value="@Model.VentasSearchTerm" placeholder="Buscar por cliente, pedido, estado..." class="form-input" style="width: 100%; padding: 0.45rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.85rem;" />
+        </div>
+
+        <div>
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--purple-900); display: block; margin-bottom: 0.25rem;">Filtro Rápido:</label>
+            <select name="filtroRapido" class="form-input" style="padding: 0.45rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.85rem;" onchange="toggleCustomDates(this.value)">
+                <option value="">-- Todos los Tiempos --</option>
+                <option value="hoy" selected="@(Model.FiltroRapido == "hoy")">Hoy</option>
+                <option value="semana" selected="@(Model.FiltroRapido == "semana")">Esta Semana</option>
+                <option value="mes" selected="@(Model.FiltroRapido == "mes")">Este Mes</option>
+                <option value="anio" selected="@(Model.FiltroRapido == "anio")">Este Año</option>
+                <option value="personalizado" selected="@(Model.FiltroRapido == "personalizado")">Rango Personalizado</option>
+            </select>
+        </div>
+
+        <div id="divFechaDesde" style="display: @(Model.FiltroRapido == "personalizado" || Model.FiltroFechaDesde.HasValue ? "block" : "none");">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--purple-900); display: block; margin-bottom: 0.25rem;">Fecha Desde:</label>
+            <input type="date" name="fechaDesde" value="@(Model.FiltroFechaDesde?.ToString("yyyy-MM-dd"))" class="form-input" style="padding: 0.45rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.85rem;" />
+        </div>
+
+        <div id="divFechaHasta" style="display: @(Model.FiltroRapido == "personalizado" || Model.FiltroFechaHasta.HasValue ? "block" : "none");">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--purple-900); display: block; margin-bottom: 0.25rem;">Fecha Hasta:</label>
+            <input type="date" name="fechaHasta" value="@(Model.FiltroFechaHasta?.ToString("yyyy-MM-dd"))" class="form-input" style="padding: 0.45rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.85rem;" />
+        </div>
+
+        <!-- Tamaño de página -->
+        <div>
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--purple-900); display: block; margin-bottom: 0.25rem;">Mostrar:</label>
+            <select name="ventasPageSize" class="form-input" style="padding: 0.45rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.85rem;" onchange="document.getElementById('salesFilterForm').submit()">
+                @foreach (var size in new[] { 10, 25, 50, 100 })
+                {
+                    <option value="@size" selected="@(Model.VentasPageSize == size)">@size regs</option>
+                }
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem;">
+            <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                🔍 Filtrar
+            </button>
+            <a href="/Ventas?section=ventas" style="background-color: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 0.8rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; text-decoration: none;">
+                🔄 Limpiar
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Tabla de Ventas Paginada -->
+<div class="card" style="padding: 1.5rem; background: white;">
+    <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+        <span style="font-size: 0.85rem; color: var(--purple-900); font-weight: 600;">
+            Mostrando @Model.Ventas.Count ventas en esta página (Total en base de datos: @Model.VentasTotalCount)
+        </span>
+    </div>
+
+    <div style="overflow-x: auto;">
+        <table id="tableVentasSales" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600); background-color: var(--purple-50);">
+                    <th style="padding: 0.75rem;">Venta</th>
+                    <th style="padding: 0.75rem;">Cliente</th>
+                    <th style="padding: 0.75rem;">Fecha</th>
+                    <th style="padding: 0.75rem;">Total</th>
+                    <th style="padding: 0.75rem;">Abonado</th>
+                    <th style="padding: 0.75rem;">Saldo Pendiente</th>
+                    <th style="padding: 0.75rem;">Estado Pago</th>
+                    <th style="padding: 0.75rem;">Estado Orden</th>
+                    <th style="padding: 0.75rem; text-align: center;">Gestión de Abonos / Tarjeta</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Ventas.Any())
+                {
+                    @foreach (var v in Model.Ventas)
+                    {
+                        var totalAbonado = v.Pagos != null && v.Pagos.Any() ? v.Pagos.Sum(p => p.Monto) : v.MontoPagado;
+                        var saldoPendiente = Math.Max(0m, v.Total - totalAbonado);
+                        var estadoPago = saldoPendiente == 0 ? "Pagado" : (totalAbonado > 0 ? "Abonado" : "Pendiente");
+
+                        var badgeClass = estadoPago switch
+                        {
+                            "Pagado" => "badge-pagado",
+                            "Abonado" => "badge-abonado",
+                            _ => "badge-pendiente"
+                        };
+
+                        <tr style="border-bottom: 1px solid var(--purple-100);">
+                            <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">
+                                #ORD-@v.Id.ToString("D4")
+                                @if (v.FormulaOpticaId.HasValue)
+                                {
+                                    <span title="Fórmula Óptica Vinculada (#@v.FormulaOpticaId)" style="display: inline-flex; align-items: center; justify-content: center; margin-left: 0.35rem; font-size: 0.75rem; background-color: #E0E7FF; color: #4338CA; border: 1px solid #C7D2FE; border-radius: 9999px; padding: 0.1rem 0.4rem; font-weight: 700; vertical-align: middle;">🔗</span>
+                                }
+                            </td>
+                            <td style="padding: 0.75rem; font-weight: 500;">@(v.User?.NombreCompleto ?? "Cliente Genérico")</td>
+                            <td style="padding: 0.75rem; color: var(--gray-600);">@v.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            <td style="padding: 0.75rem; font-weight: 700; color: var(--purple-900);">@v.Total.ToString("C")</td>
+                            <td style="padding: 0.75rem; font-weight: 600; color: #16A34A;">@totalAbonado.ToString("C")</td>
+                            <td style="padding: 0.75rem; font-weight: 700; color: @(saldoPendiente > 0 ? "#DC2626" : "#16A34A");">@saldoPendiente.ToString("C")</td>
+                            <td style="padding: 0.75rem;">
+                                <span class="badge-status @badgeClass">
+                                    @estadoPago
+                                </span>
+                            </td>
+                            <td style="padding: 0.75rem;">
+                                <form asp-controller="Ventas" asp-action="UpdateOrderStatus" method="post" style="display:flex; gap:0.4rem; align-items:center;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@v.Id" />
+                                    <select name="estado" style="padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.78rem; border: 1px solid var(--purple-300);">
+                                        <option value="pendiente" selected="@(v.Estado == "pendiente")">Pendiente</option>
+                                        <option value="procesando" selected="@(v.Estado == "procesando")">Procesando</option>
+                                        <option value="enviado" selected="@(v.Estado == "enviado")">Enviado</option>
+                                        <option value="entregado" selected="@(v.Estado == "entregado")">Entregado</option>
+                                        <option value="pagado" selected="@(v.Estado == "pagado")">Pagado</option>
+                                        <option value="cancelado" selected="@(v.Estado == "cancelado")">Cancelado</option>
+                                    </select>
+                                    <button type="submit" class="btn btn-primary" style="padding: 0.2rem 0.4rem; font-size: 0.72rem;">Actualizar</button>
+                                </form>
+                            </td>
+                            <td style="padding: 0.75rem; text-align: center;">
+                                <div style="display: flex; gap: 0.35rem; justify-content: center; flex-wrap: wrap;">
+                                    <!-- Botón 👁️ Ver Detalle del Pedido -->
+                                    <button type="button" onclick="openDetallePedidoModal(@v.Id)"
+                                            style="background-color: var(--purple-600); color: white; border: none; padding: 0.3rem 0.55rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.2rem;">
+                                        👁️ Ver
+                                    </button>
+
+                                    @if (saldoPendiente > 0)
+                                    {
+                                        <!-- Botón Registrar Abono -->
+                                        <button type="button" onclick="openAbonoModal(@v.Id, '@v.Total', '@saldoPendiente')"
+                                                style="background-color: #2563EB; color: white; border: none; padding: 0.3rem 0.55rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600; cursor: pointer;">
+                                            💵 Abonar
+                                        </button>
+
+                                        <!-- Botón Cobrar con Tarjeta Pasarela (Requisito 3) -->
+                                        <button type="button" onclick="openTarjetaModal(@v.Id, '@saldoPendiente')"
+                                                style="background-color: #7C3AED; color: white; border: none; padding: 0.3rem 0.55rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600; cursor: pointer;">
+                                            💳 Cobrar Tarjeta
+                                        </button>
+                                    }
+
+                                    <!-- Botón Ver Historial de Abonos -->
+                                    <button type="button" onclick="openHistorialAbonosModal(@v.Id, '@v.User?.NombreCompleto', '@v.Total')"
+                                            style="background-color: var(--purple-100); color: var(--purple-900); border: 1px solid var(--purple-300); padding: 0.3rem 0.55rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600; cursor: pointer;">
+                                        📋 Recibos (@(v.Pagos?.Count ?? 0))
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="9" style="padding: 2.5rem; text-align: center; color: var(--gray-500); font-style: italic;">
+                            No se encontraron órdenes de venta que coincidan con los filtros aplicados.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Paginación de Ventas en Servidor -->
+    @{
+        var inicioVentas = Model.VentasTotalCount == 0 ? 0 : ((Model.VentasPage - 1) * Model.VentasPageSize) + 1;
+        var finVentas = Math.Min(Model.VentasPage * Model.VentasPageSize, Model.VentasTotalCount);
+    }
+    <div class="pagination-container">
+        <div style="color: var(--gray-600); font-weight: 500;">
+            Mostrando registros del <strong>@inicioVentas</strong> al <strong>@finVentas</strong> de un total de <strong>@Model.VentasTotalCount</strong> ventas registradas
+        </div>
+
+        @if (Model.VentasTotalPages > 1)
+        {
+            <div class="pagination-controls">
+                @if (Model.VentasPage > 1)
+                {
+                    <a href="/Ventas?section=ventas&ventasPage=@(Model.VentasPage - 1)&ventasPageSize=@Model.VentasPageSize&ventasSearchTerm=@Model.VentasSearchTerm&fechaDesde=@(Model.FiltroFechaDesde?.ToString("yyyy-MM-dd"))&fechaHasta=@(Model.FiltroFechaHasta?.ToString("yyyy-MM-dd"))&filtroRapido=@Model.FiltroRapido"
+                       class="pagination-btn">
+                        &laquo; Anterior
+                    </a>
+                }
+
+                @for (int p = 1; p <= Model.VentasTotalPages; p++)
+                {
+                    if (p == Model.VentasPage)
+                    {
+                        <span class="pagination-btn active">@p</span>
+                    }
+                    else if (p <= 3 || p > Model.VentasTotalPages - 2 || Math.Abs(p - Model.VentasPage) <= 1)
+                    {
+                        <a href="/Ventas?section=ventas&ventasPage=@p&ventasPageSize=@Model.VentasPageSize&ventasSearchTerm=@Model.VentasSearchTerm&fechaDesde=@(Model.FiltroFechaDesde?.ToString("yyyy-MM-dd"))&fechaHasta=@(Model.FiltroFechaHasta?.ToString("yyyy-MM-dd"))&filtroRapido=@Model.FiltroRapido"
+                           class="pagination-btn">
+                            @p
+                        </a>
+                    }
+                }
+
+                @if (Model.VentasPage < Model.VentasTotalPages)
+                {
+                    <a href="/Ventas?section=ventas&ventasPage=@(Model.VentasPage + 1)&ventasPageSize=@Model.VentasPageSize&ventasSearchTerm=@Model.VentasSearchTerm&fechaDesde=@(Model.FiltroFechaDesde?.ToString("yyyy-MM-dd"))&fechaHasta=@(Model.FiltroFechaHasta?.ToString("yyyy-MM-dd"))&filtroRapido=@Model.FiltroRapido"
+                       class="pagination-btn">
+                        Siguiente &raquo;
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</div>

@@ -10,8 +10,13 @@ public class DashboardVentasViewModel
     public int ClientesAtendidos { get; set; }
     public decimal TicketPromedio { get; set; }
 
-    // ── Ventas ──
+    // ── Ventas (Paginadas y Filtradas en Servidor) ──
     public List<Order> Ventas { get; set; } = new();
+    public string? VentasSearchTerm { get; set; }
+    public int VentasPage { get; set; } = 1;
+    public int VentasPageSize { get; set; } = 10;
+    public int VentasTotalCount { get; set; }
+    public int VentasTotalPages => (int)Math.Ceiling((double)VentasTotalCount / (VentasPageSize > 0 ? VentasPageSize : 10));
     public DateTime? FiltroFechaDesde { get; set; }
     public DateTime? FiltroFechaHasta { get; set; }
     public string? FiltroRapido { get; set; }
@@ -28,7 +33,16 @@ public class DashboardVentasViewModel
     // ── Inventarios ──
     public List<Product> Productos { get; set; } = new();
     public List<SalesOrder> PedidosVentas { get; set; } = new();
+    public int PedidosVentasPage { get; set; } = 1;
+    public int PedidosVentasPageSize { get; set; } = 10;
+    public int PedidosVentasTotalCount { get; set; }
+    public int PedidosVentasTotalPages => (int)Math.Ceiling((double)PedidosVentasTotalCount / (PedidosVentasPageSize > 0 ? PedidosVentasPageSize : 10));
+
     public List<InventoryMovement> HistorialMovimientos { get; set; } = new();
+    public int MovimientosPage { get; set; } = 1;
+    public int MovimientosPageSize { get; set; } = 15;
+    public int MovimientosTotalCount { get; set; }
+    public int MovimientosTotalPages => (int)Math.Ceiling((double)MovimientosTotalCount / (MovimientosPageSize > 0 ? MovimientosPageSize : 15));
 
     // ── Clientes ──
     public List<User> Clientes { get; set; } = new();

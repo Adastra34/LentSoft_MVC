@@ -1,0 +1,30 @@
+@model LentSoft.Web.Models.ViewModels.DashboardVentasViewModel
+
+<h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem;">Perfil Ejecutivo de Ventas</h1>
+
+<div class="card" style="padding: 2rem; background: white; max-width: 600px; border-radius: 0.75rem; box-shadow: var(--shadow-md);">
+    <div style="display: flex; align-items: center; gap: 1.5rem; margin-bottom: 1.5rem;">
+        <div style="width: 70px; height: 70px; border-radius: 50%; background-color: var(--purple-600); color: white; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: bold; box-shadow: 0 4px 6px rgba(124, 58, 237, 0.3);">
+            @(Model.UsuarioActual?.Nombre?.FirstOrDefault() ?? 'V')
+        </div>
+        <div>
+            <h2 style="margin: 0; color: var(--purple-900); font-size: 1.5rem;">@Model.UsuarioActual?.Nombre @Model.UsuarioActual?.Apellido</h2>
+            <p style="margin: 0; color: var(--purple-600); font-weight: 600;">Asesor Comercial / Ventas</p>
+        </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 1.25rem; border-top: 1px solid var(--purple-100); padding-top: 1.5rem;">
+        <div>
+            <label style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">CORREO ELECTRÓNICO</label>
+            <p style="margin: 0.25rem 0 0 0; font-weight: 500; font-size: 1rem; color: var(--gray-900);">@Model.UsuarioActual?.Email</p>
+        </div>
+        <div>
+            <label style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">TELÉFONO</label>
+            <p style="margin: 0.25rem 0 0 0; font-weight: 500; font-size: 1rem; color: var(--gray-900);">@(Model.UsuarioActual?.Telefono ?? "No registrado")</p>
+        </div>
+        <div>
+            <label style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">ROL DE ACCESO</label>
+            <p style="margin: 0.25rem 0 0 0; text-transform: capitalize; font-weight: 700; color: var(--purple-700); font-size: 1rem;">@Model.UsuarioActual?.Role</p>
+        </div>
+    </div>
+</div>

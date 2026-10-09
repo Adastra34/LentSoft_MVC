@@ -1,0 +1,38 @@
+<div id="modal-abono" class="sales-modal-overlay">
+    <div class="sales-modal-card" style="max-width: 480px;">
+        <div class="sales-modal-header blue">
+            <div style="font-size: 1.1rem; font-weight: 700;">💵 Registrar Abono / Pago Parcial</div>
+            <button type="button" onclick="document.getElementById('modal-abono').style.display='none'" class="sales-modal-close">&times;</button>
+        </div>
+
+        <form asp-controller="Ventas" asp-action="RegistrarAbono" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="abonoVentaId" name="ventaId" />
+
+            <div>
+                <label style="font-size: 0.85rem; font-weight: 700; color: var(--purple-900);">Saldo Pendiente de la Venta:</label>
+                <div id="abonoSaldoPendienteDisplay" style="font-size: 1.5rem; font-weight: 800; color: #DC2626; margin-top: 0.2rem;">$ 0</div>
+            </div>
+
+            <div>
+                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Monto a Abonar (COP) *</label>
+                <input type="number" id="abonoMontoInput" name="monto" step="0.01" min="1" required class="form-input" style="width: 100%; padding: 0.6rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 1rem; font-weight: 700;" placeholder="Ej: 50000" />
+            </div>
+
+            <div>
+                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Método de Pago *</label>
+                <select name="metodoPago" class="form-input" style="width: 100%; padding: 0.6rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
+                    <option value="Efectivo" selected>Efectivo</option>
+                    <option value="Transferencia / PSE">Transferencia / PSE</option>
+                    <option value="Tarjeta Débito">Tarjeta Débito</option>
+                    <option value="Tarjeta Crédito">Tarjeta Crédito</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+                <button type="button" onclick="document.getElementById('modal-abono').style.display='none'" style="flex: 1; padding: 0.6rem; border-radius: 0.375rem; border: 1px solid var(--gray-300); background: white; font-weight: 600; cursor: pointer;">Cancelar</button>
+                <button type="submit" style="flex: 1.5; padding: 0.6rem; border-radius: 0.375rem; border: none; background: #2563EB; color: white; font-weight: 700; cursor: pointer;">Registrar Abono</button>
+            </div>
+        </form>
+    </div>
+</div>

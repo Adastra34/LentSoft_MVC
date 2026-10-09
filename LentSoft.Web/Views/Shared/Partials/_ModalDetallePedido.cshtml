@@ -1,0 +1,92 @@
+<div id="modal-detalle-pedido" class="sales-modal-overlay">
+    <div class="sales-modal-card" style="max-width: 620px; display: flex; flex-direction: column; max-height: 90vh;">
+        <!-- Header -->
+        <div class="sales-modal-header purple">
+            <div style="font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                <span>👁️</span> <span>Detalle del Pedido</span> <span id="detalleModalOrderNumero" style="background: rgba(255,255,255,0.2); padding: 0.2rem 0.5rem; border-radius: 0.375rem; font-size: 0.9rem;"></span>
+            </div>
+            <button type="button" onclick="closeDetallePedidoModal()" class="sales-modal-close">&times;</button>
+        </div>
+
+        <div style="padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem;">
+            <!-- Información Resumen -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; background-color: var(--purple-50); padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--purple-200);">
+                <div>
+                    <span style="font-size: 0.75rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase;">Cliente</span>
+                    <div id="detalleModalCliente" style="font-weight: 700; color: var(--purple-900); font-size: 0.95rem; margin-top: 0.15rem;"></div>
+                </div>
+                <div>
+                    <span style="font-size: 0.75rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase;">Fecha Pedido</span>
+                    <div id="detalleModalFecha" style="font-weight: 600; color: var(--gray-700); font-size: 0.9rem; margin-top: 0.15rem;"></div>
+                </div>
+                <div>
+                    <span style="font-size: 0.75rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase;">Total</span>
+                    <div id="detalleModalTotal" style="font-weight: 800; color: var(--purple-900); font-size: 1rem; margin-top: 0.15rem;"></div>
+                </div>
+            </div>
+
+            <!-- Tabla de Productos del Pedido -->
+            <div>
+                <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--purple-900); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem;">
+                    <span>📦</span> <span>Productos del Pedido</span>
+                </h3>
+                <div style="border: 1px solid var(--purple-200); border-radius: 0.5rem; overflow: hidden;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
+                        <thead style="background-color: var(--purple-100); color: var(--purple-900);">
+                            <tr>
+                                <th style="padding: 0.6rem 0.75rem; font-weight: 700;">Producto</th>
+                                <th style="padding: 0.6rem 0.75rem; font-weight: 700; text-align: center;">Cantidad</th>
+                                <th style="padding: 0.6rem 0.75rem; font-weight: 700; text-align: right;">Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detalleModalProductosBody">
+                            <!-- Inyectado vía JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Sección Fórmula Óptica Asociada (Solo visible si contiene lentes-graduados o lentes-contacto) -->
+            <div id="seccionFormulaOptica" style="display: none; background: #FAF5FF; border: 1.5px solid var(--purple-300); border-radius: 0.5rem; padding: 1.25rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                    <span style="font-size: 1.25rem;">🩺</span>
+                    <div>
+                        <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--purple-900); margin: 0;">Fórmula Óptica Asociada</h3>
+                        <p style="font-size: 0.78rem; color: var(--purple-700); margin: 0.15rem 0 0 0;">Este pedido contiene lentes que requieren trazabilidad óptica.</p>
+                    </div>
+                </div>
+
+                <form asp-controller="Ventas" asp-action="VincularFormula" method="post" id="formVincularFormula" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="detallePedidoOrderId" name="orderId" />
+
+                    <div id="contenedorSelectFormula">
+                        <label for="detallePedidoFormulaSelect" style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--purple-900); margin-bottom: 0.25rem;">
+                            Seleccionar Fórmula Óptica del Paciente:
+                        </label>
+                        <select id="detallePedidoFormulaSelect" name="formulaOpticaId" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.88rem; background-color: white;">
+                            <option value="">-- Sin fórmula vinculada --</option>
+                        </select>
+                    </div>
+
+                    <div id="avisoSinFormulas" style="display: none; background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF; border-radius: 0.375rem; padding: 0.6rem 0.8rem; font-size: 0.82rem; font-weight: 500;">
+                        ℹ️ Este paciente no tiene fórmulas ópticas registradas.
+                    </div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem;">
+                        <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
+                            💾 Guardar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--purple-100); display: flex; justify-content: flex-end; background: var(--gray-50);">
+            <button type="button" onclick="closeDetallePedidoModal()" style="padding: 0.5rem 1.25rem; border: 1px solid var(--gray-300); background: white; color: var(--gray-700); border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                Cerrar
+            </button>
+        </div>
+    </div>
+</div>

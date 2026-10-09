@@ -1,5 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using LentSoft.Web.Data;
+using LentSoft.Web.Models;
 using LentSoft.Web.Models.Entities;
 
 namespace LentSoft.Web.Services;
@@ -7,10 +10,17 @@ namespace LentSoft.Web.Services;
 public class InvoiceService : IInvoiceService
 {
     private readonly LentSoftDbContext _context;
+    private readonly DianSettings _dianSettings;
+    private readonly ILogger<InvoiceService> _logger;
 
-    public InvoiceService(LentSoftDbContext context)
+    public InvoiceService(
+        LentSoftDbContext context,
+        IOptions<DianSettings> dianOptions,
+        ILogger<InvoiceService> logger)
     {
         _context = context;
+        _dianSettings = dianOptions?.Value ?? new DianSettings();
+        _logger = logger;
     }
 
     public async Task<(List<Invoice> Items, int TotalCount)> GetAllAsync(string? searchTerm, int page, int pageSize)
@@ -140,15 +150,15 @@ public class InvoiceService : IInvoiceService
 
         if (string.IsNullOrWhiteSpace(invoice.ResolucionDianNumero))
         {
-            invoice.ResolucionDianNumero = "18764028920000";
+            invoice.ResolucionDianNumero = _dianSettings.ResolucionNumero;
         }
         if (string.IsNullOrWhiteSpace(invoice.RangoAutorizadoDesde))
         {
-            invoice.RangoAutorizadoDesde = "FAC-2026-0001";
+            invoice.RangoAutorizadoDesde = _dianSettings.RangoDesde;
         }
         if (string.IsNullOrWhiteSpace(invoice.RangoAutorizadoHasta))
         {
-            invoice.RangoAutorizadoHasta = "FAC-2026-9999";
+            invoice.RangoAutorizadoHasta = _dianSettings.RangoHasta;
         }
 
         if (invoice.FechaEmision == default)
@@ -157,7 +167,8 @@ public class InvoiceService : IInvoiceService
         }
 
         // Generar CUFE determinístico DIAN
-        var rawCufe = $"{invoice.NumeroFactura}{invoice.FechaEmision:yyyyMMddHHmmss}{invoice.Total:F2}{invoice.Impuestos:F2}9001234567";
+        var cleanNit = _dianSettings.EmpresaNit.Replace("-", "").Replace(" ", "");
+        var rawCufe = $"{invoice.NumeroFactura}{invoice.FechaEmision:yyyyMMddHHmmss}{invoice.Total:F2}{invoice.Impuestos:F2}{cleanNit}";
         using (var sha = System.Security.Cryptography.SHA256.Create())
         {
             var hashBytes = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(rawCufe));
@@ -172,11 +183,26 @@ public class InvoiceService : IInvoiceService
         try
         {
             _context.Invoices.Add(invoice);
+
+            var auditoria = new AuditoriaVenta
+            {
+                TipoEntidad = "Factura",
+                EntidadId = invoice.OrderId,
+                EstadoNuevo = invoice.Estado,
+                Accion = "CreacionFactura",
+                Usuario = "Sistema/Ventas",
+                Fecha = DateTime.UtcNow,
+                Detalles = $"Emitida Factura {invoice.NumeroFactura} para orden #ORD-{invoice.OrderId:D4} por {invoice.Total:C}. CUFE: {invoice.CUFE}"
+            };
+            _context.AuditoriasVentas.Add(auditoria);
+
             await _context.SaveChangesAsync();
+            _logger.LogInformation("Factura {NumeroFactura} creada exitosamente para pedido {OrderId}. Estado: {Estado}", invoice.NumeroFactura, invoice.OrderId, invoice.Estado);
             return invoice;
         }
         catch (DbUpdateException ex)
         {
+            _logger.LogError(ex, "Error al crear factura para pedido {OrderId}", invoice.OrderId);
             var innerMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
             throw new InvalidOperationException($"No se pudo crear la factura debido a una restricción de datos en la base de datos: {innerMsg}", ex);
         }
@@ -189,6 +215,8 @@ public class InvoiceService : IInvoiceService
             .FirstOrDefaultAsync(i => i.Id == invoice.Id);
 
         if (existing == null) return null;
+
+        var estadoAnterior = existing.Estado;
 
         // Calcular estado automáticamente según el saldo contable real del pedido
         if (existing.Order != null)
@@ -224,11 +252,29 @@ public class InvoiceService : IInvoiceService
 
         try
         {
+            if (estadoAnterior != existing.Estado)
+            {
+                var audit = new AuditoriaVenta
+                {
+                    TipoEntidad = "Factura",
+                    EntidadId = existing.Id,
+                    EstadoAnterior = estadoAnterior,
+                    EstadoNuevo = existing.Estado,
+                    Accion = "CambioEstadoFactura",
+                    Usuario = "Sistema/Ventas",
+                    Fecha = DateTime.UtcNow,
+                    Detalles = $"Factura {existing.NumeroFactura} cambió estado de {estadoAnterior} a {existing.Estado}"
+                };
+                _context.AuditoriasVentas.Add(audit);
+            }
+
             await _context.SaveChangesAsync();
+            _logger.LogInformation("Factura {NumeroFactura} actualizada correctamente. Nuevo estado: {Estado}", existing.NumeroFactura, existing.Estado);
             return existing;
         }
         catch (DbUpdateException ex)
         {
+            _logger.LogError(ex, "Error al actualizar factura {Id}", invoice.Id);
             throw new InvalidOperationException("No se pudo actualizar la factura debido a una restricción de datos.", ex);
         }
     }
@@ -238,17 +284,34 @@ public class InvoiceService : IInvoiceService
         var existing = await _context.Invoices.FindAsync(id);
         if (existing == null) return false;
 
+        var estadoPrevio = existing.Estado;
         existing.Activo = false;
+        existing.Estado = "cancelada";
         _context.Invoices.Update(existing);
+
+        var audit = new AuditoriaVenta
+        {
+            TipoEntidad = "Factura",
+            EntidadId = existing.Id,
+            EstadoAnterior = estadoPrevio,
+            EstadoNuevo = "cancelada",
+            Accion = "CancelacionFactura",
+            Usuario = "Sistema/Ventas",
+            Fecha = DateTime.UtcNow,
+            Detalles = $"Factura {existing.NumeroFactura} dada de baja/cancelada."
+        };
+        _context.AuditoriasVentas.Add(audit);
 
         try
         {
             await _context.SaveChangesAsync();
+            _logger.LogInformation("Factura {NumeroFactura} anulada/cancelada.", existing.NumeroFactura);
             return true;
         }
-        catch (DbUpdateException ex)
+        catch (Exception ex)
         {
-            throw new InvalidOperationException("No se pudo eliminar la factura porque está asociada a otros registros.", ex);
+            _logger.LogError(ex, "Error al cancelar factura {Id}", id);
+            return false;
         }
     }
 

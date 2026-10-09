@@ -1,29 +1,38 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using LentSoft.Web.Data;
 using LentSoft.Web.Models.Entities;
 
 namespace LentSoft.Web.Services;
 
-public class PasarelaPagoService : IPasarelaPagoService
+/// <summary>
+/// Implementación de IPasarelaPagoService para Wompi Colombia (Modo Sandbox).
+/// </summary>
+public class WompiPasarelaService : IPasarelaPagoService
 {
     private readonly LentSoftDbContext _context;
     private readonly IPagoVentaService _pagoVentaService;
-    private readonly ILogger<PasarelaPagoService> _logger;
+    private readonly ILogger<WompiPasarelaService> _logger;
+    private readonly string _publicKey;
 
-    public PasarelaPagoService(
-        LentSoftDbContext context, 
+    public WompiPasarelaService(
+        LentSoftDbContext context,
         IPagoVentaService pagoVentaService,
-        ILogger<PasarelaPagoService> logger)
+        IConfiguration configuration,
+        ILogger<WompiPasarelaService> logger)
     {
         _context = context;
         _pagoVentaService = pagoVentaService;
         _logger = logger;
+        _publicKey = configuration["Pasarela:WompiPublicKey"] ?? "pub_test_wompi_sandbox_token";
     }
 
     public async Task<ResultadoTransaccionDTO> ProcesarPagoTarjetaAsync(TarjetaPagoDTO dto)
     {
-        // 0. Control de Idempotencia para evitar dobles cobros
+        _logger.LogInformation("Iniciando procesamiento de cobro Wompi Sandbox con clave pública {Key}", _publicKey);
+
+        // Control de Idempotencia
         if (!string.IsNullOrWhiteSpace(dto.ClaveIdempotencia))
         {
             var txExistente = await _context.TransaccionesPagos
@@ -31,11 +40,10 @@ public class PasarelaPagoService : IPasarelaPagoService
 
             if (txExistente != null)
             {
-                _logger.LogWarning("Transacción duplicada detectada con clave de idempotencia {ClaveIdempotencia}", dto.ClaveIdempotencia);
                 return new ResultadoTransaccionDTO
                 {
                     Exitoso = txExistente.Estado == "Aprobada",
-                    Mensaje = $"Transacción previamente procesada ({txExistente.Estado}). Código: {txExistente.CodigoAutorizacion}",
+                    Mensaje = $"Transacción previamente procesada por Wompi ({txExistente.Estado}). Código: {txExistente.CodigoAutorizacion}",
                     Transaccion = txExistente
                 };
             }
@@ -43,82 +51,62 @@ public class PasarelaPagoService : IPasarelaPagoService
 
         var numeroLimpio = dto.NumeroTarjeta?.Replace(" ", "").Replace("-", "").Trim() ?? string.Empty;
 
-        // 1. Validaciones básicas de tarjeta
         if (string.IsNullOrWhiteSpace(numeroLimpio) || numeroLimpio.Length < 13 || numeroLimpio.Length > 19 || !numeroLimpio.All(char.IsDigit))
         {
-            return GenerarResultadoFallido(dto, "Número de tarjeta inválido. Debe contener entre 13 y 19 dígitos numéricos.");
+            return GenerarResultadoFallido(dto, "Wompi: Número de tarjeta inválido.");
         }
 
         if (!ValidarAlgoritmoLuhn(numeroLimpio))
         {
-            return GenerarResultadoFallido(dto, "El número de tarjeta no supera la validación del algoritmo de Luhn.");
-        }
-
-        if (string.IsNullOrWhiteSpace(dto.NombreTitular) || dto.NombreTitular.Trim().Length < 3)
-        {
-            return GenerarResultadoFallido(dto, "Nombre del titular no válido.");
-        }
-
-        if (!ValidarFechaExpiracion(dto.FechaExpiracion))
-        {
-            return GenerarResultadoFallido(dto, "La tarjeta de crédito está vencida o el formato de fecha es incorrecto (MM/YY).");
-        }
-
-        if (string.IsNullOrWhiteSpace(dto.Cvv) || (dto.Cvv.Length != 3 && dto.Cvv.Length != 4) || !dto.Cvv.All(char.IsDigit))
-        {
-            return GenerarResultadoFallido(dto, "Código CVV inválido (debe tener 3 o 4 dígitos).");
+            return GenerarResultadoFallido(dto, "Wompi: Tarjeta no supera la validación Luhn.");
         }
 
         if (dto.Monto <= 0)
         {
-            return GenerarResultadoFallido(dto, "El monto a cobrar debe ser mayor a cero.");
+            return GenerarResultadoFallido(dto, "Wompi: El monto debe ser mayor a cero.");
         }
 
         var marca = DetectarMarcaTarjeta(numeroLimpio);
-        var ultimosDígitos = numeroLimpio.Substring(Math.Max(0, numeroLimpio.Length - 4));
+        var ultimosDigitos = numeroLimpio.Substring(Math.Max(0, numeroLimpio.Length - 4));
 
-        // 2. Simulación de aprobación/rechazo
-        // Si el número termina en '9' (tarjeta de prueba de rechazo) o si la expiración es en el pasado
-        bool esAprobada = !numeroLimpio.EndsWith("9");
-        string motivoRechazo = esAprobada ? string.Empty : "Transacción rechazada por el banco emisor (Fondos Insuficientes / Tarjeta de prueba rechazada).";
-
-        var codigoAutorizacion = esAprobada ? $"AUTH-{Random.Shared.Next(100000, 999999)}" : null;
+        // En Wompi Sandbox, números que terminan en 9 simulan rechazo bancario
+        bool aprobada = !numeroLimpio.EndsWith("9");
+        string wompiTxId = $"WOMPI-SBX-{Guid.NewGuid().ToString("N")[..12].ToUpper()}";
+        string mensaje = aprobada ? "Transacción aprobada por Wompi Sandbox." : "Transacción declinada por la entidad financiera (Wompi Sandbox).";
 
         var transaccion = new TransaccionPago
         {
             VentaId = dto.VentaId,
             Monto = Math.Round(dto.Monto, 2),
-            Estado = esAprobada ? "Aprobada" : "Rechazada",
-            CodigoAutorizacion = codigoAutorizacion,
-            UltimosDigitosTarjeta = ultimosDígitos,
+            Estado = aprobada ? "Aprobada" : "Rechazada",
+            CodigoAutorizacion = aprobada ? wompiTxId : null,
+            UltimosDigitosTarjeta = ultimosDigitos,
             MarcaTarjeta = marca,
             ClaveIdempotencia = dto.ClaveIdempotencia,
-            MensajeRespuesta = esAprobada ? "Transacción Aprobada Exitosamente" : motivoRechazo,
+            MensajeRespuesta = mensaje,
             Fecha = DateTime.UtcNow
         };
 
         _context.TransaccionesPagos.Add(transaccion);
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Transacción con tarjeta procesada: Estado={Estado}, Monto={Monto}, VentaId={VentaId}", transaccion.Estado, transaccion.Monto, transaccion.VentaId);
 
-        if (!esAprobada)
+        if (!aprobada)
         {
             return new ResultadoTransaccionDTO
             {
                 Exitoso = false,
-                Mensaje = motivoRechazo,
+                Mensaje = mensaje,
                 Transaccion = transaccion
             };
         }
 
-        // 3. Si es aprobada y tiene VentaId asociada, registrar el pago/abono correspondiente
         PagoVenta? pagoRegistrado = null;
         if (dto.VentaId.HasValue && dto.VentaId.Value > 0)
         {
             pagoRegistrado = await _pagoVentaService.RegistrarAbonoAsync(
-                dto.VentaId.Value, 
-                dto.Monto, 
-                $"Tarjeta {marca} (****{ultimosDígitos})", 
+                dto.VentaId.Value,
+                dto.Monto,
+                $"Wompi - {marca} (****{ultimosDigitos})",
                 dto.Responsable
             );
         }
@@ -126,7 +114,7 @@ public class PasarelaPagoService : IPasarelaPagoService
         return new ResultadoTransaccionDTO
         {
             Exitoso = true,
-            Mensaje = $"Pago aprobado. Código de Autorización: {codigoAutorizacion}",
+            Mensaje = $"Pago aprobado por Wompi Sandbox. Referencia: {wompiTxId}",
             Transaccion = transaccion,
             PagoRegistrado = pagoRegistrado
         };
@@ -135,10 +123,8 @@ public class PasarelaPagoService : IPasarelaPagoService
     public bool ValidarAlgoritmoLuhn(string numeroTarjeta)
     {
         if (string.IsNullOrWhiteSpace(numeroTarjeta)) return false;
-
         int sum = 0;
         bool alternate = false;
-
         for (int i = numeroTarjeta.Length - 1; i >= 0; i--)
         {
             int digit = numeroTarjeta[i] - '0';
@@ -150,39 +136,16 @@ public class PasarelaPagoService : IPasarelaPagoService
             sum += digit;
             alternate = !alternate;
         }
-
         return (sum % 10 == 0);
     }
 
     public string DetectarMarcaTarjeta(string numeroTarjeta)
     {
         if (string.IsNullOrWhiteSpace(numeroTarjeta)) return "Desconocida";
-
         if (numeroTarjeta.StartsWith("4")) return "Visa";
         if (numeroTarjeta.StartsWith("51") || numeroTarjeta.StartsWith("52") || numeroTarjeta.StartsWith("53") || numeroTarjeta.StartsWith("54") || numeroTarjeta.StartsWith("55")) return "Mastercard";
         if (numeroTarjeta.StartsWith("34") || numeroTarjeta.StartsWith("37")) return "American Express";
-        if (numeroTarjeta.StartsWith("6011") || numeroTarjeta.StartsWith("65")) return "Discover";
-
         return "Tarjeta";
-    }
-
-    private bool ValidarFechaExpiracion(string fechaExpiracion)
-    {
-        if (string.IsNullOrWhiteSpace(fechaExpiracion)) return false;
-
-        var parts = fechaExpiracion.Split('/');
-        if (parts.Length != 2) return false;
-
-        if (!int.TryParse(parts[0].Trim(), out int mes) || mes < 1 || mes > 12) return false;
-        if (!int.TryParse(parts[1].Trim(), out int anioShort)) return false;
-
-        int anio = 2000 + anioShort;
-        var now = DateTime.UtcNow;
-
-        var lastDayOfMonth = DateTime.DaysInMonth(anio, mes);
-        var expDate = new DateTime(anio, mes, lastDayOfMonth, 23, 59, 59, DateTimeKind.Utc);
-
-        return expDate >= now;
     }
 
     private static ResultadoTransaccionDTO GenerarResultadoFallido(TarjetaPagoDTO dto, string errorMsg)

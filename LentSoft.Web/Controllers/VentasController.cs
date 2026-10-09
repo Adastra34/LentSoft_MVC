@@ -7,6 +7,8 @@ using LentSoft.Web.Models.Entities;
 using LentSoft.Web.Models.ViewModels;
 using LentSoft.Web.Services;
 
+using Microsoft.AspNetCore.RateLimiting;
+
 namespace LentSoft.Web.Controllers;
 
 [Authorize(Roles = "ventas,admin")]
@@ -18,6 +20,7 @@ public class VentasController : Controller
     private readonly IPagoVentaService _pagoVentaService;
     private readonly IPdfReciboService _pdfReciboService;
     private readonly IPasarelaPagoService _pasarelaPagoService;
+    private readonly ISalesOrderService _salesOrderService;
 
     public VentasController(
         LentSoftDbContext context, 
@@ -25,7 +28,8 @@ public class VentasController : Controller
         ISaleConfirmationTokenService saleConfirmationTokenService,
         IPagoVentaService pagoVentaService,
         IPdfReciboService pdfReciboService,
-        IPasarelaPagoService pasarelaPagoService)
+        IPasarelaPagoService pasarelaPagoService,
+        ISalesOrderService salesOrderService)
     {
         _context = context;
         _invoiceService = invoiceService;
@@ -33,6 +37,7 @@ public class VentasController : Controller
         _pagoVentaService = pagoVentaService;
         _pdfReciboService = pdfReciboService;
         _pasarelaPagoService = pasarelaPagoService;
+        _salesOrderService = salesOrderService;
     }
 
     public async Task<IActionResult> Index(
@@ -41,9 +46,16 @@ public class VentasController : Controller
         string? searchTerm = null, 
         int page = 1, 
         int pageSize = 5,
+        string? ventasSearchTerm = null,
+        int ventasPage = 1,
+        int ventasPageSize = 10,
         DateTime? fechaDesde = null,
         DateTime? fechaHasta = null,
-        string? filtroRapido = null)
+        string? filtroRapido = null,
+        int movPage = 1,
+        int movPageSize = 15,
+        int pedVentasPage = 1,
+        int pedVentasPageSize = 10)
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var usuario = await _context.Users.FindAsync(userId);
@@ -80,13 +92,28 @@ public class VentasController : Controller
             }
         }
 
+        // ── Paginación y Filtrado de Ventas en BD con AsNoTracking() ──
         var queryVentas = _context.Orders
+            .Where(o => o.Activo)
             .Include(o => o.User)
-            .Include(o => o.OrderItems).ThenInclude(oi => oi.Product)
             .Include(o => o.Pagos)
             .Include(o => o.Transacciones)
-            .Include(o => o.FormulaOptica)
+            .AsNoTracking()
             .AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(ventasSearchTerm))
+        {
+            var term = ventasSearchTerm.Trim().ToLower();
+            queryVentas = queryVentas.Where(o =>
+                o.Id.ToString().Contains(term) ||
+                (o.User != null && (
+                    o.User.Nombre.ToLower().Contains(term) ||
+                    o.User.Apellido.ToLower().Contains(term) ||
+                    (o.User.Nombre + " " + o.User.Apellido).ToLower().Contains(term)
+                )) ||
+                o.Estado.ToLower().Contains(term) ||
+                o.EstadoPago.ToLower().Contains(term));
+        }
 
         if (desde.HasValue)
         {
@@ -97,8 +124,14 @@ public class VentasController : Controller
             queryVentas = queryVentas.Where(o => o.FechaPedido <= hasta.Value);
         }
 
+        var ventasTotalCount = await queryVentas.CountAsync();
+        if (ventasPage < 1) ventasPage = 1;
+        if (ventasPageSize < 1) ventasPageSize = 10;
+
         var ventas = await queryVentas
             .OrderByDescending(o => o.FechaPedido)
+            .Skip((ventasPage - 1) * ventasPageSize)
+            .Take(ventasPageSize)
             .ToListAsync();
 
         var (facturasList, facturasTotalCount) = await _invoiceService.GetAllAsync(searchTerm, page, pageSize);
@@ -107,15 +140,18 @@ public class VentasController : Controller
         var productos = await _context.Products
             .Where(p => p.Activo)
             .OrderBy(p => p.Nombre)
-            .Take(50)
+            .Take(100)
+            .AsNoTracking()
             .ToListAsync();
 
         var clientes = await _context.Users
             .Where(u => u.Activo && u.Role == "usuario")
             .OrderBy(u => u.Nombre)
             .ThenBy(u => u.Apellido)
+            .AsNoTracking()
             .ToListAsync();
 
+        // ── KPIs calculados directamente en BD sin traer colecciones ──
         var ventasDelMes = await _context.Orders
             .Where(o => o.Activo && o.Estado != "cancelado" && o.FechaPedido >= inicioMes)
             .SumAsync(o => (decimal?)o.Total) ?? 0;
@@ -136,9 +172,18 @@ public class VentasController : Controller
 
         var ticketPromedio = totalVentasConteo > 0 ? (ventasDelMes / totalVentasConteo) : 0;
 
-        var pedidosVentas = await _context.SalesOrders
-            .Where(o => o.Activo)
-            .OrderByDescending(o => o.Fecha)
+        // ── Pedidos de Ventas (a través de ISalesOrderService) ──
+        var (pedidosVentas, pedidosVentasTotal) = await _salesOrderService.GetAllAsync(null, pedVentasPage, pedVentasPageSize);
+
+        // ── Paginación de HistorialMovimientos (InventoryMovements) ──
+        var movQuery = _context.InventoryMovements.Include(m => m.Product).AsNoTracking().AsQueryable();
+        var movTotalCount = await movQuery.CountAsync();
+        if (movPage < 1) movPage = 1;
+        if (movPageSize < 1) movPageSize = 15;
+        var movimientos = await movQuery
+            .OrderByDescending(m => m.Fecha)
+            .Skip((movPage - 1) * movPageSize)
+            .Take(movPageSize)
             .ToListAsync();
 
         var viewModel = new DashboardVentasViewModel
@@ -148,6 +193,10 @@ public class VentasController : Controller
             ClientesAtendidos = clientesAtendidos,
             TicketPromedio = ticketPromedio,
             Ventas = ventas,
+            VentasSearchTerm = ventasSearchTerm,
+            VentasPage = ventasPage,
+            VentasPageSize = ventasPageSize,
+            VentasTotalCount = ventasTotalCount,
             FiltroFechaDesde = fechaDesde,
             FiltroFechaHasta = fechaHasta,
             FiltroRapido = filtroRapido,
@@ -159,7 +208,13 @@ public class VentasController : Controller
             PedidosDisponibles = pedidosDisponibles,
             Productos = productos,
             PedidosVentas = pedidosVentas,
-            HistorialMovimientos = await _context.InventoryMovements.Include(m => m.Product).OrderByDescending(m => m.Fecha).Take(20).ToListAsync(),
+            PedidosVentasPage = pedVentasPage,
+            PedidosVentasPageSize = pedVentasPageSize,
+            PedidosVentasTotalCount = pedidosVentasTotal,
+            HistorialMovimientos = movimientos,
+            MovimientosPage = movPage,
+            MovimientosPageSize = movPageSize,
+            MovimientosTotalCount = movTotalCount,
             Clientes = clientes,
             UsuarioActual = usuario,
             ActiveSection = section,
@@ -196,9 +251,26 @@ public class VentasController : Controller
                     return RedirectToAction("Index", new { section = "ventas" });
                 }
 
+                var estadoAnterior = order.Estado;
                 order.Estado = estadoLower ?? order.Estado;
                 if (estadoLower == "pagado") order.EstadoPago = "pagado";
                 else if (estadoLower == "cancelado") order.EstadoPago = "cancelado";
+
+                if (estadoAnterior != order.Estado)
+                {
+                    var audit = new AuditoriaVenta
+                    {
+                        TipoEntidad = "Pedido",
+                        EntidadId = order.Id,
+                        EstadoAnterior = estadoAnterior,
+                        EstadoNuevo = order.Estado,
+                        Accion = "CambioEstadoPedido",
+                        Usuario = User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "Ventas",
+                        Fecha = DateTime.UtcNow,
+                        Detalles = $"Pedido #ORD-{order.Id:D4} cambió de estado: {estadoAnterior} -> {order.Estado} (Estado Pago: {order.EstadoPago})"
+                    };
+                    _context.AuditoriasVentas.Add(audit);
+                }
 
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Estado del pedido actualizado correctamente.";
@@ -260,9 +332,10 @@ public class VentasController : Controller
         }
     }
 
-    // ── Endpoint Cobrar con Tarjeta de Crédito en Ventas (Requisito 3) ──
+    // ── Endpoint Cobrar con Tarjeta de Crédito en Ventas (Requisito 3 con Rate Limiting) ──
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting("tarjeta-pago")]
     public async Task<IActionResult> CobrarTarjeta(TarjetaPagoDTO dto)
     {
         try
@@ -285,6 +358,41 @@ public class VentasController : Controller
         }
 
         return RedirectToAction("Index", new { section = "ventas" });
+    }
+
+    // ── Endpoint Exportar Listado de Ventas a CSV ──
+    [HttpGet]
+    public async Task<IActionResult> ExportarVentasCsv(DateTime? fechaDesde, DateTime? fechaHasta, string? searchTerm)
+    {
+        var query = _context.Orders
+            .Where(o => o.Activo)
+            .Include(o => o.User)
+            .Include(o => o.Pagos)
+            .AsNoTracking()
+            .AsQueryable();
+
+        if (fechaDesde.HasValue) query = query.Where(o => o.FechaPedido >= fechaDesde.Value);
+        if (fechaHasta.HasValue) query = query.Where(o => o.FechaPedido <= fechaHasta.Value);
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+        {
+            var term = searchTerm.Trim().ToLower();
+            query = query.Where(o => o.Id.ToString().Contains(term) || (o.User != null && (o.User.Nombre.ToLower().Contains(term) || o.User.Apellido.ToLower().Contains(term))));
+        }
+
+        var list = await query.OrderByDescending(o => o.FechaPedido).ToListAsync();
+
+        var sb = new System.Text.StringBuilder();
+        sb.AppendLine("ID;Cliente;Documento;Fecha;Total;Abonado;Saldo;EstadoPago;EstadoOrden");
+
+        foreach (var v in list)
+        {
+            var abonado = v.Pagos?.Sum(p => p.Monto) ?? v.MontoPagado;
+            var saldo = Math.Max(0m, v.Total - abonado);
+            sb.AppendLine($"#ORD-{v.Id:D4};\"{v.User?.NombreCompleto ?? "N/A"}\";{v.User?.NumeroDocumento ?? "N/A"};{v.FechaPedido:dd/MM/yyyy HH:mm};{v.Total};{abonado};{saldo};{v.EstadoPago};{v.Estado}");
+        }
+
+        var bytes = System.Text.Encoding.UTF8.GetPreamble().Concat(System.Text.Encoding.UTF8.GetBytes(sb.ToString())).ToArray();
+        return File(bytes, "text/csv", $"ventas_{DateTime.UtcNow:yyyyMMdd_HHmm}.csv");
     }
 
     // ── Endpoints Integración Fórmula Óptica - Ventas ──

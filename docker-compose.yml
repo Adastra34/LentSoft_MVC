@@ -1,0 +1,42 @@
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: lentsoft-sqlserver
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=LentSoft_SecurePass2026!
+      - MSSQL_PID=Developer
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserver_data:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P 'LentSoft_SecurePass2026!' -C -Q 'SELECT 1' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lentsoft-web
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:8080"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ASPNETCORE_URLS=http://+:8080
+      - UseSqlite=false
+      - ConnectionStrings__DefaultConnection=Server=db,1433;Database=LentSoftDB;User Id=sa;Password=LentSoft_SecurePass2026!;TrustServerCertificate=True;MultipleActiveResultSets=true;
+      - DianSettings__ResolucionNumero=18764028920000
+      - DianSettings__RangoDesde=FAC-2026-0001
+      - DianSettings__RangoHasta=FAC-2026-9999
+      - Pasarela__Proveedor=WompiSandbox
+    restart: on-failure
+
+volumes:
+  sqlserver_data:

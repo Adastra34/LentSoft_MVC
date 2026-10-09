@@ -2975,7 +2975,13 @@
 
             <div>
                 <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Producto *</label>
-                <input name="ProductoNombre" type="text" class="form-input" required placeholder="Ej: Montura Ray-Ban Especial" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                <select name="ProductoId" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" onchange="var opt = this.options[this.selectedIndex]; if(opt && opt.dataset.precio) { document.getElementById('adminSalesOrderPrecio').value = opt.dataset.precio; }">
+                    <option value="">-- Seleccionar Producto --</option>
+                    @foreach (var prod in (Model.TodosLosProductos.Any() ? Model.TodosLosProductos : Model.Productos))
+                    {
+                        <option value="@prod.Id" data-precio="@prod.GetFinalPrice()" data-stock="@prod.Stock">@prod.Nombre (Stock: @prod.Stock - @prod.GetFinalPrice().ToString("C"))</option>
+                    }
+                </select>
             </div>
 
             <div style="display: flex; gap: 1rem;">
@@ -2985,7 +2991,7 @@
                 </div>
                 <div style="flex: 1;">
                     <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Precio Unitario ($) *</label>
-                    <input name="PrecioUnitario" type="number" step="100" min="0" value="150000" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
+                    <input id="adminSalesOrderPrecio" name="PrecioUnitario" type="number" step="100" min="0" value="0" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
                 </div>
             </div>
 

@@ -1,0 +1,165 @@
+@model LentSoft.Web.Models.ViewModels.DashboardVentasViewModel
+
+<div style="margin-bottom: 1.5rem;">
+    <h1 style="color: var(--purple-900); font-size: 1.75rem; margin: 0;" data-i18n="sales.invoices.title">Facturas</h1>
+    <p style="color: var(--gray-500); font-size: 0.9rem; margin-top: 0.25rem;" data-i18n="sales.invoices.subtitle">Gestión y emisión de facturación electrónica DIAN</p>
+</div>
+
+<div class="card" style="padding: 1.5rem; background: white; border-radius: 0.75rem; box-shadow: var(--shadow-md);">
+    <!-- Header de la sección de la tabla con botón Nueva Factura -->
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; flex-wrap: wrap; gap: 1rem;">
+        <h2 style="color: var(--purple-900); font-size: 1.35rem; font-weight: 700; margin: 0;" data-i18n="sales.invoices.mgmt">Gestión de Facturas</h2>
+        <button type="button" onclick="document.getElementById('modal-factura').style.display='flex'" 
+                style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease; box-shadow: 0 2px 4px rgba(124, 58, 237, 0.25);"
+                onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
+            <span data-i18n="sales.invoices.new">+ Nueva Factura</span>
+        </button>
+    </div>
+
+    <!-- Barra Superior DataTable (Fondo morado) -->
+    <form id="facturasFilterForm" method="get" action="/Ventas" style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <input type="hidden" name="section" value="facturas" />
+        <input type="hidden" name="page" value="1" />
+
+        <!-- Selector Registros por página -->
+        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500;">
+            <span data-i18n="sales.invoices.show">Mostrar</span>
+            <select name="pageSize" style="background-color: white; color: var(--gray-900); border: 1px solid var(--purple-300); border-radius: 0.375rem; padding: 0.35rem 0.6rem; font-size: 0.875rem; cursor: pointer; font-weight: 600;" onchange="document.getElementById('facturasFilterForm').submit();">
+                @foreach (var size in new[] { 5, 10, 25, 50 })
+                {
+                    <option value="@size" selected="@(Model.FacturasPageSize == size)">@size</option>
+                }
+            </select>
+            <span data-i18n="sales.invoices.records">registros</span>
+        </div>
+
+        <!-- Búsqueda en tiempo real / envío -->
+        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
+            <label for="searchFacturasInput" style="font-weight: 500;" data-i18n="sales.invoices.searchlabel">Buscar:</label>
+            <input type="text" id="searchFacturasInput" name="searchTerm" value="@Model.FacturasSearchTerm" 
+                   placeholder="Buscar por número, cliente" data-i18n-placeholder="sales.invoices.searchplaceholder"
+                   style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.875rem; width: 240px; color: var(--gray-900);" 
+                   onkeyup="filterClientSideFacturas(this.value)" />
+            <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;" data-i18n="sales.invoices.filter">Filtrar</button>
+        </div>
+    </form>
+
+    <!-- Tabla de Facturas -->
+    <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
+        <table id="tableFacturas" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+            <thead>
+                <tr style="background-color: var(--purple-50); border-bottom: 2px solid var(--purple-200); color: var(--purple-900);">
+                    <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.invoices.number">Número</th>
+                    <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.table.client">Cliente</th>
+                    <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.table.date">Fecha</th>
+                    <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.table.total">Total</th>
+                    <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.table.status">Estado</th>
+                    <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;" data-i18n="sales.table.actions">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Facturas.Any())
+                {
+                    @foreach (var fac in Model.Facturas)
+                    {
+                        var clientName = fac.Order?.User != null ? fac.Order.User.NombreCompleto : "Cliente N/A";
+                        var estadoLower = fac.Estado?.ToLower() ?? "pendiente";
+                        var badgeBg = estadoLower switch
+                        {
+                            "pagada" => "#10B981",
+                            "cancelada" => "#EF4444",
+                            "parcial" => "#D97706",
+                            _ => "#F59E0B"
+                        };
+                        var estadoDisplay = estadoLower switch
+                        {
+                            "pagada" => "Pagada",
+                            "cancelada" => "Cancelada",
+                            "parcial" => "Parcial",
+                            _ => "Pendiente"
+                        };
+
+                        <tr style="border-bottom: 1px solid var(--purple-100); transition: background-color 0.15s ease;" onmouseover="this.style.backgroundColor='var(--purple-50)'" onmouseout="this.style.backgroundColor='transparent'">
+                            <td style="padding: 0.85rem 1rem; font-weight: 700; color: var(--purple-700);">@fac.NumeroFactura</td>
+                            <td style="padding: 0.85rem 1rem; font-weight: 500; color: var(--gray-800);">@clientName</td>
+                            <td style="padding: 0.85rem 1rem; color: var(--gray-600);">@fac.FechaEmision.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                            <td style="padding: 0.85rem 1rem; font-weight: 700; color: var(--purple-900);">@fac.Total.ToString("C")</td>
+                            <td style="padding: 0.85rem 1rem;">
+                                <span style="background-color: @badgeBg; color: white; padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; display: inline-block;">
+                                    @estadoDisplay
+                                </span>
+                            </td>
+                            <td style="padding: 0.85rem 1rem; text-align: center;">
+                                <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
+                                    <button type="button" 
+                                            onclick="confirmDeleteInvoice(@fac.Id, '@fac.NumeroFactura')"
+                                            style="background: transparent; color: var(--error, #EF4444); border: 1px solid var(--error, #EF4444); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
+                                        🗑️ Eliminar
+                                    </button>
+
+                                    <a href="/Invoice/DownloadPdf/@fac.Id" target="_blank"
+                                       style="background-color: var(--purple-100); color: var(--purple-900); border: 1px solid var(--purple-300); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; transition: all 0.2s ease;">
+                                        📄 PDF DIAN
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="6" style="padding: 2.5rem; text-align: center; color: var(--gray-500); font-style: italic;">
+                            No se encontraron facturas registradas o que coincidan con la búsqueda.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Footer Paginación Facturas -->
+    @{
+        var inicioReg = Model.FacturasTotalCount == 0 ? 0 : ((Model.FacturasPage - 1) * Model.FacturasPageSize) + 1;
+        var finReg = Math.Min(Model.FacturasPage * Model.FacturasPageSize, Model.FacturasTotalCount);
+    }
+    <div class="pagination-container">
+        <div style="color: var(--gray-600); font-weight: 500;">
+            <span>Mostrando registros del</span> <strong>@inicioReg</strong> <span>al</span> <strong>@finReg</strong> <span>de un total de</span> <strong>@Model.FacturasTotalCount</strong> <span>facturas</span>
+        </div>
+
+        @if (Model.FacturasTotalPages > 1)
+        {
+            <div class="pagination-controls">
+                @if (Model.FacturasPage > 1)
+                {
+                    <a href="/Ventas?section=facturas&page=@(Model.FacturasPage - 1)&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
+                       class="pagination-btn">
+                        &laquo; Anterior
+                    </a>
+                }
+                @for (int p = 1; p <= Model.FacturasTotalPages; p++)
+                {
+                    if (p == Model.FacturasPage)
+                    {
+                        <span class="pagination-btn active">@p</span>
+                    }
+                    else
+                    {
+                        <a href="/Ventas?section=facturas&page=@p&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
+                           class="pagination-btn">
+                            @p
+                        </a>
+                    }
+                }
+                @if (Model.FacturasPage < Model.FacturasTotalPages)
+                {
+                    <a href="/Ventas?section=facturas&page=@(Model.FacturasPage + 1)&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
+                       class="pagination-btn">
+                        Siguiente &raquo;
+                    </a>
+                }
+            </div>
+        }
+    </div>
+</div>

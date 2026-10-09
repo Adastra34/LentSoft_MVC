@@ -1,0 +1,70 @@
+@model LentSoft.Web.Models.ViewModels.DashboardVentasViewModel
+
+<h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem;" data-i18n="sales.general.title">Resumen Comercial</h1>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--purple-600); background: white;">
+        <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.monthly">Ventas del Mes</p>
+        <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.VentasDelMes.ToString("C")</h3>
+    </div>
+
+    <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--info); background: white;">
+        <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.activeorders">Pedidos Activos</p>
+        <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.PedidosActivos</h3>
+    </div>
+
+    <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--success); background: white;">
+        <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.clients">Clientes Atendidos</p>
+        <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.ClientesAtendidos</h3>
+    </div>
+
+    <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--warning); background: white;">
+        <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.averageticket">Ticket Promedio</p>
+        <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.TicketPromedio.ToString("C")</h3>
+    </div>
+</div>
+
+<!-- Últimas Ventas -->
+<div class="card" style="padding: 1.5rem; background: white;">
+    <h2 style="color: var(--purple-800); font-size: 1.25rem; margin-bottom: 1rem;" data-i18n="sales.general.recentsales">Últimas Ventas Registradas</h2>
+    <div style="overflow-x: auto;">
+        <table style="width: 100%; border-collapse: collapse; text-align: left;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
+                    <th style="padding: 0.75rem;" data-i18n="sales.table.order">Pedido</th>
+                    <th style="padding: 0.75rem;" data-i18n="sales.table.client">Cliente</th>
+                    <th style="padding: 0.75rem;" data-i18n="sales.table.date">Fecha</th>
+                    <th style="padding: 0.75rem;" data-i18n="sales.table.total">Total</th>
+                    <th style="padding: 0.75rem;" data-i18n="sales.table.status">Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Ventas.Any())
+                {
+                    @foreach (var v in Model.Ventas.Take(5))
+                    {
+                        <tr style="border-bottom: 1px solid var(--purple-100);">
+                            <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">#ORD-@v.Id.ToString("D4")</td>
+                            <td style="padding: 0.75rem;">@(v.User?.NombreCompleto ?? "Cliente")</td>
+                            <td style="padding: 0.75rem; color: var(--gray-600);">@v.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            <td style="padding: 0.75rem; font-weight: 700; color: var(--purple-900);">@v.Total.ToString("C")</td>
+                            <td style="padding: 0.75rem;">
+                                <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
+                                    @v.Estado
+                                </span>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" style="padding: 2rem; text-align: center; color: var(--gray-500); font-style: italic;">
+                            No hay ventas registradas recientemente.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

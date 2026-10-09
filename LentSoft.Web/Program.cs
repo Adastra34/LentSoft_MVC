@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using LentSoft.Web.Data;
+using LentSoft.Web.Models;
 using LentSoft.Web.Services;
 
 // ── Culture Configuration (Pesos Colombianos - COP) ──
@@ -69,6 +70,7 @@ builder.Services.AddDbContext<LentSoftDbContext>(options =>
 // ── Configuration Options ──
 builder.Services.Configure<InventorySettings>(builder.Configuration.GetSection(InventorySettings.SectionName));
 builder.Services.Configure<FileStorageSettings>(builder.Configuration.GetSection(FileStorageSettings.SectionName));
+builder.Services.Configure<DianSettings>(builder.Configuration.GetSection(DianSettings.SectionName));
 builder.Services.AddHttpContextAccessor();
 
 // ── Services (DI) ──
@@ -85,7 +87,19 @@ builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IPdfInvoiceService, PdfInvoiceService>();
 builder.Services.AddScoped<IPagoVentaService, PagoVentaService>();
 builder.Services.AddScoped<IPdfReciboService, PdfReciboService>();
-builder.Services.AddScoped<IPasarelaPagoService, PasarelaPagoService>();
+builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();
+
+// Selección dinámica del proveedor de Pasarela de Pagos (Simulada vs Wompi Sandbox)
+var pasarelaProveedor = builder.Configuration["Pasarela:Proveedor"] ?? "Simulada";
+if (string.Equals(pasarelaProveedor, "Wompi", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddScoped<IPasarelaPagoService, WompiPasarelaService>();
+}
+else
+{
+    builder.Services.AddScoped<IPasarelaPagoService, PasarelaPagoService>();
+}
+
 builder.Services.AddSingleton<IPasswordResetTokenService, PasswordResetTokenService>();
 builder.Services.AddSingleton<ISaleConfirmationTokenService, SaleConfirmationTokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -135,7 +149,7 @@ builder.Services.AddAuthorization();
 // ── HTTP Clients ──
 builder.Services.AddHttpClient("Gemini");
 
-// ── Rate Limiting (protección del endpoint /Chat/Ask) ──
+// ── Rate Limiting (protección /Chat/Ask y /Ventas/CobrarTarjeta) ──
 builder.Services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -148,6 +162,17 @@ builder.Services.AddRateLimiter(options =>
                 Window = TimeSpan.FromMinutes(1),
                 QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
                 QueueLimit = 2
+            }));
+
+    options.AddPolicy("tarjeta-pago", httpContext =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: httpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit = 0
             }));
 });
 

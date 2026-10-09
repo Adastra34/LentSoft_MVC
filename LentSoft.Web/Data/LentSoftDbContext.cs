@@ -30,6 +30,7 @@ public class LentSoftDbContext : DbContext
     public DbSet<SupplierOrder> SupplierOrders => Set<SupplierOrder>();
     public DbSet<PagoVenta> PagosVentas => Set<PagoVenta>();
     public DbSet<TransaccionPago> TransaccionesPagos => Set<TransaccionPago>();
+    public DbSet<AuditoriaVenta> AuditoriasVentas => Set<AuditoriaVenta>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -83,7 +84,13 @@ public class LentSoftDbContext : DbContext
         modelBuilder.Entity<SalesOrder>(entity =>
         {
             entity.HasIndex(e => e.NumeroPedido);
+            entity.HasIndex(e => e.ProductoId);
             entity.Property(e => e.Fecha).HasDefaultValueSql(utcDateSql);
+
+            entity.HasOne(e => e.Product)
+                  .WithMany()
+                  .HasForeignKey(e => e.ProductoId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         // ── Users ──
@@ -188,6 +195,17 @@ public class LentSoftDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(e => e.FormulaOpticaId)
                   .OnDelete(DeleteBehavior.SetNull);
+
+            if (isSqlite)
+            {
+                entity.Property(e => e.RowVersion)
+                    .IsRowVersion()
+                    .HasDefaultValueSql("randomblob(8)");
+            }
+            else
+            {
+                entity.Property(e => e.RowVersion).IsRowVersion();
+            }
         });
 
         // ── OrderItems ──
@@ -249,6 +267,7 @@ public class LentSoftDbContext : DbContext
         modelBuilder.Entity<TransaccionPago>(entity =>
         {
             entity.HasIndex(e => e.VentaId);
+            entity.HasIndex(e => e.ClaveIdempotencia);
             entity.HasIndex(e => e.Fecha).IsDescending();
             entity.Property(e => e.Fecha).HasDefaultValueSql(utcDateSql);
 
@@ -256,6 +275,14 @@ public class LentSoftDbContext : DbContext
                   .WithMany(o => o.Transacciones)
                   .HasForeignKey(e => e.VentaId)
                   .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // ── AuditoriaVenta ──
+        modelBuilder.Entity<AuditoriaVenta>(entity =>
+        {
+            entity.HasIndex(e => new { e.TipoEntidad, e.EntidadId });
+            entity.HasIndex(e => e.Fecha).IsDescending();
+            entity.Property(e => e.Fecha).HasDefaultValueSql(utcDateSql);
         });
 
         // ── Appointments ──
@@ -698,8 +725,8 @@ public class LentSoftDbContext : DbContext
 
         // Seed Sales Orders (Independientes)
         modelBuilder.Entity<SalesOrder>().HasData(
-            new SalesOrder { Id = 1, NumeroPedido = "PED-VENTA-001", ClienteNombre = "Carlos Ramírez", ProductoNombre = "Gafas de Sol Polarizadas Especiales", Cantidad = 2, PrecioUnitario = 350000.00m, Total = 700000.00m, Estado = "entregado", Fecha = new DateTime(2026, 5, 12, 0, 0, 0, DateTimeKind.Utc), Activo = true },
-            new SalesOrder { Id = 2, NumeroPedido = "PED-VENTA-002", ClienteNombre = "Ana María Torres", ProductoNombre = "Lentes de Contacto Toricos Custom", Cantidad = 1, PrecioUnitario = 480000.00m, Total = 480000.00m, Estado = "enviado", Fecha = new DateTime(2026, 5, 22, 0, 0, 0, DateTimeKind.Utc), Activo = true }
+            new SalesOrder { Id = 1, NumeroPedido = "PED-VENTA-001", ClienteNombre = "Carlos Ramírez", ProductoId = 1, ProductoNombre = "Lentes Ray-Ban Aviator", Cantidad = 2, PrecioUnitario = 350000.00m, Total = 700000.00m, Estado = "entregado", Fecha = new DateTime(2026, 5, 12, 0, 0, 0, DateTimeKind.Utc), Activo = true },
+            new SalesOrder { Id = 2, NumeroPedido = "PED-VENTA-002", ClienteNombre = "Ana María Torres", ProductoId = 2, ProductoNombre = "Lentes de Contacto Acuvue", Cantidad = 1, PrecioUnitario = 480000.00m, Total = 480000.00m, Estado = "enviado", Fecha = new DateTime(2026, 5, 22, 0, 0, 0, DateTimeKind.Utc), Activo = true }
         );
     }
 }

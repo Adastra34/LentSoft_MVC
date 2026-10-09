@@ -19,9 +19,14 @@ public class SalesOrder
     [StringLength(150)]
     public string ClienteNombre { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "El producto es obligatorio")]
+    [Required(ErrorMessage = "Debe seleccionar un producto")]
+    public int? ProductoId { get; set; }
+
+    [ForeignKey(nameof(ProductoId))]
+    public Product? Product { get; set; }
+
     [StringLength(200)]
-    public string ProductoNombre { get; set; } = string.Empty;
+    public string? ProductoNombre { get; set; }
 
     [Required]
     [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser al menos 1")]

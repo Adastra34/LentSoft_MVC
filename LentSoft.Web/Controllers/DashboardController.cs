@@ -18,6 +18,7 @@ public class DashboardController : Controller
     private readonly IOrderService _orderService;
     private readonly IFavoriteService _favoriteService;
     private readonly IInvoiceService _invoiceService;
+    private readonly ISalesOrderService _salesOrderService;
     private readonly LentSoftDbContext _context;
     private readonly InventorySettings _inventorySettings;
 
@@ -28,6 +29,7 @@ public class DashboardController : Controller
         IOrderService orderService,
         IFavoriteService favoriteService,
         IInvoiceService invoiceService,
+        ISalesOrderService salesOrderService,
         LentSoftDbContext context,
         Microsoft.Extensions.Options.IOptions<InventorySettings> inventoryOptions)
     {
@@ -37,6 +39,7 @@ public class DashboardController : Controller
         _orderService = orderService;
         _favoriteService = favoriteService;
         _invoiceService = invoiceService;
+        _salesOrderService = salesOrderService;
         _context = context;
         _inventorySettings = inventoryOptions?.Value ?? new InventorySettings();
     }
@@ -987,56 +990,26 @@ public class DashboardController : Controller
         return RedirectToAction("Admin", new { section = "citas" });
     }
 
-    // ── GESTIÓN DE PEDIDOS DE VENTAS (INDEPENDIENTES) ──
+    // ── GESTIÓN DE PEDIDOS DE VENTAS (DELEGADO A ISalesOrderService) ──
     [HttpPost]
     [Authorize(Roles = "admin,ventas")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateSalesOrder(SalesOrder model)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
 
-        if (ModelState.IsValid)
+        try
         {
-            model.Total = model.Cantidad * model.PrecioUnitario;
-            if (model.Fecha == default) model.Fecha = DateTime.UtcNow;
-            model.Activo = true;
-            _context.SalesOrders.Add(model);
+            var responsable = User.Identity?.Name ?? $"Admin/Ventas ({model.ClienteNombre})";
+            var result = await _salesOrderService.CreateAsync(model, responsable);
 
-            // Registro automático en Historial de Movimientos (SALIDA)
-            var targetProduct = await _context.Products.FirstOrDefaultAsync(p => p.Nombre.ToLower() == model.ProductoNombre.ToLower() || p.Nombre.ToLower().Contains(model.ProductoNombre.ToLower()));
-            if (targetProduct == null)
-            {
-                targetProduct = await _context.Products.FirstOrDefaultAsync();
-            }
-            if (targetProduct != null)
-            {
-                targetProduct.Stock = Math.Max(0, targetProduct.Stock - model.Cantidad);
-                if (targetProduct.Stock == 0)
-                {
-                    targetProduct.Activo = false;
-                }
-                _context.Products.Update(targetProduct);
-
-                var movement = new InventoryMovement
-                {
-                    ProductId = targetProduct.Id,
-                    NombreProducto = targetProduct.Nombre,
-                    Tipo = "Salida",
-                    Cantidad = model.Cantidad,
-                    Fecha = DateTime.UtcNow,
-                    Responsable = User.Identity?.Name ?? $"Pedido Venta ({model.ClienteNombre})"
-                };
-                _context.InventoryMovements.Add(movement);
-            }
-
-            await _context.SaveChangesAsync();
-            if (isAjax) return Json(new { success = true, message = "Pedido de venta registrado correctamente.", data = model });
+            if (isAjax) return Json(new { success = true, message = "Pedido de venta registrado correctamente.", data = result });
             TempData["SuccessMessage"] = "Pedido de venta registrado correctamente.";
         }
-        else
+        catch (Exception ex)
         {
-            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Verifique los campos ingresados para el pedido de venta.";
-            if (isAjax) return Json(new { success = false, message = firstError });
-            TempData["ErrorMessage"] = firstError;
+            if (isAjax) return Json(new { success = false, message = ex.Message });
+            TempData["ErrorMessage"] = ex.Message;
         }
 
         if (User.IsInRole("ventas"))
@@ -1048,29 +1021,31 @@ public class DashboardController : Controller
 
     [HttpPost]
     [Authorize(Roles = "admin,ventas")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditSalesOrder(SalesOrder model)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
 
-        var existing = await _context.SalesOrders.FindAsync(model.Id);
-        if (existing != null)
+        try
         {
-            existing.NumeroPedido = model.NumeroPedido;
-            existing.ClienteNombre = model.ClienteNombre;
-            existing.ProductoNombre = model.ProductoNombre;
-            existing.Cantidad = model.Cantidad;
-            existing.PrecioUnitario = model.PrecioUnitario;
-            existing.Total = model.Cantidad * model.PrecioUnitario;
-            existing.Estado = model.Estado;
-            existing.Notas = model.Notas;
-            await _context.SaveChangesAsync();
-            if (isAjax) return Json(new { success = true, message = "Pedido de venta actualizado correctamente.", data = existing });
-            TempData["SuccessMessage"] = "Pedido de venta actualizado correctamente.";
+            var responsable = User.Identity?.Name ?? "Admin/Ventas";
+            var result = await _salesOrderService.EditAsync(model, responsable);
+
+            if (result != null)
+            {
+                if (isAjax) return Json(new { success = true, message = "Pedido de venta actualizado correctamente.", data = result });
+                TempData["SuccessMessage"] = "Pedido de venta actualizado correctamente.";
+            }
+            else
+            {
+                if (isAjax) return Json(new { success = false, message = "No se encontró el pedido de venta especificado." });
+                TempData["ErrorMessage"] = "No se encontró el pedido de venta especificado.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            if (isAjax) return Json(new { success = false, message = "No se encontró el pedido de venta especificado." });
-            TempData["ErrorMessage"] = "No se encontró el pedido de venta especificado.";
+            if (isAjax) return Json(new { success = false, message = ex.Message });
+            TempData["ErrorMessage"] = ex.Message;
         }
 
         if (User.IsInRole("ventas"))
@@ -1082,21 +1057,31 @@ public class DashboardController : Controller
 
     [HttpPost]
     [Authorize(Roles = "admin,ventas")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteSalesOrder(int id)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
 
-        var existing = await _context.SalesOrders.FindAsync(id);
-        if (existing != null)
+        try
         {
-            existing.Activo = false;
-            await _context.SaveChangesAsync();
-            if (isAjax) return Json(new { success = true, message = "Pedido de venta eliminado correctamente.", id });
-            TempData["SuccessMessage"] = "Pedido de venta eliminado correctamente.";
+            var responsable = User.Identity?.Name ?? "Admin/Ventas";
+            var success = await _salesOrderService.DeleteAsync(id, responsable);
+
+            if (success)
+            {
+                if (isAjax) return Json(new { success = true, message = "Pedido de venta eliminado correctamente.", id });
+                TempData["SuccessMessage"] = "Pedido de venta eliminado correctamente.";
+            }
+            else
+            {
+                if (isAjax) return Json(new { success = false, message = "No se encontró el pedido de venta especificado." });
+                TempData["ErrorMessage"] = "No se encontró el pedido de venta especificado.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            if (isAjax) return Json(new { success = false, message = "No se encontró el pedido de venta especificado." });
+            if (isAjax) return Json(new { success = false, message = ex.Message });
+            TempData["ErrorMessage"] = ex.Message;
         }
 
         if (User.IsInRole("ventas"))

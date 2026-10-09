@@ -11,6 +11,7 @@ public class TarjetaPagoDTO
     public string Cvv { get; set; } = string.Empty;
     public decimal Monto { get; set; }
     public string Responsable { get; set; } = "Ventas";
+    public string? ClaveIdempotencia { get; set; }
 }
 
 public class ResultadoTransaccionDTO

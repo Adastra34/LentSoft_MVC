@@ -167,4 +167,44 @@ dotnet LentSoft.Web.dll
 ### Módulo de Previsualización AR (Webcam & Face-Tracking)
 - El tracking facial opera **100% en el navegador del cliente** utilizando MediaPipe Vision WebAssembly y Canvas HTML5.
 - **Seguridad y Privacidad:** Las capturas y fotogramas de la cámara web **nunca** son transmitidos ni almacenados en los servidores de LentSoft.
-- **Rendimiento:** Cuenta con carga diferida (*lazy loading*), detección automática de dispositivos lentos con limitación a 24-30 FPS, suavizado de movimiento (*smoothing*) y detección de iluminación.
+- **Rendimiento:** Cuenta con carga diferida (*lazy loading*), detección automática de dispositivos lentos con limitación a 24-30 FPS, suavizado de movimiento (*smoothing*) y detección de iluminación.
+
+---
+
+## Módulo de Ventas — Mejoras de Calidad (ISO/IEC 25010)
+
+El módulo de ventas fue optimizado bajo el estándar internacional de calidad de software **ISO/IEC 25010**, cubriendo las siguientes dimensiones:
+
+### 1. Rendimiento y Eficiencia (Performance Efficiency)
+- **Paginación y Búsqueda en Servidor:** Las ventas (`Orders`), movimientos (`InventoryMovements`) y pedidos (`SalesOrders`) se consultan mediante `Skip()` y `Take()` directamente en el motor de base de datos.
+- **Proyección Eficiente y `AsNoTracking()`:** Las consultas de solo lectura liberan el rastreador de cambios (*ChangeTracker*).
+- **KPIs Agregados en Base de Datos:** Los totales acumulados y ticket promedio se calculan mediante `SumAsync()` y `CountAsync()` a nivel de base de datos SQL.
+- **Exportación en Streaming (CSV):** Endpoint `/Ventas/ExportarVentasCsv` que transmite los registros directamente en el flujo de respuesta HTTP sin sobrecargar memoria RAM.
+
+### 2. Fiabilidad e Integridad de Datos (Reliability & Functional Correctness)
+- **Transacciones Atómicas de Base de Datos:** `BeginTransactionAsync()` y `CommitAsync()` en `ISalesOrderService` y `IPagoVentaService` para garantizar consistencia transaccional (ACID).
+- **Integridad Referencial Real:** `SalesOrder.ProductoId` como Foreign Key real con restricción contra borrado accidental (`DeleteBehavior.Restrict`).
+- **Validación de Stock en Servidor:** Validación estricta que previene ventas con stock insuficiente y recalcula los precios desde el catálogo en backend.
+- **Control de Concurrencia Optimista:** Atributo `[Timestamp]` (`RowVersion`) en `Order` para evitar sobreescrituras concurrentes (*lost updates*).
+- **Auditoría de Operaciones:** Entidad `AuditoriaVenta` que registra automáticamente cambios de estado, creación de pedidos, abonos y cancelaciones con usuario y fecha UTC.
+
+### 3. Seguridad y Pagos (Security & Idempotency)
+- **Pasarela de Pago con Idempotencia:** `TransaccionPago.ClaveIdempotencia` indexada para evitar cobros duplicados en caso de reintentos de red o doble clic en frontend.
+- **Rate Limiting:** Política `tarjeta-pago` que restringe el número de intentos de cobro con tarjeta por ventana de tiempo.
+- **Validación de Algoritmo de Luhn:** Validación estricta de números de tarjeta de crédito/débito antes de enviar transacciones a la pasarela.
+- **Múltiples Pasarelas de Pago:** Soporte configurable en `appsettings.json` (`Pasarela:Proveedor`) entre `Simulada` y `WompiSandbox`.
+
+### 4. Portabilidad y Despliegue con Docker (Portability)
+El proyecto incluye soporte listo para ejecución en contenedores:
+
+```bash
+# Iniciar SQL Server y la aplicación web con un solo comando:
+docker-compose up -d --build
+
+# La aplicación estará disponible en:
+http://localhost:8080
+```
+
+### 5. API REST Móvil
+Controlador seguro `VentasApiController` (`/api/ventas`) con autenticación JWT para sincronización móvil y consultas de ventas y abonos.
+
