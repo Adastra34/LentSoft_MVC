@@ -12,6 +12,8 @@ LentSoft.Web/obj/
 
 # Databases
 *.db
+*.db-shm
+*.db-wal
 *.mdf
 *.ldf
 

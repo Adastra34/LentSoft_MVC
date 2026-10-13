@@ -31,6 +31,8 @@ public class ProductControllerTests
         public Task<List<Product>> FilterAsync(string? categoria, string? marca, string? rangoPrecio) => Task.FromResult(Products);
         public Task<List<string>> GetCategoriasAsync() => Task.FromResult(new List<string>());
         public Task<List<string>> GetMarcasAsync() => Task.FromResult(new List<string>());
+        public Task<string> GenerateNextSkuAsync() => Task.FromResult("1010");
+        public Task AsignarSkusConsecutivosFaltantesAsync() => Task.CompletedTask;
     }
 
     private class FakeFavoriteService : IFavoriteService

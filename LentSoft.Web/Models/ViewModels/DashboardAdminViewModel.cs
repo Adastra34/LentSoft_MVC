@@ -23,6 +23,10 @@ public class DashboardAdminViewModel
     public string? ProdSearchTerm { get; set; }
     public string? ProdEstado { get; set; }
     public string? ProdCategoria { get; set; }
+    public string? ProdProveedor { get; set; }
+    public bool ProdStockBajo { get; set; }
+    public string? ProdSortBy { get; set; }
+    public string ProdSortDir { get; set; } = "asc";
     public int ProdPage { get; set; } = 1;
     public int ProdPageSize { get; set; } = 20;
     public int ProdTotalCount { get; set; }
@@ -33,6 +37,10 @@ public class DashboardAdminViewModel
     public List<InventoryMovement> HistorialMovimientos { get; set; } = new();
     public string? MovSearchTerm { get; set; }
     public string? MovTipo { get; set; }
+    public int? MovProductId { get; set; }
+    public DateTime? MovFechaInicio { get; set; }
+    public DateTime? MovFechaFin { get; set; }
+    public string? MovMotivo { get; set; }
     public string MovSort { get; set; } = "desc";
     public int MovPage { get; set; } = 1;
     public int MovPageSize { get; set; } = 20;
@@ -50,6 +58,10 @@ public class DashboardAdminViewModel
     public int PedidosProvTotalPages => (int)Math.Ceiling((double)PedidosProvTotalCount / (PedidosProvPageSize > 0 ? PedidosProvPageSize : 20));
 
     // ── Inventario: Resumen ──
+    public decimal ValorTotalInventario { get; set; }
+    public int TotalProductosActivos { get; set; }
+    public int TotalPedidosPendientesProveedor { get; set; }
+    public List<Product> ProductosSinMovimiento60Dias { get; set; } = new();
     public List<ChartDataPoint> EvolucionVentas { get; set; } = new();
     public List<TopProductoVendidoViewModel> ProductosMasVendidos { get; set; } = new();
     public List<Product> ProductosAgotados { get; set; } = new();
@@ -136,6 +148,8 @@ public class ChartDataPoint
     public string Periodo { get; set; } = string.Empty;
     public decimal TotalVentas { get; set; }
     public int CantidadPedidos { get; set; }
+    public int EntradasStock { get; set; }
+    public int SalidasStock { get; set; }
 }
 
 public class TopProductoVendidoViewModel

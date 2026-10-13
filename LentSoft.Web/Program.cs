@@ -83,6 +83,7 @@ builder.Services.AddScoped<IFavoriteService, FavoriteService>();
 builder.Services.AddScoped<ICartService, CartService>();
 builder.Services.AddScoped<IInvoiceService, InvoiceService>();
 builder.Services.AddScoped<IPdfInvoiceService, PdfInvoiceService>();
+builder.Services.AddScoped<IPdfPurchaseOrderService, PdfPurchaseOrderService>();
 builder.Services.AddScoped<IPagoVentaService, PagoVentaService>();
 builder.Services.AddScoped<IPdfReciboService, PdfReciboService>();
 builder.Services.AddScoped<IPasarelaPagoService, PasarelaPagoService>();
@@ -184,6 +185,18 @@ if (app.Environment.IsDevelopment())
         if (db.Database.IsSqlite())
         {
             db.Database.EnsureCreated();
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN Sku TEXT NULL;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN CostoCompra TEXT NULL;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN StockMinimo INTEGER NOT NULL DEFAULT 10;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN Ubicacion TEXT NULL;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("CREATE UNIQUE INDEX IF NOT EXISTS IX_Products_Sku ON Products (Sku) WHERE Sku IS NOT NULL;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE InventoryMovements ADD COLUMN Motivo TEXT NOT NULL DEFAULT 'Otro';"); } catch { }
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE InventoryMovements ADD COLUMN Nota TEXT NULL;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE InventoryMovements ADD COLUMN StockResultante INTEGER NOT NULL DEFAULT 0;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE InventoryMovements ADD COLUMN Referencia TEXT NULL;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE Suppliers ADD COLUMN TiempoEntregaDias INTEGER NULL;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE Suppliers ADD COLUMN Direccion TEXT NULL;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE SupplierOrders ADD COLUMN CantidadRecibida INTEGER NOT NULL DEFAULT 0;"); } catch { }
         }
         else
         {

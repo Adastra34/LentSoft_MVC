@@ -1,0 +1,459 @@
+@model DashboardAdminViewModel
+
+@{
+    var currentSort = Model.MovSort?.ToLower() ?? "desc";
+
+    bool hasActiveMovFilters = !string.IsNullOrWhiteSpace(Model.MovSearchTerm)
+        || !string.IsNullOrWhiteSpace(Model.MovTipo)
+        || (Model.MovProductId.HasValue && Model.MovProductId.Value > 0)
+        || Model.MovFechaInicio.HasValue
+        || Model.MovFechaFin.HasValue
+        || !string.IsNullOrWhiteSpace(Model.MovMotivo);
+
+    string movQs = $"&movSearch={Uri.EscapeDataString(Model.MovSearchTerm ?? "")}&movTipo={Uri.EscapeDataString(Model.MovTipo ?? "")}&movProductId={Model.MovProductId}&movFechaInicio={Model.MovFechaInicio:yyyy-MM-dd}&movFechaFin={Model.MovFechaFin:yyyy-MM-dd}&movMotivo={Uri.EscapeDataString(Model.MovMotivo ?? "")}&movSort={currentSort}";
+}
+
+<div id="subtab-content-historial" style="display: @(Model.ActiveSubTab == "historial" ? "block" : "none");">
+    <div class="inv-card">
+        <!-- ── Barra de búsqueda y filtros avanzados de movimientos ── -->
+        <div class="inv-search-bar" style="flex-wrap: wrap; gap: 0.75rem;">
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; flex: 1;">
+                <!-- Buscador de Texto -->
+                <div class="inv-search-input-wrapper" style="min-width: 240px; flex: 1;">
+                    <span class="inv-search-icon">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </span>
+                    <input type="text" id="searchHistorial" placeholder="Buscar por producto, responsable, referencia..." value="@Model.MovSearchTerm" class="inv-search-input" onkeydown="if(event.key === 'Enter') submitMovFilters();" />
+                </div>
+
+                <button type="button" onclick="submitMovFilters()" class="inv-btn inv-btn-secondary" style="padding: 0.45rem 0.85rem; font-size: 0.85rem;" title="Buscar">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    Buscar
+                </button>
+
+                <!-- Filtro Tipo -->
+                <div style="position: relative;">
+                    <button type="button" onclick="toggleMenu('filter-menu-mov-tipo')" class="inv-filter-btn">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                        <span>Tipo: @(string.IsNullOrEmpty(Model.MovTipo) ? "Todos" : Model.MovTipo)</span>
+                        <svg class="inv-icon" style="width: 0.8em; height: 0.8em;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="filter-menu-mov-tipo" class="inv-dropdown-menu">
+                        <a href="javascript:void(0)" onclick="applyMovParam('movTipo', '')" class="inv-dropdown-item">Todos los tipos</a>
+                        <a href="javascript:void(0)" onclick="applyMovParam('movTipo', 'Entrada')" class="inv-dropdown-item">Entrada</a>
+                        <a href="javascript:void(0)" onclick="applyMovParam('movTipo', 'Salida')" class="inv-dropdown-item">Salida</a>
+                        <a href="javascript:void(0)" onclick="applyMovParam('movTipo', 'Alta')" class="inv-dropdown-item">Alta</a>
+                        <a href="javascript:void(0)" onclick="applyMovParam('movTipo', 'Baja')" class="inv-dropdown-item">Baja</a>
+                        <a href="javascript:void(0)" onclick="applyMovParam('movTipo', 'Edición')" class="inv-dropdown-item">Edición</a>
+                        <a href="javascript:void(0)" onclick="applyMovParam('movTipo', 'Reactivación')" class="inv-dropdown-item">Reactivación</a>
+                        <a href="javascript:void(0)" onclick="applyMovParam('movTipo', 'Ajuste')" class="inv-dropdown-item">Ajuste</a>
+                    </div>
+                </div>
+
+                <!-- Filtro Producto -->
+                <div style="position: relative;">
+                    <button type="button" onclick="toggleMenu('filter-menu-mov-producto')" class="inv-filter-btn">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                        @{
+                            var selProd = Model.TodosLosProductos.FirstOrDefault(p => p.Id == Model.MovProductId);
+                        }
+                        <span>Prod: @(selProd != null ? (selProd.Nombre.Length > 15 ? selProd.Nombre.Substring(0, 15) + "..." : selProd.Nombre) : "Todos")</span>
+                        <svg class="inv-icon" style="width: 0.8em; height: 0.8em;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="filter-menu-mov-producto" class="inv-dropdown-menu" style="max-height: 260px; overflow-y: auto; min-width: 220px;">
+                        <a href="javascript:void(0)" onclick="applyMovParam('movProductId', '')" class="inv-dropdown-item">Todos los productos</a>
+                        @foreach (var prod in Model.TodosLosProductos)
+                        {
+                            <a href="javascript:void(0)" onclick="applyMovParam('movProductId', '@prod.Id')" class="inv-dropdown-item">@prod.Nombre</a>
+                        }
+                    </div>
+                </div>
+
+                <!-- Filtro Rango de Fechas -->
+                <div style="display: flex; gap: 0.35rem; align-items: center; background: white; border: 1px solid var(--purple-200); border-radius: 0.375rem; padding: 0.2rem 0.5rem;">
+                    <span style="font-size: 0.75rem; color: var(--purple-800); font-weight: 600;">Desde:</span>
+                    <input type="date" id="movFechaInicio" value="@(Model.MovFechaInicio?.ToString("yyyy-MM-dd"))" onchange="applyMovParam('movFechaInicio', this.value)" style="border: none; font-size: 0.8rem; outline: none; background: transparent; color: var(--gray-700);" />
+                    <span style="font-size: 0.75rem; color: var(--purple-800); font-weight: 600;">Hasta:</span>
+                    <input type="date" id="movFechaFin" value="@(Model.MovFechaFin?.ToString("yyyy-MM-dd"))" onchange="applyMovParam('movFechaFin', this.value)" style="border: none; font-size: 0.8rem; outline: none; background: transparent; color: var(--gray-700);" />
+                </div>
+
+                @if (hasActiveMovFilters)
+                {
+                    <a href="?section=inventario&subtab=historial" class="inv-btn inv-btn-danger" style="padding: 0.45rem 0.75rem; font-size: 0.8rem; text-decoration: none;" title="Limpiar todos los filtros">
+                        ✕ Limpiar
+                    </a>
+                }
+            </div>
+
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <!-- Orden cronológico -->
+                <select onchange="applyMovParam('movSort', this.value)" class="inv-form-input" style="padding: 0.45rem 0.75rem; font-size: 0.85rem; width: auto; background: white;">
+                    <option value="desc" selected="@(currentSort == "desc")">Más recientes primero</option>
+                    <option value="asc" selected="@(currentSort == "asc")">Más antiguos primero</option>
+                </select>
+
+                <!-- Exportar TODOS los registros -->
+                <button type="button" onclick="exportAllMovimientosExcel()" class="inv-btn inv-btn-secondary" style="padding: 0.45rem 0.85rem; font-size: 0.85rem;" title="Exportar todos los registros filtrados a Excel">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Exportar Todo (Excel)
+                </button>
+
+                <!-- Botón Registrar Movimiento Manual -->
+                <button type="button" onclick="document.getElementById('modal-crear-movimiento').style.display='flex'" class="inv-btn inv-btn-primary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Nuevo Movimiento
+                </button>
+            </div>
+        </div>
+
+        <!-- ── Tabla de Historial / Kardex General ── -->
+        <div class="inv-table-wrapper inv-sticky-table">
+            @if (!Model.HistorialMovimientos.Any())
+            {
+                <div class="inv-empty-state">
+                    <div class="inv-empty-state-icon">
+                        <svg class="inv-icon" style="width: 28px; height: 28px;" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <div class="inv-empty-state-title">No hay movimientos registrados</div>
+                    <div class="inv-empty-state-desc">
+                        @(hasActiveMovFilters ? "No hay movimientos que coincidan con los filtros aplicados. Intenta restablecer los filtros." : "Los movimientos de inventario se registrarán automáticamente con cada compra, venta o ajuste.")
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; justify-content: center; align-items: center;">
+                        @if (hasActiveMovFilters)
+                        {
+                            <a href="?section=inventario&subtab=historial" class="inv-btn inv-btn-secondary">Restablecer Filtros</a>
+                        }
+                        <button type="button" class="inv-btn inv-btn-primary" onclick="document.getElementById('modal-crear-movimiento').style.display='flex'">
+                            <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Nuevo Movimiento
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <table id="tableHistorial" class="inv-table inv-table-responsive">
+                    <thead>
+                        <tr>
+                            <th style="width: 135px; text-align: center;">Fecha / Hora</th>
+                            <th>Producto</th>
+                            <th style="text-align: center; width: 130px;">Tipo</th>
+                            <th style="text-align: center; width: 90px;">Cantidad</th>
+                            <th style="text-align: center; width: 110px;">Stock Result.</th>
+                            <th style="text-align: center; width: 130px;">Motivo</th>
+                            <th style="text-align: center;">Responsable</th>
+                            <th style="text-align: center; width: 85px;">Kardex</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var mov in Model.HistorialMovimientos)
+                        {
+                            var tipoRaw = mov.Tipo?.Trim() ?? "";
+                            var tipoLower = tipoRaw.ToLowerInvariant();
+
+                            // Definición clara de chip e icono individual para CADA tipo
+                            string chipClass;
+                            string iconSvg;
+
+                            switch (tipoLower)
+                            {
+                                case "entrada":
+                                    chipClass = "inv-chip-success";
+                                    iconSvg = "<svg class='inv-icon' viewBox='0 0 24 24'><polyline points='12 5 19 12 12 19'/><line x1='19' y1='12' x2='5' y2='12'/></svg>";
+                                    break;
+                                case "salida":
+                                    chipClass = "inv-chip-error";
+                                    iconSvg = "<svg class='inv-icon' viewBox='0 0 24 24'><polyline points='12 19 5 12 12 5'/><line x1='5' y1='12' x2='19' y2='12'/></svg>";
+                                    break;
+                                case "alta":
+                                    chipClass = "inv-chip-info";
+                                    iconSvg = "<svg class='inv-icon' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10'/><line x1='12' y1='8' x2='12' y2='16'/><line x1='8' y1='12' x2='16' y2='12'/></svg>";
+                                    break;
+                                case "baja":
+                                    chipClass = "inv-chip-gray";
+                                    iconSvg = "<svg class='inv-icon' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10'/><line x1='4.93' y1='4.93' x2='19.07' y2='19.07'/></svg>";
+                                    break;
+                                case "reactivación":
+                                case "reactivacion":
+                                    chipClass = "inv-chip-purple";
+                                    iconSvg = "<svg class='inv-icon' viewBox='0 0 24 24'><polyline points='23 4 23 10 17 10'/><path d='M20.49 15a9 9 0 1 1-2.12-9.36L23 10'/></svg>";
+                                    break;
+                                case "edición":
+                                case "edicion":
+                                    chipClass = "inv-chip-gray";
+                                    iconSvg = "<svg class='inv-icon' viewBox='0 0 24 24'><path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'/><path d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z'/></svg>";
+                                    break;
+                                case "ajuste":
+                                    chipClass = "inv-chip-warning";
+                                    iconSvg = "<svg class='inv-icon' viewBox='0 0 24 24'><line x1='4' y1='21' x2='4' y2='14'/><line x1='4' y1='10' x2='4' y2='3'/><line x1='12' y1='21' x2='12' y2='12'/><line x1='12' y1='8' x2='12' y2='3'/><line x1='20' y1='21' x2='20' y2='16'/><line x1='20' y1='12' x2='20' y2='3'/><line x1='1' y1='14' x2='7' y2='14'/><line x1='9' y1='8' x2='15' y2='8'/><line x1='17' y1='16' x2='23' y2='16'/></svg>";
+                                    break;
+                                default:
+                                    chipClass = "inv-chip-gray";
+                                    iconSvg = "<svg class='inv-icon' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10'/></svg>";
+                                    break;
+                            }
+
+                            <tr>
+                                <td data-label="Fecha/Hora" style="text-align: center; color: var(--gray-700); font-size: 0.85rem;">
+                                    <strong>@mov.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</strong>
+                                    <div style="font-size: 0.75rem; color: var(--gray-500);">@mov.Fecha.ToLocalTime().ToString("HH:mm:ss")</div>
+                                </td>
+                                <td data-label="Producto">
+                                    <div style="display: flex; flex-direction: column;">
+                                        <a href="/Product/Details/@mov.ProductId" style="color: var(--purple-700); font-weight: 600; text-decoration: none;">
+                                            @(mov.NombreProducto ?? mov.Product?.Nombre ?? ("Producto #" + mov.ProductId))
+                                        </a>
+                                        <div style="display: flex; gap: 0.4rem; align-items: center; margin-top: 0.2rem;">
+                                            @if (mov.Product != null && !string.IsNullOrEmpty(mov.Product.Sku))
+                                            {
+                                                <code style="font-size: 0.75rem; background: var(--purple-50); padding: 0.1rem 0.3rem; border-radius: 0.2rem; color: var(--purple-800);">SKU: @mov.Product.Sku</code>
+                                            }
+                                            @if (!string.IsNullOrEmpty(mov.Referencia))
+                                            {
+                                                <span style="font-size: 0.75rem; color: var(--gray-500);">Ref: @mov.Referencia</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td data-label="Tipo" style="text-align: center;">
+                                    <span class="inv-chip @chipClass" style="gap: 0.3rem;">
+                                        @Html.Raw(iconSvg)
+                                        @mov.Tipo
+                                    </span>
+                                </td>
+                                <td data-label="Cantidad" style="text-align: center; font-weight: 700; font-size: 0.95rem;">
+                                    @if (tipoLower == "salida" || tipoLower == "baja")
+                                    {
+                                        <span style="color: var(--error);">-@mov.Cantidad</span>
+                                    }
+                                    else if (tipoLower == "entrada" || tipoLower == "alta")
+                                    {
+                                        <span style="color: var(--success);">+@mov.Cantidad</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: var(--purple-900);">@mov.Cantidad</span>
+                                    }
+                                </td>
+                                <td data-label="Stock Result." style="text-align: center;">
+                                    <span class="inv-chip inv-chip-purple" style="font-weight: 700;">
+                                        @mov.StockResultante unid.
+                                    </span>
+                                </td>
+                                <td data-label="Motivo" style="text-align: center;">
+                                    <span class="inv-chip inv-chip-gray" title="@(string.IsNullOrEmpty(mov.Nota) ? mov.Motivo : $"{mov.Motivo} - Nota: {mov.Nota}")">
+                                        @mov.Motivo
+                                    </span>
+                                    @if (!string.IsNullOrEmpty(mov.Nota))
+                                    {
+                                        <div style="font-size: 0.75rem; color: var(--gray-500); max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 0.2rem;" title="@mov.Nota">
+                                            💬 @mov.Nota
+                                        </div>
+                                    }
+                                </td>
+                                <td data-label="Responsable" style="text-align: center; font-size: 0.85rem; color: var(--gray-700);">
+                                    @(mov.Responsable ?? "Admin")
+                                </td>
+                                <td data-label="Kardex" style="text-align: center;">
+                                    <button type="button" class="inv-action-btn" title="Ver Kardex del producto" aria-label="Ver Kardex de @mov.NombreProducto" onclick="abrirModalKardex(@mov.ProductId)">
+                                        <svg class="inv-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        <!-- ── Paginación Servidor de Historial ── -->
+        @if (Model.MovTotalPages > 1)
+        {
+            <div class="inv-pagination">
+                <span class="inv-pagination-info">
+                    Página @Model.MovPage de @Model.MovTotalPages (Total: @Model.MovTotalCount movimientos)
+                </span>
+                <div class="inv-pagination-nav">
+                    @if (Model.MovPage > 1)
+                    {
+                        <a href="?section=inventario&subtab=historial&movPage=1@movQs" class="inv-pagination-btn" title="Primera página">&laquo;&laquo;</a>
+                        <a href="?section=inventario&subtab=historial&movPage=@(Model.MovPage - 1)@movQs" class="inv-pagination-btn" title="Página anterior">&laquo; Anterior</a>
+                    }
+                    else
+                    {
+                        <span class="inv-pagination-btn disabled">&laquo; Anterior</span>
+                    }
+
+                    @{
+                        int movStart = Math.Max(1, Model.MovPage - 2);
+                        int movEnd = Math.Min(Model.MovTotalPages, Model.MovPage + 2);
+                    }
+
+                    @for (int p = movStart; p <= movEnd; p++)
+                    {
+                        if (p == Model.MovPage)
+                        {
+                            <span class="inv-pagination-btn active">@p</span>
+                        }
+                        else
+                        {
+                            <a href="?section=inventario&subtab=historial&movPage=@p@movQs" class="inv-pagination-btn">@p</a>
+                        }
+                    }
+
+                    @if (Model.MovPage < Model.MovTotalPages)
+                    {
+                        <a href="?section=inventario&subtab=historial&movPage=@(Model.MovPage + 1)@movQs" class="inv-pagination-btn" title="Página siguiente">Siguiente &raquo;</a>
+                        <a href="?section=inventario&subtab=historial&movPage=@Model.MovTotalPages@movQs" class="inv-pagination-btn" title="Última página">&raquo;&raquo;</a>
+                    }
+                    else
+                    {
+                        <span class="inv-pagination-btn disabled">Siguiente &raquo;</span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    function submitMovFilters() {
+        const s = document.getElementById('searchHistorial')?.value || '';
+        applyMovParam('movSearch', s);
+    }
+
+    function applyMovParam(param, value) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('section', 'inventario');
+        url.searchParams.set('subtab', 'historial');
+        url.searchParams.set('movPage', '1');
+        if (value !== undefined && value !== null && value !== '') {
+            url.searchParams.set(param, value);
+        } else {
+            url.searchParams.delete(param);
+        }
+        window.location.href = url.toString();
+    }
+
+    // ── Exportar TODOS los registros filtrados a Excel ──
+    async function exportAllMovimientosExcel() {
+        if (typeof XLSX === 'undefined') {
+            showToast('Librería de exportación no cargada', 'error');
+            return;
+        }
+
+        showToast('Preparando exportación completa de movimientos...', 'info');
+
+        try {
+            const url = new URL(window.location.href);
+            const search = url.searchParams.get('movSearch') || '';
+            const tipo = url.searchParams.get('movTipo') || '';
+            const prodId = url.searchParams.get('movProductId') || '';
+            const fIni = url.searchParams.get('movFechaInicio') || '';
+            const fFin = url.searchParams.get('movFechaFin') || '';
+            const sort = url.searchParams.get('movSort') || 'desc';
+
+            const fetchUrl = `/InventoryMovement/ExportarExcelDatos?search=${encodeURIComponent(search)}&tipo=${encodeURIComponent(tipo)}&productId=${encodeURIComponent(prodId)}&fechaInicio=${encodeURIComponent(fIni)}&fechaFin=${encodeURIComponent(fFin)}&sort=${encodeURIComponent(sort)}`;
+            
+            const res = await fetch(fetchUrl);
+            const json = await res.json();
+
+            if (!json.success || !json.data || json.data.length === 0) {
+                showToast('No hay datos para exportar con los filtros seleccionados', 'warning');
+                return;
+            }
+
+            const excelRows = [
+                ['ID Mov', 'Fecha y Hora', 'Producto', 'SKU', 'Tipo', 'Cantidad', 'Stock Resultante', 'Motivo', 'Responsable', 'Referencia', 'Nota']
+            ];
+
+            json.data.forEach(m => {
+                excelRows.push([
+                    '#MOV-' + m.id,
+                    m.fecha,
+                    m.producto,
+                    m.sku,
+                    m.tipo,
+                    m.cantidad,
+                    m.stockResultante,
+                    m.motivo,
+                    m.responsable,
+                    m.referencia,
+                    m.nota
+                ]);
+            });
+
+            const ws = XLSX.utils.aoa_to_sheet(excelRows);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Historial_Movimientos");
+            XLSX.writeFile(wb, `LentSoft_Historial_Movimientos_${new Date().toISOString().slice(0, 10)}.xlsx`);
+            showToast(`Exportación completada con éxito (${json.data.length} movimientos).`, 'success');
+        } catch (e) {
+            showToast('Error al exportar los datos: ' + e.message, 'error');
+        }
+    }
+
+    // ── Abrir Modal Kardex de un Producto ──
+    async function abrirModalKardex(productId) {
+        const modal = document.getElementById('modal-kardex');
+        if (!modal) return;
+
+        modal.style.display = 'flex';
+        const loading = document.getElementById('kardex-loading');
+        const content = document.getElementById('kardex-content');
+        if (loading) loading.style.display = 'block';
+        if (content) content.style.display = 'none';
+
+        try {
+            const res = await fetch(`/InventoryMovement/KardexJson?productId=${productId}`);
+            const data = await res.json();
+
+            if (!data.success) {
+                showToast(data.message || 'No se pudo cargar el Kardex', 'error');
+                modal.style.display = 'none';
+                return;
+            }
+
+            // Datos del producto
+            const p = data.product;
+            document.getElementById('kardex-prod-nombre').textContent = p.nombre || 'Producto';
+            document.getElementById('kardex-prod-sku').textContent = p.sku ? 'SKU: ' + p.sku : 'Sin SKU';
+            document.getElementById('kardex-prod-stock').textContent = p.stock + ' unidades';
+            document.getElementById('kardex-prod-stockmin').textContent = p.stockMinimo + ' unidades';
+            document.getElementById('kardex-prod-precio').textContent = '$' + Number(p.precio).toLocaleString();
+            document.getElementById('kardex-prod-prov').textContent = p.proveedor || 'Sin proveedor';
+
+            // Tabla de movimientos
+            const tbody = document.getElementById('kardex-tbody');
+            if (tbody) {
+                tbody.innerHTML = '';
+                if (!data.movimientos || data.movimientos.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--gray-500); padding: 1.5rem;">No se registran movimientos para este producto.</td></tr>';
+                } else {
+                    data.movimientos.forEach(m => {
+                        const tr = document.createElement('tr');
+                        const isSalida = m.tipo.toLowerCase() === 'salida' || m.tipo.toLowerCase() === 'baja';
+                        const cantColor = isSalida ? 'var(--error)' : 'var(--success)';
+                        const cantSign = isSalida ? '-' : '+';
+                        tr.innerHTML = `
+                            <td style="font-size: 0.85rem; color: var(--gray-600);">${m.fecha}</td>
+                            <td><span class="inv-chip ${isSalida ? 'inv-chip-error' : 'inv-chip-success'}">${m.tipo}</span></td>
+                            <td style="font-weight: 600; color: ${cantColor}; text-align: center;">${cantSign}${m.cantidad}</td>
+                            <td style="font-weight: 700; color: var(--purple-900); text-align: center;">${m.stockResultante} unid.</td>
+                            <td><span class="inv-chip inv-chip-gray">${m.motivo || 'Otro'}</span></td>
+                            <td style="font-size: 0.85rem; color: var(--gray-600);">${m.responsable || 'Admin'}</td>
+                            <td style="font-size: 0.8rem; color: var(--gray-500);">${m.referencia ? 'Ref: ' + m.referencia + ' ' : ''}${m.nota ? '💬 ' + m.nota : ''}</td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            }
+
+            if (loading) loading.style.display = 'none';
+            if (content) content.style.display = 'block';
+        } catch (e) {
+            showToast('Error al obtener datos del Kardex', 'error');
+            modal.style.display = 'none';
+        }
+    }
+</script>

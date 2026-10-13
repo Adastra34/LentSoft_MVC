@@ -41,6 +41,11 @@ public class Order : IValidatableObject
     [NotMapped]
     public decimal SaldoPendiente => Math.Max(0m, Total - (Pagos != null && Pagos.Any() ? Pagos.Sum(p => p.Monto) : MontoPagado));
 
+    public int? FormulaOpticaId { get; set; }
+
+    [ForeignKey(nameof(FormulaOpticaId))]
+    public FormulaOptica? FormulaOptica { get; set; }
+
     // Navigation properties
     [ForeignKey(nameof(UserId))]
     public User User { get; set; } = null!;

@@ -16,6 +16,7 @@
         <form asp-controller="Order" asp-action="Create" method="post" onsubmit="return validateSaleForm()" style="padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem;">
             @Html.AntiForgeryToken()
             <input type="hidden" id="saleItemsJson" name="ItemsJson" value="[]" />
+            <input type="hidden" id="saleFormulaOpticaId" name="FormulaOpticaId" value="" />
 
             <!-- Sección 1: Datos del Cliente -->
             <div>
@@ -94,6 +95,42 @@
                     <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;" data-i18n="modal.sale.address">Dirección *</label>
                     <input id="saleDireccion" name="Direccion" type="text" required placeholder="Ej: Calle 123 # 45-67" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" />
                 </div>
+
+                <!-- Requisito 3: Panel de Fórmula Óptica de Solo Lectura -->
+                <div id="panelFormulaOptica" style="display: none; background: #FAF5FF; border: 1px solid #D8B4FE; border-radius: 0.5rem; padding: 0.85rem; margin-bottom: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="font-size: 0.82rem; font-weight: 700; color: #6B21A8; display: flex; align-items: center; gap: 0.35rem;">
+                            👁️ Fórmula Óptica Registrada por Optometría
+                        </span>
+                        <span id="formulaBadgeEstado" style="padding: 0.2rem 0.55rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 700;"></span>
+                    </div>
+                    <div id="formulaDetalleContenido" style="font-size: 0.8rem; color: #4B5563;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; margin-bottom: 0.5rem; background: white; padding: 0.5rem; border-radius: 0.375rem; border: 1px solid #E9D5FF;">
+                            <div>
+                                <strong style="color: #6B21A8; font-size: 0.75rem;">Ojo Derecho (OD):</strong><br />
+                                <span>Esf: <b id="formEsfOD">-</b> | Cil: <b id="formCilOD">-</b> | Eje: <b id="formEjeOD">-</b></span>
+                            </div>
+                            <div>
+                                <strong style="color: #6B21A8; font-size: 0.75rem;">Ojo Izquierdo (OI):</strong><br />
+                                <span>Esf: <b id="formEsfOI">-</b> | Cil: <b id="formCilOI">-</b> | Eje: <b id="formEjeOI">-</b></span>
+                            </div>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; font-size: 0.78rem;">
+                            <span>Tipo Recomendado: <strong id="formTipoLente" style="color: #581C87;">-</strong></span>
+                            <span>Dist. Pupilar: <strong id="formDistPupilar" style="color: #581C87;">-</strong></span>
+                            <span>Fecha Examen: <span id="formFechaExamen" style="color: #6B7280;">-</span></span>
+                        </div>
+                    </div>
+                    <div id="formulaSinRegistro" style="display: none; font-size: 0.78rem; color: #6B7280; font-style: italic;">
+                        El cliente no cuenta con una fórmula óptica registrada.
+                    </div>
+                </div>
+
+                <!-- Requisito 3: Alerta Visible para Lentes Graduados sin Fórmula Vigente (no bloqueante) -->
+                <div id="alertaFormulaOptica" style="display: none; background: #FFFBEB; border-left: 4px solid #F59E0B; border: 1px solid #FDE68A; padding: 0.65rem 0.85rem; border-radius: 0.375rem; margin-bottom: 0.75rem; font-size: 0.8rem; color: #92400E; align-items: center; gap: 0.5rem;">
+                    <span style="font-size: 1.1rem;">⚠️</span>
+                    <span><strong>Aviso al vendedor:</strong> Este cliente no tiene una fórmula óptica vigente registrada por el optómetra.</span>
+                </div>
             </div>
 
             <!-- Sección 2: Agregar Productos -->
@@ -101,6 +138,26 @@
                 <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
                     <span data-i18n="modal.sale.sec.products">👓 SELECCIONAR PRODUCTOS</span>
                 </div>
+                <!-- Filtro Inteligente Adaptado a la Fórmula Óptica -->
+                <div id="filtroFormulaContainer" style="display: none; margin-bottom: 0.65rem; background: linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%); border: 1px solid #D8B4FE; border-radius: 0.5rem; padding: 0.55rem 0.75rem; box-shadow: 0 1px 3px rgba(124, 58, 237, 0.08);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+                        <div style="display: flex; align-items: center; gap: 0.45rem;">
+                            <span style="font-size: 1.05rem; line-height: 1;">✨</span>
+                            <span style="font-size: 0.8rem; font-weight: 700; color: #581C87;">
+                                Catálogo adaptado a fórmula: <span id="filtroFormulaTipoNombre" style="color: #6B21A8; font-weight: 800; background: #EDE9FE; padding: 0.15rem 0.45rem; border-radius: 0.25rem;">-</span>
+                            </span>
+                        </div>
+                        <label style="display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; font-size: 0.78rem; font-weight: 700; color: #581C87; user-select: none; margin: 0;">
+                            <input type="checkbox" id="chkSoloCompatibles" checked onchange="toggleFiltroFormula(this.checked)" style="accent-color: #7C3AED; width: 16px; height: 16px; cursor: pointer;" />
+                            <span>Solo compatibles con fórmula</span>
+                        </label>
+                    </div>
+                    <div id="filtroFormulaInfoSub" style="font-size: 0.72rem; color: #7E22CE; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.35rem;">
+                        <span>💡</span>
+                        <span>Se filtran y organizan los productos según la prescripción clínica. Desmarca la casilla si deseas ver todo el inventario.</span>
+                    </div>
+                </div>
+
                 <div style="display: flex; gap: 0.5rem; align-items: flex-end; margin-bottom: 0.3rem;">
                     <div style="flex: 2;">
                         <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;" data-i18n="modal.sale.selectproduct">Producto</label>
@@ -111,7 +168,15 @@
                                 foreach (var prod in Model.Productos)
                                 {
                                     var precioFinal = prod.PrecioDescuento ?? prod.Precio;
-                                    <option value="@prod.Id" data-nombre="@prod.Nombre" data-precio="@precioFinal.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-iva="@prod.PorcentajeIva.ToString(System.Globalization.CultureInfo.InvariantCulture)" data-stock="@prod.Stock">@prod.Nombre (@precioFinal.ToString("C") - Stock: @prod.Stock)</option>
+                                    <option value="@prod.Id" 
+                                            data-nombre="@prod.Nombre" 
+                                            data-categoria="@prod.Categoria" 
+                                            data-descripcion="@(prod.Descripcion ?? "")"
+                                            data-proteccion="@(prod.Proteccion ?? "")"
+                                            data-material="@(prod.Material ?? "")"
+                                            data-precio="@precioFinal.ToString(System.Globalization.CultureInfo.InvariantCulture)" 
+                                            data-iva="@prod.PorcentajeIva.ToString(System.Globalization.CultureInfo.InvariantCulture)" 
+                                            data-stock="@prod.Stock">@prod.Nombre (@precioFinal.ToString("C") - Stock: @prod.Stock)</option>
                                 }
                             }
                         </select>
@@ -261,6 +326,7 @@
 
             const opt = prodSelect.options[prodSelect.selectedIndex];
             const nombre = opt.getAttribute('data-nombre');
+            const categoria = opt.getAttribute('data-categoria') || '';
             const precio = parseFloat(opt.getAttribute('data-precio') || '0');
             const iva = parseFloat(opt.getAttribute('data-iva') || '19');
 
@@ -271,6 +337,7 @@
                 saleItems.push({
                     productId: productId,
                     nombre: nombre,
+                    categoria: categoria,
                     cantidad: cantidad,
                     precioUnitario: precio,
                     ivaPercent: iva,
@@ -287,6 +354,7 @@
             qtyInput.removeAttribute('max');
 
             renderSaleItems();
+            evaluarAlertaLenteGraduado();
         } catch (err) {
             console.error(err);
             if (typeof alertify !== 'undefined') alertify.error('Error al validar el stock en el servidor.');
@@ -337,6 +405,7 @@
     function removeSaleItem(index) {
         saleItems.splice(index, 1);
         renderSaleItems();
+        evaluarAlertaLenteGraduado();
     }
 
     function renderSaleItems() {
@@ -409,6 +478,7 @@
             document.getElementById('saleTelefono').value = '';
             document.getElementById('saleDireccion').value = '';
             setCustomerFieldsReadOnly(false);
+            consultarFormulaCliente(null);
             return;
         }
 
@@ -428,6 +498,9 @@
 
         // Solo ver, no editar (Read-only)
         setCustomerFieldsReadOnly(true);
+
+        // Requisito 3: Consultar fórmula óptica vigente del cliente
+        consultarFormulaCliente(id);
     }
 
     function onClientSelectedByName(selectEl) {
@@ -456,4 +529,343 @@
         }
         return true;
     }
+
+    // ── Requisito 3: Funciones de Conectividad con Fórmula Óptica y Filtro Adaptativo ──
+    let currentClientFormula = null;
+    let allRawProducts = [];
+
+    function initProductosCache() {
+        if (allRawProducts.length > 0) return;
+        const prodSelect = document.getElementById('newSaleProdSelect');
+        if (!prodSelect) return;
+        
+        Array.from(prodSelect.querySelectorAll('option')).forEach(opt => {
+            if (!opt.value) return; // ignorar placeholder
+            allRawProducts.push({
+                value: opt.value,
+                nombre: opt.getAttribute('data-nombre') || opt.text,
+                categoria: (opt.getAttribute('data-categoria') || '').toLowerCase(),
+                descripcion: (opt.getAttribute('data-descripcion') || '').toLowerCase(),
+                proteccion: (opt.getAttribute('data-proteccion') || '').toLowerCase(),
+                material: (opt.getAttribute('data-material') || '').toLowerCase(),
+                precio: opt.getAttribute('data-precio') || '0',
+                iva: opt.getAttribute('data-iva') || '19',
+                stock: opt.getAttribute('data-stock') || '0',
+                rawText: opt.text
+            });
+        });
+    }
+
+    function isPrescriptionProduct(categoria, nombre) {
+        const text = ((categoria || '') + ' ' + (nombre || '')).toLowerCase();
+        return text.includes('lente') || text.includes('contacto') || text.includes('graduad') || text.includes('formulad') || text.includes('oftalmic') || text.includes('oftálmic');
+    }
+
+    function evaluarCompatibilidadProducto(prod, formula) {
+        if (!formula) return { compatible: true, esRecomendado: false, razon: '' };
+
+        const tipo = (formula.tipoLente || '').toLowerCase();
+        const obs = (formula.observaciones || '').toLowerCase();
+        const cat = prod.categoria;
+        const nom = prod.nombre.toLowerCase();
+        const desc = prod.descripcion;
+        const prot = prod.proteccion;
+        const fullText = `${cat} ${nom} ${desc} ${prot}`;
+
+        // Caso 1: Prescripción de Lentes de Contacto
+        const esFormulaContacto = tipo.includes('contacto');
+        if (esFormulaContacto) {
+            if (cat === 'lentes-contacto' || fullText.includes('contacto')) {
+                if (tipo.includes('blando') && fullText.includes('blando')) {
+                    return { compatible: true, esRecomendado: true, razon: 'Lente de contacto blando formulado' };
+                }
+                if (tipo.includes('rígido') && fullText.includes('rígido')) {
+                    return { compatible: true, esRecomendado: true, razon: 'Lente de contacto rígido formulado' };
+                }
+                return { compatible: true, esRecomendado: true, razon: 'Lente de contacto compatible' };
+            }
+            // Insumos y accesorios para lentes de contacto
+            if (fullText.includes('solución') || fullText.includes('solucion') || fullText.includes('líquido') || fullText.includes('gotas') || fullText.includes('limpiador')) {
+                return { compatible: true, esRecomendado: false, razon: 'Solución/Cuidado de lentes de contacto' };
+            }
+            return { compatible: false, esRecomendado: false, razon: '' };
+        }
+
+        // Caso 2: Prescripción de Lentes Oftálmicos (Monofocal, Bifocal, Progresivo, Graduado)
+        if (cat === 'lentes-graduados' || fullText.includes('graduad') || fullText.includes('oftalmic') || fullText.includes('oftálmic')) {
+            if (tipo.includes('progresivo') && (fullText.includes('progresiv') || fullText.includes('multifocal'))) {
+                return { compatible: true, esRecomendado: true, razon: 'Lente Progresivo sugerido' };
+            }
+            if (tipo.includes('bifocal') && fullText.includes('bifocal')) {
+                return { compatible: true, esRecomendado: true, razon: 'Lente Bifocal sugerido' };
+            }
+            if ((tipo.includes('antirreflejo') || obs.includes('antirreflejo')) && (fullText.includes('antirreflejo') || fullText.includes('ar'))) {
+                return { compatible: true, esRecomendado: true, razon: 'Tratamiento Antirreflejo formulado' };
+            }
+            if ((tipo.includes('azul') || tipo.includes('blue') || obs.includes('azul') || obs.includes('blue')) && (fullText.includes('azul') || fullText.includes('blue'))) {
+                return { compatible: true, esRecomendado: true, razon: 'Filtro Luz Azul formulado' };
+            }
+            if (tipo.includes('monofocal')) {
+                return { compatible: true, esRecomendado: true, razon: 'Lente Monofocal compatible' };
+            }
+            return { compatible: true, esRecomendado: true, razon: 'Lente Graduado compatible' };
+        }
+
+        // Monturas aptas para graduación
+        if (cat === 'monturas' || fullText.includes('montura') || fullText.includes('marco')) {
+            return { compatible: true, esRecomendado: false, razon: 'Montura apta para graduación' };
+        }
+
+        // Accesorios compatibles
+        if (cat === 'accesorios' && (fullText.includes('estuche') || fullText.includes('paño') || fullText.includes('limpiador') || fullText.includes('cordón') || fullText.includes('cordon'))) {
+            return { compatible: true, esRecomendado: false, razon: 'Accesorio compatible' };
+        }
+
+        // Lentes de sol formulables
+        if (cat === 'lentes-sol' && (fullText.includes('graduable') || fullText.includes('polarizado') || fullText.includes('uv'))) {
+            return { compatible: true, esRecomendado: false, razon: 'Gafa con protección' };
+        }
+
+        return { compatible: false, esRecomendado: false, razon: '' };
+    }
+
+    function crearOptionElement(p, esEstrella, tag) {
+        const opt = document.createElement('option');
+        opt.value = p.value;
+        opt.setAttribute('data-nombre', p.nombre);
+        opt.setAttribute('data-categoria', p.categoria);
+        opt.setAttribute('data-descripcion', p.descripcion);
+        opt.setAttribute('data-proteccion', p.proteccion);
+        opt.setAttribute('data-material', p.material);
+        opt.setAttribute('data-precio', p.precio);
+        opt.setAttribute('data-iva', p.iva);
+        opt.setAttribute('data-stock', p.stock);
+
+        const prefix = esEstrella ? '⭐ ' : '';
+        const suffix = tag ? ` [${tag}]` : '';
+        opt.textContent = `${prefix}${p.rawText}${suffix}`;
+        return opt;
+    }
+
+    function aplicarFiltroProductos(soloCompatibles) {
+        initProductosCache();
+        const select = document.getElementById('newSaleProdSelect');
+        if (!select || allRawProducts.length === 0) return;
+
+        const valorPrevio = select.value;
+        select.innerHTML = '';
+
+        const defaultOpt = document.createElement('option');
+        defaultOpt.value = '';
+        defaultOpt.textContent = '-- Seleccionar Producto --';
+        select.appendChild(defaultOpt);
+
+        const f = (currentClientFormula && currentClientFormula.encontrado && currentClientFormula.formula) ? currentClientFormula.formula : null;
+
+        if (!f) {
+            allRawProducts.forEach(p => {
+                select.appendChild(crearOptionElement(p, false, ''));
+            });
+            if (valorPrevio) select.value = valorPrevio;
+            return;
+        }
+
+        const evaluados = allRawProducts.map(p => {
+            const evalResult = evaluarCompatibilidadProducto(p, f);
+            return { product: p, ...evalResult };
+        });
+
+        const recomendados = evaluados.filter(e => e.esRecomendado);
+        const compatiblesOtros = evaluados.filter(e => e.compatible && !e.esRecomendado);
+        const noCompatibles = evaluados.filter(e => !e.compatible);
+
+        if (soloCompatibles) {
+            if (recomendados.length > 0) {
+                const grpRec = document.createElement('optgroup');
+                grpRec.label = `⭐ RECOMENDADOS SEGÚN FÓRMULA (${recomendados.length})`;
+                recomendados.forEach(e => grpRec.appendChild(crearOptionElement(e.product, true, e.razon)));
+                select.appendChild(grpRec);
+            }
+
+            if (compatiblesOtros.length > 0) {
+                const grpComp = document.createElement('optgroup');
+                grpComp.label = `👓 MONTURAS Y COMPONENTES COMPATIBLES (${compatiblesOtros.length})`;
+                compatiblesOtros.forEach(e => grpComp.appendChild(crearOptionElement(e.product, false, e.razon)));
+                select.appendChild(grpComp);
+            }
+
+            if (recomendados.length === 0 && compatiblesOtros.length === 0) {
+                const grpTodos = document.createElement('optgroup');
+                grpTodos.label = '📦 TODOS LOS PRODUCTOS (Sin coincidencias estrictas)';
+                allRawProducts.forEach(p => grpTodos.appendChild(crearOptionElement(p, false, '')));
+                select.appendChild(grpTodos);
+            }
+        } else {
+            if (recomendados.length > 0) {
+                const grpRec = document.createElement('optgroup');
+                grpRec.label = `⭐ RECOMENDADOS SEGÚN FÓRMULA (${recomendados.length})`;
+                recomendados.forEach(e => grpRec.appendChild(crearOptionElement(e.product, true, e.razon)));
+                select.appendChild(grpRec);
+            }
+
+            if (compatiblesOtros.length > 0) {
+                const grpComp = document.createElement('optgroup');
+                grpComp.label = `👓 MONTURAS Y COMPATIBLES (${compatiblesOtros.length})`;
+                compatiblesOtros.forEach(e => grpComp.appendChild(crearOptionElement(e.product, false, e.razon)));
+                select.appendChild(grpComp);
+            }
+
+            if (noCompatibles.length > 0) {
+                const grpOtros = document.createElement('optgroup');
+                grpOtros.label = `📦 OTROS PRODUCTOS DEL CATÁLOGO (${noCompatibles.length})`;
+                noCompatibles.forEach(e => grpOtros.appendChild(crearOptionElement(e.product, false, '')));
+                select.appendChild(grpOtros);
+            }
+        }
+
+        if (valorPrevio) {
+            select.value = valorPrevio;
+        }
+    }
+
+    function toggleFiltroFormula(checked) {
+        aplicarFiltroProductos(checked);
+        evaluarAlertaLenteGraduado();
+    }
+
+    async function consultarFormulaCliente(userId) {
+        initProductosCache();
+        const panel = document.getElementById('panelFormulaOptica');
+        const badge = document.getElementById('formulaBadgeEstado');
+        const contenido = document.getElementById('formulaDetalleContenido');
+        const sinReg = document.getElementById('formulaSinRegistro');
+        const hiddenId = document.getElementById('saleFormulaOpticaId');
+        const filtroContainer = document.getElementById('filtroFormulaContainer');
+        const filtroTipoNombre = document.getElementById('filtroFormulaTipoNombre');
+        const chkSolo = document.getElementById('chkSoloCompatibles');
+
+        if (!userId) {
+            currentClientFormula = null;
+            if (panel) panel.style.display = 'none';
+            if (hiddenId) hiddenId.value = '';
+            if (filtroContainer) filtroContainer.style.display = 'none';
+            aplicarFiltroProductos(false);
+            evaluarAlertaLenteGraduado();
+            return;
+        }
+
+        try {
+            const res = await fetch(`/Ventas/GetFormulaVigentePorCliente?userId=${encodeURIComponent(userId)}`);
+            if (!res.ok) throw new Error('Error al consultar fórmula');
+            const data = await res.json();
+            currentClientFormula = data;
+
+            if (panel) panel.style.display = 'block';
+
+            if (data.encontrado && data.formula) {
+                const f = data.formula;
+                if (hiddenId) hiddenId.value = data.esVigente ? f.id : '';
+
+                if (contenido) contenido.style.display = 'block';
+                if (sinReg) sinReg.style.display = 'none';
+
+                document.getElementById('formEsfOD').innerText = f.esferaOD || '-';
+                document.getElementById('formCilOD').innerText = f.cilindroOD || '-';
+                document.getElementById('formEjeOD').innerText = f.ejeOD || '-';
+
+                document.getElementById('formEsfOI').innerText = f.esferaOI || '-';
+                document.getElementById('formCilOI').innerText = f.cilindroOI || '-';
+                document.getElementById('formEjeOI').innerText = f.ejeOI || '-';
+
+                document.getElementById('formTipoLente').innerText = f.tipoLente || 'Estándar';
+                document.getElementById('formDistPupilar').innerText = f.distanciaPupilar || 'N/A';
+                document.getElementById('formFechaExamen').innerText = f.fechaFormato || f.fecha;
+
+                if (badge) {
+                    if (data.esVigente) {
+                        badge.innerText = 'VIGENTE';
+                        badge.style.backgroundColor = '#10B981';
+                        badge.style.color = 'white';
+                    } else {
+                        badge.innerText = 'VENCIDA';
+                        badge.style.backgroundColor = '#EF4444';
+                        badge.style.color = 'white';
+                    }
+                }
+
+                // Activar banner de catálogo adaptado a la fórmula
+                if (filtroContainer) filtroContainer.style.display = 'block';
+                if (filtroTipoNombre) filtroTipoNombre.innerText = f.tipoLente || 'Fórmula Registrada';
+                if (chkSolo) chkSolo.checked = true;
+
+                // Adaptar el selector de productos automáticamente
+                aplicarFiltroProductos(true);
+            } else {
+                if (hiddenId) hiddenId.value = '';
+                if (contenido) contenido.style.display = 'none';
+                if (sinReg) sinReg.style.display = 'block';
+                if (badge) {
+                    badge.innerText = 'SIN FÓRMULA';
+                    badge.style.backgroundColor = '#9CA3AF';
+                    badge.style.color = 'white';
+                }
+                if (filtroContainer) filtroContainer.style.display = 'none';
+                aplicarFiltroProductos(false);
+            }
+        } catch (e) {
+            console.warn('No se pudo cargar la fórmula óptica:', e);
+            currentClientFormula = null;
+            if (panel) panel.style.display = 'none';
+            if (filtroContainer) filtroContainer.style.display = 'none';
+            aplicarFiltroProductos(false);
+        }
+
+        evaluarAlertaLenteGraduado();
+    }
+
+    function evaluarAlertaLenteGraduado() {
+        const alerta = document.getElementById('alertaFormulaOptica');
+        if (!alerta) return;
+
+        // Determinar si el cliente seleccionado tiene fórmula vigente
+        const tieneFormulaVigente = currentClientFormula && currentClientFormula.encontrado && currentClientFormula.esVigente;
+
+        // Comprobar producto actualmente preseleccionado en el combo
+        const prodSelect = document.getElementById('newSaleProdSelect');
+        let hayProductoGraduado = false;
+
+        if (prodSelect && prodSelect.value) {
+            const opt = prodSelect.options[prodSelect.selectedIndex];
+            const cat = opt.getAttribute('data-categoria') || '';
+            const nom = opt.getAttribute('data-nombre') || '';
+            if (isPrescriptionProduct(cat, nom)) {
+                hayProductoGraduado = true;
+            }
+        }
+
+        // Comprobar productos ya agregados en la lista de venta
+        if (!hayProductoGraduado && typeof saleItems !== 'undefined') {
+            for (let item of saleItems) {
+                if (isPrescriptionProduct(item.categoria, item.nombre)) {
+                    hayProductoGraduado = true;
+                    break;
+                }
+            }
+        }
+
+        if (hayProductoGraduado && !tieneFormulaVigente) {
+            alerta.style.display = 'flex';
+        } else {
+            alerta.style.display = 'none';
+        }
+    }
+
+    // Escuchar eventos en la selección de producto y precargar catálogo
+    document.addEventListener('DOMContentLoaded', () => {
+        initProductosCache();
+        const prodSelect = document.getElementById('newSaleProdSelect');
+        if (prodSelect) {
+            prodSelect.addEventListener('change', evaluarAlertaLenteGraduado);
+        }
+    });
 </script>

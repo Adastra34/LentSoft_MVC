@@ -17,4 +17,6 @@ public interface IProductService
     Task<List<Product>> GetBestSellersAsync(int count = 3);
     Task<List<Product>> GetFeaturedAsync();
     Task<List<Product>> GetGafasAsync();
+    Task<string> GenerateNextSkuAsync();
+    Task AsignarSkusConsecutivosFaltantesAsync();
 }

@@ -44,6 +44,11 @@ public class Supplier
     [StringLength(500)]
     public string? LogoUrl { get; set; }
 
+    [StringLength(200)]
+    public string? Direccion { get; set; }
+
+    public int? TiempoEntregaDias { get; set; }
+
     public bool Activo { get; set; } = true;
 
     public string Estado

@@ -77,6 +77,8 @@ public class SupplierController : Controller
             supplier.Contacto = supplier.Contacto?.Trim();
             if (string.IsNullOrWhiteSpace(supplier.TipoProductos) && !string.IsNullOrWhiteSpace(supplier.TipoProducto)) supplier.TipoProductos = supplier.TipoProducto;
             if (string.IsNullOrWhiteSpace(supplier.Correo) && !string.IsNullOrWhiteSpace(supplier.Email)) supplier.Correo = supplier.Email;
+            supplier.Direccion = supplier.Direccion?.Trim();
+            supplier.TiempoEntregaDias = supplier.TiempoEntregaDias;
             supplier.LogoUrl = supplier.LogoUrl?.Trim();
             supplier.FechaRegistro = DateTime.UtcNow;
             supplier.Activo = true;
@@ -151,6 +153,8 @@ public class SupplierController : Controller
             existing.TipoProductos = (string.IsNullOrWhiteSpace(supplier.TipoProductos) ? supplier.TipoProducto : supplier.TipoProductos)?.Trim() ?? string.Empty;
             existing.Telefono = supplier.Telefono.Trim();
             existing.Correo = (string.IsNullOrWhiteSpace(supplier.Correo) ? supplier.Email : supplier.Correo)?.Trim().ToLower() ?? string.Empty;
+            existing.Direccion = supplier.Direccion?.Trim();
+            existing.TiempoEntregaDias = supplier.TiempoEntregaDias;
             existing.LogoUrl = supplier.LogoUrl?.Trim();
 
             await _context.SaveChangesAsync();
@@ -230,5 +234,65 @@ public class SupplierController : Controller
         {
             return Json(new { success = false, message = $"Error al actualizar estado: {ex.Message}" });
         }
+    }
+
+    /// <summary>
+    /// GET /Supplier/FichaProveedor?id={id}
+    /// Returns complete supplier file with supplied products and orders history
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> FichaProveedor(string id)
+    {
+        var supplier = await _context.Suppliers.FindAsync(id);
+        if (supplier == null) return Json(new { success = false, message = "Proveedor no encontrado." });
+
+        var productos = await _context.Products
+            .Where(p => p.SupplierId == id)
+            .OrderBy(p => p.Nombre)
+            .Select(p => new {
+                p.Id,
+                p.Nombre,
+                p.Sku,
+                p.Categoria,
+                p.Precio,
+                p.Stock,
+                p.Activo,
+                p.ImagenUrl
+            })
+            .ToListAsync();
+
+        var pedidos = await _context.SupplierOrders
+            .Where(o => o.SupplierId == id && o.Activo)
+            .Include(o => o.Product)
+            .OrderByDescending(o => o.Fecha)
+            .Select(o => new {
+                o.Id,
+                o.NumeroPedido,
+                Fecha = o.Fecha.ToString("yyyy-MM-dd HH:mm"),
+                Producto = o.Product != null ? o.Product.Nombre : "Producto #" + o.ProductId,
+                o.Cantidad,
+                o.CantidadRecibida,
+                o.Total,
+                o.Estado
+            })
+            .ToListAsync();
+
+        return Json(new {
+            success = true,
+            supplier = new {
+                supplier.Id,
+                supplier.Nombre,
+                supplier.Contacto,
+                supplier.TipoProductos,
+                supplier.Telefono,
+                supplier.Correo,
+                supplier.Direccion,
+                supplier.TiempoEntregaDias,
+                supplier.LogoUrl,
+                supplier.Activo
+            },
+            productos,
+            pedidos
+        });
     }
 }

@@ -9,7 +9,7 @@ using LentSoft.Web.Services;
 
 namespace LentSoft.Web.Controllers;
 
-[Authorize(Roles = "ventas")]
+[Authorize(Roles = "ventas,admin")]
 public class VentasController : Controller
 {
     private readonly LentSoftDbContext _context;
@@ -85,6 +85,7 @@ public class VentasController : Controller
             .Include(o => o.OrderItems).ThenInclude(oi => oi.Product)
             .Include(o => o.Pagos)
             .Include(o => o.Transacciones)
+            .Include(o => o.FormulaOptica)
             .AsQueryable();
 
         if (desde.HasValue)
@@ -286,6 +287,75 @@ public class VentasController : Controller
         return RedirectToAction("Index", new { section = "ventas" });
     }
 
+    // ── Endpoints Integración Fórmula Óptica - Ventas ──
+    [HttpGet]
+    public async Task<IActionResult> GetFormulasPorPaciente(int userId)
+    {
+        var formulas = await _context.FormulasOpticas
+            .Where(f => f.UserId == userId && f.Activo)
+            .OrderByDescending(f => f.Fecha)
+            .ToListAsync();
+
+        var result = formulas.Select(f => new
+        {
+            id = f.Id,
+            fecha = f.Fecha.ToString("dd/MM/yyyy"),
+            tipoLente = f.TipoLente,
+            estado = f.Estado
+        });
+
+        return Json(result);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> VincularFormula(int orderId, int? formulaOpticaId)
+    {
+        try
+        {
+            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
+            if (order == null)
+            {
+                TempData["ErrorMessage"] = "Pedido no encontrado.";
+                return RedirectToAction("Index", new { section = "ventas" });
+            }
+
+            if (formulaOpticaId.HasValue && formulaOpticaId.Value > 0)
+            {
+                var formula = await _context.FormulasOpticas
+                    .FirstOrDefaultAsync(f => f.Id == formulaOpticaId.Value && f.Activo);
+
+                if (formula == null)
+                {
+                    TempData["ErrorMessage"] = "La fórmula óptica seleccionada no existe o está inactiva.";
+                    return RedirectToAction("Index", new { section = "ventas" });
+                }
+
+                if (formula.UserId != order.UserId)
+                {
+                    TempData["ErrorMessage"] = "La fórmula óptica no pertenece al paciente de este pedido.";
+                    return RedirectToAction("Index", new { section = "ventas" });
+                }
+
+                order.FormulaOpticaId = formulaOpticaId.Value;
+                TempData["SuccessMessage"] = $"Fórmula óptica #{formula.Id} vinculada correctamente al pedido #ORD-{order.Id:D4}.";
+            }
+            else
+            {
+                order.FormulaOpticaId = null;
+                TempData["SuccessMessage"] = $"Fórmula óptica desvinculada del pedido #ORD-{order.Id:D4}.";
+            }
+
+            await _context.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            TempData["ErrorMessage"] = $"Error al vincular fórmula óptica: {ex.Message}";
+        }
+
+        return RedirectToAction("Index", new { section = "ventas" });
+    }
+
     [HttpGet]
     [AllowAnonymous]
     public async Task<IActionResult> ConfirmarCompra(string token)
@@ -322,5 +392,46 @@ public class VentasController : Controller
         viewModel.IsValid = true;
         viewModel.Order = order;
         return View("~/Views/Ventas/ConfirmarCompra.cshtml", viewModel);
+    }
+
+    /// <summary>
+    /// Requisito 3: Consulta de solo lectura de fórmula óptica vigente por cliente para el módulo de ventas
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> GetFormulaVigentePorCliente(int userId)
+    {
+        var formula = await _context.FormulasOpticas
+            .Where(f => f.UserId == userId && f.Activo)
+            .OrderByDescending(f => f.Fecha)
+            .FirstOrDefaultAsync();
+
+        if (formula == null)
+        {
+            return Json(new { encontrado = false, message = "El cliente no tiene fórmulas ópticas registradas." });
+        }
+
+        bool esVigente = formula.Fecha.AddMonths(12).Date >= DateTime.UtcNow.Date;
+
+        return Json(new
+        {
+            encontrado = true,
+            esVigente = esVigente,
+            formula = new
+            {
+                id = formula.Id,
+                fecha = formula.Fecha.ToString("yyyy-MM-dd"),
+                fechaFormato = formula.Fecha.ToString("dd/MM/yyyy"),
+                esferaOD = formula.EsferaOD ?? "",
+                cilindroOD = formula.CilindroOD ?? "",
+                ejeOD = formula.EjeOD ?? "",
+                esferaOI = formula.EsferaOI ?? "",
+                cilindroOI = formula.CilindroOI ?? "",
+                ejeOI = formula.EjeOI ?? "",
+                tipoLente = formula.TipoLente ?? "",
+                distanciaPupilar = formula.DistanciaPupilar ?? "",
+                observaciones = formula.Observaciones ?? "",
+                estado = formula.Estado
+            }
+        });
     }
 }
