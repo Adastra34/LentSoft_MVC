@@ -27,4 +27,15 @@ public class InventoryMovement
 
     [StringLength(100)]
     public string? Responsable { get; set; }
+
+    [StringLength(100)]
+    public string Motivo { get; set; } = "Otro";
+
+    [StringLength(300)]
+    public string? Nota { get; set; }
+
+    public int StockResultante { get; set; }
+
+    [StringLength(100)]
+    public string? Referencia { get; set; }
 }

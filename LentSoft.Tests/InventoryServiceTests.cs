@@ -274,4 +274,77 @@ public class InventoryServiceTests : IDisposable
 
         Assert.Equal("El producto fue modificado por otro usuario, vuelve a intentarlo.", ex.Message);
     }
+
+    [Fact]
+    public async Task ProcesarRecepcionParcialPedidoProveedor_ActualizaCantidadYEstadoCorrectamente()
+    {
+        // Arrange
+        var supplier = new Supplier
+        {
+            Id = "PROV-PARCIAL-1",
+            Nombre = "Distribuidor Parcial SAS",
+            TipoProductos = "Lentes",
+            Telefono = "3119876543",
+            Correo = "parcial@distribuidor.com",
+            Activo = true
+        };
+        _context.Suppliers.Add(supplier);
+
+        var product = new Product
+        {
+            Nombre = "Lente Parcial",
+            Precio = 100000m,
+            Stock = 5,
+            Activo = true,
+            SupplierId = supplier.Id
+        };
+        _context.Products.Add(product);
+        await _context.SaveChangesAsync();
+
+        var order = new SupplierOrder
+        {
+            NumeroPedido = "PED-PARCIAL-001",
+            SupplierId = supplier.Id,
+            ProductId = product.Id,
+            Cantidad = 15,
+            CantidadRecibida = 0,
+            PrecioUnitario = 50000m,
+            Total = 750000m,
+            Estado = InventoryConstants.SupplierOrderStates.Pendiente,
+            Activo = true,
+            Fecha = DateTime.UtcNow
+        };
+        _context.SupplierOrders.Add(order);
+        await _context.SaveChangesAsync();
+
+        // Act 1: Recibir 6 unidades de 15
+        var partialOrder = await _inventoryService.ProcesarRecepcionParcialPedidoProveedorAsync(order.Id, 6);
+
+        // Assert 1: Estado parcial, cantidadRecibida = 6, stock = 5 + 6 = 11
+        Assert.Equal(InventoryConstants.SupplierOrderStates.Parcial, partialOrder.Estado);
+        Assert.Equal(6, partialOrder.CantidadRecibida);
+        var productDb1 = await _context.Products.FindAsync(product.Id);
+        Assert.NotNull(productDb1);
+        Assert.Equal(11, productDb1.Stock);
+
+        // Act 2: Intentar recibir 10 (pendiente es 9) -> Debe fallar
+        var exExcess = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _inventoryService.ProcesarRecepcionParcialPedidoProveedorAsync(order.Id, 10));
+        Assert.Contains("supera la cantidad pendiente", exExcess.Message);
+
+        // Act 3: Recibir las 9 restantes
+        var completedOrder = await _inventoryService.ProcesarRecepcionParcialPedidoProveedorAsync(order.Id, 9);
+
+        // Assert 3: Estado recibido, cantidadRecibida = 15, stock = 11 + 9 = 20
+        Assert.Equal(InventoryConstants.SupplierOrderStates.Recibido, completedOrder.Estado);
+        Assert.Equal(15, completedOrder.CantidadRecibida);
+        var productDb2 = await _context.Products.FindAsync(product.Id);
+        Assert.NotNull(productDb2);
+        Assert.Equal(20, productDb2.Stock);
+
+        // Act 4: Intentar recibir más cuando ya está completado -> Debe fallar
+        var exCompleted = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _inventoryService.ProcesarRecepcionParcialPedidoProveedorAsync(order.Id, 1));
+        Assert.Contains("ya fue completado previamente", exCompleted.Message);
+    }
 }

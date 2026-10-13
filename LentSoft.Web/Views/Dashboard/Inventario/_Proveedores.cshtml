@@ -1,0 +1,137 @@
+@model DashboardAdminViewModel
+
+<div id="subtab-content-proveedores" style="display: @(Model.ActiveSubTab == "proveedores" ? "block" : "none");">
+    <div class="inv-card">
+        <!-- Barra de búsqueda y filtros -->
+        <div class="inv-search-bar">
+            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; flex: 1;">
+                <div class="inv-search-input-wrapper">
+                    <span class="inv-search-icon">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </span>
+                    <input type="text" id="searchProveedores" placeholder="Buscar por empresa, contacto..." data-i18n-placeholder="admin.inv.searchsupplier" class="inv-search-input" onkeyup="filterTable('searchProveedores', 'tableProveedores')" oninput="filterTable('searchProveedores', 'tableProveedores')" />
+                </div>
+                <div style="position: relative;">
+                    <button type="button" onclick="toggleFilterMenu('proveedores')" class="inv-filter-btn">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                        <span>Estado</span>
+                        <svg class="inv-icon" style="width: 0.8em; height: 0.8em;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="filter-menu-proveedores" class="inv-dropdown-menu">
+                        <a href="javascript:void(0)" onclick="filterTableByValue('searchProveedores', 'tableProveedores', '')" class="inv-dropdown-item">Todos</a>
+                        <a href="javascript:void(0)" onclick="filterTableByValue('searchProveedores', 'tableProveedores', 'Activo')" class="inv-dropdown-item">Activos</a>
+                        <a href="javascript:void(0)" onclick="filterTableByValue('searchProveedores', 'tableProveedores', 'Inactivo')" class="inv-dropdown-item">Inactivos</a>
+                    </div>
+                </div>
+                <div style="position: relative;">
+                    <button type="button" onclick="toggleCategoryMenu('proveedores')" class="inv-filter-btn">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                        <span>Categorías</span>
+                        <svg class="inv-icon" style="width: 0.8em; height: 0.8em;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="category-menu-proveedores" class="inv-dropdown-menu">
+                        <a href="javascript:void(0)" onclick="filterTableByValue('searchProveedores', 'tableProveedores', '')" class="inv-dropdown-item">Todos los tipos</a>
+                        <a href="javascript:void(0)" onclick="filterTableByValue('searchProveedores', 'tableProveedores', 'Monturas')" class="inv-dropdown-item">Monturas</a>
+                        <a href="javascript:void(0)" onclick="filterTableByValue('searchProveedores', 'tableProveedores', 'Lentes')" class="inv-dropdown-item">Lentes</a>
+                        <a href="javascript:void(0)" onclick="filterTableByValue('searchProveedores', 'tableProveedores', 'Accesorios')" class="inv-dropdown-item">Accesorios</a>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <button type="button" class="inv-btn inv-btn-success" onclick="document.getElementById('modal-crear-proveedor').showModal ? document.getElementById('modal-crear-proveedor').showModal() : (document.getElementById('modal-crear-proveedor').style.display='flex')" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;" data-i18n="admin.inv.newsupplier">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Nuevo Proveedor
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabla de proveedores -->
+        <div class="inv-table-wrapper">
+            @if (!Model.Proveedores.Any())
+            {
+                <div class="inv-empty-state">
+                    <div class="inv-empty-state-icon">
+                        <svg class="inv-icon" style="width: 28px; height: 28px;" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                    </div>
+                    <div class="inv-empty-state-title">No hay proveedores registrados</div>
+                    <div class="inv-empty-state-desc">Comienza registrando a tus empresas proveedoras de armazones, lentes y accesorios.</div>
+                    <button type="button" class="inv-btn inv-btn-primary" onclick="document.getElementById('modal-crear-proveedor').showModal ? document.getElementById('modal-crear-proveedor').showModal() : (document.getElementById('modal-crear-proveedor').style.display='flex')">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Registrar Proveedor
+                    </button>
+                </div>
+            }
+            else
+            {
+                <table id="tableProveedores" class="inv-table inv-table-responsive">
+                    <thead>
+                        <tr>
+                            <th style="width: 70px;">ID</th>
+                            <th style="width: 50px; text-align: center;">Logo</th>
+                            <th data-i18n="admin.inv.company">Empresa</th>
+                            <th>Contacto</th>
+                            <th style="text-align: center;" data-i18n="admin.inv.producttype">Tipo Productos</th>
+                            <th style="text-align: center;" data-i18n="admin.inv.phone">Teléfono</th>
+                            <th>Email</th>
+                            <th style="text-align: center;">Entrega</th>
+                            <th style="text-align: center;">Estado</th>
+                            <th style="text-align: center; width: 130px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var prov in Model.Proveedores)
+                        {
+                            <tr>
+                                <td data-label="ID" style="color: var(--gray-500); font-weight: 600;">@prov.Id</td>
+                                <td data-label="Logo" style="text-align: center;">
+                                    @if (!string.IsNullOrEmpty(prov.LogoUrl))
+                                    {
+                                        <img src="@prov.LogoUrl" alt="@prov.Nombre" style="width: 32px; height: 32px; object-fit: cover; border-radius: 50%; border: 1px solid var(--purple-200); display: inline-block;" />
+                                    }
+                                    else
+                                    {
+                                        <div style="width: 32px; height: 32px; background: var(--purple-100); color: var(--purple-700); border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem;">
+                                            <svg class="inv-icon" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                                        </div>
+                                    }
+                                </td>
+                                <td data-label="Empresa" style="font-weight: 600; color: var(--purple-900);">@prov.Nombre</td>
+                                <td data-label="Contacto">@(prov.Contacto ?? "N/A")</td>
+                                <td data-label="Tipo" style="text-align: center;">
+                                    <span class="inv-chip inv-chip-purple">@prov.TipoProductos</span>
+                                </td>
+                                <td data-label="Teléfono" style="text-align: center; color: var(--gray-700);">@prov.Telefono</td>
+                                <td data-label="Email" style="color: var(--gray-700);">@prov.Correo</td>
+                                <td data-label="Entrega" style="text-align: center; font-size: 0.85rem; color: var(--gray-700);">
+                                    @(prov.TiempoEntregaDias != null ? $"{prov.TiempoEntregaDias} d" : "-")
+                                </td>
+                                <td data-label="Estado" style="text-align: center;">
+                                    <button type="button" onclick="toggleSupplierStatus('@prov.Id', this)" class="inv-chip inv-chip-btn @(prov.Activo ? "inv-chip-success" : "inv-chip-gray")" data-i18n="@(prov.Activo ? "admin.inv.active" : "admin.inv.inactive")" title="Cambiar estado">
+                                        @(prov.Activo ? "Activo" : "Inactivo")
+                                    </button>
+                                </td>
+                                <td data-label="Acciones" style="text-align: center;">
+                                    <div style="display: flex; gap: 0.35rem; justify-content: center; align-items: center;">
+                                        <button type="button" class="inv-btn-icon inv-btn-icon-kardex" onclick="abrirFichaProveedor('@prov.Id')" aria-label="Ver ficha técnica" title="Ver ficha completa, catálogo y pedidos">
+                                            <svg class="inv-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                        </button>
+                                        <button type="button" class="inv-btn-icon inv-btn-icon-edit btn-edit-supplier" aria-label="Editar proveedor" title="Editar proveedor"
+                                            data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = prov.Id, nombre = prov.Nombre, contacto = prov.Contacto ?? "", tipoProductos = prov.TipoProductos, telefono = prov.Telefono, correo = prov.Correo, logoUrl = prov.LogoUrl ?? "", direccion = prov.Direccion ?? "", tiempoEntregaDias = prov.TiempoEntregaDias }))'>
+                                            <svg class="inv-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        </button>
+                                        <form asp-controller="Supplier" asp-action="Delete" asp-route-id="@prov.Id" method="post" style="display:inline; margin: 0;" class="form-delete-supplier" data-nombre="@prov.Nombre">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="inv-btn-icon inv-btn-icon-delete" aria-label="Eliminar proveedor" title="Eliminar proveedor">
+                                                <svg class="inv-icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+</div>

@@ -26,6 +26,8 @@ public class SupplierOrder
     [Range(1, int.MaxValue, ErrorMessage = "La cantidad debe ser al menos 1")]
     public int Cantidad { get; set; } = 1;
 
+    public int CantidadRecibida { get; set; } = 0;
+
     [Required]
     [Range(0, double.MaxValue, ErrorMessage = "El precio unitario no puede ser negativo")]
     [Column(TypeName = "decimal(10,2)")]

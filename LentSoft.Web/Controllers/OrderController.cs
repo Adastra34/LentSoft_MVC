@@ -162,8 +162,9 @@ public class OrderController : Controller
                         var product = await _inventoryService.DisminuirStockAsync(
                             item.ProductId, 
                             qty, 
-                            InventoryConstants.MovementTypes.Salida, 
-                            responsableVenta);
+                            InventoryConstants.MovementMotives.Venta, 
+                            responsableVenta,
+                            $"Venta a cliente {existingUser.Nombre}");
 
                         var precioUnit = product.PrecioDescuento ?? product.Precio;
                         var itemSubtotal = precioUnit * qty;

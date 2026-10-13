@@ -113,6 +113,25 @@ public class ProductService : IProductService
             product.Activo = false;
         }
 
+        if (product.StockMinimo <= 0)
+        {
+            product.StockMinimo = _inventorySettings.LowStockThreshold > 0 ? _inventorySettings.LowStockThreshold : 10;
+        }
+
+        if (string.IsNullOrWhiteSpace(product.Sku))
+        {
+            product.Sku = await GenerateNextSkuAsync();
+        }
+        else
+        {
+            product.Sku = product.Sku.Trim();
+            var skuExists = await _context.Products.AnyAsync(p => p.Sku == product.Sku);
+            if (skuExists)
+            {
+                throw new InvalidOperationException($"El SKU '{product.Sku}' ya está registrado en otro producto.");
+            }
+        }
+
         product.FechaCreacion = DateTime.UtcNow;
         _context.Products.Add(product);
 
@@ -130,7 +149,11 @@ public class ProductService : IProductService
                 Tipo = InventoryConstants.MovementTypes.Alta,
                 Cantidad = product.Stock > 0 ? product.Stock : 1,
                 Fecha = DateTime.UtcNow,
-                Responsable = responsable
+                Responsable = responsable,
+                Motivo = InventoryConstants.MovementMotives.Compra,
+                StockResultante = product.Stock,
+                Nota = "Alta de nuevo producto en el catálogo",
+                Referencia = product.Sku
             };
             _context.InventoryMovements.Add(movement);
             await _context.SaveChangesAsync();
@@ -160,6 +183,21 @@ public class ProductService : IProductService
             throw new InvalidOperationException($"El stock no puede superar las {_inventorySettings.MaxStock} unidades.");
         }
 
+        if (!string.IsNullOrWhiteSpace(updated.Sku))
+        {
+            updated.Sku = updated.Sku.Trim();
+            var skuExists = await _context.Products.AnyAsync(p => p.Id != id && p.Sku == updated.Sku);
+            if (skuExists)
+            {
+                throw new InvalidOperationException($"El SKU '{updated.Sku}' ya está registrado en otro producto.");
+            }
+            product.Sku = updated.Sku;
+        }
+        else if (string.IsNullOrWhiteSpace(product.Sku))
+        {
+            product.Sku = await GenerateNextSkuAsync();
+        }
+
         int stockDelta = updated.Stock - product.Stock;
 
         product.Nombre = updated.Nombre;
@@ -168,6 +206,9 @@ public class ProductService : IProductService
         product.PrecioDescuento = updated.PrecioDescuento;
         product.Categoria = updated.Categoria;
         product.Marca = updated.Marca;
+        product.CostoCompra = updated.CostoCompra;
+        product.StockMinimo = updated.StockMinimo > 0 ? updated.StockMinimo : 10;
+        product.Ubicacion = updated.Ubicacion;
         product.Stock = updated.Stock;
         product.ImagenUrl = updated.ImagenUrl;
         product.Activo = updated.Stock == 0 ? false : updated.Activo;
@@ -195,7 +236,11 @@ public class ProductService : IProductService
                 Tipo = movementTipo,
                 Cantidad = movementCantidad,
                 Fecha = DateTime.UtcNow,
-                Responsable = responsable
+                Responsable = responsable,
+                Motivo = stockDelta != 0 ? InventoryConstants.MovementMotives.AjustePorConteo : InventoryConstants.MovementMotives.Otro,
+                StockResultante = product.Stock,
+                Nota = stockDelta != 0 ? $"Ajuste en edición: delta {stockDelta:+0;-0;0}" : "Edición de datos del producto",
+                Referencia = product.Sku
             };
             _context.InventoryMovements.Add(movement);
 
@@ -228,7 +273,11 @@ public class ProductService : IProductService
             Tipo = InventoryConstants.MovementTypes.Baja,
             Cantidad = product.Stock > 0 ? product.Stock : 1,
             Fecha = DateTime.UtcNow,
-            Responsable = responsable
+            Responsable = responsable,
+            Motivo = InventoryConstants.MovementMotives.Dano,
+            StockResultante = product.Stock,
+            Nota = "Inactivación/Baja de producto",
+            Referencia = product.Sku
         };
         _context.InventoryMovements.Add(movement);
 
@@ -263,7 +312,11 @@ public class ProductService : IProductService
             Tipo = InventoryConstants.MovementTypes.Reactivacion,
             Cantidad = product.Stock > 0 ? product.Stock : 1,
             Fecha = DateTime.UtcNow,
-            Responsable = responsable
+            Responsable = responsable,
+            Motivo = InventoryConstants.MovementMotives.Otro,
+            StockResultante = product.Stock,
+            Nota = "Reactivación de producto",
+            Referencia = product.Sku
         };
         _context.InventoryMovements.Add(movement);
 
@@ -316,5 +369,67 @@ public class ProductService : IProductService
             .Where(p => p.Activo && (p.Categoria == "lentes-sol" || p.Categoria == "monturas" || p.Categoria == "lentes-graduados"))
             .OrderBy(p => p.Nombre)
             .ToListAsync();
+    }
+
+    /// <summary>
+    /// Genera el siguiente SKU consecutivo desde 1010 con incrementos de 1010 (1010, 2020, 3030, ...)
+    /// </summary>
+    public async Task<string> GenerateNextSkuAsync()
+    {
+        var existingSkus = await _context.Products
+            .Where(p => p.Sku != null)
+            .Select(p => p.Sku!)
+            .ToListAsync();
+
+        long maxNumericSku = 0;
+        foreach (var s in existingSkus)
+        {
+            if (long.TryParse(s, out var num) && num >= 1010 && num % 1010 == 0)
+            {
+                if (num > maxNumericSku) maxNumericSku = num;
+            }
+        }
+
+        long nextSku = maxNumericSku > 0 ? (maxNumericSku + 1010) : 1010;
+        while (existingSkus.Contains(nextSku.ToString()))
+        {
+            nextSku += 1010;
+        }
+
+        return nextSku.ToString();
+    }
+
+    /// <summary>
+    /// Asigna SKUs consecutivos (1010, 2020, 3030...) a todos los productos que no tengan SKU asignado
+    /// </summary>
+    public async Task AsignarSkusConsecutivosFaltantesAsync()
+    {
+        var prodsWithoutSku = await _context.Products
+            .Where(p => string.IsNullOrWhiteSpace(p.Sku))
+            .OrderBy(p => p.Id)
+            .ToListAsync();
+
+        if (!prodsWithoutSku.Any()) return;
+
+        var existingSkus = await _context.Products
+            .Where(p => p.Sku != null)
+            .Select(p => p.Sku!)
+            .ToListAsync();
+
+        var existingSet = new HashSet<string>(existingSkus);
+        long current = 1010;
+
+        foreach (var prod in prodsWithoutSku)
+        {
+            while (existingSet.Contains(current.ToString()))
+            {
+                current += 1010;
+            }
+            prod.Sku = current.ToString();
+            existingSet.Add(prod.Sku);
+            current += 1010;
+        }
+
+        await _context.SaveChangesAsync();
     }
 }

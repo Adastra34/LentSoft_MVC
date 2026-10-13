@@ -133,4 +133,62 @@ public class ProductServiceTests : IDisposable
         Assert.Equal(0.20m, result.OffsetYOverlay);
         Assert.Equal(480000m, result.Precio);
     }
+
+    [Fact]
+    public async Task CreateAsync_WithoutSku_GeneratesConsecutiveSkusStartingAt1010()
+    {
+        // Act
+        var p1 = await _service.CreateAsync(new Product { Nombre = "Prod 1", Categoria = "monturas", Precio = 100000, Stock = 5 });
+        var p2 = await _service.CreateAsync(new Product { Nombre = "Prod 2", Categoria = "monturas", Precio = 200000, Stock = 5 });
+        var p3 = await _service.CreateAsync(new Product { Nombre = "Prod 3", Categoria = "monturas", Precio = 300000, Stock = 5 });
+
+        // Assert
+        Assert.Equal("1010", p1.Sku);
+        Assert.Equal("2020", p2.Sku);
+        Assert.Equal("3030", p3.Sku);
+    }
+
+    [Fact]
+    public async Task AsignarSkusConsecutivosFaltantesAsync_AssignsConsecutiveSkusCorrectly()
+    {
+        // Arrange - agregamos un producto adicional sin SKU
+        var extra = new Product { Nombre = "Extra Prod", Categoria = "monturas", Precio = 100000, Stock = 5, Sku = null };
+        _context.Products.Add(extra);
+        await _context.SaveChangesAsync();
+
+        // Act
+        await _service.AsignarSkusConsecutivosFaltantesAsync();
+
+        // Assert
+        var allProducts = await _context.Products.OrderBy(p => p.Id).ToListAsync();
+        Assert.NotEmpty(allProducts);
+        for (int i = 0; i < allProducts.Count; i++)
+        {
+            var expectedSku = ((i + 1) * 1010).ToString();
+            Assert.Equal(expectedSku, allProducts[i].Sku);
+        }
+    }
+
+    [Fact]
+    public async Task DiskDatabase_HasConsecutiveSkusAssigned()
+    {
+        var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "LentSoft.Web", "LentSoft.db");
+        if (File.Exists(dbPath))
+        {
+            var options = new DbContextOptionsBuilder<LentSoftDbContext>()
+                .UseSqlite($"Data Source={dbPath}")
+                .Options;
+            using var diskContext = new LentSoftDbContext(options);
+            var service = new ProductService(diskContext);
+            await service.AsignarSkusConsecutivosFaltantesAsync();
+
+            var products = await diskContext.Products.OrderBy(p => p.Id).ToListAsync();
+            long expected = 1010;
+            foreach (var p in products)
+            {
+                Assert.Equal(expected.ToString(), p.Sku);
+                expected += 1010;
+            }
+        }
+    }
 }

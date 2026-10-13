@@ -12,11 +12,16 @@ public class SupplierOrderController : Controller
 {
     private readonly LentSoftDbContext _context;
     private readonly IInventoryService _inventoryService;
+    private readonly IPdfPurchaseOrderService _pdfService;
 
-    public SupplierOrderController(LentSoftDbContext context, IInventoryService inventoryService)
+    public SupplierOrderController(
+        LentSoftDbContext context, 
+        IInventoryService inventoryService,
+        IPdfPurchaseOrderService pdfService)
     {
         _context = context;
         _inventoryService = inventoryService;
+        _pdfService = pdfService;
     }
 
     [HttpPost]
@@ -182,6 +187,131 @@ public class SupplierOrderController : Controller
         }
 
         return RedirectToDashboardTab();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Recibir(int id)
+    {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
+        try
+        {
+            var updatedOrder = await _inventoryService.ProcesarRecepcionPedidoProveedorAsync(id, User.Identity?.Name);
+            var msg = $"Pedido {updatedOrder.NumeroPedido} recibido satisfactoriamente. Stock sumado al inventario.";
+            if (isAjax) return Json(new { success = true, message = msg, data = updatedOrder });
+            TempData["SuccessMessage"] = msg;
+        }
+        catch (InvalidOperationException ex)
+        {
+            if (isAjax) return Json(new { success = false, message = ex.Message });
+            TempData["ErrorMessage"] = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            var msg = $"Error al recibir el pedido: {ex.Message}";
+            if (isAjax) return Json(new { success = false, message = msg });
+            TempData["ErrorMessage"] = msg;
+        }
+
+        return RedirectToDashboardTab();
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RecibirParcial(int id, int cantidadRecibida)
+    {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
+        if (cantidadRecibida <= 0)
+        {
+            var msg = "La cantidad a recibir debe ser mayor a 0.";
+            if (isAjax) return Json(new { success = false, message = msg });
+            TempData["ErrorMessage"] = msg;
+            return RedirectToDashboardTab();
+        }
+
+        try
+        {
+            var updatedOrder = await _inventoryService.ProcesarRecepcionParcialPedidoProveedorAsync(id, cantidadRecibida, User.Identity?.Name);
+            var msg = $"Recepción de {cantidadRecibida} unidad(es) registrada en el pedido {updatedOrder.NumeroPedido}.";
+            if (isAjax) return Json(new { success = true, message = msg, data = updatedOrder });
+            TempData["SuccessMessage"] = msg;
+        }
+        catch (InvalidOperationException ex)
+        {
+            if (isAjax) return Json(new { success = false, message = ex.Message });
+            TempData["ErrorMessage"] = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            var msg = $"Error al registrar recepción parcial: {ex.Message}";
+            if (isAjax) return Json(new { success = false, message = msg });
+            TempData["ErrorMessage"] = msg;
+        }
+
+        return RedirectToDashboardTab();
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> DescargarPdf(int id)
+    {
+        var order = await _context.SupplierOrders
+            .Include(o => o.Supplier)
+            .Include(o => o.Product)
+            .FirstOrDefaultAsync(o => o.Id == id);
+
+        if (order == null)
+        {
+            return NotFound("No se encontró el pedido a proveedor.");
+        }
+
+        var pdfBytes = _pdfService.GeneratePurchaseOrderPdf(order);
+        var filename = $"OrdenCompra_{order.NumeroPedido}.pdf";
+        return File(pdfBytes, "application/pdf", filename);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> DetalleJson(int id)
+    {
+        var order = await _context.SupplierOrders
+            .Include(o => o.Supplier)
+            .Include(o => o.Product)
+            .FirstOrDefaultAsync(o => o.Id == id);
+
+        if (order == null)
+        {
+            return Json(new { success = false, message = "Pedido no encontrado." });
+        }
+
+        var pendiente = Math.Max(0, order.Cantidad - order.CantidadRecibida);
+
+        return Json(new
+        {
+            success = true,
+            data = new
+            {
+                order.Id,
+                order.NumeroPedido,
+                SupplierId = order.SupplierId,
+                SupplierNombre = order.Supplier?.Nombre ?? "N/A",
+                SupplierContacto = order.Supplier?.Contacto ?? "N/A",
+                SupplierTelefono = order.Supplier?.Telefono ?? "N/A",
+                SupplierDireccion = order.Supplier?.Direccion ?? "N/A",
+                SupplierTiempoEntrega = order.Supplier?.TiempoEntregaDias,
+                order.ProductId,
+                ProductNombre = order.Product?.Nombre ?? "N/A",
+                ProductSku = order.Product?.Sku ?? $"PRD-{order.ProductId:D4}",
+                order.Cantidad,
+                order.CantidadRecibida,
+                Pendiente = pendiente,
+                order.PrecioUnitario,
+                order.Total,
+                order.Estado,
+                Fecha = order.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm"),
+                order.Notas
+            }
+        });
     }
 
     private IActionResult RedirectToDashboardTab()

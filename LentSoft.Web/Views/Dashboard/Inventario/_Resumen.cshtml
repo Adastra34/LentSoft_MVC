@@ -1,0 +1,406 @@
+@model DashboardAdminViewModel
+@inject Microsoft.Extensions.Options.IOptions<LentSoft.Web.Services.InventorySettings> InventoryOptions
+
+<div id="subtab-content-resumen" style="display: @(Model.ActiveSubTab == "resumen" ? "block" : "none");">
+    <!-- Fila de Tarjetas KPI Superiores (Fase 2) -->
+    <div class="inv-kpi-grid">
+        <div class="inv-kpi-card inv-kpi-card-total">
+            <div>
+                <div class="inv-kpi-title" data-i18n="admin.inv.kpi.totalvalue">Valor del Inventario</div>
+                <h3 class="inv-kpi-value">@Model.ValorTotalInventario.ToString("C")</h3>
+                <div class="inv-kpi-sub">Total calculado en stock actual</div>
+            </div>
+            <div class="inv-kpi-icon-badge">
+                <svg class="inv-icon" viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+        </div>
+
+        <div class="inv-kpi-card inv-kpi-card-active">
+            <div>
+                <div class="inv-kpi-title" data-i18n="admin.inv.kpi.active">Productos Activos</div>
+                <h3 class="inv-kpi-value">@Model.TotalProductosActivos</h3>
+                <div class="inv-kpi-sub">Disponibles en catálogo</div>
+            </div>
+            <div class="inv-kpi-icon-badge" style="background: #DCFCE7; color: #16A34A;">
+                <svg class="inv-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+        </div>
+
+        <div class="inv-kpi-card inv-kpi-card-depleted">
+            <div>
+                <div class="inv-kpi-title" data-i18n="admin.inv.kpi.depleted">Agotados</div>
+                <h3 class="inv-kpi-value">@Model.ProductosAgotadosCount</h3>
+                <div class="inv-kpi-sub">Stock en 0 (inactivos)</div>
+            </div>
+            <div class="inv-kpi-icon-badge" style="background: #FEE2E2; color: #DC2626;">
+                <svg class="inv-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+            </div>
+        </div>
+
+        <div class="inv-kpi-card inv-kpi-card-low">
+            <div>
+                <div class="inv-kpi-title" data-i18n="admin.inv.kpi.low">Por Agotarse</div>
+                <h3 class="inv-kpi-value">@Model.ProductosPorAgotarseCount</h3>
+                <div class="inv-kpi-sub">Stock crítico (&le; @InventoryOptions.Value.LowStockThreshold unid.)</div>
+            </div>
+            <div class="inv-kpi-icon-badge" style="background: #FEF3C7; color: #D97706;">
+                <svg class="inv-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+        </div>
+
+        <div class="inv-kpi-card inv-kpi-card-orders">
+            <div>
+                <div class="inv-kpi-title" data-i18n="admin.inv.kpi.pendingorders">Pedidos Pendientes</div>
+                <h3 class="inv-kpi-value">@Model.TotalPedidosPendientesProveedor</h3>
+                <div class="inv-kpi-sub">Órdenes a proveedor</div>
+            </div>
+            <div class="inv-kpi-icon-badge" style="background: #DBEAFE; color: #2563EB;">
+                <svg class="inv-icon" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            </div>
+        </div>
+    </div>
+
+    <!-- 1. Notificaciones de inventario: Agotados y Por Agotarse -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+        <!-- Agotados (Stock == 0) -->
+        <div class="inv-card" style="border-left: 4px solid var(--error); margin-bottom: 0;">
+            <div class="inv-card-header" style="margin-bottom: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="color: var(--error);">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    </span>
+                    <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--purple-900);">Productos Agotados</h3>
+                </div>
+                <span class="inv-chip inv-chip-error">
+                    @Model.ProductosAgotadosCount Agotados
+                </span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--gray-600); margin: 0 0 0.85rem 0;">
+                Productos con stock en 0 inactivos automáticamente para prevenir ventas sin disponibilidad.
+            </p>
+
+            @if (Model.ProductosAgotadosCount == 0)
+            {
+                <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 0.5rem; padding: 0.85rem; text-align: center; color: #065f46; font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    No hay productos con stock agotado actualmente.
+                </div>
+            }
+            else
+            {
+                <div style="display: flex; flex-direction: column; gap: 0.6rem; max-height: 280px; overflow-y: auto; padding-right: 0.25rem;">
+                    @foreach (var prod in Model.ProductosAgotados)
+                    {
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.8rem; background: var(--purple-50); border: 1px solid var(--purple-200); border-radius: 0.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                @if (!string.IsNullOrEmpty(prod.ImagenUrl))
+                                {
+                                    <img src="@prod.ImagenUrl" alt="@prod.Nombre" class="inv-table-thumb" />
+                                }
+                                else
+                                {
+                                    <div class="inv-table-thumb" style="display: flex; align-items: center; justify-content: center; color: var(--purple-600);">
+                                        <svg class="inv-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                                    </div>
+                                }
+                                <div>
+                                    <a href="/Product/Details/@prod.Id" style="font-weight: 600; font-size: 0.85rem; color: var(--purple-900); text-decoration: none; display: block;">@prod.Nombre</a>
+                                    <span style="font-size: 0.75rem; color: var(--gray-500);">@prod.Categoria &bull; Stock: <strong>0</strong></span>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                                <span class="inv-chip inv-chip-error">Agotado</span>
+                                <button type="button" class="inv-btn inv-btn-primary" style="padding: 0.3rem 0.65rem; font-size: 0.75rem;"
+                                    onclick="abrirModalPedirAProveedor(@prod.Id, '@(prod.SupplierId ?? "")')"
+                                    title="Pedir a proveedor" aria-label="Pedir a proveedor">
+                                    <svg class="inv-icon" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                                    Pedir
+                                </button>
+                                <button type="button" class="inv-btn inv-btn-secondary btn-edit-product" style="padding: 0.3rem 0.5rem; font-size: 0.75rem;"
+                                    data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = prod.Id, nombre = prod.Nombre, descripcion = prod.Descripcion ?? "", precio = prod.Precio, precioDescuento = prod.PrecioDescuento?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "", categoria = prod.Categoria, marca = prod.Marca ?? "", stock = prod.Stock, activo = prod.Activo, imagenUrl = prod.ImagenUrl ?? "" }))'
+                                    title="Editar producto" aria-label="Editar producto">
+                                    <svg class="inv-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+
+        <!-- Por Agotarse (0 < Stock <= LowStockThreshold) -->
+        <div class="inv-card" style="border-left: 4px solid var(--warning); margin-bottom: 0;">
+            <div class="inv-card-header" style="margin-bottom: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="color: var(--warning);">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    </span>
+                    <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--purple-900);">Por Agotarse</h3>
+                </div>
+                <span class="inv-chip inv-chip-warning">
+                    @Model.ProductosPorAgotarseCount Críticos
+                </span>
+            </div>
+            <p style="font-size: 0.8rem; color: var(--gray-600); margin: 0 0 0.85rem 0;">
+                Productos con inventario mínimo o próximo a agotarse (umbral &le; @InventoryOptions.Value.LowStockThreshold unidades).
+            </p>
+
+            @if (Model.ProductosPorAgotarseCount == 0)
+            {
+                <div style="background-color: #ecfdf5; border: 1px solid #a7f3d0; border-radius: 0.5rem; padding: 0.85rem; text-align: center; color: #065f46; font-size: 0.85rem; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    Todos los productos cuentan con más de @InventoryOptions.Value.LowStockThreshold unidades en stock.
+                </div>
+            }
+            else
+            {
+                <div style="display: flex; flex-direction: column; gap: 0.6rem; max-height: 280px; overflow-y: auto; padding-right: 0.25rem;">
+                    @foreach (var prod in Model.ProductosPorAgotarse)
+                    {
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0.8rem; background: #fffbeb; border: 1px solid #fde68a; border-radius: 0.5rem;">
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                @if (!string.IsNullOrEmpty(prod.ImagenUrl))
+                                {
+                                    <img src="@prod.ImagenUrl" alt="@prod.Nombre" class="inv-table-thumb" />
+                                }
+                                else
+                                {
+                                    <div class="inv-table-thumb" style="display: flex; align-items: center; justify-content: center; color: var(--warning);">
+                                        <svg class="inv-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                                    </div>
+                                }
+                                <div>
+                                    <a href="/Product/Details/@prod.Id" style="font-weight: 600; font-size: 0.85rem; color: var(--purple-900); text-decoration: none; display: block;">@prod.Nombre</a>
+                                    <span style="font-size: 0.75rem; color: var(--gray-600);">@prod.Categoria &bull; Stock: <strong>@prod.Stock</strong></span>
+                                </div>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.4rem;">
+                                <span class="inv-chip inv-chip-warning">
+                                    @prod.Stock unid.
+                                </span>
+                                <button type="button" class="inv-btn inv-btn-primary" style="padding: 0.3rem 0.65rem; font-size: 0.75rem;"
+                                    onclick="abrirModalPedirAProveedor(@prod.Id, '@(prod.SupplierId ?? "")')"
+                                    title="Pedir a proveedor" aria-label="Pedir a proveedor">
+                                    <svg class="inv-icon" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                                    Pedir
+                                </button>
+                                <button type="button" class="inv-btn inv-btn-secondary btn-edit-product" style="padding: 0.3rem 0.5rem; font-size: 0.75rem;"
+                                    data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = prod.Id, nombre = prod.Nombre, descripcion = prod.Descripcion ?? "", precio = prod.Precio, precioDescuento = prod.PrecioDescuento?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "", categoria = prod.Categoria, marca = prod.Marca ?? "", stock = prod.Stock, activo = prod.Activo, imagenUrl = prod.ImagenUrl ?? "" }))'
+                                    title="Editar producto" aria-label="Editar producto">
+                                    <svg class="inv-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- 2. Gráfico de evolución de ventas e inventario -->
+    <div class="inv-card">
+        <div class="inv-card-header">
+            <div>
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--purple-900); display: flex; align-items: center; gap: 0.5rem;">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    Evolución de Ventas e Inventario
+                </h3>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: var(--gray-500);">Histórico mensual de ventas, pedidos y movimientos de stock (últimos 6 meses)</p>
+            </div>
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--purple-900); font-weight: 600;">
+                    <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: var(--purple-600);"></span>
+                    Ventas ($)
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #10B981; font-weight: 600;">
+                    <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #10B981;"></span>
+                    Pedidos
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #3B82F6; font-weight: 600;">
+                    <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #3B82F6;"></span>
+                    Entradas Stock
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: #EF4444; font-weight: 600;">
+                    <span style="display: inline-block; width: 12px; height: 12px; border-radius: 50%; background: #EF4444;"></span>
+                    Salidas Stock
+                </div>
+            </div>
+        </div>
+        <div style="height: 320px; width: 100%; position: relative;">
+            <canvas id="chartEvolucionVentas"></canvas>
+        </div>
+    </div>
+
+    <!-- 3. Top Productos Más Vendidos -->
+    <div class="inv-card">
+        <div class="inv-card-header">
+            <div>
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--purple-900); display: flex; align-items: center; gap: 0.5rem;">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    Productos Más Vendidos
+                </h3>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: var(--gray-500);">Ranking calculado a partir de órdenes de compra y ventas registradas</p>
+            </div>
+        </div>
+
+        @if (!Model.ProductosMasVendidos.Any())
+        {
+            <div class="inv-empty-state">
+                <div class="inv-empty-state-icon">
+                    <svg class="inv-icon" style="width: 28px; height: 28px;" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                </div>
+                <div class="inv-empty-state-title">Aún no se registran ventas</div>
+                <div class="inv-empty-state-desc">Las ventas registradas alimentarán automáticamente este ranking.</div>
+            </div>
+        }
+        else
+        {
+            <div class="inv-table-wrapper">
+                <table class="inv-table">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px; text-align: center;">#</th>
+                            <th>Producto</th>
+                            <th style="text-align: center;">Categoría</th>
+                            <th style="text-align: center;">Cant. Vendida</th>
+                            <th style="text-align: right;">Total Recaudado</th>
+                            <th style="text-align: center;">Stock Actual</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ int ranking = 1; }
+                        @foreach (var top in Model.ProductosMasVendidos)
+                        {
+                            <tr>
+                                <td style="text-align: center; font-weight: 700; color: var(--purple-700);">
+                                    @ranking
+                                </td>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        @if (!string.IsNullOrEmpty(top.ImagenUrl))
+                                        {
+                                            <img src="@top.ImagenUrl" alt="@top.Nombre" class="inv-table-thumb" />
+                                        }
+                                        else
+                                        {
+                                            <div class="inv-table-thumb" style="display: flex; align-items: center; justify-content: center; color: var(--purple-600);">
+                                                <svg class="inv-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                                            </div>
+                                        }
+                                        <a href="/Product/Details/@top.ProductId" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; text-decoration: none;">@top.Nombre</a>
+                                    </div>
+                                </td>
+                                <td style="text-align: center; color: var(--gray-600);">
+                                    @top.Categoria
+                                </td>
+                                <td style="text-align: center;">
+                                    <span class="inv-chip inv-chip-purple">
+                                        @top.CantidadVendida unid.
+                                    </span>
+                                </td>
+                                <td style="text-align: right; font-weight: 700; color: var(--purple-900);">
+                                    @top.TotalRecaudado.ToString("C")
+                                </td>
+                                <td style="text-align: center;">
+                                    <span style="font-weight: 600; color: @(top.StockActual <= 0 ? "var(--error)" : (top.StockActual <= InventoryOptions.Value.LowStockThreshold ? "var(--warning)" : "var(--success)"));">
+                                        @top.StockActual @(top.StockActual <= 0 ? "(Agotado)" : "")
+                                    </span>
+                                </td>
+                            </tr>
+                            ranking++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <!-- 4. Tarjeta de Productos sin movimiento en 60 días -->
+    <div class="inv-card">
+        <div class="inv-card-header">
+            <div>
+                <h3 style="margin: 0; font-size: 1.15rem; font-weight: 700; color: var(--purple-900); display: flex; align-items: center; gap: 0.5rem;">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Productos sin movimiento en 60 días
+                </h3>
+                <p style="margin: 0.25rem 0 0 0; font-size: 0.8rem; color: var(--gray-500);">Productos activos en stock que no han registrado entradas ni salidas en los últimos dos meses</p>
+            </div>
+            <span class="inv-chip inv-chip-purple">@Model.ProductosSinMovimiento60Dias.Count productos</span>
+        </div>
+
+        @if (!Model.ProductosSinMovimiento60Dias.Any())
+        {
+            <div class="inv-empty-state">
+                <div class="inv-empty-state-icon">
+                    <svg class="inv-icon" style="width: 28px; height: 28px;" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <div class="inv-empty-state-title">Excelente rotación de inventario</div>
+                <div class="inv-empty-state-desc">Todos los productos activos en stock han registrado movimientos en los últimos 60 días.</div>
+            </div>
+        }
+        else
+        {
+            <div class="inv-table-wrapper">
+                <table class="inv-table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th style="text-align: center;">Categoría</th>
+                            <th style="text-align: center;">Proveedor</th>
+                            <th style="text-align: center;">Stock Actual</th>
+                            <th style="text-align: right;">Precio</th>
+                            <th style="text-align: center;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var prod in Model.ProductosSinMovimiento60Dias)
+                        {
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        @if (!string.IsNullOrEmpty(prod.ImagenUrl))
+                                        {
+                                            <img src="@prod.ImagenUrl" alt="@prod.Nombre" class="inv-table-thumb" />
+                                        }
+                                        else
+                                        {
+                                            <div class="inv-table-thumb" style="display: flex; align-items: center; justify-content: center; color: var(--purple-600);">
+                                                <svg class="inv-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                                            </div>
+                                        }
+                                        <div>
+                                            <a href="/Product/Details/@prod.Id" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; text-decoration: none;">@prod.Nombre</a>
+                                            @if (!string.IsNullOrWhiteSpace(prod.Marca))
+                                            {
+                                                <span style="display: block; font-size: 0.75rem; color: var(--gray-500);">@prod.Marca</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td style="text-align: center; color: var(--gray-600);">@prod.Categoria</td>
+                                <td style="text-align: center; color: var(--gray-600);">@(prod.Supplier?.Nombre ?? "Sin asignar")</td>
+                                <td style="text-align: center;">
+                                    <span class="inv-chip inv-chip-warning">@prod.Stock unid.</span>
+                                </td>
+                                <td style="text-align: right; font-weight: 600; color: var(--purple-900);">@prod.Precio.ToString("C")</td>
+                                <td style="text-align: center;">
+                                    <div style="display: flex; justify-content: center; gap: 0.4rem;">
+                                        <button type="button" class="inv-btn inv-btn-primary" style="padding: 0.3rem 0.65rem; font-size: 0.75rem;"
+                                            onclick="abrirModalPedirAProveedor(@prod.Id, '@(prod.SupplierId ?? "")')"
+                                            title="Pedir a proveedor" aria-label="Pedir a proveedor">
+                                            <svg class="inv-icon" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                                            Pedir
+                                        </button>
+                                        <a href="/Product/Details/@prod.Id" class="inv-btn inv-btn-secondary" style="padding: 0.3rem 0.5rem; font-size: 0.75rem; text-decoration: none;" title="Ver detalle" aria-label="Ver detalle">
+                                            <svg class="inv-icon" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>

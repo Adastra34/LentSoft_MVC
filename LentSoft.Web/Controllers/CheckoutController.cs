@@ -119,8 +119,10 @@ public class CheckoutController : Controller
                 await _inventoryService.DisminuirStockAsync(
                     item.ProductId, 
                     item.Cantidad, 
-                    InventoryConstants.MovementTypes.Salida, 
-                    "Venta Online (Cliente)");
+                    InventoryConstants.MovementMotives.Venta, 
+                    "Venta Online (Cliente)",
+                    "Venta checkout online",
+                    "Venta Web");
 
                 order.OrderItems.Add(new OrderItem
                 {

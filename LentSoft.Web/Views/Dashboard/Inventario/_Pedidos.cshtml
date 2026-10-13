@@ -1,0 +1,301 @@
+@model DashboardAdminViewModel
+
+<div id="subtab-content-pedidos" style="display: @(Model.ActiveSubTab == "pedidos" ? "block" : "none");">
+    <!-- Pestañas internas de Pedidos: Ventas vs Proveedores -->
+    <div class="inv-pill-tabs">
+        <button id="tab-btn-pedidos-ventas" type="button" onclick="switchPedidosTab('ventas')" class="inv-pill-tab active">
+            <svg class="inv-icon" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+            Pedidos de Ventas
+        </button>
+        <button id="tab-btn-pedidos-proveedores" type="button" onclick="switchPedidosTab('proveedores')" class="inv-pill-tab">
+            <svg class="inv-icon" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+            Pedidos a Proveedores
+        </button>
+    </div>
+
+    <!-- CONTENIDO PESTAÑA VENTAS -->
+    <div id="content-pedidos-ventas" class="inv-card">
+        <div class="inv-search-bar">
+            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; flex: 1;">
+                <div class="inv-search-input-wrapper">
+                    <span class="inv-search-icon">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </span>
+                    <input type="text" id="searchPedidosVentas" placeholder="Buscar pedidos de clientes..." class="inv-search-input" onkeyup="filterTable('searchPedidosVentas', 'tablePedidosVentas')" oninput="filterTable('searchPedidosVentas', 'tablePedidosVentas')" />
+                </div>
+                <div style="position: relative;">
+                    <button type="button" onclick="toggleFilterMenu('pedidosVentas')" class="inv-filter-btn">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                        <span>Filtro</span>
+                        <svg class="inv-icon" style="width: 0.8em; height: 0.8em;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="filter-menu-pedidosVentas" class="inv-dropdown-menu">
+                        <a href="javascript:void(0)" onclick="filterTableByValue('searchPedidosVentas', 'tablePedidosVentas', '')" class="inv-dropdown-item">Todos los estados</a>
+                        <a href="javascript:void(0)" onclick="filterTableByValue('searchPedidosVentas', 'tablePedidosVentas', 'pendiente')" class="inv-dropdown-item">Pendientes</a>
+                        <a href="javascript:void(0)" onclick="filterTableByValue('searchPedidosVentas', 'tablePedidosVentas', 'recibido')" class="inv-dropdown-item">Recibidos / Entregados</a>
+                        <a href="javascript:void(0)" onclick="filterTableByValue('searchPedidosVentas', 'tablePedidosVentas', 'cancelado')" class="inv-dropdown-item">Cancelados</a>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <button type="button" class="inv-btn inv-btn-success" onclick="document.getElementById('modal-crear-pedido-venta').showModal ? document.getElementById('modal-crear-pedido-venta').showModal() : (document.getElementById('modal-crear-pedido-venta').style.display='flex')" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Nuevo Pedido Venta
+                </button>
+            </div>
+        </div>
+
+        <div class="inv-table-wrapper">
+            @if (!Model.PedidosVentas.Any())
+            {
+                <div class="inv-empty-state">
+                    <div class="inv-empty-state-icon">
+                        <svg class="inv-icon" style="width: 28px; height: 28px;" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                    </div>
+                    <div class="inv-empty-state-title">No hay pedidos de venta registrados</div>
+                    <div class="inv-empty-state-desc">Puedes registrar ventas directas desde el botón "+ Nuevo Pedido Venta".</div>
+                </div>
+            }
+            else
+            {
+                <table id="tablePedidosVentas" class="inv-table inv-table-responsive">
+                    <thead>
+                        <tr>
+                            <th>N° Pedido</th>
+                            <th>Cliente</th>
+                            <th>Producto</th>
+                            <th style="text-align: center;">Cantidad</th>
+                            <th style="text-align: right;">Precio U.</th>
+                            <th style="text-align: right;">Total</th>
+                            <th style="text-align: center;">Fecha</th>
+                            <th style="text-align: center;">Estado</th>
+                            <th style="text-align: center; width: 100px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.PedidosVentas)
+                        {
+                            var estVenta = (p.Estado ?? "").ToLowerInvariant().Trim();
+                            string chipClass = estVenta switch
+                            {
+                                "recibido" or "entregado" or "pagado" => "inv-chip-success",
+                                "cancelado" => "inv-chip-error",
+                                _ => "inv-chip-warning"
+                            };
+
+                            <tr>
+                                <td data-label="N° Pedido" style="font-weight: 700; color: var(--purple-900);">@p.NumeroPedido</td>
+                                <td data-label="Cliente" style="font-weight: 500; color: var(--purple-900);">@p.ClienteNombre</td>
+                                <td data-label="Producto" style="color: var(--purple-700); font-weight: 500;">@p.ProductoNombre</td>
+                                <td data-label="Cantidad" style="text-align: center; font-weight: 700;">@p.Cantidad</td>
+                                <td data-label="Precio U." style="text-align: right;">@p.PrecioUnitario.ToString("C")</td>
+                                <td data-label="Total" style="text-align: right; font-weight: 700; color: var(--purple-900);">@p.Total.ToString("C")</td>
+                                <td data-label="Fecha" style="text-align: center; color: var(--gray-600); font-size: 0.825rem;">@p.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td data-label="Estado" style="text-align: center;">
+                                    <span class="inv-chip @chipClass">
+                                        @p.Estado
+                                    </span>
+                                </td>
+                                <td data-label="Acciones" style="text-align: center;">
+                                    <div style="display: flex; gap: 0.35rem; justify-content: center; align-items: center;">
+                                        <button type="button" class="inv-btn-icon inv-btn-icon-edit btn-edit-sales-order" aria-label="Editar pedido venta" title="Editar pedido"
+                                            data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = p.Id, numeroPedido = p.NumeroPedido, clienteNombre = p.ClienteNombre, productoNombre = p.ProductoNombre, cantidad = p.Cantidad, precioUnitario = p.PrecioUnitario, estado = p.Estado, notas = p.Notas ?? "" }))'>
+                                            <svg class="inv-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        </button>
+                                        <form asp-action="DeleteSalesOrder" asp-controller="Dashboard" method="post" style="display: inline; margin: 0;" class="form-delete-sales-order">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@p.Id" />
+                                            <button type="submit" class="inv-btn-icon inv-btn-icon-delete" aria-label="Eliminar pedido" title="Eliminar pedido">
+                                                <svg class="inv-icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+
+    <!-- CONTENIDO PESTAÑA PROVEEDORES -->
+    <div id="content-pedidos-proveedores" class="inv-card" style="display: none;">
+        <div class="inv-search-bar">
+            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; flex: 1;">
+                <div class="inv-search-input-wrapper">
+                    <span class="inv-search-icon">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </span>
+                    <input type="text" id="searchPedidosProveedores" placeholder="Buscar órdenes por proveedor o producto..." value="@Model.PedidosProvSearchTerm" class="inv-search-input" onkeydown="if(event.key === 'Enter') searchPedidosProvSubmit();" />
+                </div>
+                <button type="button" onclick="searchPedidosProvSubmit()" class="inv-btn inv-btn-secondary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
+                    Buscar
+                </button>
+                <div style="position: relative;">
+                    <button type="button" onclick="toggleFilterMenu('pedidosProveedores')" class="inv-filter-btn">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                        <span>Estado: @(string.IsNullOrEmpty(Model.PedidosProvEstado) ? "Todos" : char.ToUpper(Model.PedidosProvEstado[0]) + Model.PedidosProvEstado.Substring(1))</span>
+                        <svg class="inv-icon" style="width: 0.8em; height: 0.8em;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="filter-menu-pedidosProveedores" class="inv-dropdown-menu">
+                        <a href="javascript:void(0)" onclick="setPedidosProvEstadoFilter('')" class="inv-dropdown-item">Todos</a>
+                        <a href="javascript:void(0)" onclick="setPedidosProvEstadoFilter('recibido')" class="inv-dropdown-item">Recibidos</a>
+                        <a href="javascript:void(0)" onclick="setPedidosProvEstadoFilter('parcial')" class="inv-dropdown-item">Parciales</a>
+                        <a href="javascript:void(0)" onclick="setPedidosProvEstadoFilter('pendiente')" class="inv-dropdown-item">Pendientes</a>
+                        <a href="javascript:void(0)" onclick="setPedidosProvEstadoFilter('cancelado')" class="inv-dropdown-item">Cancelados</a>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <button type="button" class="inv-btn inv-btn-success" onclick="document.getElementById('modal-crear-pedido-proveedor').showModal ? document.getElementById('modal-crear-pedido-proveedor').showModal() : (document.getElementById('modal-crear-pedido-proveedor').style.display='flex')" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;" data-i18n="admin.inv.newsupplierorder">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Nuevo Pedido Proveedor
+                </button>
+            </div>
+        </div>
+
+        <div class="inv-table-wrapper">
+            @if (!Model.PedidosProveedores.Any())
+            {
+                <div class="inv-empty-state">
+                    <div class="inv-empty-state-icon">
+                        <svg class="inv-icon" style="width: 28px; height: 28px;" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                    </div>
+                    <div class="inv-empty-state-title">No hay órdenes a proveedor registradas</div>
+                    <div class="inv-empty-state-desc">Emite órdenes de compra a tus proveedores para reabastecer el inventario.</div>
+                    <button type="button" class="inv-btn inv-btn-primary" onclick="document.getElementById('modal-crear-pedido-proveedor').showModal ? document.getElementById('modal-crear-pedido-proveedor').showModal() : (document.getElementById('modal-crear-pedido-proveedor').style.display='flex')">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                        Crear Pedido a Proveedor
+                    </button>
+                </div>
+            }
+            else
+            {
+                <table id="tablePedidosProveedores" class="inv-table inv-table-responsive">
+                    <thead>
+                        <tr>
+                            <th>N° Pedido</th>
+                            <th>Proveedor</th>
+                            <th>Producto</th>
+                            <th style="text-align: center;">Cant. Recibida / Pedida</th>
+                            <th style="text-align: right;">Precio U.</th>
+                            <th style="text-align: right;">Total</th>
+                            <th style="text-align: center;">Fecha</th>
+                            <th style="text-align: center;">Estado</th>
+                            <th style="text-align: center; width: 150px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var p in Model.PedidosProveedores)
+                        {
+                            var estProv = (p.Estado ?? "").ToLowerInvariant().Trim();
+                            string chipClass = estProv switch
+                            {
+                                "recibido" => "inv-chip-success",
+                                "parcial" => "inv-chip-info",
+                                "cancelado" => "inv-chip-error",
+                                _ => "inv-chip-warning"
+                            };
+
+                            <tr>
+                                <td data-label="N° Pedido" style="font-weight: 700; color: var(--purple-900);">@p.NumeroPedido</td>
+                                <td data-label="Proveedor" style="font-weight: 500; color: var(--purple-900);">@(p.Supplier?.Nombre ?? "Proveedor #" + p.SupplierId)</td>
+                                <td data-label="Producto">
+                                    <a href="/Product/Details/@p.ProductId" style="color: var(--purple-700); font-weight: 500; text-decoration: none;">
+                                        @(p.Product?.Nombre ?? "Producto #" + p.ProductId)
+                                    </a>
+                                </td>
+                                <td data-label="Cantidad" style="text-align: center;">
+                                    <span style="font-weight: 700; color: @(p.CantidadRecibida >= p.Cantidad ? "var(--success)" : "var(--purple-800)");">
+                                        @p.CantidadRecibida
+                                    </span>
+                                    <span style="color: var(--gray-500); font-size: 0.85rem;">/ @p.Cantidad</span>
+                                </td>
+                                <td data-label="Precio U." style="text-align: right;">@p.PrecioUnitario.ToString("C")</td>
+                                <td data-label="Total" style="text-align: right; font-weight: 700; color: var(--purple-900);">@p.Total.ToString("C")</td>
+                                <td data-label="Fecha" style="text-align: center; color: var(--gray-600); font-size: 0.825rem;">@p.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                <td data-label="Estado" style="text-align: center;">
+                                    <span class="inv-chip @chipClass">
+                                        @p.Estado
+                                    </span>
+                                </td>
+                                <td data-label="Acciones" style="text-align: center;">
+                                    <div style="display: flex; gap: 0.35rem; justify-content: center; align-items: center;">
+                                        @if (p.Estado?.ToLowerInvariant() != "recibido" && p.Estado?.ToLowerInvariant() != "cancelado")
+                                        {
+                                            <button type="button" class="inv-btn-icon inv-btn-icon-kardex" onclick="openRecibirPedidoModal(@p.Id)" aria-label="Recibir pedido" title="Registrar recepción (Total o Parcial)">
+                                                <svg class="inv-icon" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                            </button>
+                                        }
+                                        <a href="/SupplierOrder/DescargarPdf?id=@p.Id" target="_blank" class="inv-btn-icon" aria-label="Descargar PDF" title="Descargar Orden de Compra (PDF)" style="display: inline-flex; align-items: center; justify-content: center; text-decoration: none;">
+                                            <svg class="inv-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                                        </a>
+                                        <button type="button" class="inv-btn-icon inv-btn-icon-edit btn-edit-supplier-order" aria-label="Editar orden" title="Editar orden"
+                                            data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = p.Id, numeroPedido = p.NumeroPedido, supplierId = p.SupplierId, productId = p.ProductId, cantidad = p.Cantidad, precioUnitario = p.PrecioUnitario, estado = p.Estado, notas = p.Notas ?? "" }))'>
+                                            <svg class="inv-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        </button>
+                                        <form asp-action="Delete" asp-controller="SupplierOrder" method="post" style="display: inline; margin: 0;" class="form-delete-supplier-order">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@p.Id" />
+                                            <button type="submit" class="inv-btn-icon inv-btn-icon-delete" aria-label="Eliminar orden" title="Eliminar orden">
+                                                <svg class="inv-icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        <!-- Paginación Pedidos Proveedores -->
+        @if (Model.PedidosProvTotalPages > 1)
+        {
+            <div class="inv-pagination">
+                <span class="inv-pagination-info">
+                    Página @Model.PedidosProvPage de @Model.PedidosProvTotalPages (Total: @Model.PedidosProvTotalCount pedidos)
+                </span>
+                <div class="inv-pagination-nav">
+                    @if (Model.PedidosProvPage > 1)
+                    {
+                        <a href="?section=inventario&subtab=pedidos&pedidosProvPage=@(Model.PedidosProvPage - 1)&pedidosProvSearch=@Model.PedidosProvSearchTerm&pedidosProvEstado=@Model.PedidosProvEstado" class="inv-pagination-btn">
+                            &laquo; Anterior
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="inv-pagination-btn disabled">&laquo; Anterior</span>
+                    }
+
+                    @for (int p = 1; p <= Model.PedidosProvTotalPages; p++)
+                    {
+                        if (p == Model.PedidosProvPage)
+                        {
+                            <span class="inv-pagination-btn active">@p</span>
+                        }
+                        else
+                        {
+                            <a href="?section=inventario&subtab=pedidos&pedidosProvPage=@p&pedidosProvSearch=@Model.PedidosProvSearchTerm&pedidosProvEstado=@Model.PedidosProvEstado" class="inv-pagination-btn">
+                                @p
+                            </a>
+                        }
+                    }
+
+                    @if (Model.PedidosProvPage < Model.PedidosProvTotalPages)
+                    {
+                        <a href="?section=inventario&subtab=pedidos&pedidosProvPage=@(Model.PedidosProvPage + 1)&pedidosProvSearch=@Model.PedidosProvSearchTerm&pedidosProvEstado=@Model.PedidosProvEstado" class="inv-pagination-btn">
+                            Siguiente &raquo;
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="inv-pagination-btn disabled">Siguiente &raquo;</span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>

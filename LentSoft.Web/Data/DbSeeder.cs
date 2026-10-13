@@ -90,6 +90,32 @@ public static class DbSeeder
             obrien.ImagenOverlayUrl = "/img/overlays/obrien_deluxe_final.png";
         }
 
+        // 0.3 Asignar SKUs consecutivos desde 1010 (1010, 2020, 3030...) a productos sin SKU
+        var prodsSinSku = allProducts.Where(p => string.IsNullOrWhiteSpace(p.Sku)).OrderBy(p => p.Id).ToList();
+        if (prodsSinSku.Any())
+        {
+            var existingSkus = allProducts.Where(p => !string.IsNullOrWhiteSpace(p.Sku)).Select(p => p.Sku!).ToHashSet();
+            long nextSkuNum = 1010;
+            foreach (var p in allProducts.Where(p => !string.IsNullOrWhiteSpace(p.Sku)))
+            {
+                if (long.TryParse(p.Sku, out var num) && num >= nextSkuNum && num % 1010 == 0)
+                {
+                    nextSkuNum = num + 1010;
+                }
+            }
+
+            foreach (var p in prodsSinSku)
+            {
+                while (existingSkus.Contains(nextSkuNum.ToString()))
+                {
+                    nextSkuNum += 1010;
+                }
+                p.Sku = nextSkuNum.ToString();
+                existingSkus.Add(p.Sku);
+                nextSkuNum += 1010;
+            }
+        }
+
         if (oldProducts.Any() || oldOrders.Any() || oldOrderItems.Any() || prodsToInit.Any() || allProducts.Any(p => context.Entry(p).State == EntityState.Modified))
         {
             context.SaveChanges();

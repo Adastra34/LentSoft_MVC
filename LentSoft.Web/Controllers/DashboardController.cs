@@ -62,10 +62,18 @@ public class DashboardController : Controller
         string? prodSearch = null,
         string? prodEstado = null,
         string? prodCategoria = null,
+        string? prodProveedor = null,
+        bool prodStockBajo = false,
+        string? prodSortBy = "nombre",
+        string prodSortDir = "asc",
         int prodPage = 1,
         int prodPageSize = 20,
         string? movSearch = null,
         string? movTipo = null,
+        int? movProductId = null,
+        DateTime? movFechaInicio = null,
+        DateTime? movFechaFin = null,
+        string? movMotivo = null,
         int movPage = 1,
         int movPageSize = 20,
         string? pedidosProvSearch = null,
@@ -117,15 +125,21 @@ public class DashboardController : Controller
             if (section == "inventario" && subtab == "pedidos" && string.IsNullOrWhiteSpace(pedidosProvSearch)) pedidosProvSearch = searchTerm;
         }
 
+        if (section == "inventario")
+        {
+            await _productService.AsignarSkusConsecutivosFaltantesAsync();
+        }
+
         // ── Productos (Paginados y Filtrados en BD) ──
-        var prodQuery = _context.Products.AsQueryable();
+        var prodQuery = _context.Products.Include(p => p.Supplier).AsQueryable();
         if (!string.IsNullOrWhiteSpace(prodSearch))
         {
             var s = prodSearch.Trim().ToLower();
             prodQuery = prodQuery.Where(p => p.Nombre.ToLower().Contains(s)
+                || (p.Sku != null && p.Sku.ToLower().Contains(s))
                 || (p.Marca != null && p.Marca.ToLower().Contains(s))
                 || (p.Categoria != null && p.Categoria.ToLower().Contains(s))
-                || p.Id.ToString().Contains(s));
+                || (p.Ubicacion != null && p.Ubicacion.ToLower().Contains(s)));
         }
 
         if (!string.IsNullOrWhiteSpace(prodEstado))
@@ -152,14 +166,45 @@ public class DashboardController : Controller
                 prodQuery = prodQuery.Where(p => p.Categoria != null && p.Categoria.ToLower().Contains(cat));
         }
 
+        if (!string.IsNullOrWhiteSpace(prodProveedor))
+        {
+            var supp = prodProveedor.Trim();
+            prodQuery = prodQuery.Where(p => p.SupplierId == supp || (p.Supplier != null && p.Supplier.Nombre.ToLower().Contains(supp.ToLower())));
+        }
+
+        if (prodStockBajo)
+        {
+            prodQuery = prodQuery.Where(p => p.Stock <= p.StockMinimo);
+        }
+
+        // Ordenamiento por columna configurable
+        prodQuery = (prodSortBy?.ToLower(), prodSortDir?.ToLower()) switch
+        {
+            ("sku", "desc") => prodQuery.OrderByDescending(p => p.Sku),
+            ("sku", _) => prodQuery.OrderBy(p => p.Sku),
+            ("categoria", "desc") => prodQuery.OrderByDescending(p => p.Categoria),
+            ("categoria", _) => prodQuery.OrderBy(p => p.Categoria),
+            ("marca", "desc") => prodQuery.OrderByDescending(p => p.Marca),
+            ("marca", _) => prodQuery.OrderBy(p => p.Marca),
+            ("proveedor", "desc") => prodQuery.OrderByDescending(p => p.Supplier != null ? p.Supplier.Nombre : ""),
+            ("proveedor", _) => prodQuery.OrderBy(p => p.Supplier != null ? p.Supplier.Nombre : ""),
+            ("precio", "desc") => prodQuery.OrderByDescending(p => p.Precio),
+            ("precio", _) => prodQuery.OrderBy(p => p.Precio),
+            ("stock", "desc") => prodQuery.OrderByDescending(p => p.Stock),
+            ("stock", _) => prodQuery.OrderBy(p => p.Stock),
+            ("estado", "desc") => prodQuery.OrderByDescending(p => p.Activo),
+            ("estado", _) => prodQuery.OrderBy(p => p.Activo),
+            (_, "desc") => prodQuery.OrderByDescending(p => p.Nombre),
+            _ => prodQuery.OrderBy(p => p.Nombre)
+        };
+
         var prodTotalCount = await prodQuery.CountAsync();
         var productos = await prodQuery
-            .OrderBy(p => p.Nombre)
             .Skip((prodPage - 1) * prodPageSize)
             .Take(prodPageSize)
             .ToListAsync();
 
-        var todosLosProductos = await _context.Products.AsNoTracking().OrderBy(p => p.Nombre).ToListAsync();
+        var todosLosProductos = await _context.Products.AsNoTracking().Include(p => p.Supplier).OrderBy(p => p.Nombre).ToListAsync();
 
         // â”€â”€ Clientes (Paginados y Filtrados) â”€â”€
         var clientesQuery = _context.Users.Where(u => u.Role == "usuario");
@@ -250,20 +295,47 @@ public class DashboardController : Controller
         var pedidosDisponibles = await _invoiceService.GetOrdersAvailableForInvoicingAsync();
 
         // ── Inventario: Resumen ──
+        var valorTotalInventario = await _context.Products
+            .Where(p => p.Activo)
+            .SumAsync(p => p.Stock * (p.CostoCompra ?? p.Precio));
+
+        var totalProductosActivos = await _context.Products
+            .CountAsync(p => p.Activo);
+
+        var totalPedidosPendientesProv = await _context.SupplierOrders
+            .CountAsync(s => s.Activo && s.Estado == "pendiente");
+
         // 1. Notificaciones de inventario: Agotados (Stock == 0) y Por agotarse (0 < Stock <= 10) usando CountAsync agregado
         var productosAgotadosCount = await _context.Products.CountAsync(p => p.Stock == 0);
         var productosPorAgotarseCount = await _context.Products.CountAsync(p => p.Stock > 0 && p.Stock <= _inventorySettings.LowStockThreshold);
 
         var productosAgotados = await _context.Products
+            .Include(p => p.Supplier)
             .Where(p => p.Stock == 0)
             .OrderBy(p => p.Nombre)
             .Take(10)
             .ToListAsync();
 
         var productosPorAgotarse = await _context.Products
+            .Include(p => p.Supplier)
             .Where(p => p.Stock > 0 && p.Stock <= _inventorySettings.LowStockThreshold)
             .OrderBy(p => p.Stock)
             .ThenBy(p => p.Nombre)
+            .Take(10)
+            .ToListAsync();
+
+        // 1.1 Productos sin movimiento en 60 días
+        var hace60Dias = now.AddDays(-60);
+        var productosConMovimiento60 = await _context.InventoryMovements
+            .Where(m => m.Fecha >= hace60Dias)
+            .Select(m => m.ProductId)
+            .Distinct()
+            .ToListAsync();
+
+        var productosSinMovimiento60 = await _context.Products
+            .Include(p => p.Supplier)
+            .Where(p => p.Activo && p.Stock > 0 && !productosConMovimiento60.Contains(p.Id))
+            .OrderBy(p => p.Nombre)
             .Take(10)
             .ToListAsync();
 
@@ -320,10 +392,14 @@ public class DashboardController : Controller
             .Take(10)
             .ToList();
 
-        // 3. Gráfico de evolución de ventas en el tiempo (últimos 6 meses)
+        // 3. Gráfico de evolución de ventas e inventario en el tiempo (últimos 6 meses)
         var fechaInicioEvolucion = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-5);
         var pedidosHistoricos = await _context.Orders
             .Where(o => o.Activo && o.Estado != "cancelado" && o.FechaPedido >= fechaInicioEvolucion)
+            .ToListAsync();
+
+        var movimientosHistoricos = await _context.InventoryMovements
+            .Where(m => m.Fecha >= fechaInicioEvolucion)
             .ToListAsync();
 
         var evolucionVentas = new List<ChartDataPoint>();
@@ -332,11 +408,18 @@ public class DashboardController : Controller
             var targetDate = now.AddMonths(-i);
             var mesNombre = targetDate.ToString("MMM yyyy", new System.Globalization.CultureInfo("es-CO"));
             var pedidosMes = pedidosHistoricos.Where(o => o.FechaPedido.Year == targetDate.Year && o.FechaPedido.Month == targetDate.Month).ToList();
+            var movimientosMes = movimientosHistoricos.Where(m => m.Fecha.Year == targetDate.Year && m.Fecha.Month == targetDate.Month).ToList();
+
+            var entradas = movimientosMes.Where(m => m.Tipo != null && m.Tipo.Equals("Entrada", StringComparison.OrdinalIgnoreCase)).Sum(m => m.Cantidad);
+            var salidas = movimientosMes.Where(m => m.Tipo != null && !m.Tipo.Equals("Entrada", StringComparison.OrdinalIgnoreCase)).Sum(m => m.Cantidad);
+
             evolucionVentas.Add(new ChartDataPoint
             {
                 Periodo = char.ToUpper(mesNombre[0]) + mesNombre.Substring(1),
                 TotalVentas = pedidosMes.Sum(o => o.Total),
-                CantidadPedidos = pedidosMes.Count
+                CantidadPedidos = pedidosMes.Count,
+                EntradasStock = entradas,
+                SalidasStock = salidas
             });
         }
 
@@ -354,6 +437,25 @@ public class DashboardController : Controller
             {
                 var t = movTipo.Trim().ToLower();
                 movQuery = movQuery.Where(m => m.Tipo != null && m.Tipo.ToLower() == t);
+            }
+            if (movProductId.HasValue && movProductId.Value > 0)
+            {
+                movQuery = movQuery.Where(m => m.ProductId == movProductId.Value);
+            }
+            if (movFechaInicio.HasValue)
+            {
+                var fInicioUtc = DateTime.SpecifyKind(movFechaInicio.Value.Date, DateTimeKind.Utc);
+                movQuery = movQuery.Where(m => m.Fecha >= fInicioUtc);
+            }
+            if (movFechaFin.HasValue)
+            {
+                var fFinUtc = DateTime.SpecifyKind(movFechaFin.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
+                movQuery = movQuery.Where(m => m.Fecha <= fFinUtc);
+            }
+            if (!string.IsNullOrWhiteSpace(movMotivo))
+            {
+                var mot = movMotivo.Trim().ToLower();
+                movQuery = movQuery.Where(m => m.Motivo != null && m.Motivo.ToLower() == mot);
             }
             movQuery = (movSort == "asc")
                 ? movQuery.OrderBy(m => m.Fecha)
@@ -411,6 +513,10 @@ public class DashboardController : Controller
                 ProdSearchTerm = prodSearch,
                 ProdEstado = prodEstado,
                 ProdCategoria = prodCategoria,
+                ProdProveedor = prodProveedor,
+                ProdStockBajo = prodStockBajo,
+                ProdSortBy = prodSortBy,
+                ProdSortDir = prodSortDir,
                 ProdPage = prodPage,
                 ProdPageSize = prodPageSize,
                 ProdTotalCount = prodTotalCount,
@@ -441,6 +547,10 @@ public class DashboardController : Controller
                 PedidosDisponibles = pedidosDisponibles,
 
                 // Inventario: Resumen
+                ValorTotalInventario = valorTotalInventario,
+                TotalProductosActivos = totalProductosActivos,
+                TotalPedidosPendientesProveedor = totalPedidosPendientesProv,
+                ProductosSinMovimiento60Dias = productosSinMovimiento60,
                 EvolucionVentas = evolucionVentas,
                 ProductosMasVendidos = productosMasVendidos,
                 ProductosAgotados = productosAgotados,
@@ -453,6 +563,10 @@ public class DashboardController : Controller
                 HistorialMovimientos = historialMovimientos,
                 MovSearchTerm = movSearch,
                 MovTipo = movTipo,
+                MovProductId = movProductId,
+                MovFechaInicio = movFechaInicio,
+                MovFechaFin = movFechaFin,
+                MovMotivo = movMotivo,
                 MovSort = movSort,
                 MovPage = movPage,
                 MovPageSize = movPageSize,
@@ -1020,10 +1134,14 @@ public class DashboardController : Controller
                 {
                     ProductId = targetProduct.Id,
                     NombreProducto = targetProduct.Nombre,
-                    Tipo = "Salida",
+                    Tipo = InventoryConstants.MovementTypes.Salida,
                     Cantidad = model.Cantidad,
                     Fecha = DateTime.UtcNow,
-                    Responsable = User.Identity?.Name ?? $"Pedido Venta ({model.ClienteNombre})"
+                    Responsable = User.Identity?.Name ?? "Ventas",
+                    Motivo = InventoryConstants.MovementMotives.Venta,
+                    StockResultante = targetProduct.Stock,
+                    Nota = $"Pedido de venta a {model.ClienteNombre}",
+                    Referencia = model.NumeroPedido
                 };
                 _context.InventoryMovements.Add(movement);
             }

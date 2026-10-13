@@ -51,8 +51,13 @@ public class LentSoftDbContext : DbContext
         modelBuilder.Entity<InventoryMovement>(entity =>
         {
             entity.HasIndex(e => e.ProductId);
+            entity.HasIndex(e => e.Tipo);
             entity.HasIndex(e => e.Fecha).IsDescending();
             entity.Property(e => e.Fecha).HasDefaultValueSql(utcDateSql);
+            entity.Property(e => e.Motivo).HasDefaultValue("Otro").HasMaxLength(100);
+            entity.Property(e => e.Nota).HasMaxLength(300);
+            entity.Property(e => e.Referencia).HasMaxLength(100);
+            entity.Property(e => e.StockResultante).HasDefaultValue(0);
 
             entity.HasOne(e => e.Product)
                   .WithMany()
@@ -105,6 +110,12 @@ public class LentSoftDbContext : DbContext
             entity.HasIndex(e => e.Nombre);
             entity.HasIndex(e => e.Activo);
             entity.HasIndex(e => e.EsDestacado);
+            var skuIndex = entity.HasIndex(e => e.Sku).IsUnique();
+            if (!isSqlite)
+            {
+                skuIndex.HasFilter("[Sku] IS NOT NULL");
+            }
+            entity.Property(e => e.StockMinimo).HasDefaultValue(10);
             entity.Property(e => e.Stock).HasDefaultValue(0);
             entity.Property(e => e.Activo).HasDefaultValue(true);
             entity.Property(e => e.PorcentajeIva).HasDefaultValue(19.00m);

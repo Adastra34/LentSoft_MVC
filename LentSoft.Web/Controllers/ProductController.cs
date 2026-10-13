@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using LentSoft.Web.Models.Entities;
 using LentSoft.Web.Models.ViewModels;
 using LentSoft.Web.Services;
@@ -20,6 +21,7 @@ public class ProductController : Controller
     private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
     private const long MaxImageSizeBytes = 5 * 1024 * 1024; // 5 MB
 
+    [ActivatorUtilitiesConstructor]
     public ProductController(
         IProductService productService,
         IFavoriteService favoriteService,
@@ -323,6 +325,7 @@ public class ProductController : Controller
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "admin")]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleStatus(int id)
     {
         try
@@ -332,9 +335,21 @@ public class ProductController : Controller
             {
                 return Json(new { success = false, message = "Producto no encontrado." });
             }
-            product.Activo = !product.Activo;
-            var updated = await _productService.UpdateAsync(id, product);
-            return Json(new { success = true, active = product.Activo, message = $"Estado del producto actualizado a {(product.Activo ? "Activo" : "Inactivo")}." });
+
+            if (product.Activo)
+            {
+                var success = await _productService.DeleteAsync(id);
+                return Json(new { success, active = false, activo = false, message = "Producto inactivado exitosamente." });
+            }
+            else
+            {
+                if (product.Stock == 0)
+                {
+                    return Json(new { success = false, message = "No se puede activar un producto con stock 0. Reponga el inventario primero." });
+                }
+                var success = await _productService.ReactivateAsync(id);
+                return Json(new { success, active = true, activo = true, message = "Producto activado exitosamente." });
+            }
         }
         catch (Exception ex)
         {
@@ -415,4 +430,47 @@ public class ProductController : Controller
         var available = product.Stock;
         return Json(new { success = true, available, sufficient = available >= quantity });
     }
+
+
+    /// <summary>
+    /// POST /Product/BulkToggleStatus (Admin AJAX)
+    /// </summary>
+    [HttpPost]
+    [Authorize(Roles = "admin")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> BulkToggleStatus([FromBody] BulkToggleRequest request)
+    {
+        if (request?.Ids == null || !request.Ids.Any())
+            return Json(new { success = false, message = "No se seleccionaron productos." });
+
+        int count = 0;
+        foreach (var id in request.Ids)
+        {
+            var p = await _productService.GetByIdAsync(id);
+            if (p == null) continue;
+            if (request.Activo)
+            {
+                if (p.Stock > 0 && !p.Activo)
+                {
+                    await _productService.ReactivateAsync(id);
+                    count++;
+                }
+            }
+            else
+            {
+                if (p.Activo)
+                {
+                    await _productService.DeleteAsync(id);
+                    count++;
+                }
+            }
+        }
+        return Json(new { success = true, modified = count, message = $"{count} productos actualizados correctamente." });
+    }
+}
+
+public class BulkToggleRequest
+{
+    public List<int> Ids { get; set; } = new();
+    public bool Activo { get; set; }
 }

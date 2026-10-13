@@ -30,6 +30,19 @@ public class Product : IValidatableObject
     [StringLength(50)]
     public string? Marca { get; set; }
 
+    [StringLength(50)]
+    public string? Sku { get; set; }
+
+    [Column(TypeName = "decimal(18,2)")]
+    [Range(0, double.MaxValue, ErrorMessage = "El costo de compra no puede ser negativo")]
+    public decimal? CostoCompra { get; set; }
+
+    [Range(0, int.MaxValue, ErrorMessage = "El stock mínimo no puede ser negativo")]
+    public int StockMinimo { get; set; } = 10;
+
+    [StringLength(100)]
+    public string? Ubicacion { get; set; }
+
     [Required]
     [Range(0, int.MaxValue, ErrorMessage = "El stock no puede ser negativo")]
     public int Stock { get; set; }
