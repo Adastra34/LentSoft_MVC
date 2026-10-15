@@ -909,11 +909,14 @@
             // Ignorar elementos del switcher de idioma
             if (el.closest('#language-switcher')) return;
 
+            // Ignorar cualquier elemento dentro de data-no-i18n
+            if (el.closest('[data-no-i18n]')) return;
+
             // Si tiene data-i18n procesado estándar, omitir
             if (el.hasAttribute('data-i18n') && translations[el.getAttribute('data-i18n')]) return;
 
-            // Revisar texto del elemento si no contiene muchos hijos complejos
-            if (el.children.length === 0 || (el.children.length === 1 && (el.children[0].tagName === 'SPAN' || el.children[0].tagName === 'STRONG' || el.children[0].tagName === 'EM'))) {
+            // Revisar texto del elemento únicamente si no tiene hijos (los hijos se procesan por sí mismos)
+            if (el.children.length === 0) {
                 var currentText = el.textContent.trim();
                 if (!currentText || currentText.length > 250) return;
 

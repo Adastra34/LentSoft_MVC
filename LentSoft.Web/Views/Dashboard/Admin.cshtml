@@ -159,40 +159,6 @@
                     <svg class="inv-icon" viewBox="0 0 24 24"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
                     Gestión de Inventario
                 </h1>
-                
-                <div class="inv-top-actions">
-                    <div id="top-btn-resumen" style="display: @(initialTab == "resumen" ? "inline-block" : "none");"></div>
-                    <div id="top-btn-productos" style="display: @(initialTab == "productos" ? "inline-block" : "none");">
-                        <button class="inv-btn inv-btn-primary" onclick="document.getElementById('modal-producto').style.display='flex'" data-i18n="admin.inv.newproduct">
-                            <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            Nuevo Producto
-                        </button>
-                    </div>
-                    <div id="top-btn-proveedores" style="display: @(initialTab == "proveedores" ? "inline-block" : "none");">
-                        <button class="inv-btn inv-btn-primary" onclick="document.getElementById('modal-crear-proveedor').style.display='flex'" data-i18n="admin.inv.newsupplier">
-                            <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                            Nuevo Proveedor
-                        </button>
-                    </div>
-                    <div id="top-btn-historial" style="display: @(initialTab == "historial" ? "inline-block" : "none");">
-                        <button type="button" onclick="exportMovimientosToExcel()" class="inv-btn inv-btn-success">
-                            <svg class="inv-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                            Exportar a Excel
-                        </button>
-                    </div>
-                    <div id="top-btn-pedidos" style="display: @(initialTab == "pedidos" ? "inline-block" : "none");">
-                        <div style="display: flex; gap: 0.5rem;">
-                            <button id="btn-top-nuevo-pedido-venta" class="inv-btn inv-btn-primary" onclick="document.getElementById('modal-crear-pedido-venta').style.display='flex'">
-                                <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                                Nuevo Pedido Venta
-                            </button>
-                            <button id="btn-top-nuevo-pedido-proveedor" class="inv-btn inv-btn-primary" style="display: none;" onclick="document.getElementById('modal-crear-pedido-proveedor').style.display='flex'">
-                                <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                                Nuevo Pedido Proveedor
-                            </button>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Sub-tabs -->
@@ -1204,7 +1170,6 @@
             tabs.forEach(t => {
                 const content = document.getElementById('subtab-content-' + t);
                 const btnNav = document.getElementById('nav-subtab-' + t);
-                const topBtn = document.getElementById('top-btn-' + t);
 
                 if (t === subtabName) {
                     if (content) content.style.display = 'block';
@@ -1212,14 +1177,12 @@
                         btnNav.style.color = 'var(--purple-700)';
                         btnNav.style.borderBottom = '3px solid var(--purple-600)';
                     }
-                    if (topBtn) topBtn.style.display = 'inline-block';
                 } else {
                     if (content) content.style.display = 'none';
                     if (btnNav) {
                         btnNav.style.color = 'var(--gray-500)';
                         btnNav.style.borderBottom = 'none';
                     }
-                    if (topBtn) topBtn.style.display = 'none';
                 }
             });
 
@@ -1276,7 +1239,7 @@
                 const data = await res.json();
                 if (data.success) {
                     btnElem.innerText = data.active ? 'Activo' : 'Inactivo';
-                    btnElem.className = 'inv-chip ' + (data.active ? 'inv-chip-success' : 'inv-chip-gray');
+                    btnElem.className = 'inv-chip inv-chip-btn ' + (data.active ? 'inv-chip-success' : 'inv-chip-error');
                     const row = btnElem.closest('tr');
                     if (row) {
                         row.setAttribute('data-estado', data.active ? 'activo' : 'inactivo');
@@ -1306,7 +1269,8 @@
                 const data = await res.json();
                 if (data.success) {
                     btnElem.innerText = data.active ? 'Activo' : 'Inactivo';
-                    btnElem.style.backgroundColor = data.active ? 'var(--success)' : 'var(--gray-400)';
+                    btnElem.className = 'inv-chip inv-chip-btn ' + (data.active ? 'inv-chip-success' : 'inv-chip-error');
+                    btnElem.style.backgroundColor = '';
                     showToast(data.message, 'success');
                 } else {
                     showToast(data.message || 'Error al cambiar estado', 'error');
@@ -1438,8 +1402,6 @@
             const contentProveedores = document.getElementById('content-pedidos-proveedores');
             const btnVentas = document.getElementById('tab-btn-pedidos-ventas');
             const btnProveedores = document.getElementById('tab-btn-pedidos-proveedores');
-            const btnTopVenta = document.getElementById('btn-top-nuevo-pedido-venta');
-            const btnTopProveedor = document.getElementById('btn-top-nuevo-pedido-proveedor');
 
             if (!contentVentas || !contentProveedores) return;
 
@@ -1452,9 +1414,6 @@
 
                 btnVentas.style.background = 'transparent';
                 btnVentas.style.color = 'var(--purple-900)';
-
-                if (btnTopVenta) btnTopVenta.style.display = 'none';
-                if (btnTopProveedor) btnTopProveedor.style.display = 'inline-flex';
             } else {
                 contentProveedores.style.display = 'none';
                 contentVentas.style.display = 'block';
@@ -1464,28 +1423,6 @@
 
                 btnProveedores.style.background = 'transparent';
                 btnProveedores.style.color = 'var(--purple-900)';
-
-                if (btnTopVenta) btnTopVenta.style.display = 'inline-flex';
-                if (btnTopProveedor) btnTopProveedor.style.display = 'none';
-            }
-        }
-
-        async function exportMovimientosToExcel() {
-            try {
-                const response = await fetch('/Dashboard/ExportMovimientosData');
-                if (!response.ok) throw new Error('Error al obtener los datos de exportación.');
-                const data = await response.json();
-                if (!data || data.length === 0) {
-                    alert('No hay movimientos registrados para exportar.');
-                    return;
-                }
-                const worksheet = XLSX.utils.json_to_sheet(data);
-                const workbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(workbook, worksheet, "Historial de Movimientos");
-                XLSX.writeFile(workbook, "Historial_Movimientos_LentSoft.xlsx");
-            } catch (e) {
-                console.error(e);
-                alert('No se pudo generar el archivo Excel: ' + e.message);
             }
         }
 
@@ -2528,11 +2465,17 @@
             if (!res.success) throw new Error(res.message || 'Error');
             const o = res.data;
 
+            const estOrder = (o.estado || '').toLowerCase();
+            const orderChip = (estOrder === 'recibido' || estOrder === 'entregado' || estOrder === 'pagado')
+                ? 'inv-chip-success'
+                : (estOrder === 'cancelado' ? 'inv-chip-error' : 'inv-chip-warning');
+            const orderLabel = o.estado ? (o.estado.charAt(0).toUpperCase() + o.estado.slice(1).toLowerCase()) : '';
+
             document.getElementById('recibirModalTitle').innerText = 'Recepción de Pedido - ' + o.numeroPedido;
             infoDiv.innerHTML = `
                 <div style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
                     <div><strong>Proveedor:</strong> ${o.supplierNombre} (${o.supplierContacto}) | <strong>Tel:</strong> ${o.supplierTelefono}</div>
-                    <div><strong>Fecha:</strong> ${o.fecha} | <strong>Estado:</strong> <span class="inv-chip inv-chip-purple">${o.estado}</span></div>
+                    <div><strong>Fecha:</strong> ${o.fecha} | <strong>Estado:</strong> <span class="inv-chip ${orderChip}">${orderLabel}</span></div>
                 </div>
                 <div style="margin-top: 0.35rem; font-size: 0.825rem; color: var(--gray-600);">
                     <strong>Dirección:</strong> ${o.supplierDireccion} | <strong>Entrega Estimada:</strong> ${o.supplierTiempoEntrega ? o.supplierTiempoEntrega + ' días' : 'No especificada'}
@@ -2653,7 +2596,7 @@
                     <div style="flex: 1; min-width: 200px;">
                         <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                             <h3 style="margin: 0; font-size: 1.2rem; color: var(--purple-900);">${s.nombre}</h3>
-                            <span class="inv-chip ${s.activo ? 'inv-chip-success' : 'inv-chip-gray'}">${s.activo ? 'Activo' : 'Inactivo'}</span>
+                            <span class="inv-chip ${s.activo ? 'inv-chip-success' : 'inv-chip-error'}">${s.activo ? 'Activo' : 'Inactivo'}</span>
                         </div>
                         <div style="font-size: 0.85rem; color: var(--gray-600); margin-top: 0.25rem;">
                             <strong>Código:</strong> ${s.id} | <strong>Tipo:</strong> ${s.tipoProductos}
@@ -2678,7 +2621,7 @@
                         <td><span class="inv-chip inv-chip-purple">${p.categoria}</span></td>
                         <td style="text-align: right; font-weight: 600;">$${Number(p.precio).toLocaleString('es-CO')}</td>
                         <td style="text-align: center;">
-                            <span class="inv-chip ${p.stock <= 10 ? 'inv-chip-warning' : 'inv-chip-success'}">${p.stock}</span>
+                            <span class="inv-chip ${p.stock === 0 ? 'inv-chip-error' : (p.stock <= 10 ? 'inv-chip-warning' : 'inv-chip-success')}">${p.stock}</span>
                         </td>
                     </tr>
                 `).join('');
@@ -2689,7 +2632,8 @@
             } else {
                 ordersBody.innerHTML = res.pedidos.map(o => {
                     const est = (o.estado || '').toLowerCase();
-                    const chip = est === 'recibido' ? 'inv-chip-success' : (est === 'parcial' ? 'inv-chip-info' : (est === 'cancelado' ? 'inv-chip-error' : 'inv-chip-warning'));
+                    const chip = (est === 'recibido' || est === 'entregado' || est === 'pagado') ? 'inv-chip-success' : (est === 'cancelado' ? 'inv-chip-error' : 'inv-chip-warning');
+                    const estLabel = o.estado ? (o.estado.charAt(0).toUpperCase() + o.estado.slice(1).toLowerCase()) : '';
                     return `
                         <tr>
                             <td style="font-weight: 700; color: var(--purple-900);">${o.numeroPedido}</td>
@@ -2697,7 +2641,7 @@
                             <td style="font-weight: 500;">${o.producto}</td>
                             <td style="text-align: center; font-weight: 600;">${o.cantidadRecibida} / ${o.cantidad}</td>
                             <td style="text-align: right; font-weight: 700;">$${Number(o.total).toLocaleString('es-CO')}</td>
-                            <td style="text-align: center;"><span class="inv-chip ${chip}">${o.estado}</span></td>
+                            <td style="text-align: center;"><span class="inv-chip ${chip}">${estLabel}</span></td>
                         </tr>
                     `;
                 }).join('');

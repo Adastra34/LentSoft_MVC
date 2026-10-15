@@ -38,7 +38,7 @@
                 </div>
             </div>
             <div>
-                <button type="button" class="inv-btn inv-btn-success" onclick="document.getElementById('modal-crear-proveedor').showModal ? document.getElementById('modal-crear-proveedor').showModal() : (document.getElementById('modal-crear-proveedor').style.display='flex')" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;" data-i18n="admin.inv.newsupplier">
+                <button type="button" class="inv-btn inv-btn-success inv-btn-toolbar" onclick="document.getElementById('modal-crear-proveedor').showModal ? document.getElementById('modal-crear-proveedor').showModal() : (document.getElementById('modal-crear-proveedor').style.display='flex')" data-i18n="admin.inv.newsupplier">
                     <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Nuevo Proveedor
                 </button>
@@ -55,7 +55,7 @@
                     </div>
                     <div class="inv-empty-state-title">No hay proveedores registrados</div>
                     <div class="inv-empty-state-desc">Comienza registrando a tus empresas proveedoras de armazones, lentes y accesorios.</div>
-                    <button type="button" class="inv-btn inv-btn-primary" onclick="document.getElementById('modal-crear-proveedor').showModal ? document.getElementById('modal-crear-proveedor').showModal() : (document.getElementById('modal-crear-proveedor').style.display='flex')">
+                    <button type="button" class="inv-btn inv-btn-success inv-btn-toolbar" onclick="document.getElementById('modal-crear-proveedor').showModal ? document.getElementById('modal-crear-proveedor').showModal() : (document.getElementById('modal-crear-proveedor').style.display='flex')">
                         <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         Registrar Proveedor
                     </button>
@@ -106,7 +106,7 @@
                                     @(prov.TiempoEntregaDias != null ? $"{prov.TiempoEntregaDias} d" : "-")
                                 </td>
                                 <td data-label="Estado" style="text-align: center;">
-                                    <button type="button" onclick="toggleSupplierStatus('@prov.Id', this)" class="inv-chip inv-chip-btn @(prov.Activo ? "inv-chip-success" : "inv-chip-gray")" data-i18n="@(prov.Activo ? "admin.inv.active" : "admin.inv.inactive")" title="Cambiar estado">
+                                    <button type="button" onclick="toggleSupplierStatus('@prov.Id', this)" class="inv-chip inv-chip-btn @(prov.Activo ? "inv-chip-success" : "inv-chip-error")" data-no-i18n title="Cambiar estado">
                                         @(prov.Activo ? "Activo" : "Inactivo")
                                     </button>
                                 </td>
