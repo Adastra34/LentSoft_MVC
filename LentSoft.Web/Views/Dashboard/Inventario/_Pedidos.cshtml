@@ -38,7 +38,7 @@
                 </div>
             </div>
             <div>
-                <button type="button" class="inv-btn inv-btn-success" onclick="document.getElementById('modal-crear-pedido-venta').showModal ? document.getElementById('modal-crear-pedido-venta').showModal() : (document.getElementById('modal-crear-pedido-venta').style.display='flex')" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
+                <button type="button" class="inv-btn inv-btn-success inv-btn-toolbar" onclick="document.getElementById('modal-crear-pedido-venta').showModal ? document.getElementById('modal-crear-pedido-venta').showModal() : (document.getElementById('modal-crear-pedido-venta').style.display='flex')">
                     <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Nuevo Pedido Venta
                 </button>
@@ -75,13 +75,6 @@
                     <tbody>
                         @foreach (var p in Model.PedidosVentas)
                         {
-                            var estVenta = (p.Estado ?? "").ToLowerInvariant().Trim();
-                            string chipClass = estVenta switch
-                            {
-                                "recibido" or "entregado" or "pagado" => "inv-chip-success",
-                                "cancelado" => "inv-chip-error",
-                                _ => "inv-chip-warning"
-                            };
 
                             <tr>
                                 <td data-label="N° Pedido" style="font-weight: 700; color: var(--purple-900);">@p.NumeroPedido</td>
@@ -92,9 +85,7 @@
                                 <td data-label="Total" style="text-align: right; font-weight: 700; color: var(--purple-900);">@p.Total.ToString("C")</td>
                                 <td data-label="Fecha" style="text-align: center; color: var(--gray-600); font-size: 0.825rem;">@p.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                 <td data-label="Estado" style="text-align: center;">
-                                    <span class="inv-chip @chipClass">
-                                        @p.Estado
-                                    </span>
+                                    <partial name="_EstadoChip" model="@p.Estado" />
                                 </td>
                                 <td data-label="Acciones" style="text-align: center;">
                                     <div style="display: flex; gap: 0.35rem; justify-content: center; align-items: center;">
@@ -148,7 +139,7 @@
                 </div>
             </div>
             <div>
-                <button type="button" class="inv-btn inv-btn-success" onclick="document.getElementById('modal-crear-pedido-proveedor').showModal ? document.getElementById('modal-crear-pedido-proveedor').showModal() : (document.getElementById('modal-crear-pedido-proveedor').style.display='flex')" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;" data-i18n="admin.inv.newsupplierorder">
+                <button type="button" class="inv-btn inv-btn-success inv-btn-toolbar" onclick="document.getElementById('modal-crear-pedido-proveedor').showModal ? document.getElementById('modal-crear-pedido-proveedor').showModal() : (document.getElementById('modal-crear-pedido-proveedor').style.display='flex')" data-i18n="admin.inv.newsupplierorder">
                     <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Nuevo Pedido Proveedor
                 </button>
@@ -164,7 +155,7 @@
                     </div>
                     <div class="inv-empty-state-title">No hay órdenes a proveedor registradas</div>
                     <div class="inv-empty-state-desc">Emite órdenes de compra a tus proveedores para reabastecer el inventario.</div>
-                    <button type="button" class="inv-btn inv-btn-primary" onclick="document.getElementById('modal-crear-pedido-proveedor').showModal ? document.getElementById('modal-crear-pedido-proveedor').showModal() : (document.getElementById('modal-crear-pedido-proveedor').style.display='flex')">
+                    <button type="button" class="inv-btn inv-btn-success inv-btn-toolbar" onclick="document.getElementById('modal-crear-pedido-proveedor').showModal ? document.getElementById('modal-crear-pedido-proveedor').showModal() : (document.getElementById('modal-crear-pedido-proveedor').style.display='flex')">
                         <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                         Crear Pedido a Proveedor
                     </button>
@@ -189,14 +180,6 @@
                     <tbody>
                         @foreach (var p in Model.PedidosProveedores)
                         {
-                            var estProv = (p.Estado ?? "").ToLowerInvariant().Trim();
-                            string chipClass = estProv switch
-                            {
-                                "recibido" => "inv-chip-success",
-                                "parcial" => "inv-chip-info",
-                                "cancelado" => "inv-chip-error",
-                                _ => "inv-chip-warning"
-                            };
 
                             <tr>
                                 <td data-label="N° Pedido" style="font-weight: 700; color: var(--purple-900);">@p.NumeroPedido</td>
@@ -216,9 +199,7 @@
                                 <td data-label="Total" style="text-align: right; font-weight: 700; color: var(--purple-900);">@p.Total.ToString("C")</td>
                                 <td data-label="Fecha" style="text-align: center; color: var(--gray-600); font-size: 0.825rem;">@p.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
                                 <td data-label="Estado" style="text-align: center;">
-                                    <span class="inv-chip @chipClass">
-                                        @p.Estado
-                                    </span>
+                                    <partial name="_EstadoChip" model="@p.Estado" />
                                 </td>
                                 <td data-label="Acciones" style="text-align: center;">
                                     <div style="display: flex; gap: 0.35rem; justify-content: center; align-items: center;">

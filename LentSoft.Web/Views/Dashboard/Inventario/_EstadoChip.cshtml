@@ -1,0 +1,108 @@
+@model string
+@{
+    var raw = Model?.Trim() ?? "";
+    var lower = raw.ToLowerInvariant();
+    string chipClass;
+    string label;
+
+    switch (lower)
+    {
+        // ── Pedidos (Ventas y Proveedores) ──
+        case "recibido":
+            chipClass = "inv-chip-success";
+            label = "Recibido";
+            break;
+        case "entregado":
+            chipClass = "inv-chip-success";
+            label = "Entregado";
+            break;
+        case "pagado":
+            chipClass = "inv-chip-success";
+            label = "Pagado";
+            break;
+        case "pendiente":
+            chipClass = "inv-chip-warning";
+            label = "Pendiente";
+            break;
+        case "parcial":
+            chipClass = "inv-chip-warning";
+            label = "Parcial";
+            break;
+        case "procesando":
+            chipClass = "inv-chip-warning";
+            label = "Procesando";
+            break;
+        case "enviado":
+            chipClass = "inv-chip-warning";
+            label = "Enviado";
+            break;
+        case "cancelado":
+            chipClass = "inv-chip-error";
+            label = "Cancelado";
+            break;
+
+        // ── Historial (Tipo de Movimiento) ──
+        case "entrada":
+            chipClass = "inv-chip-success";
+            label = "Entrada";
+            break;
+        case "alta":
+            chipClass = "inv-chip-success";
+            label = "Alta";
+            break;
+        case "reactivación":
+        case "reactivacion":
+            chipClass = "inv-chip-success";
+            label = "Reactivación";
+            break;
+        case "salida":
+            chipClass = "inv-chip-error";
+            label = "Salida";
+            break;
+        case "baja":
+            chipClass = "inv-chip-error";
+            label = "Baja";
+            break;
+        case "ajuste":
+            chipClass = "inv-chip-warning";
+            label = "Ajuste";
+            break;
+        case "edición":
+        case "edicion":
+            chipClass = "inv-chip-warning";
+            label = "Edición";
+            break;
+
+        // ── Proveedores y Productos (Estado) ──
+        case "activo":
+        case "true":
+            chipClass = "inv-chip-success";
+            label = "Activo";
+            break;
+        case "inactivo":
+        case "false":
+            chipClass = "inv-chip-error";
+            label = "Inactivo";
+            break;
+
+        // ── Stock ──
+        case "normal":
+            chipClass = "inv-chip-success";
+            label = "Normal";
+            break;
+        case "bajo":
+            chipClass = "inv-chip-warning";
+            label = "Bajo";
+            break;
+        case "agotado":
+            chipClass = "inv-chip-error";
+            label = "Agotado";
+            break;
+
+        default:
+            chipClass = "inv-chip-gray";
+            label = string.IsNullOrEmpty(raw) ? "" : (char.ToUpper(raw[0]) + raw.Substring(1).ToLower());
+            break;
+    }
+}
+<span class="inv-chip @chipClass" data-no-i18n>@label</span>

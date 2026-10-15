@@ -93,13 +93,13 @@
                 </select>
 
                 <!-- Exportar TODOS los registros -->
-                <button type="button" onclick="exportAllMovimientosExcel()" class="inv-btn inv-btn-secondary" style="padding: 0.45rem 0.85rem; font-size: 0.85rem;" title="Exportar todos los registros filtrados a Excel">
+                <button type="button" onclick="exportAllMovimientosExcel()" class="inv-btn inv-btn-success inv-btn-toolbar" title="Exportar todos los registros filtrados a Excel">
                     <svg class="inv-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     Exportar Todo (Excel)
                 </button>
 
                 <!-- Botón Registrar Movimiento Manual -->
-                <button type="button" onclick="document.getElementById('modal-crear-movimiento').style.display='flex'" class="inv-btn inv-btn-primary" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
+                <button type="button" onclick="document.getElementById('modal-crear-movimiento').style.display='flex'" class="inv-btn inv-btn-success inv-btn-toolbar">
                     <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Nuevo Movimiento
                 </button>
@@ -123,7 +123,7 @@
                         {
                             <a href="?section=inventario&subtab=historial" class="inv-btn inv-btn-secondary">Restablecer Filtros</a>
                         }
-                        <button type="button" class="inv-btn inv-btn-primary" onclick="document.getElementById('modal-crear-movimiento').style.display='flex'">
+                        <button type="button" class="inv-btn inv-btn-success inv-btn-toolbar" onclick="document.getElementById('modal-crear-movimiento').style.display='flex'">
                             <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                             Nuevo Movimiento
                         </button>
@@ -166,21 +166,21 @@
                                     iconSvg = "<svg class='inv-icon' viewBox='0 0 24 24'><polyline points='12 19 5 12 12 5'/><line x1='5' y1='12' x2='19' y2='12'/></svg>";
                                     break;
                                 case "alta":
-                                    chipClass = "inv-chip-info";
+                                    chipClass = "inv-chip-success";
                                     iconSvg = "<svg class='inv-icon' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10'/><line x1='12' y1='8' x2='12' y2='16'/><line x1='8' y1='12' x2='16' y2='12'/></svg>";
                                     break;
                                 case "baja":
-                                    chipClass = "inv-chip-gray";
+                                    chipClass = "inv-chip-error";
                                     iconSvg = "<svg class='inv-icon' viewBox='0 0 24 24'><circle cx='12' cy='12' r='10'/><line x1='4.93' y1='4.93' x2='19.07' y2='19.07'/></svg>";
                                     break;
                                 case "reactivación":
                                 case "reactivacion":
-                                    chipClass = "inv-chip-purple";
+                                    chipClass = "inv-chip-success";
                                     iconSvg = "<svg class='inv-icon' viewBox='0 0 24 24'><polyline points='23 4 23 10 17 10'/><path d='M20.49 15a9 9 0 1 1-2.12-9.36L23 10'/></svg>";
                                     break;
                                 case "edición":
                                 case "edicion":
-                                    chipClass = "inv-chip-gray";
+                                    chipClass = "inv-chip-warning";
                                     iconSvg = "<svg class='inv-icon' viewBox='0 0 24 24'><path d='M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7'/><path d='M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z'/></svg>";
                                     break;
                                 case "ajuste":
@@ -216,7 +216,7 @@
                                     </div>
                                 </td>
                                 <td data-label="Tipo" style="text-align: center;">
-                                    <span class="inv-chip @chipClass" style="gap: 0.3rem;">
+                                    <span class="inv-chip @chipClass" data-no-i18n style="gap: 0.3rem;">
                                         @Html.Raw(iconSvg)
                                         @mov.Tipo
                                     </span>
@@ -418,7 +418,11 @@
             const p = data.product;
             document.getElementById('kardex-prod-nombre').textContent = p.nombre || 'Producto';
             document.getElementById('kardex-prod-sku').textContent = p.sku ? 'SKU: ' + p.sku : 'Sin SKU';
-            document.getElementById('kardex-prod-stock').textContent = p.stock + ' unidades';
+            const kardexStockEl = document.getElementById('kardex-prod-stock');
+            if (kardexStockEl) {
+                kardexStockEl.textContent = p.stock + ' unidades';
+                kardexStockEl.className = 'inv-chip ' + (p.stock === 0 ? 'inv-chip-error' : (p.stock <= p.stockMinimo ? 'inv-chip-warning' : 'inv-chip-success'));
+            }
             document.getElementById('kardex-prod-stockmin').textContent = p.stockMinimo + ' unidades';
             document.getElementById('kardex-prod-precio').textContent = '$' + Number(p.precio).toLocaleString();
             document.getElementById('kardex-prod-prov').textContent = p.proveedor || 'Sin proveedor';
@@ -433,11 +437,17 @@
                     data.movimientos.forEach(m => {
                         const tr = document.createElement('tr');
                         const isSalida = m.tipo.toLowerCase() === 'salida' || m.tipo.toLowerCase() === 'baja';
-                        const cantColor = isSalida ? 'var(--error)' : 'var(--success)';
+                        const cantColor = isSalida ? 'var(--inv-red)' : 'var(--inv-green)';
                         const cantSign = isSalida ? '-' : '+';
+                        const tLower = (m.tipo || '').toLowerCase();
+                        let chipClass = 'inv-chip-gray';
+                        if (tLower === 'entrada' || tLower === 'alta' || tLower === 'reactivación' || tLower === 'reactivacion') chipClass = 'inv-chip-success';
+                        else if (tLower === 'salida' || tLower === 'baja') chipClass = 'inv-chip-error';
+                        else if (tLower === 'ajuste' || tLower === 'edición' || tLower === 'edicion') chipClass = 'inv-chip-warning';
+
                         tr.innerHTML = `
                             <td style="font-size: 0.85rem; color: var(--gray-600);">${m.fecha}</td>
-                            <td><span class="inv-chip ${isSalida ? 'inv-chip-error' : 'inv-chip-success'}">${m.tipo}</span></td>
+                            <td><span class="inv-chip ${chipClass}" data-no-i18n>${m.tipo}</span></td>
                             <td style="font-weight: 600; color: ${cantColor}; text-align: center;">${cantSign}${m.cantidad}</td>
                             <td style="font-weight: 700; color: var(--purple-900); text-align: center;">${m.stockResultante} unid.</td>
                             <td><span class="inv-chip inv-chip-gray">${m.motivo || 'Otro'}</span></td>

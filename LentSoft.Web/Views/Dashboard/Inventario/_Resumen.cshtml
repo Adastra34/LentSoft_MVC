@@ -380,7 +380,10 @@
                                 <td style="text-align: center; color: var(--gray-600);">@prod.Categoria</td>
                                 <td style="text-align: center; color: var(--gray-600);">@(prod.Supplier?.Nombre ?? "Sin asignar")</td>
                                 <td style="text-align: center;">
-                                    <span class="inv-chip inv-chip-warning">@prod.Stock unid.</span>
+                                    @{
+                                        var smStockClass = prod.Stock == 0 ? "inv-chip-error" : (prod.Stock <= 10 ? "inv-chip-warning" : "inv-chip-success");
+                                    }
+                                    <span class="inv-chip @smStockClass" data-no-i18n>@prod.Stock unid.</span>
                                 </td>
                                 <td style="text-align: right; font-weight: 600; color: var(--purple-900);">@prod.Precio.ToString("C")</td>
                                 <td style="text-align: center;">

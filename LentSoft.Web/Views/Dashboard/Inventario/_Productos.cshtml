@@ -102,7 +102,7 @@
 
             <!-- Botón Nuevo Producto -->
             <div>
-                <button type="button" class="inv-btn inv-btn-success" onclick="document.getElementById('modal-producto').style.display='flex'" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;" data-i18n="admin.inv.newproduct">
+                <button type="button" class="inv-btn inv-btn-success inv-btn-toolbar" onclick="document.getElementById('modal-producto').style.display='flex'" data-i18n="admin.inv.newproduct">
                     <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Nuevo Producto
                 </button>
@@ -124,7 +124,7 @@
                     <svg class="inv-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
                     Inactivar
                 </button>
-                <button type="button" class="inv-btn inv-btn-secondary" onclick="exportSelectedProductsExcel()" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                <button type="button" class="inv-btn inv-btn-success" onclick="exportSelectedProductsExcel()" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
                     <svg class="inv-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                     Exportar Selección
                 </button>
@@ -151,7 +151,7 @@
                         {
                             <a href="?section=inventario&subtab=productos" class="inv-btn inv-btn-secondary">Restablecer Filtros</a>
                         }
-                        <button type="button" class="inv-btn inv-btn-primary" onclick="document.getElementById('modal-producto').style.display='flex'">
+                        <button type="button" class="inv-btn inv-btn-success inv-btn-toolbar" onclick="document.getElementById('modal-producto').style.display='flex'">
                             <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                             Nuevo Producto
                         </button>
@@ -272,7 +272,7 @@
                                 <td data-label="Stock" style="text-align: center;" data-stock-value="@prod.Stock" data-stock-min="@minStock">
                                     <div class="inv-stock-container">
                                         <div class="inv-stock-text" style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.2rem;">
-                                            <span style="font-weight: 700; color: @(prod.Stock == 0 ? "var(--error)" : (prod.Stock <= minStock ? "var(--warning)" : "var(--success)"));">
+                                            <span style="font-weight: 700; color: @(prod.Stock == 0 ? "var(--inv-red)" : (prod.Stock <= minStock ? "var(--inv-orange)" : "var(--inv-green)"));">
                                                 @prod.Stock unid. @(prod.Stock == 0 ? "(Agotado)" : (prod.Stock <= minStock ? "(Bajo)" : ""))
                                             </span>
                                             <span style="color: var(--gray-400); font-size: 0.7rem;">Mín: @minStock</span>
@@ -283,7 +283,7 @@
                                     </div>
                                 </td>
                                 <td data-label="Estado" style="text-align: center;">
-                                    <button type="button" onclick="toggleProductStatus(@prod.Id, this)" class="inv-chip inv-chip-btn @(prod.Activo ? "inv-chip-success" : "inv-chip-error")" title="Haz clic para alternar estado (Activo/Inactivo)">
+                                    <button type="button" onclick="toggleProductStatus(@prod.Id, this)" class="inv-chip inv-chip-btn @(prod.Activo ? "inv-chip-success" : "inv-chip-error")" data-no-i18n title="Haz clic para alternar estado (Activo/Inactivo)">
                                         @(prod.Activo ? "Activo" : "Inactivo")
                                     </button>
                                 </td>
