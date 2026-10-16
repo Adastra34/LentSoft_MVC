@@ -357,10 +357,13 @@ public class ProductService : IProductService
 
     public async Task<List<Product>> GetFeaturedAsync()
     {
-        return await _context.Products
+        var items = await _context.Products
             .Where(p => p.Activo && p.EsDestacado)
-            .OrderByDescending(p => p.Rating)
             .ToListAsync();
+
+        return items
+            .OrderByDescending(p => p.Rating)
+            .ToList();
     }
 
     public async Task<List<Product>> GetGafasAsync()
