@@ -1,0 +1,21 @@
+{
+    "processing": "Procesando...",
+    "search": "🔍 Buscar en ventas:",
+    "searchPlaceholder": "Cliente, cédula, pedido...",
+    "lengthMenu": "Mostrar _MENU_ registros",
+    "info": "Mostrando _START_ a _END_ de _TOTAL_ ventas",
+    "infoEmpty": "Mostrando 0 a 0 de 0 ventas",
+    "infoFiltered": "(filtrado de un total de _MAX_ registros)",
+    "zeroRecords": "No se encontraron resultados coincidentes",
+    "emptyTable": "No hay ventas registradas para este filtro",
+    "paginate": {
+        "first": "«",
+        "previous": "‹ Anterior",
+        "next": "Siguiente ›",
+        "last": "»"
+    },
+    "aria": {
+        "sortAscending": ": Activar para ordenar la columna de manera ascendente",
+        "sortDescending": ": Activar para ordenar la columna de manera descendente"
+    }
+}

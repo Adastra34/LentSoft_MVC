@@ -87,6 +87,7 @@ builder.Services.AddScoped<IPdfPurchaseOrderService, PdfPurchaseOrderService>();
 builder.Services.AddScoped<IPagoVentaService, PagoVentaService>();
 builder.Services.AddScoped<IPdfReciboService, PdfReciboService>();
 builder.Services.AddScoped<IPasarelaPagoService, PasarelaPagoService>();
+builder.Services.AddScoped<IVentasService, VentasService>();
 builder.Services.AddSingleton<IPasswordResetTokenService, PasswordResetTokenService>();
 builder.Services.AddSingleton<ISaleConfirmationTokenService, SaleConfirmationTokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();

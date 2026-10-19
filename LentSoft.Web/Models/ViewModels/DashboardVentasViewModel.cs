@@ -27,8 +27,35 @@ public class DashboardVentasViewModel
 
     // ── Inventarios ──
     public List<Product> Productos { get; set; } = new();
-    public List<SalesOrder> PedidosVentas { get; set; } = new();
+    public List<Product> TodosLosProductos { get; set; } = new();
+    public string? ProdSearchTerm { get; set; }
+    public string? ProdEstado { get; set; }
+    public string? ProdCategoria { get; set; }
+    public string? ProdProveedor { get; set; }
+    public bool ProdStockBajo { get; set; }
+    public string? ProdSortBy { get; set; }
+    public string ProdSortDir { get; set; } = "asc";
+    public int ProdPage { get; set; } = 1;
+    public int ProdPageSize { get; set; } = 20;
+    public int ProdTotalCount { get; set; }
+    public int ProdTotalPages => (int)Math.Ceiling((double)ProdTotalCount / (ProdPageSize > 0 ? ProdPageSize : 20));
+
+    public List<Supplier> Proveedores { get; set; } = new();
+
     public List<InventoryMovement> HistorialMovimientos { get; set; } = new();
+    public string? MovSearchTerm { get; set; }
+    public string? MovTipo { get; set; }
+    public int? MovProductId { get; set; }
+    public DateTime? MovFechaInicio { get; set; }
+    public DateTime? MovFechaFin { get; set; }
+    public string? MovMotivo { get; set; }
+    public string MovSort { get; set; } = "desc";
+    public int MovPage { get; set; } = 1;
+    public int MovPageSize { get; set; } = 20;
+    public int MovTotalCount { get; set; }
+    public int MovTotalPages => (int)Math.Ceiling((double)MovTotalCount / (MovPageSize > 0 ? MovPageSize : 20));
+
+    public List<SalesOrder> PedidosVentas { get; set; } = new();
 
     // ── Clientes ──
     public List<User> Clientes { get; set; } = new();

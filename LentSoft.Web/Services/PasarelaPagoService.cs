@@ -17,9 +17,46 @@ public class PasarelaPagoService : IPasarelaPagoService
 
     public async Task<ResultadoTransaccionDTO> ProcesarPagoTarjetaAsync(TarjetaPagoDTO dto)
     {
+        // 0. Si viene con VentaId, validar ANTES de cobrar que la venta exista, esté activa y que el monto no supere el saldo
+        if (dto.VentaId.HasValue && dto.VentaId.Value > 0)
+        {
+            var order = await _context.Orders
+                .Include(o => o.Pagos)
+                .FirstOrDefaultAsync(o => o.Id == dto.VentaId.Value);
+
+            if (order == null || !order.Activo)
+            {
+                return GenerarResultadoFallido(dto, "No se encontró la venta especificada o se encuentra inactiva.");
+            }
+
+            if (order.Estado == "cancelado")
+            {
+                return GenerarResultadoFallido(dto, "No se pueden realizar cobros sobre una venta cancelada.");
+            }
+
+            var totalAbonado = order.Pagos != null && order.Pagos.Any()
+                ? order.Pagos.Sum(p => p.Monto)
+                : order.MontoPagado;
+            var saldoActual = Math.Max(0m, order.Total - totalAbonado);
+
+            if (dto.Monto <= 0)
+            {
+                return GenerarResultadoFallido(dto, "El monto a cobrar debe ser mayor a cero.");
+            }
+
+            if (dto.Monto > saldoActual)
+            {
+                return GenerarResultadoFallido(dto, $"El monto a cobrar (${dto.Monto:N2}) supera el saldo pendiente (${saldoActual:N2}).");
+            }
+        }
+        else if (dto.Monto <= 0)
+        {
+            return GenerarResultadoFallido(dto, "El monto a cobrar debe ser mayor a cero.");
+        }
+
         var numeroLimpio = dto.NumeroTarjeta?.Replace(" ", "").Replace("-", "").Trim() ?? string.Empty;
 
-        // 1. Validaciones básicas de tarjeta
+        // 1. Validaciones básicas de tarjeta (nunca se loguea ni persiste el número completo ni CVV)
         if (string.IsNullOrWhiteSpace(numeroLimpio) || numeroLimpio.Length < 13 || numeroLimpio.Length > 19 || !numeroLimpio.All(char.IsDigit))
         {
             return GenerarResultadoFallido(dto, "Número de tarjeta inválido. Debe contener entre 13 y 19 dígitos numéricos.");
@@ -45,19 +82,13 @@ public class PasarelaPagoService : IPasarelaPagoService
             return GenerarResultadoFallido(dto, "Código CVV inválido (debe tener 3 o 4 dígitos).");
         }
 
-        if (dto.Monto <= 0)
-        {
-            return GenerarResultadoFallido(dto, "El monto a cobrar debe ser mayor a cero.");
-        }
-
         var marca = DetectarMarcaTarjeta(numeroLimpio);
-        var ultimosDígitos = numeroLimpio.Substring(Math.Max(0, numeroLimpio.Length - 4));
+        var ultimosDigitos = numeroLimpio.Substring(Math.Max(0, numeroLimpio.Length - 4));
 
         // 2. Simulación de aprobación/rechazo
-        // Si el número termina en '9' (tarjeta de prueba de rechazo) o si la expiración es en el pasado
+        // Tarjeta terminada en '9' se rechaza por simulación bancaria
         bool esAprobada = !numeroLimpio.EndsWith("9");
         string motivoRechazo = esAprobada ? string.Empty : "Transacción rechazada por el banco emisor (Fondos Insuficientes / Tarjeta de prueba rechazada).";
-
         var codigoAutorizacion = esAprobada ? $"AUTH-{Random.Shared.Next(100000, 999999)}" : null;
 
         var transaccion = new TransaccionPago
@@ -66,44 +97,56 @@ public class PasarelaPagoService : IPasarelaPagoService
             Monto = Math.Round(dto.Monto, 2),
             Estado = esAprobada ? "Aprobada" : "Rechazada",
             CodigoAutorizacion = codigoAutorizacion,
-            UltimosDigitosTarjeta = ultimosDígitos,
+            UltimosDigitosTarjeta = ultimosDigitos,
             MarcaTarjeta = marca,
             MensajeRespuesta = esAprobada ? "Transacción Aprobada Exitosamente" : motivoRechazo,
             Fecha = DateTime.UtcNow
         };
 
-        _context.TransaccionesPagos.Add(transaccion);
-        await _context.SaveChangesAsync();
-
-        if (!esAprobada)
+        // 3. Ejecución atómica en una sola transacción de base de datos
+        using var dbTx = await _context.Database.BeginTransactionAsync();
+        try
         {
+            _context.TransaccionesPagos.Add(transaccion);
+            await _context.SaveChangesAsync();
+
+            if (!esAprobada)
+            {
+                await dbTx.CommitAsync();
+                return new ResultadoTransaccionDTO
+                {
+                    Exitoso = false,
+                    Mensaje = motivoRechazo,
+                    Transaccion = transaccion
+                };
+            }
+
+            PagoVenta? pagoRegistrado = null;
+            if (dto.VentaId.HasValue && dto.VentaId.Value > 0)
+            {
+                pagoRegistrado = await _pagoVentaService.RegistrarAbonoAsync(
+                    dto.VentaId.Value, 
+                    dto.Monto, 
+                    $"Tarjeta {marca} (****{ultimosDigitos})", 
+                    dto.Responsable
+                );
+            }
+
+            await dbTx.CommitAsync();
+
             return new ResultadoTransaccionDTO
             {
-                Exitoso = false,
-                Mensaje = motivoRechazo,
-                Transaccion = transaccion
+                Exitoso = true,
+                Mensaje = $"Pago aprobado. Código de Autorización: {codigoAutorizacion}",
+                Transaccion = transaccion,
+                PagoRegistrado = pagoRegistrado
             };
         }
-
-        // 3. Si es aprobada y tiene VentaId asociada, registrar el pago/abono correspondiente
-        PagoVenta? pagoRegistrado = null;
-        if (dto.VentaId.HasValue && dto.VentaId.Value > 0)
+        catch (Exception)
         {
-            pagoRegistrado = await _pagoVentaService.RegistrarAbonoAsync(
-                dto.VentaId.Value, 
-                dto.Monto, 
-                $"Tarjeta {marca} (****{ultimosDígitos})", 
-                dto.Responsable
-            );
+            await dbTx.RollbackAsync();
+            throw;
         }
-
-        return new ResultadoTransaccionDTO
-        {
-            Exitoso = true,
-            Mensaje = $"Pago aprobado. Código de Autorización: {codigoAutorizacion}",
-            Transaccion = transaccion,
-            PagoRegistrado = pagoRegistrado
-        };
     }
 
     public bool ValidarAlgoritmoLuhn(string numeroTarjeta)
