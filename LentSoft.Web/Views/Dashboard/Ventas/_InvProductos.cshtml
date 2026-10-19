@@ -1,0 +1,529 @@
+@model DashboardVentasViewModel
+@inject Microsoft.Extensions.Options.IOptions<LentSoft.Web.Services.InventorySettings> InventoryOptions
+
+@{
+    var currentSort = Model.ProdSortBy?.ToLower() ?? "nombre";
+    var currentDir = Model.ProdSortDir?.ToLower() ?? "asc";
+    string GetSortUrl(string column)
+    {
+        var newDir = (currentSort == column && currentDir == "asc") ? "desc" : "asc";
+        return $"?section=inventarios&subtab=productos&prodPage=1&prodSearch={Uri.EscapeDataString(Model.ProdSearchTerm ?? "")}&prodEstado={Uri.EscapeDataString(Model.ProdEstado ?? "")}&prodCategoria={Uri.EscapeDataString(Model.ProdCategoria ?? "")}&prodProveedor={Uri.EscapeDataString(Model.ProdProveedor ?? "")}&prodStockBajo={Model.ProdStockBajo}&prodSortBy={column}&prodSortDir={newDir}";
+    }
+    string GetSortIndicator(string column)
+    {
+        if (currentSort != column) return "";
+        return currentDir == "asc" ? " ▲" : " ▼";
+    }
+    bool hasActiveFilters = !string.IsNullOrWhiteSpace(Model.ProdSearchTerm) 
+        || !string.IsNullOrWhiteSpace(Model.ProdEstado) 
+        || !string.IsNullOrWhiteSpace(Model.ProdCategoria) 
+        || !string.IsNullOrWhiteSpace(Model.ProdProveedor) 
+        || Model.ProdStockBajo;
+}
+
+<div id="subtab-content-productos" style="display: @(Model.ActiveSubTab == "productos" || string.IsNullOrEmpty(Model.ActiveSubTab) ? "block" : "none");">
+    <div class="inv-card">
+        <!-- ── Barra de búsqueda y filtros avanzados ── -->
+        <div class="inv-search-bar" style="flex-wrap: wrap; gap: 0.75rem;">
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; flex: 1;">
+                <!-- Buscador de Texto -->
+                <div class="inv-search-input-wrapper" style="min-width: 260px; flex: 1;">
+                    <span class="inv-search-icon">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    </span>
+                    <input type="text" id="searchProducts" placeholder="Buscar por nombre, SKU, marca, categoría..." value="@Model.ProdSearchTerm" class="inv-search-input" onkeydown="if(event.key === 'Enter') submitProductFilters();" />
+                </div>
+
+                <button type="button" onclick="submitProductFilters()" class="inv-btn inv-btn-secondary" style="padding: 0.45rem 0.85rem; font-size: 0.85rem;" title="Buscar">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    Buscar
+                </button>
+
+                <!-- Filtro por Estado -->
+                <div style="position: relative;">
+                    <button type="button" onclick="toggleMenu('filter-menu-prod-estado')" class="inv-filter-btn">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                        <span>Estado: @(string.IsNullOrEmpty(Model.ProdEstado) ? "Todos" : char.ToUpper(Model.ProdEstado[0]) + Model.ProdEstado.Substring(1))</span>
+                        <svg class="inv-icon" style="width: 0.8em; height: 0.8em;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="filter-menu-prod-estado" class="inv-dropdown-menu">
+                        <a href="javascript:void(0)" onclick="applyProdParam('prodEstado', '')" class="inv-dropdown-item">Todos los estados</a>
+                        <a href="javascript:void(0)" onclick="applyProdParam('prodEstado', 'activo')" class="inv-dropdown-item">Solo Activos</a>
+                        <a href="javascript:void(0)" onclick="applyProdParam('prodEstado', 'inactivo')" class="inv-dropdown-item">Solo Inactivos</a>
+                    </div>
+                </div>
+
+                <!-- Filtro por Categoría -->
+                <div style="position: relative;">
+                    <button type="button" onclick="toggleMenu('filter-menu-prod-categoria')" class="inv-filter-btn">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                        <span>Cat: @(string.IsNullOrEmpty(Model.ProdCategoria) ? "Todas" : Model.ProdCategoria)</span>
+                        <svg class="inv-icon" style="width: 0.8em; height: 0.8em;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="filter-menu-prod-categoria" class="inv-dropdown-menu">
+                        <a href="javascript:void(0)" onclick="applyProdParam('prodCategoria', '')" class="inv-dropdown-item">Todas las categorías</a>
+                        <a href="javascript:void(0)" onclick="applyProdParam('prodCategoria', 'lentes-sol')" class="inv-dropdown-item">Gafas de Sol</a>
+                        <a href="javascript:void(0)" onclick="applyProdParam('prodCategoria', 'monturas')" class="inv-dropdown-item">Monturas</a>
+                        <a href="javascript:void(0)" onclick="applyProdParam('prodCategoria', 'lentes-contacto')" class="inv-dropdown-item">Lentes de Contacto</a>
+                        <a href="javascript:void(0)" onclick="applyProdParam('prodCategoria', 'lentes-graduados')" class="inv-dropdown-item">Lentes Graduados</a>
+                        <a href="javascript:void(0)" onclick="applyProdParam('prodCategoria', 'accesorios')" class="inv-dropdown-item">Accesorios</a>
+                    </div>
+                </div>
+
+                <!-- Filtro por Proveedor -->
+                <div style="position: relative;">
+                    <button type="button" onclick="toggleMenu('filter-menu-prod-proveedor')" class="inv-filter-btn">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                        <span>Prov: @(string.IsNullOrEmpty(Model.ProdProveedor) ? "Todos" : Model.ProdProveedor)</span>
+                        <svg class="inv-icon" style="width: 0.8em; height: 0.8em;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
+                    </button>
+                    <div id="filter-menu-prod-proveedor" class="inv-dropdown-menu">
+                        <a href="javascript:void(0)" onclick="applyProdParam('prodProveedor', '')" class="inv-dropdown-item">Todos los proveedores</a>
+                        @foreach (var supp in Model.Proveedores)
+                        {
+                            <a href="javascript:void(0)" onclick="applyProdParam('prodProveedor', '@supp.Id')" class="inv-dropdown-item">@supp.Nombre</a>
+                        }
+                    </div>
+                </div>
+
+                <!-- Filtro Solo Stock Bajo -->
+                <button type="button" onclick="applyProdParam('prodStockBajo', '@(!Model.ProdStockBajo)')" class="inv-btn @(Model.ProdStockBajo ? "inv-btn-primary" : "inv-btn-secondary")" style="padding: 0.45rem 0.85rem; font-size: 0.85rem;" title="Filtrar por productos con stock menor o igual al mínimo">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    Solo Stock Bajo
+                </button>
+
+                @if (hasActiveFilters)
+                {
+                    <a href="?section=inventarios&subtab=productos" class="inv-btn inv-btn-danger" style="padding: 0.45rem 0.75rem; font-size: 0.8rem; text-decoration: none;" title="Limpiar todos los filtros">
+                        ✕ Limpiar
+                    </a>
+                }
+            </div>
+
+            <!-- Botón Nuevo Producto -->
+            <div>
+                <button type="button" class="inv-btn inv-btn-success inv-btn-toolbar" onclick="document.getElementById('modal-producto').style.display='flex'" data-i18n="admin.inv.newproduct">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Nuevo Producto
+                </button>
+            </div>
+        </div>
+
+        <!-- ── Barra flotante de acciones masivas ── -->
+        <div id="inv-products-bulk-bar" class="inv-bulk-bar">
+            <div style="display: flex; align-items: center; gap: 0.6rem; color: var(--purple-900); font-weight: 700; font-size: 0.9rem;">
+                <span class="inv-chip inv-chip-purple"><span id="inv-products-bulk-count">0</span> seleccionados</span>
+                <span>Acciones masivas:</span>
+            </div>
+            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                <button type="button" class="inv-btn inv-btn-success" onclick="bulkToggleProducts(true)" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                    Activar
+                </button>
+                <button type="button" class="inv-btn inv-btn-secondary" onclick="bulkToggleProducts(false)" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; color: var(--error);">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>
+                    Inactivar
+                </button>
+                <button type="button" class="inv-btn inv-btn-success" onclick="exportSelectedProductsExcel()" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Exportar Selección
+                </button>
+                <button type="button" class="inv-btn inv-btn-secondary" onclick="clearSelectedProducts()" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">
+                    ✕ Deseleccionar
+                </button>
+            </div>
+        </div>
+
+        <!-- ── Tabla de productos con encabezado fijo y responsive ── -->
+        <div class="inv-table-wrapper inv-sticky-table">
+            @if (!Model.Productos.Any())
+            {
+                <div class="inv-empty-state">
+                    <div class="inv-empty-state-icon">
+                        <svg class="inv-icon" style="width: 28px; height: 28px;" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                    </div>
+                    <div class="inv-empty-state-title">No se encontraron productos</div>
+                    <div class="inv-empty-state-desc">
+                        @(hasActiveFilters ? "No hay productos que coincidan con los filtros aplicados. Intenta restablecer los filtros." : "Aún no hay productos registrados en el inventario.")
+                    </div>
+                    <div style="display: flex; gap: 0.75rem; justify-content: center; align-items: center;">
+                        @if (hasActiveFilters)
+                        {
+                            <a href="?section=inventarios&subtab=productos" class="inv-btn inv-btn-secondary">Restablecer Filtros</a>
+                        }
+                        <button type="button" class="inv-btn inv-btn-success inv-btn-toolbar" onclick="document.getElementById('modal-producto').style.display='flex'">
+                            <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Nuevo Producto
+                        </button>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <table id="tableProducts" class="inv-table inv-table-responsive">
+                    <thead>
+                        <tr>
+                            <th style="width: 40px; text-align: center;">
+                                <input type="checkbox" id="selectAllProducts" onchange="toggleSelectAllProducts(this)" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--purple-600);" title="Seleccionar todos" />
+                            </th>
+                            <th style="width: 55px; text-align: center;">Foto</th>
+                            <th>
+                                <a href="@GetSortUrl("nombre")" class="inv-sort-link">
+                                    Producto @GetSortIndicator("nombre")
+                                </a>
+                            </th>
+                            <th>
+                                <a href="@GetSortUrl("sku")" class="inv-sort-link">
+                                    SKU @GetSortIndicator("sku")
+                                </a>
+                            </th>
+                            <th style="text-align: center;">
+                                <a href="@GetSortUrl("categoria")" class="inv-sort-link">
+                                    Categoría @GetSortIndicator("categoria")
+                                </a>
+                            </th>
+                            <th style="text-align: center;">
+                                <a href="@GetSortUrl("marca")" class="inv-sort-link">
+                                    Marca @GetSortIndicator("marca")
+                                </a>
+                            </th>
+                            <th style="text-align: center;">
+                                <a href="@GetSortUrl("proveedor")" class="inv-sort-link">
+                                    Proveedor @GetSortIndicator("proveedor")
+                                </a>
+                            </th>
+                            <th style="text-align: right;">
+                                <a href="@GetSortUrl("precio")" class="inv-sort-link">
+                                    Precio @GetSortIndicator("precio")
+                                </a>
+                            </th>
+                            <th style="text-align: center; width: 160px;">
+                                <a href="@GetSortUrl("stock")" class="inv-sort-link">
+                                    Stock @GetSortIndicator("stock")
+                                </a>
+                            </th>
+                            <th style="text-align: center;">
+                                <a href="@GetSortUrl("estado")" class="inv-sort-link">
+                                    Estado @GetSortIndicator("estado")
+                                </a>
+                            </th>
+                            <th style="text-align: center; width: 120px;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var prod in Model.Productos)
+                        {
+                            var statusText = prod.Activo ? "Activo" : "Inactivo";
+                            var catSlug = prod.Categoria?.ToLowerInvariant().Trim() ?? "";
+                            var minStock = prod.StockMinimo > 0 ? prod.StockMinimo : 10;
+                            var maxStock = InventoryOptions.Value.MaxStock > 0 ? InventoryOptions.Value.MaxStock : 85;
+                            var stockPct = Math.Min(100, (int)Math.Round((double)prod.Stock / maxStock * 100));
+                            var stockColorClass = prod.Stock == 0 ? "inv-stock-bar-red" : (prod.Stock <= minStock ? "inv-stock-bar-yellow" : "inv-stock-bar-green");
+
+                            <tr data-categoria="@catSlug" data-estado="@statusText.ToLowerInvariant()" data-ubicacion="@(prod.Ubicacion ?? "")">
+                                <td style="text-align: center;" data-label="Seleccionar">
+                                    <input type="checkbox" class="inv-product-select-cb" value="@prod.Id" onchange="updateBulkProductsBar()" style="cursor: pointer; width: 16px; height: 16px; accent-color: var(--purple-600);" />
+                                </td>
+                                <td data-label="Foto" style="text-align: center;">
+                                    @if (!string.IsNullOrEmpty(prod.ImagenUrl))
+                                    {
+                                        <img src="@prod.ImagenUrl" alt="@prod.Nombre" class="inv-table-thumb" />
+                                    }
+                                    else
+                                    {
+                                        <div class="inv-table-thumb" style="display: flex; align-items: center; justify-content: center; color: var(--purple-400);">
+                                            <svg class="inv-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                                        </div>
+                                    }
+                                </td>
+                                <td data-label="Producto">
+                                    <a href="/Product/Details/@prod.Id" style="color: var(--purple-700); font-weight: 600; text-decoration: none; display: block;">@prod.Nombre</a>
+                                    @if (!string.IsNullOrEmpty(prod.Ubicacion))
+                                    {
+                                        <span style="font-size: 0.75rem; color: var(--gray-500);">📍 @prod.Ubicacion</span>
+                                    }
+                                </td>
+                                <td data-label="SKU">
+                                    @if (!string.IsNullOrEmpty(prod.Sku))
+                                    {
+                                        <code style="font-size: 0.8rem; background: var(--purple-50); padding: 0.15rem 0.35rem; border-radius: 0.25rem; color: var(--purple-800); border: 1px solid var(--purple-200);">@prod.Sku</code>
+                                    }
+                                    else
+                                    {
+                                        <span style="font-size: 0.75rem; color: var(--gray-400); font-style: italic;">Sin SKU</span>
+                                    }
+                                </td>
+                                <td data-label="Categoría" style="text-align: center; color: var(--gray-600);">
+                                    <span class="inv-chip inv-chip-purple" style="font-size: 0.7rem;">@prod.Categoria</span>
+                                </td>
+                                <td data-label="Marca" style="text-align: center; color: var(--gray-600);">
+                                    @(string.IsNullOrWhiteSpace(prod.Marca) ? "-" : prod.Marca)
+                                </td>
+                                <td data-label="Proveedor" style="text-align: center; color: var(--gray-600);">
+                                    @(prod.Supplier?.Nombre ?? "Sin asignar")
+                                </td>
+                                <td data-label="Precio" style="text-align: right; font-weight: 700; color: var(--purple-900);">
+                                    @prod.Precio.ToString("C")
+                                    @if (prod.CostoCompra.HasValue && prod.CostoCompra.Value > 0)
+                                    {
+                                        <div style="font-size: 0.7rem; color: var(--gray-400); font-weight: 400;">Costo: @prod.CostoCompra.Value.ToString("C")</div>
+                                    }
+                                </td>
+                                <td data-label="Stock" style="text-align: center;" data-stock-value="@prod.Stock" data-stock-min="@minStock">
+                                    <div class="inv-stock-container">
+                                        <div class="inv-stock-text" style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 0.2rem;">
+                                            <span style="font-weight: 700; color: @(prod.Stock == 0 ? "var(--inv-red)" : (prod.Stock <= minStock ? "var(--inv-orange)" : "var(--inv-green)"));">
+                                                @prod.Stock unid. @(prod.Stock == 0 ? "(Agotado)" : (prod.Stock <= minStock ? "(Bajo)" : ""))
+                                            </span>
+                                            <span style="color: var(--gray-400); font-size: 0.7rem;">Mín: @minStock</span>
+                                        </div>
+                                        <div class="inv-stock-bar" style="height: 6px; background: #e5e7eb; border-radius: 9999px; overflow: hidden;">
+                                            <div class="inv-stock-bar-fill @stockColorClass" style="width: @stockPct%; height: 100%;"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td data-label="Estado" style="text-align: center;">
+                                    <button type="button" onclick="toggleProductStatus(@prod.Id, this)" class="inv-chip inv-chip-btn @(prod.Activo ? "inv-chip-success" : "inv-chip-error")" data-no-i18n title="Haz clic para alternar estado (Activo/Inactivo)">
+                                        @(prod.Activo ? "Activo" : "Inactivo")
+                                    </button>
+                                </td>
+                                <td data-label="Acciones" style="text-align: center;">
+                                    <div style="display: flex; gap: 0.35rem; justify-content: center; align-items: center;">
+                                        <button type="button" class="inv-btn-icon inv-btn-icon-edit btn-edit-product" aria-label="Editar producto" title="Editar producto"
+                                            data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { 
+                                                id = prod.Id, 
+                                                nombre = prod.Nombre, 
+                                                descripcion = prod.Descripcion ?? "", 
+                                                precio = prod.Precio, 
+                                                precioDescuento = prod.PrecioDescuento?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "", 
+                                                categoria = prod.Categoria, 
+                                                marca = prod.Marca ?? "", 
+                                                stock = prod.Stock, 
+                                                activo = prod.Activo, 
+                                                imagenUrl = prod.ImagenUrl ?? "",
+                                                sku = prod.Sku ?? "",
+                                                costoCompra = prod.CostoCompra?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "",
+                                                stockMinimo = prod.StockMinimo,
+                                                ubicacion = prod.Ubicacion ?? "",
+                                                supplierId = prod.SupplierId ?? "",
+                                                rowVersion = (prod.RowVersion != null && prod.RowVersion.Length > 0) ? Convert.ToBase64String(prod.RowVersion) : ""
+                                            }))'>
+                                            <svg class="inv-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                        </button>
+
+                                        <form asp-controller="Ventas" asp-action="DeleteProduct" asp-route-id="@prod.Id" method="post" style="display:inline; margin: 0;" class="form-delete-product" data-nombre="@prod.Nombre">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="inv-btn-icon inv-btn-icon-delete" aria-label="Eliminar producto" title="Eliminar producto">
+                                                <svg class="inv-icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+
+        <!-- ── Paginación en Servidor (20 por página) ── -->
+        @if (Model.ProdTotalPages > 1)
+        {
+            var qs = $"&prodSearch={Uri.EscapeDataString(Model.ProdSearchTerm ?? "")}&prodEstado={Uri.EscapeDataString(Model.ProdEstado ?? "")}&prodCategoria={Uri.EscapeDataString(Model.ProdCategoria ?? "")}&prodProveedor={Uri.EscapeDataString(Model.ProdProveedor ?? "")}&prodStockBajo={Model.ProdStockBajo}&prodSortBy={Uri.EscapeDataString(Model.ProdSortBy ?? "nombre")}&prodSortDir={Uri.EscapeDataString(Model.ProdSortDir ?? "asc")}";
+
+            <div class="inv-pagination">
+                <span class="inv-pagination-info">
+                    Página @Model.ProdPage de @Model.ProdTotalPages (Total: @Model.ProdTotalCount productos)
+                </span>
+                <div class="inv-pagination-nav">
+                    @if (Model.ProdPage > 1)
+                    {
+                        <a href="?section=inventarios&subtab=productos&prodPage=1@qs" class="inv-pagination-btn" title="Primera página">&laquo;&laquo;</a>
+                        <a href="?section=inventarios&subtab=productos&prodPage=@(Model.ProdPage - 1)@qs" class="inv-pagination-btn" title="Página anterior">&laquo; Anterior</a>
+                    }
+                    else
+                    {
+                        <span class="inv-pagination-btn disabled">&laquo; Anterior</span>
+                    }
+
+                    @{
+                        int startPage = Math.Max(1, Model.ProdPage - 2);
+                        int endPage = Math.Min(Model.ProdTotalPages, Model.ProdPage + 2);
+                    }
+
+                    @for (int p = startPage; p <= endPage; p++)
+                    {
+                        if (p == Model.ProdPage)
+                        {
+                            <span class="inv-pagination-btn active">@p</span>
+                        }
+                        else
+                        {
+                            <a href="?section=inventarios&subtab=productos&prodPage=@p@qs" class="inv-pagination-btn">@p</a>
+                        }
+                    }
+
+                    @if (Model.ProdPage < Model.ProdTotalPages)
+                    {
+                        <a href="?section=inventarios&subtab=productos&prodPage=@(Model.ProdPage + 1)@qs" class="inv-pagination-btn" title="Página siguiente">Siguiente &raquo;</a>
+                        <a href="?section=inventarios&subtab=productos&prodPage=@Model.ProdTotalPages@qs" class="inv-pagination-btn" title="Última página">&raquo;&raquo;</a>
+                    }
+                    else
+                    {
+                        <span class="inv-pagination-btn disabled">Siguiente &raquo;</span>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    function toggleMenu(menuId) {
+        const menu = document.getElementById(menuId);
+        if (!menu) return;
+        const isShown = menu.style.display === 'block';
+        document.querySelectorAll('.inv-dropdown-menu').forEach(m => m.style.display = 'none');
+        menu.style.display = isShown ? 'none' : 'block';
+    }
+
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('.inv-filter-btn') && !e.target.closest('.inv-dropdown-menu')) {
+            document.querySelectorAll('.inv-dropdown-menu').forEach(m => m.style.display = 'none');
+        }
+    });
+
+    function submitProductFilters() {
+        const search = document.getElementById('searchProducts')?.value || '';
+        applyProdParam('prodSearch', search);
+    }
+
+    function applyProdParam(param, value) {
+        const url = new URL(window.location.href);
+        url.searchParams.set('section', 'inventarios');
+        url.searchParams.set('subtab', 'productos');
+        url.searchParams.set('prodPage', '1');
+        if (value !== undefined && value !== null && value !== '') {
+            url.searchParams.set(param, value);
+        } else {
+            url.searchParams.delete(param);
+        }
+        window.location.href = url.toString();
+    }
+
+    // ── Bulk Actions ──
+    function toggleSelectAllProducts(master) {
+        const cbs = document.querySelectorAll('.inv-product-select-cb');
+        cbs.forEach(cb => cb.checked = master.checked);
+        updateBulkProductsBar();
+    }
+
+    function updateBulkProductsBar() {
+        const selected = document.querySelectorAll('.inv-product-select-cb:checked');
+        const bar = document.getElementById('inv-products-bulk-bar');
+        const countSpan = document.getElementById('inv-products-bulk-count');
+        const masterCb = document.getElementById('selectAllProducts');
+        const allCbs = document.querySelectorAll('.inv-product-select-cb');
+
+        if (countSpan) countSpan.textContent = selected.length;
+        if (bar) {
+            if (selected.length > 0) {
+                bar.classList.add('active');
+            } else {
+                bar.classList.remove('active');
+            }
+        }
+        if (masterCb && allCbs.length > 0) {
+            masterCb.checked = selected.length === allCbs.length;
+            masterCb.indeterminate = selected.length > 0 && selected.length < allCbs.length;
+        }
+    }
+
+    function clearSelectedProducts() {
+        const cbs = document.querySelectorAll('.inv-product-select-cb');
+        cbs.forEach(cb => cb.checked = false);
+        const masterCb = document.getElementById('selectAllProducts');
+        if (masterCb) {
+            masterCb.checked = false;
+            masterCb.indeterminate = false;
+        }
+        updateBulkProductsBar();
+    }
+
+    async function bulkToggleProducts(activate) {
+        const selected = Array.from(document.querySelectorAll('.inv-product-select-cb:checked')).map(cb => parseInt(cb.value));
+        if (selected.length === 0) {
+            showToast('Selecciona al menos un producto', 'warning');
+            return;
+        }
+        const actionText = activate ? 'activar' : 'inactivar';
+        if (!confirm(`¿Estás seguro de que deseas ${actionText} ${selected.length} producto(s)?`)) {
+            return;
+        }
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+        try {
+            const res = await fetch('/Ventas/BulkToggleStatus', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({ ids: selected, activo: activate })
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast(data.message, 'success');
+                setTimeout(() => window.location.reload(), 600);
+            } else {
+                showToast(data.message || 'Error en la acción masiva', 'error');
+            }
+        } catch (e) {
+            showToast('Error de comunicación con el servidor', 'error');
+        }
+    }
+
+    function exportSelectedProductsExcel() {
+        const selectedCheckboxes = document.querySelectorAll('.inv-product-select-cb:checked');
+        if (selectedCheckboxes.length === 0) {
+            showToast('Selecciona al menos un producto para exportar', 'warning');
+            return;
+        }
+        if (typeof XLSX === 'undefined') {
+            showToast('Librería de exportación no cargada', 'error');
+            return;
+        }
+        const selectedIds = new Set(Array.from(selectedCheckboxes).map(cb => cb.value));
+        const table = document.getElementById('tableProducts');
+        if (!table) return;
+
+        const data = [
+            ['ID', 'Producto', 'SKU', 'Categoría', 'Marca', 'Proveedor', 'Precio', 'Stock', 'Ubicación', 'Estado']
+        ];
+
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(tr => {
+            const cb = tr.querySelector('.inv-product-select-cb');
+            if (cb && selectedIds.has(cb.value)) {
+                const id = cb.value;
+                const nombre = tr.querySelector('[data-label="Producto"] a')?.innerText?.trim() || '';
+                const ubicacion = tr.getAttribute('data-ubicacion') || '';
+                const sku = tr.querySelector('[data-label="SKU"]')?.innerText?.trim() || '';
+                const cat = tr.querySelector('[data-label="Categoría"]')?.innerText?.trim() || '';
+                const marca = tr.querySelector('[data-label="Marca"]')?.innerText?.trim() || '';
+                const prov = tr.querySelector('[data-label="Proveedor"]')?.innerText?.trim() || '';
+                const precio = tr.querySelector('[data-label="Precio"]')?.innerText?.trim() || '';
+                const stock = tr.querySelector('[data-label="Stock"] strong')?.innerText?.trim() || '';
+                const estado = tr.querySelector('[data-label="Estado"]')?.innerText?.trim() || '';
+
+                data.push([id, nombre, sku, cat, marca, prov, precio, stock, ubicacion, estado]);
+            }
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Productos");
+        XLSX.writeFile(wb, `LentSoft_Productos_Seleccionados_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        showToast('Exportación completada exitosamente', 'success');
+    }
+</script>

@@ -13,7 +13,7 @@
         </div>
 
         <!-- Formulario -->
-        <form asp-controller="Order" asp-action="Create" method="post" onsubmit="return validateSaleForm()" style="padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem;">
+        <form asp-controller="Ventas" asp-action="RegistrarVenta" method="post" onsubmit="return validateSaleForm()" style="padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem;">
             @Html.AntiForgeryToken()
             <input type="hidden" id="saleItemsJson" name="ItemsJson" value="[]" />
             <input type="hidden" id="saleFormulaOpticaId" name="FormulaOpticaId" value="" />

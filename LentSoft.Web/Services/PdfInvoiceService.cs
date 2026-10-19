@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -9,9 +10,17 @@ namespace LentSoft.Web.Services;
 
 public class PdfInvoiceService : IPdfInvoiceService
 {
-    public PdfInvoiceService()
+    private readonly IConfiguration _configuration;
+
+    public PdfInvoiceService(IConfiguration configuration)
     {
+        _configuration = configuration;
         QuestPDF.Settings.License = LicenseType.Community;
+    }
+
+    public PdfInvoiceService()
+        : this(new ConfigurationBuilder().Build())
+    {
     }
 
     public byte[] GenerateInvoicePdf(Invoice invoice)
@@ -242,7 +251,13 @@ public class PdfInvoiceService : IPdfInvoiceService
 
     private string GenerateCufeHash(Invoice invoice)
     {
-        var rawData = $"{invoice.NumeroFactura}{invoice.FechaEmision:yyyyMMddHHmmss}{invoice.Total:F2}{invoice.Impuestos:F2}9001234567";
+        if (!string.IsNullOrWhiteSpace(invoice.CUFE))
+        {
+            return invoice.CUFE;
+        }
+
+        var nitEmisor = _configuration["Facturacion:NitEmisor"] ?? "9001234567";
+        var rawData = $"{invoice.NumeroFactura}{invoice.FechaEmision:yyyyMMddHHmmss}{invoice.Total:F2}{invoice.Impuestos:F2}{nitEmisor}";
         using var sha256 = SHA256.Create();
         var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(rawData));
         var sb = new StringBuilder();

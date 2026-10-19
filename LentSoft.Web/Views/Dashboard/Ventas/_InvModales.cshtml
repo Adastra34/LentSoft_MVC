@@ -1,0 +1,714 @@
+@model DashboardVentasViewModel
+@inject Microsoft.Extensions.Options.IOptions<LentSoft.Web.Services.InventorySettings> InventoryOptions
+
+<!-- ==================== MODALES DEL MÓDULO DE INVENTARIO (VENTAS) ==================== -->
+
+<!-- Modal Crear Producto -->
+<div id="modal-producto" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
+    <div class="inv-card" style="width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; padding: 0; margin-bottom: 0;">
+        <div class="inv-dialog-header">
+            <h2 class="inv-dialog-title">
+                <svg class="inv-icon" viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                Nuevo Producto
+            </h2>
+            <button type="button" class="inv-dialog-close" onclick="document.getElementById('modal-producto').style.display='none'">&times;</button>
+        </div>
+        
+        <form id="form-crear-producto" asp-controller="Ventas" asp-action="CreateProduct" method="post" enctype="multipart/form-data" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <div class="inv-form-group">
+                <label class="inv-form-label">Nombre del Producto *</label>
+                <input name="Nombre" type="text" class="inv-form-input" required minlength="3" maxlength="200" placeholder="Ej: Montura Aviator Classic" />
+            </div>
+
+            <div class="inv-form-row">
+                <div class="inv-form-group">
+                    <label class="inv-form-label">SKU (Código único)</label>
+                    <input name="Sku" type="text" class="inv-form-input" maxlength="50" placeholder="Automático (1010, 2020...) o personalizado" />
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Proveedor</label>
+                    <select name="SupplierId" class="inv-form-input">
+                        <option value="">-- Sin proveedor asignado --</option>
+                        @foreach (var supp in Model.Proveedores)
+                        {
+                            <option value="@supp.Id">@supp.Nombre</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="inv-form-row">
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Categoría *</label>
+                    <select name="Categoria" class="inv-form-input" required>
+                        <option value="lentes-sol">Gafas de Sol (lentes-sol)</option>
+                        <option value="lentes-contacto">Lentes de Contacto (lentes-contacto)</option>
+                        <option value="monturas">Monturas (monturas)</option>
+                        <option value="lentes-graduados">Lentes Graduados (lentes-graduados)</option>
+                        <option value="accesorios">Accesorios (accesorios)</option>
+                    </select>
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Marca</label>
+                    <input name="Marca" type="text" class="inv-form-input" placeholder="Ej: Ray-Ban, Oakley, LentSoft" />
+                </div>
+            </div>
+
+            <div class="inv-form-row">
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Precio Regular ($) *</label>
+                    <input name="Precio" type="number" step="100" min="0" required class="inv-form-input" placeholder="Ej: 250000" />
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Costo de Compra ($)</label>
+                    <input name="CostoCompra" type="number" step="100" min="0" class="inv-form-input" placeholder="Ej: 120000" />
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Precio con Descuento ($)</label>
+                    <input name="PrecioDescuento" type="number" step="100" min="0" class="inv-form-input" placeholder="Opcional" />
+                </div>
+            </div>
+
+            <div class="inv-form-row">
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Stock * (Máx. @InventoryOptions.Value.MaxStock)</label>
+                    <input name="Stock" type="number" min="0" max="@InventoryOptions.Value.MaxStock" value="@InventoryOptions.Value.LowStockThreshold" required class="inv-form-input" />
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Stock Mínimo (Alerta) *</label>
+                    <input name="StockMinimo" type="number" min="0" value="@InventoryOptions.Value.LowStockThreshold" required class="inv-form-input" />
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Ubicación en Bodega</label>
+                    <input name="Ubicacion" type="text" class="inv-form-input" maxlength="100" placeholder="Ej: Estante A-2, Pasillo 3" />
+                </div>
+            </div>
+
+            <div class="inv-form-group">
+                <label class="inv-form-label">Descripción</label>
+                <textarea name="Descripcion" class="inv-form-input" rows="2" placeholder="Detalles o especificaciones del producto..."></textarea>
+            </div>
+
+            <!-- Campo de Subida de Imagen con Vista Previa -->
+            <div style="background: var(--purple-50); border: 1.5px dashed var(--purple-300); border-radius: 0.5rem; padding: 1rem;">
+                <label class="inv-form-label" style="display: flex; align-items: center; gap: 0.4rem; color: var(--purple-900); margin-bottom: 0.25rem;">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    Imagen del Producto (Subir Archivo)
+                </label>
+                <p style="font-size: 0.75rem; color: var(--gray-500); margin: 0 0 0.5rem 0;">Formatos admitidos: .jpg, .jpeg, .png, .webp (máx. 5 MB)</p>
+                
+                <input id="crearProductImagenArchivo" name="ImagenArchivo" type="file" accept=".jpg,.jpeg,.png,.webp,image/png,image/jpeg,image/webp" class="inv-form-input"
+                       onchange="previewProductImage(this, 'preview-crear-producto', 'crearProductPreviewContainer', 'crearProductImageInfo')" />
+
+                <!-- Contenedor Vista Previa -->
+                <div id="crearProductPreviewContainer" style="display: none; margin-top: 0.75rem; text-align: center; background: white; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-200);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span id="crearProductImageInfo" style="font-size: 0.75rem; font-weight: 600; color: var(--purple-800);"></span>
+                        <button type="button" onclick="clearProductImagePreview('crearProductImagenArchivo', 'preview-crear-producto', 'crearProductPreviewContainer', 'crearProductImageInfo')" style="background: none; border: none; color: var(--error); font-size: 0.75rem; font-weight: 600; cursor: pointer;">✕ Quitar</button>
+                    </div>
+                    <img id="preview-crear-producto" src="" alt="Vista previa" style="max-height: 160px; max-width: 100%; object-fit: contain; border-radius: 0.375rem; border: 1px solid var(--gray-200);" />
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <input name="Activo" type="checkbox" id="crearProductActivo" value="true" checked style="width: 18px; height: 18px; accent-color: var(--purple-600);" />
+                <label for="crearProductActivo" class="inv-form-label" style="cursor: pointer; margin: 0;">Producto Activo para la venta</label>
+            </div>
+
+            <div class="inv-dialog-footer" style="padding: 1rem 0 0 0; background: transparent;">
+                <button type="button" class="inv-btn inv-btn-secondary" onclick="document.getElementById('modal-producto').style.display='none'">Cancelar</button>
+                <button type="submit" class="inv-btn inv-btn-primary">Guardar Producto</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar Producto -->
+<div id="modal-editar-producto" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
+    <div class="inv-card" style="width: 100%; max-width: 620px; max-height: 90vh; overflow-y: auto; padding: 0; margin-bottom: 0;">
+        <div class="inv-dialog-header">
+            <h2 class="inv-dialog-title">
+                <svg class="inv-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Editar Producto
+            </h2>
+            <button type="button" class="inv-dialog-close" onclick="document.getElementById('modal-editar-producto').style.display='none'">&times;</button>
+        </div>
+        
+        <form id="form-editar-producto" asp-controller="Ventas" asp-action="EditProduct" method="post" enctype="multipart/form-data" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editProductId" name="Id" />
+            <input type="hidden" id="editProductExistingImagenUrl" name="ImagenUrl" />
+            <input type="hidden" id="editProductRowVersion" name="RowVersion" />
+
+            <div class="inv-form-group">
+                <label class="inv-form-label">Nombre del Producto *</label>
+                <input id="editProductNombre" name="Nombre" type="text" class="inv-form-input" required minlength="3" maxlength="200" />
+            </div>
+
+            <div class="inv-form-row">
+                <div class="inv-form-group">
+                    <label class="inv-form-label">SKU (Código único)</label>
+                    <input id="editProductSku" name="Sku" type="text" class="inv-form-input" maxlength="50" placeholder="Automático (1010, 2020...) o personalizado" />
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Proveedor</label>
+                    <select id="editProductSupplierId" name="SupplierId" class="inv-form-input">
+                        <option value="">-- Sin proveedor asignado --</option>
+                        @foreach (var supp in Model.Proveedores)
+                        {
+                            <option value="@supp.Id">@supp.Nombre</option>
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <div class="inv-form-row">
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Categoría *</label>
+                    <select id="editProductCategoria" name="Categoria" class="inv-form-input" required>
+                        <option value="lentes-sol">Gafas de Sol (lentes-sol)</option>
+                        <option value="lentes-contacto">Lentes de Contacto (lentes-contacto)</option>
+                        <option value="monturas">Monturas (monturas)</option>
+                        <option value="lentes-graduados">Lentes Graduados (lentes-graduados)</option>
+                        <option value="accesorios">Accesorios (accesorios)</option>
+                    </select>
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Marca</label>
+                    <input id="editProductMarca" name="Marca" type="text" class="inv-form-input" />
+                </div>
+            </div>
+
+            <div class="inv-form-row">
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Precio Regular ($) *</label>
+                    <input id="editProductPrecio" name="Precio" type="number" step="100" min="0" required class="inv-form-input" />
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Costo de Compra ($)</label>
+                    <input id="editProductCostoCompra" name="CostoCompra" type="number" step="100" min="0" class="inv-form-input" placeholder="Opcional" />
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Precio con Descuento ($)</label>
+                    <input id="editProductPrecioDescuento" name="PrecioDescuento" type="number" step="100" min="0" class="inv-form-input" placeholder="Opcional" />
+                </div>
+            </div>
+
+            <div class="inv-form-row">
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Stock * (Máx. @InventoryOptions.Value.MaxStock)</label>
+                    <input id="editProductStock" name="Stock" type="number" min="0" max="@InventoryOptions.Value.MaxStock" required class="inv-form-input" />
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Stock Mínimo (Alerta) *</label>
+                    <input id="editProductStockMinimo" name="StockMinimo" type="number" min="0" value="@InventoryOptions.Value.LowStockThreshold" required class="inv-form-input" />
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Ubicación en Bodega</label>
+                    <input id="editProductUbicacion" name="Ubicacion" type="text" class="inv-form-input" maxlength="100" placeholder="Ej: Estante A-2, Pasillo 3" />
+                </div>
+            </div>
+
+            <div class="inv-form-group">
+                <label class="inv-form-label">Descripción</label>
+                <textarea id="editProductDescripcion" name="Descripcion" class="inv-form-input" rows="2"></textarea>
+            </div>
+
+            <!-- Campo de Edición/Reemplazo de Imagen con Vista Previa -->
+            <div style="background: var(--purple-50); border: 1.5px dashed var(--purple-300); border-radius: 0.5rem; padding: 1rem;">
+                <label class="inv-form-label" style="display: flex; align-items: center; gap: 0.4rem; color: var(--purple-900); margin-bottom: 0.25rem;">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    Imagen del Producto
+                </label>
+                <p style="font-size: 0.75rem; color: var(--gray-500); margin: 0 0 0.5rem 0;">Sube un archivo nuevo para reemplazar la imagen actual, o déjalo vacío para conservarla.</p>
+                
+                <input id="editProductImagenArchivo" name="ImagenArchivo" type="file" accept=".jpg,.jpeg,.png,.webp,image/png,image/jpeg,image/webp" class="inv-form-input"
+                       onchange="previewProductImage(this, 'preview-editar-producto', 'editProductPreviewContainer', 'editProductImageInfo')" />
+
+                <!-- Contenedor Vista Previa -->
+                <div id="editProductPreviewContainer" style="display: none; margin-top: 0.75rem; text-align: center; background: white; padding: 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-200);">
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span id="editProductImageInfo" style="font-size: 0.75rem; font-weight: 600; color: var(--purple-800);"></span>
+                        <button type="button" onclick="clearProductImagePreview('editProductImagenArchivo', 'preview-editar-producto', 'editProductPreviewContainer', 'editProductImageInfo', document.getElementById('editProductExistingImagenUrl').value)" style="background: none; border: none; color: var(--purple-700); font-size: 0.75rem; font-weight: 600; cursor: pointer;">↺ Restaurar actual</button>
+                    </div>
+                    <img id="preview-editar-producto" src="" alt="Vista previa" style="max-height: 160px; max-width: 100%; object-fit: contain; border-radius: 0.375rem; border: 1px solid var(--gray-200);" />
+                </div>
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <input name="Activo" type="checkbox" id="editProductActivo" value="true" style="width: 18px; height: 18px; accent-color: var(--purple-600);" />
+                <label for="editProductActivo" class="inv-form-label" style="cursor: pointer; margin: 0;">Producto Activo para la venta</label>
+            </div>
+
+            <div class="inv-dialog-footer" style="padding: 1rem 0 0 0; background: transparent;">
+                <button type="button" class="inv-btn inv-btn-secondary" onclick="document.getElementById('modal-editar-producto').style.display='none'">Cancelar</button>
+                <button type="submit" class="inv-btn inv-btn-primary">Actualizar Producto</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Crear Pedido Venta -->
+<div id="modal-crear-pedido-venta" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
+    <div class="inv-card" style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; padding: 0; margin-bottom: 0;">
+        <div class="inv-dialog-header">
+            <h2 class="inv-dialog-title">
+                <svg class="inv-icon" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                Nuevo Pedido de Venta
+            </h2>
+            <button type="button" class="inv-dialog-close" onclick="document.getElementById('modal-crear-pedido-venta').style.display='none'">&times;</button>
+        </div>
+        
+        <form id="form-crear-pedido-venta" asp-controller="Dashboard" asp-action="CreateSalesOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <div class="inv-form-group">
+                <label class="inv-form-label">Número de Pedido *</label>
+                <input name="NumeroPedido" type="text" class="inv-form-input" required value="PED-VENTA-@DateTime.UtcNow.Ticks.ToString().Substring(12)" />
+            </div>
+
+            <div class="inv-form-group">
+                <label class="inv-form-label">Nombre del Cliente *</label>
+                <input name="ClienteNombre" type="text" class="inv-form-input" required placeholder="Ej: María Rodríguez" />
+            </div>
+
+            <div class="inv-form-group">
+                <label class="inv-form-label">Producto *</label>
+                <input name="ProductoNombre" type="text" class="inv-form-input" required placeholder="Ej: Montura Ray-Ban Especial" list="list-sugerencias-productos" />
+                <datalist id="list-sugerencias-productos">
+                    @foreach (var prod in Model.TodosLosProductos)
+                    {
+                        <option value="@prod.Nombre">Stock: @prod.Stock | Precio: @prod.Precio.ToString("C")</option>
+                    }
+                </datalist>
+            </div>
+
+            <div class="inv-form-row">
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Cantidad *</label>
+                    <input name="Cantidad" type="number" min="1" value="1" class="inv-form-input" required />
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Precio Unitario ($) *</label>
+                    <input name="PrecioUnitario" type="number" step="100" min="0" value="150000" class="inv-form-input" required />
+                </div>
+            </div>
+
+            <div class="inv-form-group">
+                <label class="inv-form-label">Estado</label>
+                <select name="Estado" class="inv-form-input">
+                    <option value="pendiente">Pendiente</option>
+                    <option value="enviado">Enviado</option>
+                    <option value="entregado">Entregado</option>
+                    <option value="cancelado">Cancelado</option>
+                </select>
+            </div>
+
+            <div class="inv-form-group">
+                <label class="inv-form-label">Notas</label>
+                <textarea name="Notas" class="inv-form-input" rows="2"></textarea>
+            </div>
+
+            <div class="inv-dialog-footer" style="padding: 1rem 0 0 0; background: transparent;">
+                <button type="button" class="inv-btn inv-btn-secondary" onclick="document.getElementById('modal-crear-pedido-venta').style.display='none'">Cancelar</button>
+                <button type="submit" class="inv-btn inv-btn-primary">Guardar Pedido Venta</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Editar Pedido Venta -->
+<div id="modal-editar-pedido-venta" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
+    <div class="inv-card" style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; padding: 0; margin-bottom: 0;">
+        <div class="inv-dialog-header">
+            <h2 class="inv-dialog-title">
+                <svg class="inv-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Editar Pedido de Venta
+            </h2>
+            <button type="button" class="inv-dialog-close" onclick="document.getElementById('modal-editar-pedido-venta').style.display='none'">&times;</button>
+        </div>
+        
+        <form id="form-editar-pedido-venta" asp-controller="Dashboard" asp-action="EditSalesOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            <input type="hidden" id="editSalesOrderId" name="Id" />
+            <div class="inv-form-group">
+                <label class="inv-form-label">Número de Pedido *</label>
+                <input id="editSalesOrderNumero" name="NumeroPedido" type="text" class="inv-form-input" required />
+            </div>
+
+            <div class="inv-form-group">
+                <label class="inv-form-label">Nombre del Cliente *</label>
+                <input id="editSalesOrderCliente" name="ClienteNombre" type="text" class="inv-form-input" required />
+            </div>
+
+            <div class="inv-form-group">
+                <label class="inv-form-label">Producto *</label>
+                <input id="editSalesOrderProducto" name="ProductoNombre" type="text" class="inv-form-input" required />
+            </div>
+
+            <div class="inv-form-row">
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Cantidad *</label>
+                    <input id="editSalesOrderCantidad" name="Cantidad" type="number" min="1" class="inv-form-input" required />
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Precio Unitario ($) *</label>
+                    <input id="editSalesOrderPrecio" name="PrecioUnitario" type="number" step="100" min="0" class="inv-form-input" required />
+                </div>
+            </div>
+
+            <div class="inv-form-group">
+                <label class="inv-form-label">Estado</label>
+                <select id="editSalesOrderEstado" name="Estado" class="inv-form-input">
+                    <option value="pendiente">Pendiente</option>
+                    <option value="enviado">Enviado</option>
+                    <option value="entregado">Entregado</option>
+                    <option value="cancelado">Cancelado</option>
+                </select>
+            </div>
+
+            <div class="inv-form-group">
+                <label class="inv-form-label">Notas</label>
+                <textarea id="editSalesOrderNotas" name="Notas" class="inv-form-input" rows="2"></textarea>
+            </div>
+
+            <div class="inv-dialog-footer" style="padding: 1rem 0 0 0; background: transparent;">
+                <button type="button" class="inv-btn inv-btn-secondary" onclick="document.getElementById('modal-editar-pedido-venta').style.display='none'">Cancelar</button>
+                <button type="submit" class="inv-btn inv-btn-primary">Actualizar Pedido Venta</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ==================== MODAL REGISTRAR MOVIMIENTO MANUAL ==================== -->
+<div id="modal-crear-movimiento" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
+    <div class="inv-card" style="width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; padding: 0; margin-bottom: 0;">
+        <div class="inv-dialog-header">
+            <h2 class="inv-dialog-title">
+                <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                Registrar Movimiento de Inventario
+            </h2>
+            <button type="button" class="inv-dialog-close" onclick="document.getElementById('modal-crear-movimiento').style.display='none'">&times;</button>
+        </div>
+        
+        <form id="form-crear-movimiento" asp-controller="Ventas" asp-action="CreateMovement" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+            @Html.AntiForgeryToken()
+            
+            <div class="inv-form-group">
+                <label class="inv-form-label">Producto *</label>
+                <select name="ProductId" class="inv-form-input" required>
+                    <option value="">-- Selecciona un Producto --</option>
+                    @foreach (var prod in Model.TodosLosProductos)
+                    {
+                        <option value="@prod.Id">@prod.Nombre (Stock actual: @prod.Stock @(!string.IsNullOrEmpty(prod.Sku) ? $"| SKU: {prod.Sku}" : ""))</option>
+                    }
+                </select>
+            </div>
+
+            <div class="inv-form-row">
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Tipo de Movimiento *</label>
+                    <select id="manualMovTipo" name="Tipo" class="inv-form-input" required onchange="handleManualMovTipoChange(this.value)">
+                        <option value="Entrada">Entrada (Sumar al stock)</option>
+                        <option value="Salida">Salida (Descontar del stock)</option>
+                        <option value="Ajuste">Ajuste de Conteo</option>
+                    </select>
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Cantidad *</label>
+                    <input name="Cantidad" type="number" min="1" value="1" class="inv-form-input" required />
+                </div>
+            </div>
+
+            <div class="inv-form-row">
+                <div class="inv-form-group">
+                    <label class="inv-form-label" id="lblManualMovMotivo">Motivo *</label>
+                    <select id="manualMovMotivo" name="Motivo" class="inv-form-input" required>
+                        <option value="Compra">Compra</option>
+                        <option value="Venta">Venta</option>
+                        <option value="Merma">Merma</option>
+                        <option value="Daño">Daño</option>
+                        <option value="Devolución">Devolución</option>
+                        <option value="Garantía">Garantía</option>
+                        <option value="Ajuste por conteo">Ajuste por conteo</option>
+                        <option value="Otro">Otro</option>
+                    </select>
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Referencia / Comprobante</label>
+                    <input name="Referencia" type="text" maxlength="100" class="inv-form-input" placeholder="Ej: Factura #1234, Pedido #88..." />
+                </div>
+            </div>
+
+            <div class="inv-form-group">
+                <label class="inv-form-label">Nota / Observación</label>
+                <textarea name="Nota" maxlength="300" class="inv-form-input" rows="2" placeholder="Detalle adicional o justificación del ajuste..."></textarea>
+            </div>
+
+            <div class="inv-dialog-footer" style="padding: 1rem 0 0 0; background: transparent;">
+                <button type="button" class="inv-btn inv-btn-secondary" onclick="document.getElementById('modal-crear-movimiento').style.display='none'">Cancelar</button>
+                <button type="submit" class="inv-btn inv-btn-primary">Registrar Movimiento</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- ==================== MODAL KARDEX POR PRODUCTO ==================== -->
+<div id="modal-kardex" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
+    <div class="inv-card" style="width: 100%; max-width: 900px; max-height: 90vh; overflow-y: auto; padding: 0; margin-bottom: 0;">
+        <div class="inv-dialog-header">
+            <h2 class="inv-dialog-title" style="display: flex; align-items: center; gap: 0.5rem;">
+                <svg class="inv-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                <span>Kardex de Producto: <strong id="kardex-prod-nombre" style="color: var(--purple-700);"></strong></span>
+            </h2>
+            <button type="button" class="inv-dialog-close" onclick="document.getElementById('modal-kardex').style.display='none'">&times;</button>
+        </div>
+
+        <div style="padding: 1.5rem;">
+            <!-- Loading Spinner -->
+            <div id="kardex-loading" style="text-align: center; padding: 2rem 0; color: var(--purple-600);">
+                <div class="inv-spinner" style="margin: 0 auto 0.75rem auto;"></div>
+                <p style="font-size: 0.9rem; font-weight: 600;">Cargando historial de movimientos del producto...</p>
+            </div>
+
+            <!-- Content -->
+            <div id="kardex-content" style="display: none;">
+                <!-- Product Metadata Header -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 0.75rem; background: var(--purple-50); border: 1px solid var(--purple-200); border-radius: 0.5rem; padding: 1rem; margin-bottom: 1.25rem;">
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; font-weight: 700; display: block;">SKU</span>
+                        <strong id="kardex-prod-sku" style="font-size: 0.9rem; color: var(--purple-900);"></strong>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; font-weight: 700; display: block;">Stock Actual</span>
+                        <span id="kardex-prod-stock" class="inv-chip inv-chip-purple" style="font-weight: 800; font-size: 0.85rem;"></span>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; font-weight: 700; display: block;">Stock Mínimo</span>
+                        <strong id="kardex-prod-stockmin" style="font-size: 0.9rem; color: var(--gray-700);"></strong>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; font-weight: 700; display: block;">Precio</span>
+                        <strong id="kardex-prod-precio" style="font-size: 0.9rem; color: var(--purple-900);"></strong>
+                    </div>
+                    <div>
+                        <span style="font-size: 0.75rem; color: var(--gray-500); text-transform: uppercase; font-weight: 700; display: block;">Proveedor</span>
+                        <strong id="kardex-prod-prov" style="font-size: 0.85rem; color: var(--gray-700);"></strong>
+                    </div>
+                </div>
+
+                <!-- Tabla de Movimientos del Kardex -->
+                <div class="inv-table-wrapper" style="max-height: 400px; overflow-y: auto; border: 1px solid var(--purple-200); border-radius: 0.5rem;">
+                    <table class="inv-table">
+                        <thead style="position: sticky; top: 0; background: var(--purple-800); z-index: 2;">
+                            <tr>
+                                <th style="width: 130px; text-align: center;">Fecha/Hora</th>
+                                <th style="text-align: center; width: 100px;">Tipo</th>
+                                <th style="text-align: center; width: 80px;">Cant.</th>
+                                <th style="text-align: center; width: 110px;">Saldo (Stock)</th>
+                                <th style="text-align: center; width: 120px;">Motivo</th>
+                                <th style="text-align: center;">Responsable</th>
+                                <th>Referencia / Nota</th>
+                            </tr>
+                        </thead>
+                        <tbody id="kardex-tbody">
+                            <!-- Inyectado vía AJAX -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="inv-dialog-footer" style="padding: 1.25rem 0 0 0; background: transparent; justify-content: space-between;">
+                    <button type="button" class="inv-btn inv-btn-secondary" onclick="exportKardexTableExcel()">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Descargar Kardex (Excel)
+                    </button>
+                    <button type="button" class="inv-btn inv-btn-primary" onclick="document.getElementById('modal-kardex').style.display='none'">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function handleManualMovTipoChange(val) {
+        const motivoSelect = document.getElementById('manualMovMotivo');
+        const lbl = document.getElementById('lblManualMovMotivo');
+        if (!motivoSelect) return;
+
+        if (val === 'Salida') {
+            lbl.textContent = 'Motivo * (Obligatorio en Salidas)';
+            motivoSelect.required = true;
+            if (motivoSelect.value === 'Compra') {
+                motivoSelect.value = 'Merma';
+            }
+        } else if (val === 'Entrada') {
+            lbl.textContent = 'Motivo *';
+            motivoSelect.required = true;
+            if (motivoSelect.value === 'Merma' || motivoSelect.value === 'Daño') {
+                motivoSelect.value = 'Compra';
+            }
+        } else {
+            lbl.textContent = 'Motivo *';
+            motivoSelect.value = 'Ajuste por conteo';
+        }
+    }
+
+    function exportKardexTableExcel() {
+        if (typeof XLSX === 'undefined') {
+            showToast('Librería de exportación no cargada', 'error');
+            return;
+        }
+        const prodNombre = document.getElementById('kardex-prod-nombre')?.textContent || 'Producto';
+        const prodSku = document.getElementById('kardex-prod-sku')?.textContent || '';
+        const rows = document.querySelectorAll('#kardex-tbody tr');
+        if (!rows || rows.length === 0) {
+            showToast('No hay datos para exportar', 'warning');
+            return;
+        }
+
+        const data = [
+            [`Kardex de Producto: ${prodNombre} (${prodSku})`],
+            [`Generado: ${new Date().toLocaleString()}`],
+            [],
+            ['Fecha y Hora', 'Tipo', 'Cantidad', 'Saldo Resultante', 'Motivo', 'Responsable', 'Referencia y Nota']
+        ];
+
+        rows.forEach(r => {
+            const cols = r.querySelectorAll('td');
+            if (cols.length >= 7) {
+                data.push([
+                    cols[0].innerText.trim(),
+                    cols[1].innerText.trim(),
+                    cols[2].innerText.trim(),
+                    cols[3].innerText.trim(),
+                    cols[4].innerText.trim(),
+                    cols[5].innerText.trim(),
+                    cols[6].innerText.trim()
+                ]);
+            }
+        });
+
+        const ws = XLSX.utils.aoa_to_sheet(data);
+        const wb = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(wb, ws, "Kardex");
+        XLSX.writeFile(wb, `LentSoft_Kardex_${prodNombre.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`);
+        showToast('Kardex exportado exitosamente', 'success');
+    }
+
+    // Funciones de preview de imagen
+    function previewProductImage(input, previewImgId, containerId, infoId) {
+        const file = input.files && input.files[0];
+        const previewImg = document.getElementById(previewImgId);
+        const container = document.getElementById(containerId);
+        const infoText = infoId ? document.getElementById(infoId) : null;
+
+        if (!file) return;
+
+        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+        const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+        const validExts = ['.jpg', '.jpeg', '.png', '.webp'];
+
+        if (!validTypes.includes(file.type.toLowerCase()) && !validExts.includes(fileExt)) {
+            showToast('Formato no permitido. Solo se aceptan imágenes JPG, PNG o WEBP.', 'error');
+            input.value = '';
+            if (infoText) infoText.textContent = '';
+            return;
+        }
+
+        if (file.size > 5 * 1024 * 1024) {
+            showToast('El archivo supera el tamaño máximo permitido de 5 MB.', 'error');
+            input.value = '';
+            if (infoText) infoText.textContent = '';
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = function (e) {
+            if (previewImg) previewImg.src = e.target.result;
+            if (container) container.style.display = 'block';
+            if (infoText) infoText.textContent = `${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
+        };
+        reader.readAsDataURL(file);
+    }
+
+    function clearProductImagePreview(inputId, previewImgId, containerId, infoId, fallbackUrl = '') {
+        const input = document.getElementById(inputId);
+        if (input) input.value = '';
+        const previewImg = document.getElementById(previewImgId);
+        const container = document.getElementById(containerId);
+        const infoText = infoId ? document.getElementById(infoId) : null;
+
+        if (fallbackUrl && fallbackUrl.trim() !== '') {
+            if (previewImg) previewImg.src = fallbackUrl;
+            if (container) container.style.display = 'block';
+            if (infoText) infoText.textContent = 'Imagen actual';
+        } else {
+            if (previewImg) previewImg.src = '';
+            if (container) container.style.display = 'none';
+            if (infoText) infoText.textContent = '';
+        }
+    }
+
+    function openEditProductModal(id, nombre, descripcion, precio, precioDescuento, categoria, marca, stock, activo, imagenUrl, sku, costoCompra, stockMinimo, ubicacion, supplierId, rowVersion) {
+        document.getElementById('editProductId').value = id;
+        document.getElementById('editProductNombre').value = nombre || '';
+        document.getElementById('editProductDescripcion').value = descripcion || '';
+        document.getElementById('editProductPrecio').value = precio || 0;
+        document.getElementById('editProductPrecioDescuento').value = precioDescuento || '';
+        document.getElementById('editProductCategoria').value = categoria || 'lentes-sol';
+        document.getElementById('editProductMarca').value = marca || '';
+        document.getElementById('editProductStock').value = stock || 0;
+        document.getElementById('editProductActivo').checked = (activo === true || activo === 'true');
+        document.getElementById('editProductExistingImagenUrl').value = imagenUrl || '';
+
+        if (document.getElementById('editProductSku')) document.getElementById('editProductSku').value = sku || '';
+        if (document.getElementById('editProductCostoCompra')) document.getElementById('editProductCostoCompra').value = costoCompra || '';
+        if (document.getElementById('editProductStockMinimo')) document.getElementById('editProductStockMinimo').value = (stockMinimo !== undefined && stockMinimo !== null) ? stockMinimo : 10;
+        if (document.getElementById('editProductUbicacion')) document.getElementById('editProductUbicacion').value = ubicacion || '';
+        if (document.getElementById('editProductSupplierId')) document.getElementById('editProductSupplierId').value = supplierId || '';
+        if (document.getElementById('editProductRowVersion')) document.getElementById('editProductRowVersion').value = rowVersion || '';
+
+        const fileInput = document.getElementById('editProductImagenArchivo');
+        if (fileInput) fileInput.value = '';
+
+        const previewContainer = document.getElementById('editProductPreviewContainer');
+        const previewImg = document.getElementById('preview-editar-producto');
+        const previewInfo = document.getElementById('editProductImageInfo');
+
+        if (imagenUrl && imagenUrl.trim() !== '') {
+            if (previewImg) previewImg.src = imagenUrl;
+            if (previewContainer) previewContainer.style.display = 'block';
+            if (previewInfo) previewInfo.textContent = 'Imagen actual guardada';
+        } else {
+            if (previewImg) previewImg.src = '';
+            if (previewContainer) previewContainer.style.display = 'none';
+            if (previewInfo) previewInfo.textContent = '';
+        }
+
+        document.getElementById('modal-editar-producto').style.display = 'flex';
+    }
+
+    function openEditSalesOrderModal(id, numero, cliente, producto, cantidad, precio, estado, notas) {
+        document.getElementById('editSalesOrderId').value = id;
+        document.getElementById('editSalesOrderNumero').value = numero;
+        document.getElementById('editSalesOrderCliente').value = cliente;
+        document.getElementById('editSalesOrderProducto').value = producto;
+        document.getElementById('editSalesOrderCantidad').value = cantidad;
+        document.getElementById('editSalesOrderPrecio').value = precio;
+        document.getElementById('editSalesOrderEstado').value = (estado || 'pendiente').toLowerCase();
+        document.getElementById('editSalesOrderNotas').value = notas || '';
+        document.getElementById('modal-editar-pedido-venta').style.display = 'flex';
+    }
+
+    // Cerrar cualquier modal abierto al presionar tecla Escape
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' || e.key === 'Esc') {
+            const modals = document.querySelectorAll('[id^="modal-"]');
+            modals.forEach(m => {
+                if (m.style.display === 'flex' || m.style.display === 'block') {
+                    m.style.display = 'none';
+                }
+            });
+        }
+    });
+</script>

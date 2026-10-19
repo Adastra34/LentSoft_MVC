@@ -3,8 +3,9 @@
     ViewData["Title"] = "Panel de Ventas";
 }
 
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" />
-<link rel="stylesheet" href="https://cdn.datatables.net/buttons/2.4.2/css/buttons.dataTables.min.css" />
+<!-- DataTables Local CSS (Sin CDN) -->
+<link rel="stylesheet" href="~/lib/datatables/jquery.dataTables.min.css" />
+
 <style>
     /* ── Personalización de DataTables para LentSoft (Tema Morado) ── */
     .dataTables_wrapper {
@@ -18,27 +19,6 @@
         flex-wrap: wrap;
         gap: 1rem;
         margin-bottom: 1rem;
-    }
-    .dataTables_wrapper .dt-buttons {
-        display: flex;
-        gap: 0.5rem;
-    }
-    .dataTables_wrapper .dt-button.btn-dt-export {
-        background: linear-gradient(135deg, var(--purple-600), var(--purple-700)) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 0.375rem !important;
-        padding: 0.45rem 0.9rem !important;
-        font-size: 0.82rem !important;
-        font-weight: 600 !important;
-        box-shadow: 0 2px 4px rgba(109, 40, 217, 0.25) !important;
-        cursor: pointer !important;
-        transition: all 0.2s ease !important;
-    }
-    .dataTables_wrapper .dt-button.btn-dt-export:hover {
-        background: linear-gradient(135deg, var(--purple-700), var(--purple-800)) !important;
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 6px rgba(109, 40, 217, 0.35) !important;
     }
     .dataTables_wrapper .dataTables_filter input,
     .dataTables_wrapper .dataTables_length select {
@@ -135,455 +115,71 @@
 
     <!-- Main Content -->
     <main style="flex: 1; padding: 2rem; overflow-y: auto;">
-
-        <!-- GENERAL / RESUMEN -->
-        @if (Model.ActiveSection == "general")
+        @if (TempData["SuccessMessage"] != null)
         {
-            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem;" data-i18n="sales.general.title">Resumen Comercial</h1>
-
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
-                <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--purple-600); background: white;">
-                    <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.monthly">Ventas del Mes</p>
-                    <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.VentasDelMes.ToString("C")</h3>
-                </div>
-
-                <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--info); background: white;">
-                    <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.activeorders">Pedidos Activos</p>
-                    <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.PedidosActivos</h3>
-                </div>
-
-                <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--success); background: white;">
-                    <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.clients">Clientes Atendidos</p>
-                    <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.ClientesAtendidos</h3>
-                </div>
-
-                <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--warning); background: white;">
-                    <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.averageticket">Ticket Promedio</p>
-                    <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.TicketPromedio.ToString("C")</h3>
-                </div>
+            <div style="background-color: #D1FAE5; border-left: 4px solid #10B981; color: #065F46; padding: 1rem; border-radius: 0.375rem; margin-bottom: 1.5rem; font-weight: 600;">
+                ✓ @TempData["SuccessMessage"]
             </div>
-
-            <!-- Últimas Ventas -->
-            <div class="card" style="padding: 1.5rem; background: white;">
-                <h2 style="color: var(--purple-800); font-size: 1.25rem; margin-bottom: 1rem;" data-i18n="sales.general.recentsales">Últimas Ventas Registradas</h2>
-                <div style="overflow-x: auto;">
-                    <table style="width: 100%; border-collapse: collapse; text-align: left;">
-                        <thead>
-                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                <th style="padding: 0.75rem;" data-i18n="sales.table.order">Pedido</th>
-                                <th style="padding: 0.75rem;" data-i18n="sales.table.client">Cliente</th>
-                                <th style="padding: 0.75rem;" data-i18n="sales.table.date">Fecha</th>
-                                <th style="padding: 0.75rem;" data-i18n="sales.table.total">Total</th>
-                                <th style="padding: 0.75rem;" data-i18n="sales.table.status">Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var v in Model.Ventas.Take(5))
-                            {
-                                <tr style="border-bottom: 1px solid var(--purple-100);">
-                                    <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">#ORD-@v.Id.ToString("D4")</td>
-                                    <td style="padding: 0.75rem;">@(v.User?.Nombre ?? "Cliente")</td>
-                                    <td style="padding: 0.75rem; color: var(--gray-600);">@v.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td style="padding: 0.75rem; font-weight: 700; color: var(--purple-900);">@v.Total.ToString("C")</td>
-                                    <td style="padding: 0.75rem;">
-                                        <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
-                                            @v.Estado
-                                        </span>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
+        }
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div style="background-color: #FEE2E2; border-left: 4px solid #EF4444; color: #991B1B; padding: 1rem; border-radius: 0.375rem; margin-bottom: 1.5rem; font-weight: 600;">
+                ⚠ @TempData["ErrorMessage"]
             </div>
         }
 
-        <!-- VENTAS -->
+        <!-- 1. GENERAL / RESUMEN -->
+        @if (Model.ActiveSection == "general")
+        {
+            <partial name="~/Views/Dashboard/Ventas/_Indicadores.cshtml" model="Model" />
+        }
+
+        <!-- 2. VENTAS -->
         @if (Model.ActiveSection == "ventas")
         {
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;" data-i18n="sales.management.title">Gestión de Ventas</h1>
-                <button type="button" onclick="document.getElementById('modal-venta').style.display='flex'" 
-                        style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease;"
-                        onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
-                    <span data-i18n="sales.btn.new">+ Registrar Nueva Venta</span>
+            <partial name="~/Views/Dashboard/Ventas/_TablaVentas.cshtml" model="Model" />
+        }
+
+        <!-- 3. FACTURAS -->
+        @if (Model.ActiveSection == "facturas")
+        {
+            <partial name="~/Views/Dashboard/Ventas/_Facturas.cshtml" model="Model" />
+        }
+
+        <!-- 4. INVENTARIOS -->
+        @if (Model.ActiveSection == "inventarios")
+        {
+            var initialTab = string.IsNullOrEmpty(Model.ActiveSubTab) ? "productos" : Model.ActiveSubTab;
+            <div class="inv-header">
+                <h1 class="inv-title" data-i18n="admin.inv.title">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    Gestión de Inventario
+                </h1>
+            </div>
+
+            <!-- Sub-tabs (Exactamente 3 pestañas: Productos, Historial, Pedidos) -->
+            <div class="inv-subtabs">
+                <button id="nav-subtab-productos" type="button" onclick="switchInventorySubTab('productos')" class="inv-subtab-btn @(initialTab == "productos" ? "active" : "")" data-i18n="admin.inv.tab.products">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"/><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    Productos
+                </button>
+                <button id="nav-subtab-historial" type="button" onclick="switchInventorySubTab('historial')" class="inv-subtab-btn @(initialTab == "historial" ? "active" : "")" data-i18n="admin.inv.tab.history">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    Historial de Movimientos
+                </button>
+                <button id="nav-subtab-pedidos" type="button" onclick="switchInventorySubTab('pedidos')" class="inv-subtab-btn @(initialTab == "pedidos" ? "active" : "")">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    Pedidos
                 </button>
             </div>
 
-            <!-- Requisito 4: Filtros por Fecha en Backend/DataTable -->
-            <div class="card" style="padding: 1.25rem; background: white; margin-bottom: 1.5rem; border-left: 4px solid var(--purple-600);">
-                <form method="get" action="/Ventas" id="salesDateFilterForm" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
-                    <input type="hidden" name="section" value="ventas" />
-
-                    <div>
-                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--purple-900); display: block; margin-bottom: 0.25rem;">Filtro Rápido:</label>
-                        <select name="filtroRapido" class="form-input" style="padding: 0.45rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.85rem;" onchange="toggleCustomDates(this.value)">
-                            <option value="">-- Todos los Tiempos --</option>
-                            <option value="hoy" selected="@(Model.FiltroRapido == "hoy")">Hoy</option>
-                            <option value="semana" selected="@(Model.FiltroRapido == "semana")">Esta Semana</option>
-                            <option value="mes" selected="@(Model.FiltroRapido == "mes")">Este Mes</option>
-                            <option value="anio" selected="@(Model.FiltroRapido == "anio")">Este Año</option>
-                            <option value="personalizado" selected="@(Model.FiltroRapido == "personalizado")">Rango Personalizado</option>
-                        </select>
-                    </div>
-
-                    <div id="divFechaDesde" style="display: @(Model.FiltroRapido == "personalizado" || Model.FiltroFechaDesde.HasValue ? "block" : "none");">
-                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--purple-900); display: block; margin-bottom: 0.25rem;">Fecha Desde:</label>
-                        <input type="date" name="fechaDesde" value="@(Model.FiltroFechaDesde?.ToString("yyyy-MM-dd"))" class="form-input" style="padding: 0.45rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.85rem;" />
-                    </div>
-
-                    <div id="divFechaHasta" style="display: @(Model.FiltroRapido == "personalizado" || Model.FiltroFechaHasta.HasValue ? "block" : "none");">
-                        <label style="font-size: 0.8rem; font-weight: 700; color: var(--purple-900); display: block; margin-bottom: 0.25rem;">Fecha Hasta:</label>
-                        <input type="date" name="fechaHasta" value="@(Model.FiltroFechaHasta?.ToString("yyyy-MM-dd"))" class="form-input" style="padding: 0.45rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.85rem;" />
-                    </div>
-
-                    <div style="display: flex; gap: 0.5rem;">
-                        <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
-                            📅 Aplicar Filtro
-                        </button>
-                        <a href="/Ventas?section=ventas" style="background-color: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 0.8rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; text-decoration: none;">
-                            🔄 Limpiar
-                        </a>
-                    </div>
-                </form>
-            </div>
-
-            <div class="card" style="padding: 1.5rem; background: white;">
-                <div style="margin-bottom: 1rem; display: flex; justify-content: space-between; align-items: center;">
-                    <input type="text" id="searchVentasSales" placeholder="Buscar por cliente, pedido o estado..." data-i18n-placeholder="sales.search.placeholder" class="form-input" style="width: 320px; padding: 0.45rem 0.75rem;" onkeyup="filterTable('searchVentasSales', 'tableVentasSales')" />
-                    <span style="font-size: 0.85rem; color: var(--purple-900); font-weight: 600;">Total Ventas Mostradas: @Model.Ventas.Count</span>
-                </div>
-                <div style="overflow-x: auto;">
-                    <table id="tableVentasSales" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
-                        <thead>
-                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600); background-color: var(--purple-50);">
-                                <th style="padding: 0.75rem;">Venta</th>
-                                <th style="padding: 0.75rem;">Cliente</th>
-                                <th style="padding: 0.75rem;">Fecha</th>
-                                <th style="padding: 0.75rem;">Total</th>
-                                <th style="padding: 0.75rem;">Abonado</th>
-                                <th style="padding: 0.75rem;">Saldo Pendiente</th>
-                                <th style="padding: 0.75rem;">Estado Pago</th>
-                                <th style="padding: 0.75rem;">Estado Orden</th>
-                                <th style="padding: 0.75rem; text-align: center;">Gestión de Abonos / Tarjeta</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var v in Model.Ventas)
-                            {
-                                var totalAbonado = v.Pagos != null && v.Pagos.Any() ? v.Pagos.Sum(p => p.Monto) : v.MontoPagado;
-                                var saldoPendiente = Math.Max(0m, v.Total - totalAbonado);
-                                var estadoPago = saldoPendiente == 0 ? "Pagado" : (totalAbonado > 0 ? "Abonado" : "Pendiente");
-
-                                var badgeColorPago = estadoPago switch
-                                {
-                                    "Pagado" => "#10B981",
-                                    "Abonado" => "#F59E0B",
-                                    _ => "#EF4444"
-                                };
-
-                                <tr style="border-bottom: 1px solid var(--purple-100);">
-                                    <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">
-                                        #ORD-@v.Id.ToString("D4")
-                                        @if (v.FormulaOpticaId.HasValue)
-                                        {
-                                            <span title="Fórmula Óptica Vinculada (#@v.FormulaOpticaId)" style="display: inline-flex; align-items: center; justify-content: center; margin-left: 0.35rem; font-size: 0.75rem; background-color: #E0E7FF; color: #4338CA; border: 1px solid #C7D2FE; border-radius: 9999px; padding: 0.1rem 0.4rem; font-weight: 700; vertical-align: middle;">🔗</span>
-                                        }
-                                    </td>
-                                    <td style="padding: 0.75rem; font-weight: 500;">@(v.User?.NombreCompleto ?? "Cliente Genérico")</td>
-                                    <td data-order="@v.FechaPedido.Ticks" style="padding: 0.75rem; color: var(--gray-600);">@v.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td data-order="@v.Total" style="padding: 0.75rem; font-weight: 700; color: var(--purple-900);">@v.Total.ToString("C")</td>
-                                    <td data-order="@totalAbonado" style="padding: 0.75rem; font-weight: 600; color: #16A34A;">@totalAbonado.ToString("C")</td>
-                                    <td data-order="@saldoPendiente" style="padding: 0.75rem; font-weight: 700; color: @(saldoPendiente > 0 ? "#DC2626" : "#16A34A");">@saldoPendiente.ToString("C")</td>
-                                    <td data-order="@estadoPago" style="padding: 0.75rem;">
-                                        <span style="background-color: @badgeColorPago; color: white; padding: 0.2rem 0.5rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 700;">
-                                            @estadoPago
-                                        </span>
-                                    </td>
-                                    <td style="padding: 0.75rem;">
-                                        <form asp-controller="Ventas" asp-action="UpdateOrderStatus" method="post" style="display:flex; gap:0.4rem; align-items:center;">
-                                            <input type="hidden" name="id" value="@v.Id" />
-                                            <select name="estado" style="padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.78rem; border: 1px solid var(--purple-300);">
-                                                <option value="pendiente" selected="@(v.Estado == "pendiente")">Pendiente</option>
-                                                <option value="procesando" selected="@(v.Estado == "procesando")">Procesando</option>
-                                                <option value="enviado" selected="@(v.Estado == "enviado")">Enviado</option>
-                                                <option value="entregado" selected="@(v.Estado == "entregado")">Entregado</option>
-                                                <option value="pagado" selected="@(v.Estado == "pagado")">Pagado</option>
-                                                <option value="cancelado" selected="@(v.Estado == "cancelado")">Cancelado</option>
-                                            </select>
-                                            <button type="submit" class="btn btn-primary" style="padding: 0.2rem 0.4rem; font-size: 0.72rem;">Actualizar</button>
-                                        </form>
-                                    </td>
-                                    <td style="padding: 0.75rem; text-align: center;">
-                                        <div style="display: flex; gap: 0.35rem; justify-content: center; flex-wrap: wrap;">
-                                            <!-- Botón 👁️ Ver Detalle del Pedido -->
-                                            <button type="button" onclick="openDetallePedidoModal(@v.Id)"
-                                                    style="background-color: var(--purple-600); color: white; border: none; padding: 0.3rem 0.55rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.2rem;">
-                                                👁️ Ver
-                                            </button>
-
-                                            @if (saldoPendiente > 0)
-                                            {
-                                                <!-- Botón Registrar Abono -->
-                                                <button type="button" onclick="openAbonoModal(@v.Id, '@v.Total', '@saldoPendiente')"
-                                                        style="background-color: #2563EB; color: white; border: none; padding: 0.3rem 0.55rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600; cursor: pointer;">
-                                                    💵 Abonar
-                                                </button>
-
-                                                <!-- Botón Cobrar con Tarjeta Pasarela (Requisito 3) -->
-                                                <button type="button" onclick="openTarjetaModal(@v.Id, '@saldoPendiente')"
-                                                        style="background-color: #7C3AED; color: white; border: none; padding: 0.3rem 0.55rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600; cursor: pointer;">
-                                                    💳 Cobrar Tarjeta
-                                                </button>
-                                            }
-
-                                            <!-- Botón Ver Historial de Abonos / Comprobantes PDF -->
-                                            <button type="button" onclick="openHistorialAbonosModal(@v.Id, '@v.User?.NombreCompleto', '@v.Total')"
-                                                    style="background-color: var(--purple-100); color: var(--purple-900); border: 1px solid var(--purple-300); padding: 0.3rem 0.55rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600; cursor: pointer;">
-                                                📋 Recibos (@(v.Pagos?.Count ?? 0))
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <!-- Vistas Parciales del Módulo de Inventario de Ventas -->
+            <partial name="~/Views/Dashboard/Ventas/_InvProductos.cshtml" model="Model" />
+            <partial name="~/Views/Dashboard/Ventas/_InvHistorial.cshtml" model="Model" />
+            <partial name="~/Views/Dashboard/Ventas/_InvPedidosVentas.cshtml" model="Model" />
         }
 
-        <!-- FACTURAS -->
-        @if (Model.ActiveSection == "facturas")
-        {
-            <div style="margin-bottom: 1.5rem;">
-                <h1 style="color: var(--purple-900); font-size: 1.75rem; margin: 0;" data-i18n="sales.invoices.title">Facturas</h1>
-                <p style="color: var(--gray-500); font-size: 0.9rem; margin-top: 0.25rem;" data-i18n="sales.invoices.subtitle">Gestiona tu negocio desde un solo lugar</p>
-            </div>
-
-            <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.75rem; box-shadow: var(--shadow-md);">
-                <!-- Header de la sección de la tabla con botón Nueva Factura -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
-                    <h2 style="color: var(--purple-900); font-size: 1.35rem; font-weight: 700; margin: 0;" data-i18n="sales.invoices.mgmt">Gestión de Facturas</h2>
-                    <button type="button" onclick="document.getElementById('modal-factura').style.display='flex'" 
-                            style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease;"
-                            onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
-                        <span data-i18n="sales.invoices.new">+ Nueva Factura</span>
-                    </button>
-                </div>
-
-                <!-- Barra Superior DataTable (Fondo morado) -->
-                <form id="facturasFilterForm" method="get" action="/Ventas" style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
-                    <input type="hidden" name="section" value="facturas" />
-                    <input type="hidden" name="page" value="1" />
-
-                    <!-- Selector Registros por página -->
-                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; font-weight: 500;">
-                        <span data-i18n="sales.invoices.show">Mostrar</span>
-                        <select name="pageSize" style="background-color: white; color: var(--gray-900); border: 1px solid var(--purple-300); border-radius: 0.375rem; padding: 0.35rem 0.6rem; font-size: 0.875rem; cursor: pointer; font-weight: 600;" onchange="document.getElementById('facturasFilterForm').submit();">
-                            @foreach (var size in new[] { 5, 10, 25, 50 })
-                            {
-                                if (Model.FacturasPageSize == size)
-                                {
-                                    <option value="@size" selected>@size</option>
-                                }
-                                else
-                                {
-                                    <option value="@size">@size</option>
-                                }
-                            }
-                        </select>
-                        <span data-i18n="sales.invoices.records">registros</span>
-                    </div>
-
-                    <!-- Búsqueda en tiempo real / envío -->
-                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem;">
-                        <label for="searchFacturasInput" style="font-weight: 500;" data-i18n="sales.invoices.searchlabel">Buscar:</label>
-                        <input type="text" id="searchFacturasInput" name="searchTerm" value="@Model.FacturasSearchTerm" 
-                               placeholder="Buscar por número, cliente" data-i18n-placeholder="sales.invoices.searchplaceholder"
-                               style="padding: 0.4rem 0.8rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.875rem; width: 240px; color: var(--gray-900);" 
-                               onkeyup="filterClientSideFacturas(this.value)" />
-                        <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;" data-i18n="sales.invoices.filter">Filtrar</button>
-                    </div>
-                </form>
-
-                <!-- Tabla de Facturas -->
-                <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
-                    <table id="tableFacturas" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
-                        <thead>
-                            <tr style="background-color: var(--purple-50); border-bottom: 2px solid var(--purple-200); color: var(--purple-900);">
-                                <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.invoices.number">Número</th>
-                                <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.table.client">Cliente</th>
-                                <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.table.date">Fecha</th>
-                                <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.table.total">Total</th>
-                                <th style="padding: 0.85rem 1rem; font-weight: 700;" data-i18n="sales.table.status">Estado</th>
-                                <th style="padding: 0.85rem 1rem; font-weight: 700; text-align: center;" data-i18n="sales.table.actions">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.Facturas.Any())
-                            {
-                                @foreach (var fac in Model.Facturas)
-                                {
-                                    var clientName = fac.Order?.User != null ? fac.Order.User.NombreCompleto : "Cliente N/A";
-                                    var badgeBg = fac.Estado.ToLower() switch
-                                    {
-                                        "pagada" => "var(--success)",
-                                        "cancelada" => "var(--error)",
-                                        "parcial" => "#D97706",
-                                        _ => "var(--warning)"
-                                    };
-                                    var estadoDisplay = fac.Estado.ToLower() switch
-                                    {
-                                        "pagada" => "Pagada",
-                                        "cancelada" => "Cancelada",
-                                        "parcial" => "Parcial",
-                                        _ => "Pendiente"
-                                    };
-
-                                    <tr style="border-bottom: 1px solid var(--purple-100); transition: background-color 0.15s ease;" onmouseover="this.style.backgroundColor='var(--purple-50)'" onmouseout="this.style.backgroundColor='transparent'">
-                                        <td style="padding: 0.85rem 1rem; font-weight: 700; color: var(--purple-700);">@fac.NumeroFactura</td>
-                                        <td style="padding: 0.85rem 1rem; font-weight: 500; color: var(--gray-800);">@clientName</td>
-                                        <td style="padding: 0.85rem 1rem; color: var(--gray-600);">@fac.FechaEmision.ToLocalTime().ToString("dd/MM/yyyy")</td>
-                                        <td style="padding: 0.85rem 1rem; font-weight: 700; color: var(--purple-900);">@fac.Total.ToString("C")</td>
-                                        <td style="padding: 0.85rem 1rem;">
-                                            <span style="background-color: @badgeBg; color: white; padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; display: inline-block;">
-                                                @estadoDisplay
-                                            </span>
-                                        </td>
-                                        <td style="padding: 0.85rem 1rem; text-align: center;">
-                                            <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
-                                                <button type="button" 
-                                                        onclick="confirmDeleteInvoice(@fac.Id, '@fac.NumeroFactura')"
-                                                        style="background: transparent; color: var(--error); border: 1px solid var(--error); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
-                                                    🗑️ Eliminar
-                                                </button>
-
-                                                <a href="/Invoice/DownloadPdf/@fac.Id" target="_blank"
-                                                   style="background-color: var(--purple-100); color: var(--purple-900); border: 1px solid var(--purple-300); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; transition: all 0.2s ease;">
-                                                    📄 PDF DIAN
-                                                </a>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="6" style="padding: 2rem; text-align: center; color: var(--gray-500); font-style: italic;">
-                                        No se encontraron facturas registradas o que coincidan con la búsqueda.
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Footer DataTable -->
-                @{
-                    var inicioReg = Model.FacturasTotalCount == 0 ? 0 : ((Model.FacturasPage - 1) * Model.FacturasPageSize) + 1;
-                    var finReg = Math.Min(Model.FacturasPage * Model.FacturasPageSize, Model.FacturasTotalCount);
-                }
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.25rem; flex-wrap: wrap; gap: 1rem; font-size: 0.875rem;">
-                    <div style="color: var(--gray-600); font-weight: 500;">
-                        <span>Mostrando registros del</span> <strong>@inicioReg</strong> <span>al</span> <strong>@finReg</strong> <span>de un total de</span> <strong>@Model.FacturasTotalCount</strong> <span>registros</span>
-                    </div>
-
-                    @if (Model.FacturasTotalPages > 1)
-                    {
-                        <div style="display: flex; gap: 0.35rem; align-items: center;">
-                            @if (Model.FacturasPage > 1)
-                            {
-                                <a href="/Ventas?section=facturas&page=@(Model.FacturasPage - 1)&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
-                                   style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
-                                    &laquo; Anterior
-                                </a>
-                            }
-                            @for (int p = 1; p <= Model.FacturasTotalPages; p++)
-                            {
-                                if (p == Model.FacturasPage)
-                                {
-                                    <span style="padding: 0.35rem 0.75rem; border-radius: 0.375rem; background-color: var(--purple-600); color: white; font-weight: 700; font-size: 0.85rem;">
-                                        @p
-                                    </span>
-                                }
-                                else
-                                {
-                                    <a href="/Ventas?section=facturas&page=@p&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
-                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
-                                        @p
-                                    </a>
-                                }
-                            }
-                            @if (Model.FacturasPage < Model.FacturasTotalPages)
-                            {
-                                <a href="/Ventas?section=facturas&page=@(Model.FacturasPage + 1)&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
-                                   style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
-                                    Siguiente &raquo;
-                                </a>
-                            }
-                        </div>
-                    }
-                </div>
-            </div>
-        }
-
-        <!-- INVENTARIOS -->
-        @if (Model.ActiveSection == "inventarios")
-        {
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;">Consulta de Inventario</h1>
-            </div>
-
-            <!-- Sub-tabs -->
-            <div style="display: flex; border-bottom: 2px solid var(--purple-200); margin-bottom: 1.5rem;">
-                <a href="?section=inventarios&subtab=productos" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "productos" || string.IsNullOrEmpty(Model.ActiveSubTab) ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "productos" || string.IsNullOrEmpty(Model.ActiveSubTab) ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;">
-                    📦 Productos
-                </a>
-                <a href="?section=inventarios&subtab=historial" style="padding: 0.75rem 1.5rem; font-weight: 600; color: @(Model.ActiveSubTab == "historial" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(Model.ActiveSubTab == "historial" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; text-decoration: none;">
-                    📜 Historial de Movimientos
-                </a>
-            </div>
-
-            <div class="card" style="padding: 1.5rem; background: white;">
-                <div style="overflow-x: auto;">
-                    <table id="tableInvSales" style="width: 100%; border-collapse: collapse; text-align: left;">
-                        <thead>
-                            <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600);">
-                                <th style="padding: 0.75rem;">ID</th>
-                                <th style="padding: 0.75rem;">Producto</th>
-                                <th style="padding: 0.75rem; text-align: center;">Categoría</th>
-                                <th style="padding: 0.75rem; text-align: center;">Precio</th>
-                                <th style="padding: 0.75rem; text-align: center;">Cantidad</th>
-                                <th style="padding: 0.75rem; text-align: center;">Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var prod in Model.Productos)
-                            {
-                                var isAgotado = prod.Stock <= 0;
-                                <tr style="border-bottom: 1px solid var(--purple-100);">
-                                    <td style="padding: 0.75rem; color: var(--gray-500);">#@prod.Id</td>
-                                    <td style="padding: 0.75rem; font-weight: 500;">@prod.Nombre</td>
-                                    <td style="padding: 0.75rem; text-align: center; color: var(--gray-600);">@prod.Categoria</td>
-                                    <td style="padding: 0.75rem; text-align: center; font-weight: 600;">@prod.Precio.ToString("C")</td>
-                                    <td style="padding: 0.75rem; text-align: center; font-weight: 700; color: @(isAgotado ? "var(--error)" : "var(--purple-900)");">
-                                        @prod.Stock
-                                    </td>
-                                    <td style="padding: 0.75rem; text-align: center;">
-                                        <span style="background-color: @(isAgotado ? "var(--error)" : "var(--success)"); color: white; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600;">
-                                            @(isAgotado ? "Agotado" : "Activo")
-                                        </span>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        }
-
-        <!-- PERFIL -->
+        <!-- 5. PERFIL -->
         @if (Model.ActiveSection == "perfil")
         {
             <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem;">Perfil Ejecutivo de Ventas</h1>
@@ -601,600 +197,588 @@
 
                 <div style="display: flex; flex-direction: column; gap: 1rem; border-top: 1px solid var(--purple-100); padding-top: 1.5rem;">
                     <div>
-                        <label style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600;">CORREO ELECTRÓNICO</label>
-                        <p style="margin: 0; font-weight: 500;">@Model.UsuarioActual?.Email</p>
+                        <span style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Correo Electrónico</span>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: var(--purple-900); font-weight: 500;">@Model.UsuarioActual?.Email</p>
                     </div>
                     <div>
-                        <label style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600;">TELÉFONO</label>
-                        <p style="margin: 0; font-weight: 500;">@(Model.UsuarioActual?.Telefono ?? "No registrado")</p>
+                        <span style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Teléfono de Contacto</span>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: var(--purple-900); font-weight: 500;">@(string.IsNullOrEmpty(Model.UsuarioActual?.Telefono) ? "No registrado" : Model.UsuarioActual.Telefono)</p>
                     </div>
                     <div>
-                        <label style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600;">ROL DE ACCESO</label>
-                        <p style="margin: 0; text-transform: capitalize; font-weight: 600; color: var(--purple-700);">@Model.UsuarioActual?.Role</p>
+                        <span style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase;">Documento de Identidad</span>
+                        <p style="margin: 0.25rem 0 0 0; font-size: 1rem; color: var(--purple-900); font-weight: 500;">@Model.UsuarioActual?.NumeroDocumento</p>
                     </div>
                 </div>
             </div>
         }
-
     </main>
 </div>
 
-<!-- Modal para Nueva Factura (Requisito 2 DIAN) -->
-<div id="modal-factura" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
-    <div style="width: 100%; max-width: 550px; background: white; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);">
-        <div style="background: linear-gradient(135deg, var(--purple-700), var(--purple-600)); color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: flex-start;">
-            <div>
-                <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.2rem; font-weight: 700;">
-                    <span>📄</span> <span>Factura Electrónica de Venta (DIAN)</span>
-                </div>
-                <div style="font-size: 0.78rem; color: var(--purple-100); margin-top: 0.25rem; font-weight: 500;">
-                    Resolución DIAN Nº 18764028920000 | Rango: FAC-0001 a FAC-9999
-                </div>
-            </div>
-            <button type="button" onclick="document.getElementById('modal-factura').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: white;">&times;</button>
-        </div>
-
-        <form asp-controller="Invoice" asp-action="Create" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.25rem;">
-            @Html.AntiForgeryToken()
-
-            <div>
-                <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Pedido Asociado *</label>
-                <select id="invoiceOrderSelect" name="OrderId" class="form-input" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);" onchange="onInvoiceOrderChange(this)">
-                    <option value="">-- Seleccionar Pedido --</option>
-                    @foreach (var ord in Model.PedidosDisponibles)
-                    {
-                        var usrName = ord.User != null ? ord.User.NombreCompleto : "Cliente";
-                        var metodo = !string.IsNullOrWhiteSpace(ord.MetodoPagoSimulado) ? ord.MetodoPagoSimulado : "Efectivo";
-                        <option value="@ord.Id" data-total="@ord.Total" data-metodo="@metodo" data-saldopendiente="@ord.SaldoPendiente">#ORD-@ord.Id.ToString("D4") - @usrName (@ord.Total.ToString("C"))</option>
-                    }
-                </select>
-            </div>
-
-            <div style="display: flex; gap: 1rem;">
-                <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Estado de Factura *</label>
-                    <select id="invoiceEstadoSelect" name="Estado" class="form-input" required style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
-                        <option value="pendiente" selected>Pendiente</option>
-                        <option value="parcial">Parcial</option>
-                        <option value="pagada">Pagada</option>
-                        <option value="cancelada">Cancelada</option>
-                    </select>
-                </div>
-                <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Método de Pago (Fijado del Pedido) *</label>
-                    <input type="text" id="invoiceMetodoPagoInput" name="MetodoPago" readonly value="Efectivo" class="form-input" style="width: 100%; padding: 0.6rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--gray-100); font-weight: 600;" />
-                </div>
-            </div>
-
-            <div style="display: flex; gap: 0.75rem;">
-                <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem;">Subtotal Base</label>
-                    <input id="newInvoiceSubtotal" name="Subtotal" type="number" step="0.01" class="form-input" readonly placeholder="Auto-calculado" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--gray-300); background-color: var(--gray-50);" />
-                </div>
-                <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.8rem;">IVA 19%</label>
-                    <input id="newInvoiceImpuestos" name="Impuestos" type="number" step="0.01" class="form-input" readonly placeholder="Auto-calculado" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--gray-300); background-color: var(--gray-50);" />
-                </div>
-                <div style="flex: 1;">
-                    <label class="form-label" style="font-weight: 700; color: var(--purple-900); font-size: 0.8rem;">TOTAL</label>
-                    <input id="newInvoiceTotal" name="Total" type="number" step="0.01" class="form-input" readonly placeholder="Auto-calculado" style="width: 100%; padding: 0.55rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); background-color: var(--purple-50); font-weight: 700; color: var(--purple-900);" />
-                </div>
-            </div>
-
-            <div style="background-color: #FEFCE8; border: 1px solid #FDE047; color: #854D0E; padding: 0.75rem 1rem; border-radius: 0.5rem; font-size: 0.78rem;">
-                ⚠️ Se generará automáticamente el código <strong>CUFE</strong> y resolución DIAN oficial para su validación e inclusión en el documento PDF.
-            </div>
-
-            <div style="display: flex; gap: 0.75rem;">
-                <button type="button" onclick="document.getElementById('modal-factura').style.display='none'" 
-                        style="flex: 1; border: 2px solid var(--purple-600); color: var(--purple-600); background: transparent; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.88rem; cursor: pointer;">
-                    Cancelar
-                </button>
-                <button type="submit" 
-                        style="flex: 1.5; background-color: var(--purple-600); color: white; border: none; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.88rem; cursor: pointer;">
-                    📄 Emitir Factura Electrónica
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Requisito 1: Modal Registrar Abono / Pago Parcial -->
-<div id="modal-abono" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
-    <div style="width: 100%; max-width: 480px; background: white; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);">
-        <div style="background: linear-gradient(135deg, #1E40AF, #2563EB); color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-size: 1.1rem; font-weight: 700;">💵 Registrar Abono / Pago Parcial</div>
-            <button type="button" onclick="document.getElementById('modal-abono').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: white;">&times;</button>
-        </div>
-
-        <form asp-controller="Ventas" asp-action="RegistrarAbono" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-            @Html.AntiForgeryToken()
-            <input type="hidden" id="abonoVentaId" name="ventaId" />
-
-            <div>
-                <label style="font-size: 0.85rem; font-weight: 700; color: var(--purple-900);">Saldo Pendiente de la Venta:</label>
-                <div id="abonoSaldoPendienteDisplay" style="font-size: 1.5rem; font-weight: 800; color: #DC2626; margin-top: 0.2rem;">$ 0</div>
-            </div>
-
-            <div>
-                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Monto a Abonar (COP) *</label>
-                <input type="number" id="abonoMontoInput" name="monto" step="0.01" min="1" required class="form-input" style="width: 100%; padding: 0.6rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 1rem; font-weight: 700;" placeholder="Ej: 50000" />
-            </div>
-
-            <div>
-                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Método de Pago *</label>
-                <select name="metodoPago" class="form-input" style="width: 100%; padding: 0.6rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
-                    <option value="Efectivo" selected>Efectivo</option>
-                    <option value="Transferencia / PSE">Transferencia / PSE</option>
-                    <option value="Tarjeta Débito">Tarjeta Débito</option>
-                    <option value="Tarjeta Crédito">Tarjeta Crédito</option>
-                </select>
-            </div>
-
-            <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
-                <button type="button" onclick="document.getElementById('modal-abono').style.display='none'" style="flex: 1; padding: 0.6rem; border-radius: 0.375rem; border: 1px solid var(--gray-300); background: white; font-weight: 600;">Cancelar</button>
-                <button type="submit" style="flex: 1.5; padding: 0.6rem; border-radius: 0.375rem; border: none; background: #2563EB; color: white; font-weight: 700;">Registrar Abono y Generar Recibo</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Requisito 3: Modal Cobrar Tarjeta de Crédito (Pasarela Sandbox) -->
-<div id="modal-tarjeta" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
-    <div style="width: 100%; max-width: 500px; background: white; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);">
-        <div style="background: linear-gradient(135deg, #6D28D9, #4C1D95); color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-size: 1.1rem; font-weight: 700;">💳 Pasarela de Pago con Tarjeta (Sandbox)</div>
-            <button type="button" onclick="document.getElementById('modal-tarjeta').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: white;">&times;</button>
-        </div>
-
-        <form asp-controller="Ventas" asp-action="CobrarTarjeta" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-            @Html.AntiForgeryToken()
-            <input type="hidden" id="tarjetaVentaId" name="VentaId" />
-
-            <div>
-                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Monto a Cobrar (COP) *</label>
-                <input type="number" id="tarjetaMontoInput" name="Monto" step="0.01" min="1" required class="form-input" style="width: 100%; padding: 0.6rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-weight: 700;" />
-            </div>
-
-            <div>
-                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Número de Tarjeta (Luhn Validated) *</label>
-                <input type="text" name="NumeroTarjeta" required placeholder="4532 1234 5678 9010" maxlength="19" class="form-input" style="width: 100%; padding: 0.6rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-family: monospace; font-size: 1rem;" />
-            </div>
-
-            <div>
-                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Nombre del Titular *</label>
-                <input type="text" name="NombreTitular" required placeholder="Ej: CARLOS RAMIREZ" class="form-input" style="width: 100%; padding: 0.6rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); text-transform: uppercase;" />
-            </div>
-
-            <div style="display: flex; gap: 1rem;">
-                <div style="flex: 1;">
-                    <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Exp. (MM/YY) *</label>
-                    <input type="text" name="FechaExpiracion" required placeholder="12/28" maxlength="5" class="form-input" style="width: 100%; padding: 0.6rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); text-align: center;" />
-                </div>
-                <div style="flex: 1;">
-                    <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">CVV *</label>
-                    <input type="password" name="Cvv" required placeholder="123" maxlength="4" class="form-input" style="width: 100%; padding: 0.6rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); text-align: center;" />
-                </div>
-            </div>
-
-            <div style="background: #F3E8FF; padding: 0.6rem 0.8rem; border-radius: 0.375rem; font-size: 0.78rem; color: #5B21B6;">
-                🔒 Algoritmo de Luhn + Detección de franquicia activos. Las tarjetas terminadas en 9 simularán rechazo de prueba.
-            </div>
-
-            <div style="display: flex; gap: 0.75rem;">
-                <button type="button" onclick="document.getElementById('modal-tarjeta').style.display='none'" style="flex: 1; padding: 0.6rem; border-radius: 0.375rem; border: 1px solid var(--gray-300); background: white; font-weight: 600;">Cancelar</button>
-                <button type="submit" style="flex: 1.5; padding: 0.6rem; border-radius: 0.375rem; border: none; background: #6D28D9; color: white; font-weight: 700;">💳 Procesar Pago con Tarjeta</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- Modal Detalle del Pedido e Integración Fórmula Óptica -->
-<div id="modal-detalle-pedido" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
-    <div style="width: 100%; max-width: 620px; background: white; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3); display: flex; flex-direction: column; max-height: 90vh;">
-        <!-- Header -->
-        <div style="background: linear-gradient(135deg, var(--purple-700), var(--purple-600)); color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
-            <div style="font-size: 1.15rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
-                <span>👁️</span> <span>Detalle del Pedido</span> <span id="detalleModalOrderNumero" style="background: rgba(255,255,255,0.2); padding: 0.2rem 0.5rem; border-radius: 0.375rem; font-size: 0.9rem;"></span>
-            </div>
-            <button type="button" onclick="closeDetallePedidoModal()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: white;">&times;</button>
-        </div>
-
-        <div style="padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1.25rem;">
-            <!-- Información Resumen -->
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 0.75rem; background-color: var(--purple-50); padding: 1rem; border-radius: 0.5rem; border: 1px solid var(--purple-200);">
-                <div>
-                    <span style="font-size: 0.75rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase;">Cliente</span>
-                    <div id="detalleModalCliente" style="font-weight: 700; color: var(--purple-900); font-size: 0.95rem; margin-top: 0.15rem;"></div>
-                </div>
-                <div>
-                    <span style="font-size: 0.75rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase;">Fecha Pedido</span>
-                    <div id="detalleModalFecha" style="font-weight: 600; color: var(--gray-700); font-size: 0.9rem; margin-top: 0.15rem;"></div>
-                </div>
-                <div>
-                    <span style="font-size: 0.75rem; font-weight: 600; color: var(--gray-500); text-transform: uppercase;">Total</span>
-                    <div id="detalleModalTotal" style="font-weight: 800; color: var(--purple-900); font-size: 1rem; margin-top: 0.15rem;"></div>
-                </div>
-            </div>
-
-            <!-- Tabla de Productos del Pedido -->
-            <div>
-                <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--purple-900); margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.35rem;">
-                    <span>📦</span> <span>Productos del Pedido</span>
-                </h3>
-                <div style="border: 1px solid var(--purple-200); border-radius: 0.5rem; overflow: hidden;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: left;">
-                        <thead style="background-color: var(--purple-100); color: var(--purple-900);">
-                            <tr>
-                                <th style="padding: 0.6rem 0.75rem; font-weight: 700;">Producto</th>
-                                <th style="padding: 0.6rem 0.75rem; font-weight: 700; text-align: center;">Cantidad</th>
-                                <th style="padding: 0.6rem 0.75rem; font-weight: 700; text-align: right;">Subtotal</th>
-                            </tr>
-                        </thead>
-                        <tbody id="detalleModalProductosBody">
-                            <!-- Inyectado vía JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Sección Fórmula Óptica Asociada (Solo visible si contiene lentes-graduados o lentes-contacto) -->
-            <div id="seccionFormulaOptica" style="display: none; background: #FAF5FF; border: 1.5px solid var(--purple-300); border-radius: 0.5rem; padding: 1.25rem;">
-                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
-                    <span style="font-size: 1.25rem;">🩺</span>
-                    <div>
-                        <h3 style="font-size: 0.95rem; font-weight: 700; color: var(--purple-900); margin: 0;">Fórmula Óptica Asociada</h3>
-                        <p style="font-size: 0.78rem; color: var(--purple-700); margin: 0.15rem 0 0 0;">Este pedido contiene lentes que requieren trazabilidad óptica.</p>
-                    </div>
-                </div>
-
-                <form asp-controller="Ventas" asp-action="VincularFormula" method="post" id="formVincularFormula" style="display: flex; flex-direction: column; gap: 0.75rem;">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" id="detallePedidoOrderId" name="orderId" />
-
-                    <div id="contenedorSelectFormula">
-                        <label for="detallePedidoFormulaSelect" style="display: block; font-size: 0.82rem; font-weight: 600; color: var(--purple-900); margin-bottom: 0.25rem;">
-                            Seleccionar Fórmula Óptica del Paciente:
-                        </label>
-                        <select id="detallePedidoFormulaSelect" name="formulaOpticaId" class="form-input" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.88rem; background-color: white;">
-                            <option value="">-- Sin fórmula vinculada --</option>
-                        </select>
-                    </div>
-
-                    <div id="avisoSinFormulas" style="display: none; background: #EFF6FF; border: 1px solid #BFDBFE; color: #1E40AF; border-radius: 0.375rem; padding: 0.6rem 0.8rem; font-size: 0.82rem; font-weight: 500;">
-                        ℹ️ Este paciente no tiene fórmulas ópticas registradas.
-                    </div>
-
-                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.5rem;">
-                        <button type="submit" style="background-color: var(--purple-600); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 0.375rem; font-weight: 700; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
-                            💾 Guardar
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Footer -->
-        <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--purple-100); display: flex; justify-content: flex-end; background: var(--gray-50);">
-            <button type="button" onclick="closeDetallePedidoModal()" style="padding: 0.5rem 1.25rem; border: 1px solid var(--gray-300); background: white; color: var(--gray-700); border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
-                Cerrar
-            </button>
-        </div>
-    </div>
-</div>
-
-<partial name="_ModalRegistrarVenta" model="((IEnumerable<LentSoft.Web.Models.Entities.User>)Model.Clientes, (IEnumerable<LentSoft.Web.Models.Entities.Product>)Model.Productos)" />
-
-<script>
-    function toggleCustomDates(val) {
-        const divDesde = document.getElementById('divFechaDesde');
-        const divHasta = document.getElementById('divFechaHasta');
-        if (val === 'personalizado') {
-            divDesde.style.display = 'block';
-            divHasta.style.display = 'block';
-        } else {
-            divDesde.style.display = 'none';
-            divHasta.style.display = 'none';
-        }
-    }
-
-    function openAbonoModal(ventaId, total, saldo) {
-        document.getElementById('abonoVentaId').value = ventaId;
-        document.getElementById('abonoSaldoPendienteDisplay').innerText = '$ ' + parseFloat(saldo).toLocaleString('es-CO');
-        document.getElementById('abonoMontoInput').value = saldo;
-        document.getElementById('abonoMontoInput').max = saldo;
-        document.getElementById('modal-abono').style.display = 'flex';
-    }
-
-    function openTarjetaModal(ventaId, saldo) {
-        document.getElementById('tarjetaVentaId').value = ventaId;
-        document.getElementById('tarjetaMontoInput').value = saldo;
-        document.getElementById('modal-tarjeta').style.display = 'flex';
-    }
-
-    function onInvoiceOrderChange(selectElem) {
-        const selectedOpt = selectElem.options[selectElem.selectedIndex];
-        const total = parseFloat(selectedOpt.getAttribute('data-total') || '0');
-        const metodo = selectedOpt.getAttribute('data-metodo') || 'Efectivo';
-        const saldo = parseFloat(selectedOpt.getAttribute('data-saldopendiente') || '0');
-
-        document.getElementById('invoiceMetodoPagoInput').value = metodo;
-
-        const estadoSelect = document.getElementById('invoiceEstadoSelect');
-        if (estadoSelect) {
-            if (saldo <= 0) {
-                estadoSelect.value = 'pagada';
-            } else if (saldo < total) {
-                estadoSelect.value = 'parcial';
-            } else {
-                estadoSelect.value = 'pendiente';
-            }
-        }
-
-        if (total > 0) {
-            const subtotal = (total / 1.19).toFixed(2);
-            const impuestos = (total - subtotal).toFixed(2);
-            document.getElementById('newInvoiceSubtotal').value = subtotal;
-            document.getElementById('newInvoiceImpuestos').value = impuestos;
-            document.getElementById('newInvoiceTotal').value = total.toFixed(2);
-        }
-    }
-
-    function filterTable(inputId, tableId) {
-        const input = document.getElementById(inputId);
-        if (!input) return;
-        const filter = input.value.toLowerCase();
-        const table = document.getElementById(tableId);
-        if (!table) return;
-        const trs = table.getElementsByTagName('tr');
-
-        for (let i = 1; i < trs.length; i++) {
-            let show = false;
-            const tds = trs[i].getElementsByTagName('td');
-            for (let j = 0; j < tds.length; j++) {
-                if (tds[j] && tds[j].textContent.toLowerCase().includes(filter)) {
-                    show = true;
-                    break;
-                }
-            }
-            trs[i].style.display = show ? '' : 'none';
-        }
-    }
-
-    function confirmDeleteInvoice(id, numero) {
-        if (confirm('¿Está seguro de eliminar la factura ' + numero + '?')) {
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/Invoice/Delete/' + id;
-            
-            const tokenElem = document.querySelector('input[name="__RequestVerificationToken"]');
-            if (tokenElem) {
-                const hiddenToken = document.createElement('input');
-                hiddenToken.type = 'hidden';
-                hiddenToken.name = '__RequestVerificationToken';
-                hiddenToken.value = tokenElem.value;
-                form.appendChild(hiddenToken);
-            }
-
-            document.body.appendChild(form);
-            form.submit();
-        }
-    }
-
-    function filterClientSideFacturas(filterVal) {
-        const filter = filterVal.toLowerCase();
-        const table = document.getElementById('tableFacturas');
-        if (!table) return;
-        const trs = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
-
-        for (let i = 0; i < trs.length; i++) {
-            let show = false;
-            const tds = trs[i].getElementsByTagName('td');
-            if (tds.length <= 1) continue;
-            for (let j = 0; j < tds.length - 1; j++) {
-                if (tds[j] && tds[j].textContent.toLowerCase().includes(filter)) {
-                    show = true;
-                    break;
-                }
-            }
-            trs[i].style.display = show ? '' : 'none';
-        }
-    }
-
-    @{
-        var ordersSerialized = System.Text.Json.JsonSerializer.Serialize(Model.Ventas.Select(v => new {
-            id = v.Id,
-            numero = $"#ORD-{v.Id:D4}",
-            cliente = v.User?.NombreCompleto ?? "Cliente Genérico",
-            userId = v.UserId,
-            fecha = v.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm"),
-            total = v.Total.ToString("C"),
-            formulaOpticaId = v.FormulaOpticaId,
-            requiereFormula = v.OrderItems.Any(oi => oi.Product != null && (oi.Product.Categoria == "lentes-graduados" || oi.Product.Categoria == "lentes-contacto")),
-            items = v.OrderItems.Select(oi => new {
-                nombre = oi.Product?.Nombre ?? "Producto",
-                cantidad = oi.Cantidad,
-                subtotal = (oi.Cantidad * oi.PrecioUnitario).ToString("C"),
-                categoria = oi.Product?.Categoria ?? ""
-            }).ToList()
-        }));
-    }
-    const ventasPedidosData = @Html.Raw(ordersSerialized);
-    const ventasPedidosMap = {};
-    if (Array.isArray(ventasPedidosData)) {
-        ventasPedidosData.forEach(p => { ventasPedidosMap[p.id] = p; });
-    }
-
-    function openDetallePedidoModal(orderId) {
-        const pedido = ventasPedidosMap[orderId];
-        if (!pedido) return;
-
-        document.getElementById('detalleModalOrderNumero').textContent = pedido.numero;
-        document.getElementById('detalleModalCliente').textContent = pedido.cliente;
-        document.getElementById('detalleModalFecha').textContent = pedido.fecha;
-        document.getElementById('detalleModalTotal').textContent = pedido.total;
-        document.getElementById('detallePedidoOrderId').value = pedido.id;
-
-        const tbody = document.getElementById('detalleModalProductosBody');
-        tbody.innerHTML = '';
-        if (pedido.items && pedido.items.length > 0) {
-            pedido.items.forEach(item => {
-                const tr = document.createElement('tr');
-                tr.style.borderBottom = '1px solid var(--purple-100)';
-                tr.innerHTML = `
-                    <td style="padding: 0.6rem 0.75rem; font-weight: 500;">
-                        ${item.nombre}
-                        ${item.categoria ? `<span style="font-size: 0.72rem; color: var(--purple-600); display: block;">(${item.categoria})</span>` : ''}
-                    </td>
-                    <td style="padding: 0.6rem 0.75rem; text-align: center;">${item.cantidad}</td>
-                    <td style="padding: 0.6rem 0.75rem; text-align: right; font-weight: 600; color: var(--purple-900);">${item.subtotal}</td>
-                `;
-                tbody.appendChild(tr);
-            });
-        } else {
-            tbody.innerHTML = '<tr><td colspan="3" style="padding: 1rem; text-align: center; color: var(--gray-500);">No hay productos en este pedido.</td></tr>';
-        }
-
-        const seccionFormula = document.getElementById('seccionFormulaOptica');
-        const formulaSelect = document.getElementById('detallePedidoFormulaSelect');
-        const avisoSinFormulas = document.getElementById('avisoSinFormulas');
-        const contenedorSelect = document.getElementById('contenedorSelectFormula');
-
-        if (pedido.requiereFormula) {
-            seccionFormula.style.display = 'block';
-            formulaSelect.innerHTML = '<option value="">Cargando fórmulas...</option>';
-            avisoSinFormulas.style.display = 'none';
-            contenedorSelect.style.display = 'block';
-
-            fetch('/Ventas/GetFormulasPorPaciente?userId=' + pedido.userId)
-                .then(res => res.json())
-                .then(formulas => {
-                    formulaSelect.innerHTML = '<option value="">-- Sin fórmula vinculada --</option>';
-                    if (!formulas || formulas.length === 0) {
-                        avisoSinFormulas.style.display = 'block';
-                    } else {
-                        avisoSinFormulas.style.display = 'none';
-                        formulas.forEach(f => {
-                            const opt = document.createElement('option');
-                            opt.value = f.id;
-                            opt.textContent = `${f.fecha} — ${f.tipoLente} (${f.estado})`;
-                            if (pedido.formulaOpticaId && pedido.formulaOpticaId === f.id) {
-                                opt.selected = true;
-                            }
-                            formulaSelect.appendChild(opt);
-                        });
-                    }
-                })
-                .catch(err => {
-                    console.error('Error al cargar fórmulas del paciente:', err);
-                    formulaSelect.innerHTML = '<option value="">Error al cargar fórmulas</option>';
-                });
-        } else {
-            seccionFormula.style.display = 'none';
-        }
-
-        document.getElementById('modal-detalle-pedido').style.display = 'flex';
-    }
-
-    function closeDetallePedidoModal() {
-        document.getElementById('modal-detalle-pedido').style.display = 'none';
-    }
-
-    function openHistorialAbonosModal(orderId, cliente, total) {
-        const modal = document.getElementById('modal-historial-abonos');
-        if (modal) {
-            modal.style.display = 'flex';
-        } else {
-            openDetallePedidoModal(orderId);
-        }
-    }
-</script>
+<!-- Modales Centralizados -->
+<partial name="~/Views/Dashboard/Ventas/_Modales.cshtml" model="Model" />
+<partial name="~/Views/Dashboard/Ventas/_InvModales.cshtml" model="Model" />
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
-    <!-- DataTables CDN Scripts -->
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/dataTables.buttons.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.html5.min.js"></script>
-    <script src="https://cdn.datatables.net/buttons/2.4.2/js/buttons.print.min.js"></script>
+    <!-- DataTables Local Scripts (Sin CDN) -->
+    <script src="~/lib/datatables/jquery.min.js"></script>
+    <script src="~/lib/datatables/jquery.dataTables.min.js"></script>
 
     <script>
+        var dtVentas = null;
+        var currentFiltroRapido = '';
+
         $(document).ready(function () {
             if ($('#tableVentasSales').length && !$.fn.DataTable.isDataTable('#tableVentasSales')) {
-                // Ocultar buscador plano para no duplicar con el de DataTables
-                $('#searchVentasSales').hide();
-
-                var dtVentas = $('#tableVentasSales').DataTable({
-                    language: {
-                        search: "🔍 Buscar en ventas:",
-                        searchPlaceholder: "Cliente, pedido, estado...",
-                        lengthMenu: "Mostrar _MENU_ ventas",
-                        info: "Mostrando _START_ a _END_ de _TOTAL_ ventas",
-                        infoEmpty: "Mostrando 0 a 0 de 0 ventas",
-                        infoFiltered: "(filtrado de _MAX_ ventas en total)",
-                        zeroRecords: "No se encontraron ventas que coincidan con la búsqueda",
-                        paginate: {
-                            first: "«",
-                            last: "»",
-                            next: "Siguiente ›",
-                            previous: "‹ Anterior"
+                dtVentas = $('#tableVentasSales').DataTable({
+                    serverSide: true,
+                    processing: true,
+                    ajax: {
+                        url: '/Ventas/ListarVentas',
+                        type: 'POST',
+                        data: function (d) {
+                            d.__RequestVerificationToken = $('input[name="__RequestVerificationToken"]').first().val();
+                            d.filtroEstado = $('#filtroEstadoVenta').val();
+                            d.filtroEstadoPago = $('#filtroEstadoPago').val();
+                            d.filtroRapido = currentFiltroRapido;
+                            d.fechaDesde = $('#filtroFechaDesde').val();
+                            d.fechaHasta = $('#filtroFechaHasta').val();
                         }
                     },
-                    dom: '<"dt-top-container"<"dt-buttons-group"B><"dt-search-group"f>l>rt<"dt-bottom-container"ip>',
-                    buttons: [
+                    language: {
+                        url: '/lib/datatables/es-ES.json'
+                    },
+                    columns: [
                         {
-                            extend: 'excelHtml5',
-                            text: '📊 Exportar a Excel',
-                            className: 'btn-dt-export btn-dt-excel',
-                            title: 'LentSoft_Reporte_Ventas',
-                            exportOptions: {
-                                columns: [0, 1, 2, 3, 4, 5, 6, 7],
-                                format: {
-                                    body: function (data, row, column, node) {
-                                        if (column === 7) {
-                                            var sel = $(node).find('select');
-                                            return sel.length ? sel.val() : $(node).text().trim();
-                                        }
-                                        return $(node).text().trim().replace(/🔗/g, '').replace(/\s+/g, ' ');
-                                    }
-                                }
+                            data: 'id',
+                            name: 'Id',
+                            render: function (data) {
+                                return '<span style="font-weight: 700; color: var(--purple-700);">#ORD-' + String(data).padStart(4, '0') + '</span>';
                             }
                         },
                         {
-                            extend: 'pdfHtml5',
-                            text: '📄 Exportar a PDF',
-                            className: 'btn-dt-export btn-dt-pdf',
-                            title: 'LentSoft - Reporte de Ventas',
-                            orientation: 'landscape',
-                            pageSize: 'A4',
-                            exportOptions: {
-                                columns: [0, 1, 2, 3, 4, 5, 6, 7],
-                                format: {
-                                    body: function (data, row, column, node) {
-                                        if (column === 7) {
-                                            var sel = $(node).find('select');
-                                            return sel.length ? sel.val() : $(node).text().trim();
-                                        }
-                                        return $(node).text().trim().replace(/🔗/g, '').replace(/\s+/g, ' ');
-                                    }
+                            data: 'clienteNombre',
+                            name: 'Cliente',
+                            render: function (data, type, row) {
+                                var html = '<div style="font-weight: 600; color: var(--purple-900);">' + (data || 'Cliente General') + '</div>';
+                                if (row.clienteTelefono) {
+                                    html += '<div style="font-size: 0.75rem; color: var(--gray-500);">' + row.clienteTelefono + '</div>';
                                 }
+                                return html;
+                            }
+                        },
+                        {
+                            data: 'fechaPedido',
+                            name: 'Fecha',
+                            render: function (data) {
+                                if (!data) return '-';
+                                var d = new Date(data);
+                                return '<span style="color: var(--gray-700);">' + d.toLocaleDateString('es-CO') + ' ' + d.toLocaleTimeString('es-CO', { hour: '2-digit', minute: '2-digit' }) + '</span>';
+                            }
+                        },
+                        {
+                            data: 'total',
+                            name: 'Total',
+                            className: 'dt-body-right',
+                            render: function (data) {
+                                return '<strong style="color: var(--purple-900);">$ ' + parseFloat(data || 0).toLocaleString('es-CO') + '</strong>';
+                            }
+                        },
+                        {
+                            data: 'saldoPendiente',
+                            name: 'Saldo',
+                            className: 'dt-body-right',
+                            render: function (data) {
+                                var val = parseFloat(data || 0);
+                                var color = val > 0 ? '#DC2626' : '#16A34A';
+                                return '<strong style="color: ' + color + '; font-weight: 800;">$ ' + val.toLocaleString('es-CO') + '</strong>';
+                            }
+                        },
+                        {
+                            data: 'estadoPago',
+                            name: 'EstadoPago',
+                            className: 'dt-body-center',
+                            render: function (data) {
+                                var st = (data || 'pendiente').toLowerCase();
+                                var bg = st === 'pagado' ? 'var(--success)' : (st === 'abonado' || st === 'parcial' ? '#D97706' : '#DC2626');
+                                return '<span style="background-color: ' + bg + '; color: white; padding: 0.25rem 0.55rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 700; text-transform: capitalize;">' + (data || 'Pendiente') + '</span>';
+                            }
+                        },
+                        {
+                            data: 'estado',
+                            name: 'Estado',
+                            className: 'dt-body-center',
+                            render: function (data) {
+                                var st = (data || 'pendiente').toLowerCase();
+                                var bg = st === 'entregado' ? '#047857' : (st === 'cancelado' ? '#DC2626' : 'var(--purple-100)');
+                                var color = (st === 'entregado' || st === 'cancelado') ? 'white' : 'var(--purple-800)';
+                                return '<span style="background-color: ' + bg + '; color: ' + color + '; padding: 0.25rem 0.55rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 600; text-transform: capitalize;">' + (data || 'Pendiente') + '</span>';
+                            }
+                        },
+                        {
+                            data: 'formulaDetalle',
+                            name: 'Formula',
+                            className: 'dt-body-center',
+                            orderable: false,
+                            render: function (data, type, row) {
+                                if (row.formulaOpticaId) {
+                                    return '<button type="button" class="btn btn-sm" onclick="openFormulaModal(' + row.id + ', ' + row.clienteId + ', ' + row.formulaOpticaId + ', \'' + (row.formulaDetalle || '') + '\')" style="background:#EDE9FE; color:#6D28D9; border:1px solid #C4B5FD; padding:0.2rem 0.5rem; border-radius:0.375rem; font-size:0.75rem; font-weight:700; cursor:pointer;" title="Ver fórmula vinculada">🩺 ' + (row.formulaDetalle || ('#' + row.formulaOpticaId)) + '</button>';
+                                }
+                                return '<button type="button" class="btn btn-sm" onclick="openFormulaModal(' + row.id + ', ' + row.clienteId + ', null, \'\')" style="background:white; color:var(--gray-500); border:1px dashed var(--gray-300); padding:0.2rem 0.45rem; border-radius:0.375rem; font-size:0.72rem; cursor:pointer;" title="Vincular fórmula óptica">+ Vincular</button>';
+                            }
+                        },
+                        {
+                            data: 'id',
+                            name: 'Acciones',
+                            orderable: false,
+                            className: 'dt-body-center',
+                            render: function (data, type, row) {
+                                var estadoLower = (row.estado || '').toLowerCase();
+                                var html = '<div style="display: flex; gap: 0.35rem; justify-content: center; align-items: center; flex-wrap: wrap;">';
+
+                                // Botones de Abono y Tarjeta
+                                if (row.saldoPendiente > 0 && estadoLower !== 'cancelado') {
+                                    var numPed = '#ORD-' + String(row.id).padStart(4, '0');
+                                    var nomCli = (row.clienteNombre || 'Cliente').replace(/'/g, "\\'");
+                                    html += '<button type="button" class="btn-action" style="background:#2563EB; color:white; border:none; padding:0.25rem 0.55rem; border-radius:0.375rem; font-size:0.75rem; font-weight:700; cursor:pointer;" onclick="openAbonoModal(' + row.id + ', \'' + numPed + '\', \'' + nomCli + '\', ' + row.saldoPendiente + ')">💵 Abono</button>';
+                                    html += '<button type="button" class="btn-action" style="background:#6D28D9; color:white; border:none; padding:0.25rem 0.55rem; border-radius:0.375rem; font-size:0.75rem; font-weight:700; cursor:pointer;" onclick="openTarjetaModal(' + row.id + ', ' + row.saldoPendiente + ')">💳 Tarjeta</button>';
+                                }
+
+                                // Botón Cambiar Estado
+                                if (estadoLower !== 'cancelado' && estadoLower !== 'entregado') {
+                                    var numPed = '#ORD-' + String(row.id).padStart(4, '0');
+                                    html += '<button type="button" class="btn-action" style="background:var(--purple-100); color:var(--purple-900); border:1px solid var(--purple-300); padding:0.25rem 0.55rem; border-radius:0.375rem; font-size:0.75rem; font-weight:600; cursor:pointer;" onclick="openCambiarEstadoModal(' + row.id + ', \'' + numPed + '\', \'' + row.estado + '\', ' + row.saldoPendiente + ', ' + row.totalAbonos + ')">🔄 Estado</button>';
+                                }
+
+                                // Factura
+                                if (row.tieneFactura && row.facturaId) {
+                                    html += '<a href="/Invoice/DownloadPdf/' + row.facturaId + '" target="_blank" style="background:#F3E8FF; color:#581C87; border:1px solid #D8B4FE; padding:0.25rem 0.55rem; border-radius:0.375rem; font-size:0.75rem; font-weight:700; text-decoration:none;" title="Ver Factura ' + (row.facturaNumero || '') + '">📄 ' + (row.facturaNumero || 'Factura') + '</a>';
+                                }
+
+                                html += '</div>';
+                                return html;
                             }
                         }
                     ],
                     pageLength: 10,
                     lengthMenu: [10, 25, 50, 100],
-                    order: [[2, 'desc']], // Fecha descendente
-                    columnDefs: [
-                        { orderable: false, targets: [8] }, // Columna acciones
-                        { orderable: false, targets: [7] }  // Columna form estado orden
-                    ],
+                    order: [[2, 'desc']],
                     responsive: true
                 });
+            }
+        });
+
+        // ── Funciones de Filtros DataTables ──
+        function recargarTablaVentas() {
+            if (dtVentas) {
+                dtVentas.ajax.reload();
+            }
+        }
+
+        function aplicarFiltroRapido(valor, btn) {
+            currentFiltroRapido = valor;
+            $('.btn-filtro-rapido').css({ 'background': 'white', 'color': 'var(--purple-900)' });
+            $(btn).css({ 'background': 'var(--purple-600)', 'color': 'white' });
+            recargarTablaVentas();
+        }
+
+        function limpiarFiltrosVentas() {
+            currentFiltroRapido = '';
+            $('#filtroFechaDesde').val('');
+            $('#filtroFechaHasta').val('');
+            $('#filtroEstadoVenta').val('');
+            $('#filtroEstadoPago').val('');
+            $('.btn-filtro-rapido').css({ 'background': 'white', 'color': 'var(--purple-900)' });
+            $('.btn-filtro-rapido').first().css({ 'background': 'var(--purple-600)', 'color': 'white' });
+            recargarTablaVentas();
+        }
+
+        // ── Modales de Ventas ──
+        function openAbonoModal(ventaId, pedidoNum, clienteNombre, saldo) {
+            document.getElementById('abonoVentaId').value = ventaId;
+            document.getElementById('abonoPedidoText').innerText = pedidoNum;
+            document.getElementById('abonoClienteText').innerText = clienteNombre;
+            document.getElementById('abonoSaldoText').innerText = '$ ' + parseFloat(saldo).toLocaleString('es-CO');
+            var inputMonto = document.getElementById('abonoMontoInput');
+            inputMonto.value = saldo;
+            inputMonto.max = saldo;
+            document.getElementById('modal-abono').style.display = 'flex';
+        }
+
+        function handleMetodoPagoChange(val) {
+            if (val === 'Tarjeta de Crédito / Débito') {
+                var ventaId = document.getElementById('abonoVentaId').value;
+                var saldo = parseFloat(document.getElementById('abonoMontoInput').value || 0);
+                document.getElementById('modal-abono').style.display = 'none';
+                openTarjetaModal(ventaId, saldo);
+            }
+        }
+
+        function openTarjetaModal(ventaId, saldo) {
+            document.getElementById('tarjetaVentaId').value = ventaId;
+            document.getElementById('tarjetaMontoDisplay').innerText = '$ ' + parseFloat(saldo).toLocaleString('es-CO');
+            document.getElementById('tarjetaMontoInput').value = saldo;
+            document.getElementById('tarjetaNumero').value = '';
+            document.getElementById('tarjetaTitular').value = '';
+            document.getElementById('tarjetaExp').value = '';
+            document.getElementById('tarjetaCvv').value = '';
+            document.getElementById('tarjetaLuhnMsg').innerText = '';
+            document.getElementById('tarjetaMarcaBadge').innerText = 'Tarjeta';
+            document.getElementById('modal-tarjeta').style.display = 'flex';
+        }
+
+        function openCambiarEstadoModal(orderId, pedidoNum, estadoActual, saldo, totalAbonos) {
+            document.getElementById('cambiarEstadoOrderId').value = orderId;
+            document.getElementById('cambiarEstadoPedidoLabel').textContent = pedidoNum;
+            document.getElementById('cambiarEstadoActualLabel').textContent = estadoActual;
+
+            var sel = document.getElementById('cambiarEstadoSelect');
+            sel.value = estadoActual.toLowerCase();
+
+            var opPagado = sel.querySelector('option[value="pagado"]');
+            var opCancelado = sel.querySelector('option[value="cancelado"]');
+            if (opPagado) {
+                opPagado.disabled = (saldo > 0);
+                opPagado.text = saldo > 0 ? 'Pagado (Bloqueado: Saldo pendiente > 0)' : 'Pagado';
+            }
+            if (opCancelado) {
+                opCancelado.disabled = (totalAbonos > 0);
+                opCancelado.text = totalAbonos > 0 ? 'Cancelado (Bloqueado: Ya tiene abonos)' : 'Cancelado';
+            }
+
+            document.getElementById('modal-cambiar-estado').style.display = 'flex';
+        }
+
+        function openFormulaModal(orderId, clienteId, formulaId, formulaDetalle) {
+            document.getElementById('vincularFormulaOrderId').value = orderId;
+            var contenido = document.getElementById('formulaModalContenido');
+            if (formulaId) {
+                contenido.innerHTML = '<div style="background:#FAF5FF; border:1px solid var(--purple-300); padding:0.75rem; border-radius:0.5rem; margin-bottom:0.75rem;"><strong style="color:var(--purple-900);">Fórmula Actual:</strong> ' + formulaDetalle + '</div>';
+            } else {
+                contenido.innerHTML = '<div style="background:#F3F4F6; border:1px solid #E5E7EB; padding:0.75rem; border-radius:0.5rem; margin-bottom:0.75rem; color:#6B7280;">Sin fórmula óptica vinculada a este pedido.</div>';
+            }
+
+            var sel = document.getElementById('vincularFormulaSelect');
+            sel.innerHTML = '<option value="">-- Sin Fórmula (Desvincular) --</option>';
+
+            if (clienteId) {
+                fetch('/Ventas/GetFormulasPorPaciente?userId=' + clienteId)
+                    .then(function(r) { return r.json(); })
+                    .then(function(formulas) {
+                        if (formulas && formulas.length > 0) {
+                            formulas.forEach(function(f) {
+                                var opt = document.createElement('option');
+                                opt.value = f.id;
+                                opt.textContent = '#' + f.id + ' — ' + (f.tipoLente || 'Fórmula') + ' (' + (f.fecha || '') + ')';
+                                if (formulaId && f.id == formulaId) {
+                                    opt.selected = true;
+                                }
+                                sel.appendChild(opt);
+                            });
+                        }
+                    })
+                    .catch(function(err) {
+                        console.error('Error al cargar fórmulas:', err);
+                    });
+            }
+
+            document.getElementById('modal-formula').style.display = 'flex';
+        }
+
+        function actualizarInfoFactura(selectElem) {
+            var selectedOpt = selectElem.options[selectElem.selectedIndex];
+            var total = parseFloat(selectedOpt.getAttribute('data-total') || '0');
+            var cliente = selectedOpt.getAttribute('data-cliente') || '-';
+            var metodo = selectedOpt.getAttribute('data-metodo') || 'Efectivo';
+
+            document.getElementById('facturaModalCliente').innerText = cliente;
+            document.getElementById('facturaModalMetodo').innerText = metodo;
+            document.getElementById('facturaModalTotal').innerText = 'COP $' + total.toLocaleString('es-CO');
+        }
+
+        function confirmDeleteInvoice(id, numero) {
+            if (confirm('¿Está seguro de eliminar la factura ' + numero + '?')) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/Invoice/Delete/' + id;
+
+                var tokenElem = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (tokenElem) {
+                    var hiddenToken = document.createElement('input');
+                    hiddenToken.type = 'hidden';
+                    hiddenToken.name = '__RequestVerificationToken';
+                    hiddenToken.value = tokenElem.value;
+                    form.appendChild(hiddenToken);
+                }
+
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        // ── Validación Luhn & Tarjeta Client-Side (Requisito 4) ──
+        function validarLuhn(numero) {
+            var digits = (numero || '').replace(/\D/g, '');
+            if (digits.length < 13 || digits.length > 19) return false;
+            var sum = 0;
+            var alternate = false;
+            for (var i = digits.length - 1; i >= 0; i--) {
+                var n = parseInt(digits.charAt(i), 10);
+                if (alternate) {
+                    n *= 2;
+                    if (n > 9) n = (n % 10) + 1;
+                }
+                sum += n;
+                alternate = !alternate;
+            }
+            return (sum % 10 === 0);
+        }
+
+        function detectarFranquicia(numero) {
+            var clean = (numero || '').replace(/\D/g, '');
+            if (clean.startsWith('4')) return 'Visa';
+            if (/^5[1-5]/.test(clean)) return 'Mastercard';
+            if (/^3[47]/.test(clean)) return 'American Express';
+            if (/^(6011|65)/.test(clean)) return 'Discover';
+            return 'Tarjeta';
+        }
+
+        function formatearYDetectarTarjeta(input) {
+            var val = input.value.replace(/\D/g, '').substring(0, 16);
+            var formatted = val.match(/.{1,4}/g)?.join(' ') || val;
+            input.value = formatted;
+
+            var marca = detectarFranquicia(val);
+            document.getElementById('tarjetaMarcaBadge').textContent = marca;
+
+            var msg = document.getElementById('tarjetaLuhnMsg');
+            if (val.length >= 13) {
+                if (validarLuhn(val)) {
+                    msg.textContent = '✓ Tarjeta válida (' + marca + ')';
+                    msg.style.color = '#16A34A';
+                } else {
+                    msg.textContent = '✗ Número de tarjeta no válido (Algoritmo de Luhn)';
+                    msg.style.color = '#DC2626';
+                }
+            } else {
+                msg.textContent = '';
+            }
+        }
+
+        function formatearExpiracion(input) {
+            var val = input.value.replace(/\D/g, '').substring(0, 4);
+            if (val.length >= 3) {
+                input.value = val.substring(0, 2) + '/' + val.substring(2);
+            } else {
+                input.value = val;
+            }
+        }
+
+        function validarTarjetaCliente(e) {
+            var num = document.getElementById('tarjetaNumero').value.replace(/\D/g, '');
+            if (!validarLuhn(num)) {
+                alert('El número de tarjeta no es válido según el algoritmo de Luhn.');
+                e.preventDefault();
+                return false;
+            }
+            var exp = document.getElementById('tarjetaExp').value;
+            if (!/^\d{2}\/\d{2}$/.test(exp)) {
+                alert('La fecha de expiración debe tener el formato MM/YY.');
+                e.preventDefault();
+                return false;
+            }
+            var cvv = document.getElementById('tarjetaCvv').value;
+            if (cvv.length < 3 || cvv.length > 4) {
+                alert('El CVV debe tener 3 o 4 dígitos.');
+                e.preventDefault();
+                return false;
+            }
+            return true;
+        }
+
+        // ── Gestión de Sub-tabs de Inventario (Ventas) ──
+        function switchInventorySubTab(subtabName) {
+            const tabs = ['productos', 'historial', 'pedidos'];
+            tabs.forEach(t => {
+                const content = document.getElementById('subtab-content-' + t);
+                const btnNav = document.getElementById('nav-subtab-' + t);
+
+                if (t === subtabName) {
+                    if (content) content.style.display = 'block';
+                    if (btnNav) {
+                        btnNav.style.color = 'var(--purple-700)';
+                        btnNav.style.borderBottom = '3px solid var(--purple-600)';
+                        btnNav.classList.add('active');
+                    }
+                } else {
+                    if (content) content.style.display = 'none';
+                    if (btnNav) {
+                        btnNav.style.color = 'var(--gray-500)';
+                        btnNav.style.borderBottom = 'none';
+                        btnNav.classList.remove('active');
+                    }
+                }
+            });
+
+            if (window.history && window.history.pushState) {
+                const newUrl = '?section=inventarios&subtab=' + subtabName;
+                window.history.pushState({ path: newUrl }, '', newUrl);
+            }
+        }
+
+        // ── Filtrado genérico de tablas (Pedidos de Venta) ──
+        function filterTable(inputId, tableId) {
+            const input = document.getElementById(inputId);
+            if (!input) return;
+            const filter = input.value.toLowerCase().trim();
+            const table = document.getElementById(tableId);
+            if (!table) return;
+            const trs = table.getElementsByTagName('tr');
+
+            for (let i = 1; i < trs.length; i++) {
+                if (!filter) {
+                    trs[i].style.display = '';
+                    continue;
+                }
+                let show = false;
+                const tds = trs[i].getElementsByTagName('td');
+                for (let j = 0; j < tds.length; j++) {
+                    if (!tds[j]) continue;
+                    const cellText = tds[j].textContent.toLowerCase().trim();
+                    if (cellText.includes(filter)) {
+                        show = true;
+                        break;
+                    }
+                }
+                trs[i].style.display = show ? '' : 'none';
+            }
+        }
+
+        function toggleFilterMenu(submodule) {
+            const menu = document.getElementById('filter-menu-' + submodule);
+            if (!menu) return;
+            const isVisible = menu.style.display === 'block';
+            document.querySelectorAll('[id^="filter-menu-"]').forEach(m => m.style.display = 'none');
+            menu.style.display = isVisible ? 'none' : 'block';
+        }
+
+        function filterTableByValue(inputId, tableId, value) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.value = value;
+                filterTable(inputId, tableId);
+            }
+            document.querySelectorAll('[id^="filter-menu-"]').forEach(m => m.style.display = 'none');
+        }
+
+        // ── Alternar Estado de Producto en Ventas ──
+        async function toggleProductStatus(id, btnElem) {
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+                const res = await fetch('/Ventas/ToggleProductStatus/' + id, {
+                    method: 'POST',
+                    headers: { 
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'RequestVerificationToken': token
+                    }
+                });
+                const data = await res.json();
+                if (data.success) {
+                    btnElem.innerText = data.active ? 'Activo' : 'Inactivo';
+                    btnElem.className = 'inv-chip inv-chip-btn ' + (data.active ? 'inv-chip-success' : 'inv-chip-error');
+                    const row = btnElem.closest('tr');
+                    if (row) {
+                        row.setAttribute('data-estado', data.active ? 'activo' : 'inactivo');
+                    }
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message || 'Error al cambiar estado', 'error');
+                }
+            } catch (e) {
+                showToast('Error de comunicación con el servidor', 'error');
+            }
+        }
+
+        function showToast(msg, type = 'info') {
+            if (typeof alertify !== 'undefined') {
+                if (type === 'success') alertify.success(msg);
+                else if (type === 'error') alertify.error(msg);
+                else if (type === 'warning') (alertify.warning ? alertify.warning(msg) : alertify.error(msg));
+                else alertify.message(msg);
+                return;
+            }
+            let container = document.getElementById('inv-toast-container');
+            if (!container) {
+                container = document.createElement('div');
+                container.id = 'inv-toast-container';
+                container.style.cssText = 'position: fixed; bottom: 24px; right: 24px; z-index: 99999; display: flex; flex-direction: column; gap: 8px; max-width: 380px; pointer-events: none; font-family: system-ui, -apple-system, sans-serif;';
+                document.body.appendChild(container);
+            }
+            const toast = document.createElement('div');
+            const bg = type === 'success' ? '#059669' : (type === 'error' ? '#DC2626' : (type === 'warning' ? '#D97706' : '#7C3AED'));
+            toast.style.cssText = `pointer-events: auto; padding: 12px 18px; border-radius: 8px; color: white; font-weight: 500; font-size: 0.875rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); transition: all 0.25s ease; opacity: 0; transform: translateY(12px); display: flex; align-items: center; gap: 10px; background: ${bg};`;
+            toast.innerHTML = `<span>${msg}</span>`;
+            container.appendChild(toast);
+            requestAnimationFrame(() => {
+                toast.style.opacity = '1';
+                toast.style.transform = 'translateY(0)';
+            });
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(12px)';
+                setTimeout(() => toast.remove(), 250);
+            }, 4000);
+        }
+
+        // ── Manejadores delegados para edición y eliminación de Inventario ──
+        document.addEventListener('click', function(e) {
+            const btn = e.target.closest('[data-record]');
+            if (!btn) return;
+            let rec;
+            try { rec = JSON.parse(btn.dataset.record); } catch { return; }
+
+            if (btn.classList.contains('btn-edit-product')) {
+                if (typeof openEditProductModal === 'function') {
+                    openEditProductModal(
+                        rec.id, rec.nombre, rec.descripcion, rec.precio,
+                        rec.precioDescuento, rec.categoria, rec.marca,
+                        rec.stock, rec.activo, rec.imagenUrl,
+                        rec.sku, rec.costoCompra, rec.stockMinimo,
+                        rec.ubicacion, rec.supplierId, rec.rowVersion
+                    );
+                }
+            } else if (btn.classList.contains('btn-edit-sales-order')) {
+                if (typeof openEditSalesOrderModal === 'function') {
+                    openEditSalesOrderModal(
+                        rec.id, rec.numeroPedido, rec.clienteNombre,
+                        rec.productoNombre, rec.cantidad, rec.precioUnitario,
+                        rec.estado, rec.notas
+                    );
+                }
+            }
+        });
+
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            if (form.classList.contains('form-delete-product')) {
+                const nombre = form.dataset.nombre || '';
+                if (!confirm('¿Deseas eliminar el producto ' + nombre + '?')) {
+                    e.preventDefault();
+                }
+            } else if (form.classList.contains('form-delete-sales-order')) {
+                if (!confirm('¿Seguro que deseas eliminar este pedido de venta?')) {
+                    e.preventDefault();
+                }
+            }
+        });
+
+        // ── Activar sub-tab si viene en URL ──
+        $(document).ready(function() {
+            var urlParams = new URLSearchParams(window.location.search);
+            var subtab = urlParams.get('subtab') || '@(Model.ActiveSubTab ?? "productos")';
+            if (subtab && ['productos', 'historial', 'pedidos'].includes(subtab)) {
+                switchInventorySubTab(subtab);
             }
         });
     </script>

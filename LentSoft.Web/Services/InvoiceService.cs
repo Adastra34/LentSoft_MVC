@@ -1,4 +1,7 @@
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using LentSoft.Web.Data;
 using LentSoft.Web.Models.Entities;
 
@@ -7,10 +10,17 @@ namespace LentSoft.Web.Services;
 public class InvoiceService : IInvoiceService
 {
     private readonly LentSoftDbContext _context;
+    private readonly IConfiguration _configuration;
 
-    public InvoiceService(LentSoftDbContext context)
+    public InvoiceService(LentSoftDbContext context, IConfiguration configuration)
     {
         _context = context;
+        _configuration = configuration;
+    }
+
+    public InvoiceService(LentSoftDbContext context)
+        : this(context, new ConfigurationBuilder().Build())
+    {
     }
 
     public async Task<(List<Invoice> Items, int TotalCount)> GetAllAsync(string? searchTerm, int page, int pageSize)
@@ -68,7 +78,7 @@ public class InvoiceService : IInvoiceService
     {
         // 1. Evitar doble facturación (validación anti-doble factura)
         var facturaExistente = await _context.Invoices
-            .FirstOrDefaultAsync(i => i.OrderId == invoice.OrderId && i.Activo);
+            .FirstOrDefaultAsync(i => i.OrderId == invoice.OrderId && i.Activo && i.Estado != "cancelada");
 
         if (facturaExistente != null)
         {
@@ -81,9 +91,14 @@ public class InvoiceService : IInvoiceService
             .Include(o => o.Pagos)
             .FirstOrDefaultAsync(o => o.Id == invoice.OrderId);
 
-        if (order == null)
+        if (order == null || !order.Activo)
         {
             throw new KeyNotFoundException($"No se encontró la orden #{invoice.OrderId} para la factura.");
+        }
+
+        if (order.Estado == "cancelado")
+        {
+            throw new InvalidOperationException($"No se puede facturar el pedido #ORD-{invoice.OrderId:D4} porque está cancelado.");
         }
 
         // 3. Fijar método de pago desde la venta original
@@ -92,76 +107,61 @@ public class InvoiceService : IInvoiceService
             invoice.MetodoPago = order.MetodoPagoSimulado;
         }
 
-        // 4. Calcular estado real automáticamente según el saldo del pedido (Requisito 2)
+        // 4. Calcular estado real automáticamente según el saldo del pedido
         invoice.Estado = CalcularEstadoSegunPedido(order, invoice.Estado);
 
-        // 5. Garantizar número de factura único predeterminado (DIAN)
-        var year = DateTime.UtcNow.Year;
-        var count = (await _context.Invoices.CountAsync()) + 1;
-        var candidate = $"FAC-{year}-{count:D4}";
+        // 5. Lectura de resolución DIAN, rango autorizado y NIT emisor desde IConfiguration ("Facturacion") con respaldo
+        var facturacionSec = _configuration.GetSection("Facturacion");
+        var resolucionDian = facturacionSec["ResolucionDianNumero"] ?? (!string.IsNullOrWhiteSpace(invoice.ResolucionDianNumero) ? invoice.ResolucionDianNumero : "18764028920000");
+        var rangoDesde = facturacionSec["RangoAutorizadoDesde"] ?? (!string.IsNullOrWhiteSpace(invoice.RangoAutorizadoDesde) ? invoice.RangoAutorizadoDesde : "FAC-2026-0001");
+        var rangoHasta = facturacionSec["RangoAutorizadoHasta"] ?? (!string.IsNullOrWhiteSpace(invoice.RangoAutorizadoHasta) ? invoice.RangoAutorizadoHasta : "FAC-2026-9999");
+        var nitEmisor = facturacionSec["NitEmisor"] ?? "9001234567";
 
-        while (await _context.Invoices.AnyAsync(i => i.NumeroFactura == candidate))
+        invoice.ResolucionDianNumero = resolucionDian;
+        invoice.RangoAutorizadoDesde = rangoDesde;
+        invoice.RangoAutorizadoHasta = rangoHasta;
+
+        // Validar límite superior del rango autorizado
+        int maxConsecutivoPermitido = int.MaxValue;
+        if (!string.IsNullOrWhiteSpace(rangoHasta))
         {
-            count++;
-            candidate = $"FAC-{year}-{count:D4}";
-        }
-        invoice.NumeroFactura = candidate;
-
-        // Auto-calcular montos (Subtotal e IVA discriminado por ítem)
-        if (invoice.Total == 0) invoice.Total = order.Total;
-
-        if (invoice.Subtotal == 0 || invoice.Impuestos == 0)
-        {
-            decimal calcSubtotal = 0;
-            decimal calcImpuestos = 0;
-
-            if (order.OrderItems != null && order.OrderItems.Any())
+            var lastDash = rangoHasta.LastIndexOf('-');
+            if (lastDash >= 0 && int.TryParse(rangoHasta.Substring(lastDash + 1), out var maxPermitido))
             {
-                foreach (var item in order.OrderItems)
-                {
-                    var rate = item.Product != null && item.Product.PorcentajeIva >= 0 ? item.Product.PorcentajeIva : 19.00m;
-                    var baseUnit = rate > 0 ? (item.PrecioUnitario / (1m + (rate / 100m))) : item.PrecioUnitario;
-                    var itemBaseTotal = baseUnit * item.Cantidad;
-                    var itemIvaTotal = item.Subtotal - itemBaseTotal;
-
-                    calcSubtotal += itemBaseTotal;
-                    calcImpuestos += itemIvaTotal;
-                }
+                maxConsecutivoPermitido = maxPermitido;
             }
-            else
+        }
+
+        // 6. Calcular Subtotal e Impuestos SIEMPRE por ítem con PorcentajeIva del producto
+        decimal calcSubtotal = 0;
+        decimal calcImpuestos = 0;
+
+        if (order.OrderItems != null && order.OrderItems.Any())
+        {
+            foreach (var item in order.OrderItems)
             {
-                calcSubtotal = Math.Round(invoice.Total / 1.19m, 2);
-                calcImpuestos = invoice.Total - calcSubtotal;
+                var rate = item.Product != null && item.Product.PorcentajeIva >= 0 ? item.Product.PorcentajeIva : 19.00m;
+                var itemTotal = item.Subtotal > 0 ? item.Subtotal : (item.PrecioUnitario * item.Cantidad);
+                var baseTotal = rate > 0 ? (itemTotal / (1m + (rate / 100m))) : itemTotal;
+                var ivaTotal = itemTotal - baseTotal;
+
+                calcSubtotal += baseTotal;
+                calcImpuestos += ivaTotal;
             }
+        }
+        else
+        {
+            calcSubtotal = Math.Round(order.Total / 1.19m, 2);
+            calcImpuestos = order.Total - calcSubtotal;
+        }
 
-            if (invoice.Subtotal == 0) invoice.Subtotal = Math.Round(calcSubtotal, 2);
-            if (invoice.Impuestos == 0) invoice.Impuestos = Math.Round(calcImpuestos, 2);
-        }
-
-        if (string.IsNullOrWhiteSpace(invoice.ResolucionDianNumero))
-        {
-            invoice.ResolucionDianNumero = "18764028920000";
-        }
-        if (string.IsNullOrWhiteSpace(invoice.RangoAutorizadoDesde))
-        {
-            invoice.RangoAutorizadoDesde = "FAC-2026-0001";
-        }
-        if (string.IsNullOrWhiteSpace(invoice.RangoAutorizadoHasta))
-        {
-            invoice.RangoAutorizadoHasta = "FAC-2026-9999";
-        }
+        invoice.Total = order.Total;
+        invoice.Subtotal = Math.Round(calcSubtotal, 2);
+        invoice.Impuestos = Math.Round(calcImpuestos, 2);
 
         if (invoice.FechaEmision == default)
         {
             invoice.FechaEmision = DateTime.UtcNow;
-        }
-
-        // Generar CUFE determinístico DIAN
-        var rawCufe = $"{invoice.NumeroFactura}{invoice.FechaEmision:yyyyMMddHHmmss}{invoice.Total:F2}{invoice.Impuestos:F2}9001234567";
-        using (var sha = System.Security.Cryptography.SHA256.Create())
-        {
-            var hashBytes = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(rawCufe));
-            invoice.CUFE = Convert.ToHexString(hashBytes).ToLower();
         }
 
         if (invoice.Estado == "pagada" && invoice.FechaPago == null)
@@ -169,17 +169,64 @@ public class InvoiceService : IInvoiceService
             invoice.FechaPago = DateTime.UtcNow;
         }
 
-        try
+        // 7. Número de factura único y consecutivo (mayor consecutivo + 1 con transacción y reintento)
+        var year = DateTime.UtcNow.Year;
+        var prefix = $"FAC-{year}-";
+
+        var existingFacturas = await _context.Invoices
+            .Where(i => i.NumeroFactura.StartsWith(prefix))
+            .Select(i => i.NumeroFactura)
+            .ToListAsync();
+
+        int maxSeq = 0;
+        foreach (var fac in existingFacturas)
         {
-            _context.Invoices.Add(invoice);
-            await _context.SaveChangesAsync();
-            return invoice;
+            if (fac.Length > prefix.Length && int.TryParse(fac.Substring(prefix.Length), out var seq) && seq > maxSeq)
+            {
+                maxSeq = seq;
+            }
         }
-        catch (DbUpdateException ex)
+
+        using var dbTx = await _context.Database.BeginTransactionAsync();
+        const int maxRetries = 5;
+
+        for (int retry = 0; retry < maxRetries; retry++)
         {
-            var innerMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-            throw new InvalidOperationException($"No se pudo crear la factura debido a una restricción de datos en la base de datos: {innerMsg}", ex);
+            var nextSeq = maxSeq + 1 + retry;
+            if (nextSeq > maxConsecutivoPermitido)
+            {
+                throw new InvalidOperationException($"El consecutivo de facturación ({nextSeq}) supera el rango autorizado por la DIAN ({rangoHasta}).");
+            }
+
+            invoice.NumeroFactura = $"{prefix}{nextSeq:D4}";
+
+            // Generar CUFE determinístico DIAN con NIT emisor configurado
+            var rawCufe = $"{invoice.NumeroFactura}{invoice.FechaEmision:yyyyMMddHHmmss}{invoice.Total:F2}{invoice.Impuestos:F2}{nitEmisor}";
+            using (var sha = SHA256.Create())
+            {
+                var hashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(rawCufe));
+                invoice.CUFE = Convert.ToHexString(hashBytes).ToLower();
+            }
+
+            try
+            {
+                _context.Invoices.Add(invoice);
+                await _context.SaveChangesAsync();
+                await dbTx.CommitAsync();
+                return invoice;
+            }
+            catch (DbUpdateException ex)
+            {
+                if (retry == maxRetries - 1)
+                {
+                    var innerMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                    throw new InvalidOperationException($"No se pudo crear la factura debido a una restricción de datos en la base de datos: {innerMsg}", ex);
+                }
+                _context.Entry(invoice).State = EntityState.Detached;
+            }
         }
+
+        return invoice;
     }
 
     public async Task<Invoice?> UpdateAsync(Invoice invoice)
@@ -254,8 +301,12 @@ public class InvoiceService : IInvoiceService
 
     public async Task<List<Order>> GetOrdersAvailableForInvoicingAsync()
     {
+        var ordersWithActiveInvoice = _context.Invoices
+            .Where(i => i.Activo && i.Estado != "cancelada")
+            .Select(i => i.OrderId);
+
         return await _context.Orders
-            .Where(o => o.Activo)
+            .Where(o => o.Activo && o.Estado != "cancelado" && !ordersWithActiveInvoice.Contains(o.Id))
             .Include(o => o.User)
             .OrderByDescending(o => o.FechaPedido)
             .ToListAsync();

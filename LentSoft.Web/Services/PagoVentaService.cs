@@ -34,7 +34,9 @@ public class PagoVentaService : IPagoVentaService
             throw new InvalidOperationException("No se pueden registrar abonos sobre una venta cancelada.");
         }
 
-        var totalAbonadoActual = order.Pagos.Sum(p => p.Monto);
+        var totalAbonadoActual = order.Pagos != null && order.Pagos.Any()
+            ? order.Pagos.Sum(p => p.Monto)
+            : order.MontoPagado;
         var saldoActual = Math.Max(0m, order.Total - totalAbonadoActual);
 
         if (monto > saldoActual)
@@ -42,15 +44,22 @@ public class PagoVentaService : IPagoVentaService
             throw new InvalidOperationException($"El monto del abono (${monto:N2}) supera el saldo pendiente (${saldoActual:N2}).");
         }
 
-        // Generar Número de Comprobante único REC-YYYY-XXXX
+        // Generar Número de Comprobante único REC-YYYY-XXXX (mayor consecutivo + 1 con reintento)
         var year = DateTime.UtcNow.Year;
-        var count = (await _context.PagosVentas.CountAsync()) + 1;
-        var candidate = $"REC-{year}-{count:D4}";
+        var prefix = $"REC-{year}-";
 
-        while (await _context.PagosVentas.AnyAsync(p => p.NumeroComprobante == candidate))
+        var existingComprobantes = await _context.PagosVentas
+            .Where(p => p.NumeroComprobante.StartsWith(prefix))
+            .Select(p => p.NumeroComprobante)
+            .ToListAsync();
+
+        int maxSeq = 0;
+        foreach (var comp in existingComprobantes)
         {
-            count++;
-            candidate = $"REC-{year}-{count:D4}";
+            if (comp.Length > prefix.Length && int.TryParse(comp.Substring(prefix.Length), out var seq) && seq > maxSeq)
+            {
+                maxSeq = seq;
+            }
         }
 
         var pago = new PagoVenta
@@ -59,11 +68,8 @@ public class PagoVentaService : IPagoVentaService
             Monto = Math.Round(monto, 2),
             MetodoPago = string.IsNullOrWhiteSpace(metodoPago) ? "Efectivo" : metodoPago,
             Responsable = string.IsNullOrWhiteSpace(responsable) ? "Ventas" : responsable,
-            FechaPago = DateTime.UtcNow,
-            NumeroComprobante = candidate
+            FechaPago = DateTime.UtcNow
         };
-
-        _context.PagosVentas.Add(pago);
 
         // Actualizar datos calculados en Order
         var nuevoTotalAbonado = totalAbonadoActual + pago.Monto;
@@ -79,7 +85,25 @@ public class PagoVentaService : IPagoVentaService
             order.EstadoPago = "abonado";
         }
 
-        await _context.SaveChangesAsync();
+        _context.PagosVentas.Add(pago);
+
+        const int maxRetries = 5;
+        for (int retry = 0; retry < maxRetries; retry++)
+        {
+            var candidateSeq = maxSeq + 1 + retry;
+            pago.NumeroComprobante = $"{prefix}{candidateSeq:D4}";
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                break;
+            }
+            catch (DbUpdateException) when (retry < maxRetries - 1)
+            {
+                // Reintento en caso de colisión por concurrencia
+            }
+        }
+
         return pago;
     }
 

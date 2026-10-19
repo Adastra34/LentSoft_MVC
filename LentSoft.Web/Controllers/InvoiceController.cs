@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using LentSoft.Web.Models.Entities;
 using LentSoft.Web.Services;
 
@@ -10,11 +11,16 @@ public class InvoiceController : Controller
 {
     private readonly IInvoiceService _invoiceService;
     private readonly IPdfInvoiceService _pdfInvoiceService;
+    private readonly ILogger<InvoiceController> _logger;
 
-    public InvoiceController(IInvoiceService invoiceService, IPdfInvoiceService pdfInvoiceService)
+    public InvoiceController(
+        IInvoiceService invoiceService, 
+        IPdfInvoiceService pdfInvoiceService,
+        ILogger<InvoiceController> logger)
     {
         _invoiceService = invoiceService;
         _pdfInvoiceService = pdfInvoiceService;
+        _logger = logger;
     }
 
     private IActionResult RedirectToFacturas(string? searchTerm = null, int page = 1, int pageSize = 5)
@@ -80,9 +86,15 @@ public class InvoiceController : Controller
             await _invoiceService.CreateAsync(invoice);
             TempData["SuccessMessage"] = "Factura creada exitosamente.";
         }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Validación de negocio al crear factura para la orden {OrderId}", invoice.OrderId);
+            TempData["ErrorMessage"] = ex.Message;
+        }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al crear la factura: {ex.Message}";
+            _logger.LogError(ex, "Error no controlado al crear factura para la orden {OrderId}", invoice.OrderId);
+            TempData["ErrorMessage"] = "Ocurrió un error inesperado al procesar la factura. Por favor intente nuevamente.";
         }
 
         return RedirectToFacturas();
@@ -120,9 +132,15 @@ public class InvoiceController : Controller
                 TempData["ErrorMessage"] = "No se encontró la factura a editar.";
             }
         }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Validación al actualizar la factura {InvoiceId}", invoice.Id);
+            TempData["ErrorMessage"] = ex.Message;
+        }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al actualizar la factura: {ex.Message}";
+            _logger.LogError(ex, "Error al actualizar la factura {InvoiceId}", invoice.Id);
+            TempData["ErrorMessage"] = "Ocurrió un error inesperado al actualizar la factura.";
         }
 
         return RedirectToFacturas();
@@ -153,11 +171,12 @@ public class InvoiceController : Controller
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Error al eliminar la factura {InvoiceId}", id);
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                return Json(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = "No se pudo eliminar la factura." });
             }
-            TempData["ErrorMessage"] = $"Error al eliminar la factura: {ex.Message}";
+            TempData["ErrorMessage"] = "No se pudo eliminar la factura.";
         }
 
         return RedirectToFacturas();
@@ -181,7 +200,8 @@ public class InvoiceController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al generar el PDF: {ex.Message}";
+            _logger.LogError(ex, "Error al generar el PDF de la factura {InvoiceId}", id);
+            TempData["ErrorMessage"] = "Ocurrió un error al generar el archivo PDF de la factura.";
             return RedirectToFacturas();
         }
     }

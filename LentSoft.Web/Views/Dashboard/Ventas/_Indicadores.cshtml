@@ -1,0 +1,23 @@
+@model DashboardVentasViewModel
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--purple-600); background: white; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.monthly">Ventas del Mes</p>
+        <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">COP $@Model.VentasDelMes.ToString("N0")</h3>
+    </div>
+
+    <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--info, #3B82F6); background: white; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.activeorders">Pedidos Activos</p>
+        <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.PedidosActivos</h3>
+    </div>
+
+    <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--success, #10B981); background: white; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.clients">Clientes Atendidos</p>
+        <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.ClientesAtendidos</h3>
+    </div>
+
+    <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--warning, #F59E0B); background: white; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+        <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.averageticket">Ticket Promedio</p>
+        <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">COP $@Model.TicketPromedio.ToString("N0")</h3>
+    </div>
+</div>
