@@ -221,7 +221,7 @@ Reglas estrictas:
             if (string.IsNullOrEmpty(text))
             {
                 _logger.LogWarning("Gemini API devolvió una respuesta vacía. Body: {Body}", responseBody);
-                return "Lo siento, no pude generar una respuesta en este momento. ¿Podrías intentar de nuevo? 🤔";
+                return "Lo siento, no pude generar una respuesta en este momento. ¿Podrías intentar de nuevo?";
             }
 
             return text;

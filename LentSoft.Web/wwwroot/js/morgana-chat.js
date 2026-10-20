@@ -193,7 +193,7 @@
       const resultado = morganaBuscarRespuesta(textoPregunta);
       return resultado
         ? resultado.respuesta
-        : 'No tengo una respuesta para eso todavía 🤔 pero puedes explorar la <strong>Tienda</strong> o escribirnos por soporte.';
+        : 'No tengo una respuesta para eso todavía, pero puedes explorar la <strong>Tienda</strong> o escribirnos por soporte.';
     }
     return 'Lo siento, el módulo de respuestas no está disponible.';
   }
@@ -316,7 +316,7 @@
       hasGreeted = true;
       setTimeout(function () {
         agregarMensaje(
-          '¡Hola! Soy Morgana 👋 Puedo ayudarte a resolver dudas sobre la tienda. Elige una pregunta o escribe la tuya:',
+          '¡Hola! Soy Morgana. Puedo ayudarte a resolver dudas sobre la tienda. Elige una pregunta o escribe la tuya:',
           'bot'
         );
       }, 250);

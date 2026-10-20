@@ -78,6 +78,71 @@
   box-sizing: border-box;
 }
 
+/* ── ICON SYSTEM (Lucide) ── */
+.icon {
+  width: 1em;
+  height: 1em;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vertical-align: -0.125em;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.icon-sm {
+  width: 0.875em;
+  height: 0.875em;
+}
+
+.icon-lg {
+  width: 1.25em;
+  height: 1.25em;
+}
+
+.icon-xl {
+  width: 1.5em;
+  height: 1.5em;
+}
+
+.icon-fill {
+  fill: currentColor;
+}
+
+/* Soporte para favoritos activo y estados semánticos */
+.btn-fav.is-active .icon,
+.btn-fav.active .icon,
+.is-active > .icon-fav,
+.icon.is-active {
+  fill: #EF4444;
+  stroke: #EF4444;
+}
+
+.inv-btn-icon .icon {
+  width: 16px;
+  height: 16px;
+}
+
+/* Soporte para estrellas de calificación */
+.rating-stars {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  color: #F59E0B;
+}
+
+.rating-stars .icon {
+  width: 1em;
+  height: 1em;
+}
+
+.rating-stars .icon-fill {
+  fill: #F59E0B;
+  stroke: #F59E0B;
+}
+
 html {
   font-size: 16px;
   scroll-behavior: smooth;

@@ -39,10 +39,10 @@ public partial class PerfilViewModel : ObservableObject
     private bool _isFormulaModalVisible;
 
     [ObservableProperty]
-    private string _currentLanguageDisplay = "🌐 ES";
+    private string _currentLanguageDisplay = "ES";
 
     [ObservableProperty]
-    private string _currentThemeDisplay = "☀️ Claro";
+    private string _currentThemeDisplay = "Claro";
 
     // Dynamic Localized UI String Properties
     [ObservableProperty] private string _myFavoritesText = "Mis favoritos";
@@ -91,7 +91,7 @@ public partial class PerfilViewModel : ObservableObject
 
     private void RefreshLanguageDisplay()
     {
-        CurrentLanguageDisplay = _locService.CurrentLanguage == "ES" ? "🌐 ES" : "🌐 EN";
+        CurrentLanguageDisplay = _locService.CurrentLanguage == "ES" ? "ES" : "EN";
 
         MyFavoritesText = _locService.GetString("MyFavorites");
         MyOrdersText = _locService.GetString("MyOrders");
@@ -225,12 +225,12 @@ public partial class PerfilViewModel : ObservableObject
             if (Application.Current.UserAppTheme == AppTheme.Dark)
             {
                 Application.Current.UserAppTheme = AppTheme.Light;
-                CurrentThemeDisplay = "☀️ Claro";
+                CurrentThemeDisplay = "Claro";
             }
             else
             {
                 Application.Current.UserAppTheme = AppTheme.Dark;
-                CurrentThemeDisplay = "🌙 Oscuro";
+                CurrentThemeDisplay = "Oscuro";
             }
         }
     }

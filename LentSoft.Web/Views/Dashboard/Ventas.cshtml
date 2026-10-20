@@ -95,20 +95,20 @@
         </div>
 
         <nav style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <a href="?section=general" class="nav-item @(Model.ActiveSection == "general" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "general" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "general" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="sales.nav.general">
-                📊 General
+            <a href="?section=general" class="nav-item @(Model.ActiveSection == "general" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "general" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "general" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                <icon name="bar-chart-3" /> <span data-i18n="sales.nav.general">General</span>
             </a>
-            <a href="?section=ventas" class="nav-item @(Model.ActiveSection == "ventas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "ventas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "ventas" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="sales.nav.sales">
-                💳 Ventas
+            <a href="?section=ventas" class="nav-item @(Model.ActiveSection == "ventas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "ventas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "ventas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                <icon name="credit-card" /> <span data-i18n="sales.nav.sales">Ventas</span>
             </a>
-            <a href="?section=facturas" class="nav-item @(Model.ActiveSection == "facturas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "facturas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "facturas" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="sales.nav.invoices">
-                🧾 Facturas
+            <a href="?section=facturas" class="nav-item @(Model.ActiveSection == "facturas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "facturas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "facturas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                <icon name="receipt" /> <span data-i18n="sales.nav.invoices">Facturas</span>
             </a>
-            <a href="?section=inventarios" class="nav-item @(Model.ActiveSection == "inventarios" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "inventarios" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "inventarios" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="sales.nav.inventory">
-                📦 Inventarios
+            <a href="?section=inventarios" class="nav-item @(Model.ActiveSection == "inventarios" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "inventarios" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "inventarios" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                <icon name="package" /> <span data-i18n="sales.nav.inventory">Inventarios</span>
             </a>
-            <a href="?section=perfil" class="nav-item @(Model.ActiveSection == "perfil" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "perfil" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "perfil" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="sales.nav.profile">
-                ⚙️ Mi Perfil
+            <a href="?section=perfil" class="nav-item @(Model.ActiveSection == "perfil" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "perfil" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "perfil" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                <icon name="settings" /> <span data-i18n="sales.nav.profile">Mi Perfil</span>
             </a>
         </nav>
     </aside>
@@ -117,14 +117,14 @@
     <main style="flex: 1; padding: 2rem; overflow-y: auto;">
         @if (TempData["SuccessMessage"] != null)
         {
-            <div style="background-color: #D1FAE5; border-left: 4px solid #10B981; color: #065F46; padding: 1rem; border-radius: 0.375rem; margin-bottom: 1.5rem; font-weight: 600;">
-                ✓ @TempData["SuccessMessage"]
+            <div style="background-color: #D1FAE5; border-left: 4px solid #10B981; color: #065F46; padding: 1rem; border-radius: 0.375rem; margin-bottom: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                <icon name="check-circle" class="icon-sm" /> <span>@TempData["SuccessMessage"]</span>
             </div>
         }
         @if (TempData["ErrorMessage"] != null)
         {
-            <div style="background-color: #FEE2E2; border-left: 4px solid #EF4444; color: #991B1B; padding: 1rem; border-radius: 0.375rem; margin-bottom: 1.5rem; font-weight: 600;">
-                ⚠ @TempData["ErrorMessage"]
+            <div style="background-color: #FEE2E2; border-left: 4px solid #EF4444; color: #991B1B; padding: 1rem; border-radius: 0.375rem; margin-bottom: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                <icon name="alert-triangle" class="icon-sm" /> <span>@TempData["ErrorMessage"]</span>
             </div>
         }
 
@@ -226,6 +226,7 @@
     <script src="~/lib/datatables/jquery.dataTables.min.js"></script>
 
     <script>
+        const spriteUrl = '@Url.Content("~/img/icons/sprite.svg")';
         var dtVentas = null;
         var currentFiltroRapido = '';
 
@@ -323,9 +324,9 @@
                             orderable: false,
                             render: function (data, type, row) {
                                 if (row.formulaOpticaId) {
-                                    return '<button type="button" class="btn btn-sm" onclick="openFormulaModal(' + row.id + ', ' + row.clienteId + ', ' + row.formulaOpticaId + ', \'' + (row.formulaDetalle || '') + '\')" style="background:#EDE9FE; color:#6D28D9; border:1px solid #C4B5FD; padding:0.2rem 0.5rem; border-radius:0.375rem; font-size:0.75rem; font-weight:700; cursor:pointer;" title="Ver fórmula vinculada">🩺 ' + (row.formulaDetalle || ('#' + row.formulaOpticaId)) + '</button>';
+                                    return '<button type="button" class="btn btn-sm" onclick="openFormulaModal(' + row.id + ', ' + row.clienteId + ', ' + row.formulaOpticaId + ', \'' + (row.formulaDetalle || '') + '\')" style="background:#EDE9FE; color:#6D28D9; border:1px solid #C4B5FD; padding:0.2rem 0.5rem; border-radius:0.375rem; font-size:0.75rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:0.25rem;" title="Ver fórmula vinculada"><svg class="icon icon-sm" aria-hidden="true"><use href="' + spriteUrl + '#icon-stethoscope"></use></svg> ' + (row.formulaDetalle || ('#' + row.formulaOpticaId)) + '</button>';
                                 }
-                                return '<button type="button" class="btn btn-sm" onclick="openFormulaModal(' + row.id + ', ' + row.clienteId + ', null, \'\')" style="background:white; color:var(--gray-500); border:1px dashed var(--gray-300); padding:0.2rem 0.45rem; border-radius:0.375rem; font-size:0.72rem; cursor:pointer;" title="Vincular fórmula óptica">+ Vincular</button>';
+                                return '<button type="button" class="btn btn-sm" onclick="openFormulaModal(' + row.id + ', ' + row.clienteId + ', null, \'\')" style="background:white; color:var(--gray-500); border:1px dashed var(--gray-300); padding:0.2rem 0.45rem; border-radius:0.375rem; font-size:0.72rem; cursor:pointer; display:inline-flex; align-items:center; gap:0.25rem;" title="Vincular fórmula óptica"><svg class="icon icon-sm" aria-hidden="true"><use href="' + spriteUrl + '#icon-plus"></use></svg> Vincular</button>';
                             }
                         },
                         {
@@ -341,19 +342,19 @@
                                 if (row.saldoPendiente > 0 && estadoLower !== 'cancelado') {
                                     var numPed = '#ORD-' + String(row.id).padStart(4, '0');
                                     var nomCli = (row.clienteNombre || 'Cliente').replace(/'/g, "\\'");
-                                    html += '<button type="button" class="btn-action" style="background:#2563EB; color:white; border:none; padding:0.25rem 0.55rem; border-radius:0.375rem; font-size:0.75rem; font-weight:700; cursor:pointer;" onclick="openAbonoModal(' + row.id + ', \'' + numPed + '\', \'' + nomCli + '\', ' + row.saldoPendiente + ')">💵 Abono</button>';
-                                    html += '<button type="button" class="btn-action" style="background:#6D28D9; color:white; border:none; padding:0.25rem 0.55rem; border-radius:0.375rem; font-size:0.75rem; font-weight:700; cursor:pointer;" onclick="openTarjetaModal(' + row.id + ', ' + row.saldoPendiente + ')">💳 Tarjeta</button>';
+                                    html += '<button type="button" class="btn-action" style="background:#2563EB; color:white; border:none; padding:0.25rem 0.55rem; border-radius:0.375rem; font-size:0.75rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:0.25rem;" onclick="openAbonoModal(' + row.id + ', \'' + numPed + '\', \'' + nomCli + '\', ' + row.saldoPendiente + ')"><svg class="icon icon-sm" aria-hidden="true"><use href="' + spriteUrl + '#icon-banknote"></use></svg> Abono</button>';
+                                    html += '<button type="button" class="btn-action" style="background:#6D28D9; color:white; border:none; padding:0.25rem 0.55rem; border-radius:0.375rem; font-size:0.75rem; font-weight:700; cursor:pointer; display:inline-flex; align-items:center; gap:0.25rem;" onclick="openTarjetaModal(' + row.id + ', ' + row.saldoPendiente + ')"><svg class="icon icon-sm" aria-hidden="true"><use href="' + spriteUrl + '#icon-credit-card"></use></svg> Tarjeta</button>';
                                 }
 
                                 // Botón Cambiar Estado
                                 if (estadoLower !== 'cancelado' && estadoLower !== 'entregado') {
                                     var numPed = '#ORD-' + String(row.id).padStart(4, '0');
-                                    html += '<button type="button" class="btn-action" style="background:var(--purple-100); color:var(--purple-900); border:1px solid var(--purple-300); padding:0.25rem 0.55rem; border-radius:0.375rem; font-size:0.75rem; font-weight:600; cursor:pointer;" onclick="openCambiarEstadoModal(' + row.id + ', \'' + numPed + '\', \'' + row.estado + '\', ' + row.saldoPendiente + ', ' + row.totalAbonos + ')">🔄 Estado</button>';
+                                    html += '<button type="button" class="btn-action" style="background:var(--purple-100); color:var(--purple-900); border:1px solid var(--purple-300); padding:0.25rem 0.55rem; border-radius:0.375rem; font-size:0.75rem; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:0.25rem;" onclick="openCambiarEstadoModal(' + row.id + ', \'' + numPed + '\', \'' + row.estado + '\', ' + row.saldoPendiente + ', ' + row.totalAbonos + ')"><svg class="icon icon-sm" aria-hidden="true"><use href="' + spriteUrl + '#icon-refresh-cw"></use></svg> Estado</button>';
                                 }
 
                                 // Factura
                                 if (row.tieneFactura && row.facturaId) {
-                                    html += '<a href="/Invoice/DownloadPdf/' + row.facturaId + '" target="_blank" style="background:#F3E8FF; color:#581C87; border:1px solid #D8B4FE; padding:0.25rem 0.55rem; border-radius:0.375rem; font-size:0.75rem; font-weight:700; text-decoration:none;" title="Ver Factura ' + (row.facturaNumero || '') + '">📄 ' + (row.facturaNumero || 'Factura') + '</a>';
+                                    html += '<a href="/Invoice/DownloadPdf/' + row.facturaId + '" target="_blank" style="background:#F3E8FF; color:#581C87; border:1px solid #D8B4FE; padding:0.25rem 0.55rem; border-radius:0.375rem; font-size:0.75rem; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:0.25rem;" title="Ver Factura ' + (row.facturaNumero || '') + '"><svg class="icon icon-sm" aria-hidden="true"><use href="' + spriteUrl + '#icon-file-text"></use></svg> ' + (row.facturaNumero || 'Factura') + '</a>';
                                 }
 
                                 html += '</div>';
@@ -555,10 +556,10 @@
             var msg = document.getElementById('tarjetaLuhnMsg');
             if (val.length >= 13) {
                 if (validarLuhn(val)) {
-                    msg.textContent = '✓ Tarjeta válida (' + marca + ')';
+                    msg.innerHTML = '<svg class="icon icon-sm" aria-hidden="true" style="vertical-align: -0.125em;"><use href="' + spriteUrl + '#icon-check"></use></svg> Tarjeta válida (' + marca + ')';
                     msg.style.color = '#16A34A';
                 } else {
-                    msg.textContent = '✗ Número de tarjeta no válido (Algoritmo de Luhn)';
+                    msg.innerHTML = '<svg class="icon icon-sm" aria-hidden="true" style="vertical-align: -0.125em;"><use href="' + spriteUrl + '#icon-x"></use></svg> Número de tarjeta no válido (Algoritmo de Luhn)';
                     msg.style.color = '#DC2626';
                 }
             } else {

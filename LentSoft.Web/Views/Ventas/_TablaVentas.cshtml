@@ -8,7 +8,7 @@
     <div style="display: flex; gap: 0.75rem;">
         <button type="button" onclick="document.getElementById('modal-venta').style.display='flex'" 
                 style="background: linear-gradient(135deg, var(--purple-600), var(--purple-700)); color: white; border: none; padding: 0.65rem 1.25rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 6px rgba(124, 58, 237, 0.25); transition: all 0.2s ease;">
-            <span>💳</span> <span data-i18n="sales.btn.new">Registrar Nueva Venta</span>
+            <icon name="credit-card" /> <span data-i18n="sales.btn.new">Registrar Nueva Venta</span>
         </button>
     </div>
 </div>
@@ -61,8 +61,8 @@
         </div>
 
         <div style="margin-left: auto;">
-            <button type="button" onclick="limpiarFiltrosVentas()" style="background: var(--gray-200, #E5E7EB); color: var(--gray-700, #374151); border: none; padding: 0.45rem 0.85rem; border-radius: 0.375rem; font-size: 0.82rem; font-weight: 600; cursor: pointer;">
-                🔄 Restablecer
+            <button type="button" onclick="limpiarFiltrosVentas()" style="background: var(--gray-200, #E5E7EB); color: var(--gray-700, #374151); border: none; padding: 0.45rem 0.85rem; border-radius: 0.375rem; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+                <icon name="refresh-cw" class="icon-sm" /> Restablecer
             </button>
         </div>
     </div>

@@ -39,25 +39,25 @@
 
             <nav style="display: flex; flex-direction: column; gap: 0.4rem;">
                 <a href="?section=dashboard" class="nav-item @(Model.ActiveSection == "dashboard" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "dashboard" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "dashboard" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
-                    📊 Dashboard
+                    <icon name="bar-chart-3" class="icon-sm" /> <span>Dashboard</span>
                 </a>
                 <a href="?section=pacientes" class="nav-item @(Model.ActiveSection == "pacientes" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "pacientes" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "pacientes" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
-                    👥 Pacientes
+                    <icon name="users" class="icon-sm" /> <span>Pacientes</span>
                 </a>
                 <a href="?section=citas" class="nav-item @(Model.ActiveSection == "citas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "citas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "citas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
-                    📅 Citas
+                    <icon name="calendar-days" class="icon-sm" /> <span>Citas</span>
                 </a>
                 <a href="?section=historial" class="nav-item @(Model.ActiveSection == "historial" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "historial" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "historial" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
-                    📋 Historial Médico
+                    <icon name="clipboard-list" class="icon-sm" /> <span>Historial Médico</span>
                 </a>
                 <a href="?section=examenes" class="nav-item @(Model.ActiveSection == "examenes" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "examenes" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "examenes" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
-                    👁️ Examen Visual
+                    <icon name="eye" class="icon-sm" /> <span>Examen Visual</span>
                 </a>
                 <a href="?section=formulas" class="nav-item @(Model.ActiveSection == "formulas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "formulas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "formulas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
-                    👓 Fórmulas Ópticas
+                    <icon name="glasses" class="icon-sm" /> <span>Fórmulas Ópticas</span>
                 </a>
                 <a href="?section=perfil" class="nav-item @(Model.ActiveSection == "perfil" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "perfil" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "perfil" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
-                    ⚙️ Perfil
+                    <icon name="settings" class="icon-sm" /> <span>Perfil</span>
                 </a>
             </nav>
         </div>
@@ -86,8 +86,8 @@
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <span style="font-size: 0.9rem; color: var(--gray-600); font-weight: 500;">Hola, @(Model.UsuarioActual?.NombreCompleto ?? "Optómetra")</span>
                 <form asp-controller="Auth" asp-action="Logout" method="post" style="margin: 0;">
-                    <button type="submit" class="btn" style="background-color: white; border: 1px solid var(--purple-300); color: var(--purple-700); padding: 0.4rem 0.8rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.25rem; transition: all 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-50)';" onmouseout="this.style.backgroundColor='white';">
-                        🚪 Cerrar Sesión
+                    <button type="submit" class="btn" style="background-color: white; border: 1px solid var(--purple-300); color: var(--purple-700); padding: 0.4rem 0.8rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-50)';" onmouseout="this.style.backgroundColor='white';">
+                        <icon name="log-out" class="icon-sm" /> <span>Cerrar Sesión</span>
                     </button>
                 </form>
             </div>
@@ -96,14 +96,14 @@
         <!-- Alertas de Éxito / Error -->
         @if (TempData["SuccessMessage"] != null)
         {
-            <div style="background-color: #D1FAE5; color: #065F46; padding: 0.75rem 1rem; border-radius: 0.375rem; margin-bottom: 1.5rem; font-weight: 500; border: 1px solid #A7F3D0;">
-                ✅ @TempData["SuccessMessage"]
+            <div style="background-color: #D1FAE5; color: #065F46; padding: 0.75rem 1rem; border-radius: 0.375rem; margin-bottom: 1.5rem; font-weight: 500; border: 1px solid #A7F3D0; display: flex; align-items: center; gap: 0.5rem;">
+                <icon name="check-circle" class="icon-sm" /> <span>@TempData["SuccessMessage"]</span>
             </div>
         }
         @if (TempData["ErrorMessage"] != null)
         {
-            <div style="background-color: #FEE2E2; color: #991B1B; padding: 0.75rem 1rem; border-radius: 0.375rem; margin-bottom: 1.5rem; font-weight: 500; border: 1px solid #FCA5A5;">
-                ❌ @TempData["ErrorMessage"]
+            <div style="background-color: #FEE2E2; color: #991B1B; padding: 0.75rem 1rem; border-radius: 0.375rem; margin-bottom: 1.5rem; font-weight: 500; border: 1px solid #FCA5A5; display: flex; align-items: center; gap: 0.5rem;">
+                <icon name="x" class="icon-sm" /> <span>@TempData["ErrorMessage"]</span>
             </div>
         }
 
@@ -118,7 +118,7 @@
                 <div class="card" style="padding: 1.25rem; border-left: 4px solid #3b82f6; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Pacientes</span>
-                        <span style="font-size: 1.25rem; color: #3b82f6;">👥</span>
+                        <icon name="users" class="icon-lg" style="color: #3b82f6;" />
                     </div>
                     <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.TotalPacientes</h3>
                 </div>
@@ -127,7 +127,7 @@
                 <div class="card" style="padding: 1.25rem; border-left: 4px solid #8b5cf6; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Citas hoy</span>
-                        <span style="font-size: 1.25rem; color: #8b5cf6;">📅</span>
+                        <icon name="calendar-days" class="icon-lg" style="color: #8b5cf6;" />
                     </div>
                     <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.CitasHoy</h3>
                 </div>
@@ -136,7 +136,7 @@
                 <div class="card" style="padding: 1.25rem; border-left: 4px solid #f59e0b; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Pendientes</span>
-                        <span style="font-size: 1.25rem; color: #f59e0b;">⏳</span>
+                        <icon name="hourglass" class="icon-lg" style="color: #f59e0b;" />
                     </div>
                     <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.CitasPendientes</h3>
                 </div>
@@ -145,7 +145,7 @@
                 <div class="card" style="padding: 1.25rem; border-left: 4px solid #10b981; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Exámenes</span>
-                        <span style="font-size: 1.25rem; color: #10b981;">👁️</span>
+                        <icon name="eye" class="icon-lg" style="color: #10b981;" />
                     </div>
                     <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.TotalExamenes</h3>
                 </div>
@@ -154,7 +154,7 @@
                 <div class="card" style="padding: 1.25rem; border-left: 4px solid #ec4899; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Fórmulas</span>
-                        <span style="font-size: 1.25rem; color: #ec4899;">👓</span>
+                        <icon name="glasses" class="icon-lg" style="color: #ec4899;" />
                     </div>
                     <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.TotalFormulas</h3>
                 </div>
@@ -163,7 +163,7 @@
                 <div class="card" style="padding: 1.25rem; border-left: 4px solid #6366f1; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Próxima cita</span>
-                        <span style="font-size: 1.25rem; color: #6366f1;">📆</span>
+                        <icon name="calendar" class="icon-lg" style="color: #6366f1;" />
                     </div>
                     <h3 style="font-size: 1.5rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.ProximaCitaFecha</h3>
                 </div>
@@ -212,19 +212,19 @@
                 <h2 style="color: var(--purple-800); font-size: 1.1rem; margin-bottom: 1rem; font-family: var(--font-primary, sans-serif); font-weight: 700;">Accesos Rápidos</h2>
                 <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
                     <a href="?section=pacientes" class="btn" style="background-color: var(--purple-600); color: white; font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: 0.375rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500;">
-                        👤 Registrar paciente
+                        <icon name="user" class="icon-sm" /> <span>Registrar paciente</span>
                     </a>
                     <a href="?section=citas" class="btn" style="background-color: white; color: var(--purple-700); border: 1px solid var(--purple-300); font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: 0.375rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500;">
-                        📅 Registrar cita
+                        <icon name="calendar" class="icon-sm" /> <span>Registrar cita</span>
                     </a>
                     <a href="?section=historial" class="btn" style="background-color: white; color: var(--purple-700); border: 1px solid var(--purple-300); font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: 0.375rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500;">
-                        📋 Consultar historial
+                        <icon name="clipboard-list" class="icon-sm" /> <span>Consultar historial</span>
                     </a>
                     <a href="?section=examenes" class="btn" style="background-color: white; color: var(--purple-700); border: 1px solid var(--purple-300); font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: 0.375rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500;">
-                        👁️ Registrar examen visual
+                        <icon name="eye" class="icon-sm" /> <span>Registrar examen visual</span>
                     </a>
                     <a href="?section=formulas" class="btn" style="background-color: white; color: var(--purple-700); border: 1px solid var(--purple-300); font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: 0.375rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500;">
-                        👓 Crear fórmula óptica
+                        <icon name="glasses" class="icon-sm" /> <span>Crear fórmula óptica</span>
                     </a>
                 </div>
             </div>
@@ -233,7 +233,7 @@
             <div style="margin-bottom: 1.5rem;">
                 <div class="table-toolbar-purple" style="justify-content: space-between;">
                     <div style="display: flex; align-items: center; gap: 0.5rem;">
-                        <span style="font-size: 1.1rem;">📅</span>
+                        <icon name="calendar-days" class="icon-md" />
                         <h2 style="color: white; font-size: 1.05rem; margin: 0; font-weight: 700; letter-spacing: 0.01em;">Próximas consultas</h2>
                     </div>
                     <a href="?section=citas" class="btn" style="background: white; color: var(--purple-900); font-weight: 700; font-size: 0.8rem; padding: 0.35rem 0.8rem; border-radius: 0.375rem; text-decoration: none; transition: all 0.2s ease;">Ver todas →</a>
@@ -289,19 +289,19 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Pacientes</h1>
                 <button onclick="document.getElementById('modal-nuevo-paciente').style.display='flex'" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.6rem 1rem; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-                    👥 + Nuevo Paciente
+                    <icon name="users" class="icon-sm" /> <span>Nuevo Paciente</span>
                 </button>
             </div>
 
             <div style="margin-bottom: 1.5rem;">
                 <div class="table-toolbar-purple">
                     <div class="table-search-box">
-                        <span class="search-icon">🔍</span>
+                        <span class="search-icon"><icon name="search" class="icon-sm" /></span>
                         <input type="text" id="searchPacientes" placeholder="Buscar paciente en el sistema..." class="form-input" onkeyup="filterTable('searchPacientes', 'tablePacientes')" oninput="filterTable('searchPacientes', 'tablePacientes')" />
                     </div>
                     <div style="position: relative;">
-                        <button type="button" onclick="toggleFilterMenu('pacientes')" class="btn-filter-dropdown">
-                            ⚙️ Filtro ▾
+                        <button type="button" onclick="toggleFilterMenu('pacientes')" class="btn-filter-dropdown" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <icon name="settings" class="icon-sm" /> <span>Filtro ▾</span>
                         </button>
                         <div id="filter-menu-pacientes" class="filter-dropdown-menu">
                             <a href="javascript:void(0)" onclick="filterTableByValue('searchPacientes', 'tablePacientes', '')">Todos los estados</a>
@@ -365,8 +365,8 @@
                                                         data-eps="@(p.EPS ?? "")"
                                                         data-estadopaciente="@(p.EstadoPaciente ?? "Activo")"
                                                         data-observaciones="@(p.ObservacionesPaciente ?? "")"
-                                                        class="btn-action-icon btn-action-view" title="Ver Detalle">
-                                                    👁️ Ver
+                                                        class="btn-action-icon btn-action-view" title="Ver Detalle" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="eye" class="icon-sm" /> <span>Ver</span>
                                                 </button>
                                                 <button onclick="abrirModalEditarPaciente(this)" 
                                                         data-id="@p.Id" 
@@ -382,14 +382,14 @@
                                                         data-eps="@(p.EPS ?? "")"
                                                         data-estadopaciente="@(p.EstadoPaciente ?? "Activo")"
                                                         data-observaciones="@(p.ObservacionesPaciente ?? "")"
-                                                        class="btn-action-icon btn-action-edit" title="Editar">
-                                                    ✏️ Editar
+                                                        class="btn-action-icon btn-action-edit" title="Editar" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="pencil" class="icon-sm" /> <span>Editar</span>
                                                 </button>
                                                 <form id="form-delete-paciente-@p.Id" asp-controller="Optometra" asp-action="DeletePaciente" method="post" style="display:inline; margin: 0;">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@p.Id" />
-                                                    <button type="button" onclick="confirmDeactivatePaciente(@p.Id, '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(p.NombreCompleto))')" class="btn-action-icon btn-action-delete" title="Desactivar Paciente">
-                                                        🗑️ Desactivar
+                                                    <button type="button" onclick="confirmDeactivatePaciente(@p.Id, '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(p.NombreCompleto))')" class="btn-action-icon btn-action-delete" title="Desactivar Paciente" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                        <icon name="trash-2" class="icon-sm" /> <span>Desactivar</span>
                                                     </button>
                                                 </form>
                                             </div>
@@ -632,7 +632,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Agenda de Citas</h1>
                 <button onclick="document.getElementById('modal-nueva-cita').style.display='flex'" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.6rem 1rem; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-                    📅 + Nueva Cita
+                    <icon name="calendar-days" class="icon-sm" /> <span>Nueva Cita</span>
                 </button>
             </div>
 
@@ -666,12 +666,12 @@
             <div style="margin-bottom: 1.5rem;">
                 <div class="table-toolbar-purple">
                     <div class="table-search-box">
-                        <span class="search-icon">🔍</span>
+                        <span class="search-icon"><icon name="search" class="icon-sm" /></span>
                         <input type="text" id="searchCitasOpto" placeholder="Buscar por N° cita, paciente o servicio..." class="form-input" onkeyup="filterTable('searchCitasOpto', 'tableCitasOpto')" oninput="filterTable('searchCitasOpto', 'tableCitasOpto')" />
                     </div>
                     <div style="position: relative;">
-                        <button type="button" onclick="toggleFilterMenu('citasOpto')" class="btn-filter-dropdown">
-                            ⚙️ Filtro ▾
+                        <button type="button" onclick="toggleFilterMenu('citasOpto')" class="btn-filter-dropdown" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <icon name="settings" class="icon-sm" /> <span>Filtro ▾</span>
                         </button>
                         <div id="filter-menu-citasOpto" class="filter-dropdown-menu">
                             <a href="javascript:void(0)" onclick="filterTableByValue('searchCitasOpto', 'tableCitasOpto', '')">Todos los estados</a>
@@ -728,24 +728,24 @@
                                                         data-fechahorastr="@c.FechaHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm")"
                                                         data-notas="@(c.Notas ?? "")"
                                                         data-estado="@c.Estado"
-                                                        class="btn-action-icon btn-action-view" title="Ver Detalle">
-                                                    👁️ Ver
+                                                        class="btn-action-icon btn-action-view" title="Ver Detalle" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="eye" class="icon-sm" /> <span>Ver</span>
                                                 </button>
                                                 <button onclick="abrirModalEditarCita(this)" 
-                                                        data-id="@c.Id"
+                                                        data-id="@c.Id" 
                                                         data-userid="@c.UserId"
                                                         data-servicio="@c.Servicio"
                                                         data-fechahora="@c.FechaHora.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")"
                                                         data-notas="@(c.Notas ?? "")"
                                                         data-estado="@c.Estado"
-                                                        class="btn-action-icon btn-action-edit" title="Editar">
-                                                    ✏️ Editar
+                                                        class="btn-action-icon btn-action-edit" title="Editar" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="pencil" class="icon-sm" /> <span>Editar</span>
                                                 </button>
                                                 <form id="form-delete-appointment-@c.Id" asp-controller="Optometra" asp-action="DeleteAppointment" method="post" style="display:inline; margin: 0;">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@c.Id" />
-                                                    <button type="button" onclick="confirmDeleteAppointment(@c.Id)" class="btn-action-icon btn-action-delete" title="Eliminar cita">
-                                                        🗑️ Eliminar
+                                                    <button type="button" onclick="confirmDeleteAppointment(@c.Id)" class="btn-action-icon btn-action-delete" title="Eliminar cita" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                        <icon name="trash-2" class="icon-sm" /> <span>Eliminar</span>
                                                     </button>
                                                 </form>
                                             </div>
@@ -765,7 +765,7 @@
                     <input type="date" id="rep-desde" name="desde" style="padding: 0.35rem 0.6rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; font-size: 0.85rem;" />
                     <label style="font-size: 0.85rem; color: var(--purple-700); font-weight: 600;">Hasta</label>
                     <input type="date" id="rep-hasta" name="hasta" style="padding: 0.35rem 0.6rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; font-size: 0.85rem;" />
-                    <button type="submit" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.4rem 1rem; border: none; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">📊 Ver resumen del período</button>
+                    <button type="submit" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.4rem 1rem; border: none; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;"><icon name="bar-chart-3" class="icon-sm" /> <span>Ver resumen del período</span></button>
                     <button type="button" onclick="limpiarResumenPeriodo()" id="btn-limpiar-rep" style="display: none; background-color: var(--purple-100); color: var(--purple-800); padding: 0.4rem 0.75rem; border: none; border-radius: 0.375rem; font-size: 0.85rem; cursor: pointer;">Limpiar</button>
                 </form>
             </div>
@@ -918,7 +918,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Historial Clínico</h1>
                 <button onclick="document.getElementById('modal-nuevo-historial').style.display='flex'" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.6rem 1rem; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-                    📋 + Nuevo Registro
+                    <icon name="clipboard-list" class="icon-sm" /> <span>Nuevo Registro</span>
                 </button>
             </div>
 
@@ -936,7 +936,7 @@
                     
                     <div class="card" style="padding: 1.5rem; background: var(--purple-50); border: 2px solid var(--purple-300); border-radius: 0.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-md);">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1.5px solid var(--purple-200); padding-bottom: 0.5rem;">
-                            <h2 style="color: var(--purple-900); font-size: 1.2rem; margin: 0; font-family: var(--font-primary, sans-serif); font-weight: 700;">📋 Ficha de Historia Clínica #HC-@hcDetalle.Id</h2>
+                            <h2 style="color: var(--purple-900); font-size: 1.2rem; margin: 0; font-family: var(--font-primary, sans-serif); font-weight: 700; display: flex; align-items: center; gap: 0.4rem;"><icon name="clipboard-list" class="icon-sm" /> <span>Ficha de Historia Clínica #HC-@hcDetalle.Id</span></h2>
                             <a href="?section=historial" style="background-color: var(--purple-200); color: var(--purple-800); text-decoration: none; padding: 0.3rem 0.75rem; border-radius: 0.25rem; font-size: 0.85rem; font-weight: 600;">Cerrar Detalle</a>
                         </div>
                         
@@ -988,7 +988,7 @@
                         @if (!string.IsNullOrEmpty(hcDetalle.EsferaOD) || !string.IsNullOrEmpty(hcDetalle.EsferaOI))
                         {
                             <div style="margin-top: 1rem; border-top: 1px solid var(--purple-200); padding-top: 0.75rem;">
-                                <h3 style="color: var(--purple-800); font-size: 0.95rem; margin-top: 0; margin-bottom: 0.5rem;">👓 Refracción Registrada en Historial</h3>
+                                <h3 style="color: var(--purple-800); font-size: 0.95rem; margin-top: 0; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;"><icon name="glasses" class="icon-sm" /> <span>Refracción Registrada en Historial</span></h3>
                                 <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.85rem; background: white; border: 1px solid var(--purple-200); border-radius: 0.25rem;">
                                     <thead>
                                         <tr style="background-color: var(--purple-600); color: white;">
@@ -1018,7 +1018,7 @@
 
                         <!-- Enlace a Fórmula Óptica -->
                         <div style="border-top: 1.5px dashed var(--purple-300); padding-top: 1rem; margin-top: 1rem;">
-                            <h3 style="color: var(--purple-800); font-size: 1rem; margin-top: 0; margin-bottom: 0.5rem;">👓 Fórmula Óptica Reciente del Paciente</h3>
+                            <h3 style="color: var(--purple-800); font-size: 1rem; margin-top: 0; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;"><icon name="glasses" class="icon-sm" /> <span>Fórmula Óptica Reciente del Paciente</span></h3>
                             @if (formulaCercana != null)
                             {
                                 <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-200);">
@@ -1062,7 +1062,7 @@
                     <div class="card" style="padding: 1.5rem; background: var(--purple-50); border: 2px solid var(--purple-300); border-radius: 0.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-md);">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1.5px solid var(--purple-200); padding-bottom: 0.5rem;">
                             <div>
-                                <h2 style="color: var(--purple-900); font-size: 1.2rem; margin: 0; font-family: var(--font-primary, sans-serif); font-weight: 700;">🕐 Línea de Tiempo Completa</h2>
+                                <h2 style="color: var(--purple-900); font-size: 1.2rem; margin: 0; font-family: var(--font-primary, sans-serif); font-weight: 700; display: flex; align-items: center; gap: 0.4rem;"><icon name="clock" class="icon-sm" /> <span>Línea de Tiempo Completa</span></h2>
                                 <p style="color: var(--gray-600); font-size: 0.85rem; margin: 0.25rem 0 0 0;">Paciente: <strong>@pacienteTimeline.NombreCompleto</strong> (@pacienteTimeline.Email)</p>
                             </div>
                             <a href="?section=historial" style="background-color: var(--purple-200); color: var(--purple-800); text-decoration: none; padding: 0.3rem 0.75rem; border-radius: 0.25rem; font-size: 0.85rem; font-weight: 600;">Cerrar Línea de Tiempo</a>
@@ -1099,12 +1099,12 @@
             <div style="margin-bottom: 1.5rem;">
                 <div class="table-toolbar-purple">
                     <div class="table-search-box">
-                        <span class="search-icon">🔍</span>
+                        <span class="search-icon"><icon name="search" class="icon-sm" /></span>
                         <input type="text" id="searchHistorias" placeholder="Buscar en historial clínico por paciente o diagnóstico..." class="form-input" onkeyup="filterTable('searchHistorias', 'tableHistorias')" oninput="filterTable('searchHistorias', 'tableHistorias')" />
                     </div>
                     <div style="position: relative;">
-                        <button type="button" onclick="toggleFilterMenu('historias')" class="btn-filter-dropdown">
-                            ⚙️ Filtro ▾
+                        <button type="button" onclick="toggleFilterMenu('historias')" class="btn-filter-dropdown" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <icon name="settings" class="icon-sm" /> <span>Filtro ▾</span>
                         </button>
                         <div id="filter-menu-historias" class="filter-dropdown-menu">
                             <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorias', 'tableHistorias', '')">Todos los registros</a>
@@ -1154,11 +1154,11 @@
                                         <td style="color: var(--gray-700);">@(h.Optometra?.NombreCompleto ?? "Optómetra")</td>
                                         <td style="text-align: right;">
                                             <div style="display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
-                                                <a href="?section=historial&detalleId=@h.Id" class="btn-action-icon btn-action-view" title="Ver Ficha Clínica">
-                                                    👁️ Ver
+                                                <a href="?section=historial&detalleId=@h.Id" class="btn-action-icon btn-action-view" title="Ver Ficha Clínica" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="eye" class="icon-sm" /> <span>Ver</span>
                                                 </a>
-                                                <a href="@Url.Action("HistorialCompleto", "Optometra", new { pacienteId = h.UserId })" class="btn-action-icon" style="background-color: #F3E8FF; color: #6B21A8; border-color: #E9D5FF;" title="Línea de tiempo completa del paciente">
-                                                    🕐 Línea de tiempo
+                                                <a href="@Url.Action("HistorialCompleto", "Optometra", new { pacienteId = h.UserId })" class="btn-action-icon" style="background-color: #F3E8FF; color: #6B21A8; border-color: #E9D5FF; display: inline-flex; align-items: center; gap: 0.3rem;" title="Línea de tiempo completa del paciente">
+                                                    <icon name="clock" class="icon-sm" /> <span>Línea de tiempo</span>
                                                 </a>
                                                 <button onclick="abrirModalEditarHistorial(this)" 
                                                         data-id="@h.Id" 
@@ -1176,14 +1176,14 @@
                                                         data-esferaoi="@(h.EsferaOI ?? "")"
                                                         data-cilindrooi="@(h.CilindroOI ?? "")"
                                                         data-ejeoi="@(h.EjeOI ?? "")"
-                                                        class="btn-action-icon btn-action-edit" title="Editar">
-                                                    ✏️ Editar
+                                                        class="btn-action-icon btn-action-edit" title="Editar" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="pencil" class="icon-sm" /> <span>Editar</span>
                                                 </button>
                                                 <form id="form-delete-historial-@h.Id" asp-controller="Optometra" asp-action="DeleteHistorial" method="post" style="display:inline; margin: 0;">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@h.Id" />
-                                                    <button type="button" onclick="confirmDeleteHistorial(@h.Id)" class="btn-action-icon btn-action-delete" title="Eliminar registro">
-                                                        🗑️ Eliminar
+                                                    <button type="button" onclick="confirmDeleteHistorial(@h.Id)" class="btn-action-icon btn-action-delete" title="Eliminar registro" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                        <icon name="trash-2" class="icon-sm" /> <span>Eliminar</span>
                                                     </button>
                                                 </form>
                                             </div>
@@ -1376,19 +1376,19 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Exámenes Visuales</h1>
                 <button onclick="document.getElementById('modal-nuevo-examen').style.display='flex'" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.6rem 1rem; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-                    👁️ + Registrar Examen
+                    <icon name="eye" class="icon-sm" /> <span>Registrar Examen</span>
                 </button>
             </div>
 
             <div style="margin-bottom: 1.5rem;">
                 <div class="table-toolbar-purple">
                     <div class="table-search-box">
-                        <span class="search-icon">🔍</span>
+                        <span class="search-icon"><icon name="search" class="icon-sm" /></span>
                         <input type="text" id="searchExamenes" placeholder="Buscar examen visual por paciente o diagnóstico..." class="form-input" onkeyup="filterTable('searchExamenes', 'tableExamenes')" oninput="filterTable('searchExamenes', 'tableExamenes')" />
                     </div>
                     <div style="position: relative;">
-                        <button type="button" onclick="toggleFilterMenu('examenes')" class="btn-filter-dropdown">
-                            ⚙️ Filtro ▾
+                        <button type="button" onclick="toggleFilterMenu('examenes')" class="btn-filter-dropdown" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <icon name="settings" class="icon-sm" /> <span>Filtro ▾</span>
                         </button>
                         <div id="filter-menu-examenes" class="filter-dropdown-menu">
                             <a href="javascript:void(0)" onclick="filterTableByValue('searchExamenes', 'tableExamenes', '')">Todos los exámenes</a>
@@ -1453,8 +1453,8 @@
                                                         data-diagnostico="@ex.Diagnostico"
                                                         data-tratamiento="@(ex.Tratamiento ?? "Ninguno.")"
                                                         data-observaciones="@(ex.Observaciones ?? "Ninguna.")"
-                                                        class="btn-action-icon btn-action-view" title="Ver Detalle">
-                                                    👁️ Ver
+                                                        class="btn-action-icon btn-action-view" title="Ver Detalle" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="eye" class="icon-sm" /> <span>Ver</span>
                                                 </button>
                                                 <button onclick="abrirModalEditarExamen(this)"
                                                         data-id="@ex.Id"
@@ -1479,14 +1479,14 @@
                                                         data-diagnostico="@ex.Diagnostico"
                                                         data-tratamiento="@(ex.Tratamiento ?? "")"
                                                         data-observaciones="@(ex.Observaciones ?? "")"
-                                                        class="btn-action-icon btn-action-edit" title="Editar">
-                                                    ✏️ Editar
+                                                        class="btn-action-icon btn-action-edit" title="Editar" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="pencil" class="icon-sm" /> <span>Editar</span>
                                                 </button>
                                                 <form id="form-delete-examen-@ex.Id" asp-controller="Optometra" asp-action="DeleteExamen" method="post" style="display:inline; margin: 0;">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@ex.Id" />
-                                                    <button type="button" onclick="confirmDeleteExamen(@ex.Id)" class="btn-action-icon btn-action-delete" title="Eliminar examen">
-                                                        🗑️ Eliminar
+                                                    <button type="button" onclick="confirmDeleteExamen(@ex.Id)" class="btn-action-icon btn-action-delete" title="Eliminar examen" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                        <icon name="trash-2" class="icon-sm" /> <span>Eliminar</span>
                                                     </button>
                                                 </form>
                                             </div>
@@ -1526,7 +1526,7 @@
 
                         <!-- Agudeza Visual & Tonometría -->
                         <div style="border: 1px solid var(--purple-200); border-radius: 0.375rem; padding: 0.75rem; margin-bottom: 1rem; background-color: #FAF5FF;">
-                            <h4 style="margin-top:0; margin-bottom:0.5rem; font-size:0.85rem; color: var(--purple-900);">👁️ 1. Agudeza Visual & Tonometría</h4>
+                            <h4 style="margin-top:0; margin-bottom:0.5rem; font-size:0.85rem; color: var(--purple-900); display: flex; align-items: center; gap: 0.4rem;"><icon name="eye" class="icon-sm" /> <span>1. Agudeza Visual & Tonometría</span></h4>
                             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.825rem;">
                                 <div style="background: white; padding: 0.5rem; border-radius: 0.25rem; border: 1px solid var(--purple-200);">
                                     <p style="margin:0 0 0.25rem 0; font-weight:600; color:var(--purple-800);">Ojo Derecho (OD):</p>
@@ -1542,7 +1542,7 @@
                         </div>
 
                         <!-- Grilla de Refracción Visual (Mismo estilo que Fórmula) -->
-                        <h4 style="margin-top:0; margin-bottom:0.5rem; font-size:0.85rem; color: var(--purple-900);">👓 2. Refracción Clínica</h4>
+                        <h4 style="margin-top:0; margin-bottom:0.5rem; font-size:0.85rem; color: var(--purple-900); display: flex; align-items: center; gap: 0.4rem;"><icon name="glasses" class="icon-sm" /> <span>2. Refracción Clínica</span></h4>
                         <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.85rem; margin-bottom: 1rem;">
                             <thead>
                                 <tr style="background-color: var(--purple-600); color: white; font-weight:600;">
@@ -1605,7 +1605,7 @@
                     <!-- Botones de Acción (no-print) -->
                     <div style="display: flex; gap: 1rem; margin-top: 1.5rem;" class="no-print">
                         <button type="button" onclick="document.getElementById('modal-ver-examen').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer; font-weight: 600;">Cerrar</button>
-                        <button type="button" onclick="window.print()" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">🖨️ Imprimir</button>
+                        <button type="button" onclick="window.print()" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;"><icon name="printer" class="icon-sm" /> <span>Imprimir</span></button>
                     </div>
                 </div>
             </div>
@@ -1626,7 +1626,7 @@
                                 <label style="font-size: 0.8rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
                                 <div style="position: relative;" id="wrapper-nuevo-examen-paciente">
                                     <div style="position: relative; display: flex; align-items: center;">
-                                        <span style="position: absolute; left: 0.6rem; color: var(--purple-500); font-size: 0.85rem; pointer-events: none;">🔍</span>
+                                        <span style="position: absolute; left: 0.6rem; color: var(--purple-500); font-size: 0.85rem; pointer-events: none; display: flex; align-items: center;"><icon name="search" class="icon-sm" /></span>
                                         <input type="text"
                                                id="search-nuevo-examen-paciente"
                                                placeholder="Buscar paciente por nombre..."
@@ -1638,7 +1638,7 @@
                                                 id="clear-nuevo-examen-paciente"
                                                 onclick="limpiarPacienteSeleccionado('nuevo-examen')"
                                                 style="display: none; position: absolute; right: 0.5rem; background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 0.9rem; padding: 0 0.25rem;"
-                                                title="Limpiar selección">✕</button>
+                                                title="Limpiar selección" aria-label="Limpiar selección"><icon name="x" class="icon-sm" /></button>
                                     </div>
                                     <input type="hidden" name="UserId" id="hidden-nuevo-examen-userid" />
                                     
@@ -1666,8 +1666,8 @@
                                             No se encontró ningún paciente con ese nombre.
                                         </div>
                                     </div>
-                                    <div id="badge-nuevo-examen-paciente" style="display: none; margin-top: 0.25rem; font-size: 0.75rem; color: #047857; font-weight: 600;">
-                                        ✓ Seleccionado: <span id="badge-name-nuevo-examen"></span>
+                                    <div id="badge-nuevo-examen-paciente" style="display: none; margin-top: 0.25rem; font-size: 0.75rem; color: #047857; font-weight: 600; align-items: center; gap: 0.25rem;">
+                                        <icon name="check" class="icon-sm" style="color: #047857;" /> <span>Seleccionado:</span> <span id="badge-name-nuevo-examen"></span>
                                     </div>
                                 </div>
                             </div>
@@ -1800,7 +1800,7 @@
                                 <label style="font-size: 0.8rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
                                 <div style="position: relative;" id="wrapper-edit-examen-paciente">
                                     <div style="position: relative; display: flex; align-items: center;">
-                                        <span style="position: absolute; left: 0.6rem; color: var(--purple-500); font-size: 0.85rem; pointer-events: none;">🔍</span>
+                                        <span style="position: absolute; left: 0.6rem; color: var(--purple-500); font-size: 0.85rem; pointer-events: none; display: flex; align-items: center;"><icon name="search" class="icon-sm" /></span>
                                         <input type="text"
                                                id="search-edit-examen-paciente"
                                                placeholder="Buscar paciente por nombre..."
@@ -1812,7 +1812,7 @@
                                                 id="clear-edit-examen-paciente"
                                                 onclick="limpiarPacienteSeleccionado('edit-examen')"
                                                 style="display: none; position: absolute; right: 0.5rem; background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 0.9rem; padding: 0 0.25rem;"
-                                                title="Limpiar selección">✕</button>
+                                                title="Limpiar selección" aria-label="Limpiar selección"><icon name="x" class="icon-sm" /></button>
                                     </div>
                                     <input type="hidden" name="UserId" id="edit-examen-userid" />
                                     
@@ -1840,8 +1840,8 @@
                                             No se encontró ningún paciente con ese nombre.
                                         </div>
                                     </div>
-                                    <div id="badge-edit-examen-paciente" style="display: none; margin-top: 0.25rem; font-size: 0.75rem; color: #047857; font-weight: 600;">
-                                        ✓ Seleccionado: <span id="badge-name-edit-examen"></span>
+                                    <div id="badge-edit-examen-paciente" style="display: none; margin-top: 0.25rem; font-size: 0.75rem; color: #047857; font-weight: 600; align-items: center; gap: 0.25rem;">
+                                        <icon name="check" class="icon-sm" style="color: #047857;" /> <span>Seleccionado:</span> <span id="badge-name-edit-examen"></span>
                                     </div>
                                 </div>
                             </div>
@@ -1952,19 +1952,19 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Fórmulas Ópticas</h1>
                 <button onclick="abrirModalNuevaFormula()" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.6rem 1rem; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-                    👓 + Nueva Fórmula
+                    <icon name="glasses" class="icon-sm" /> <span>Nueva Fórmula</span>
                 </button>
             </div>
 
             <div style="margin-bottom: 1.5rem;">
                 <div class="table-toolbar-purple">
                     <div class="table-search-box">
-                        <span class="search-icon">🔍</span>
+                        <span class="search-icon"><icon name="search" class="icon-sm" /></span>
                         <input type="text" id="searchFormulas" placeholder="Buscar fórmula por paciente o tipo de lente..." class="form-input" onkeyup="filterTable('searchFormulas', 'tableFormulas')" oninput="filterTable('searchFormulas', 'tableFormulas')" />
                     </div>
                     <div style="position: relative;">
-                        <button type="button" onclick="toggleFilterMenu('formulas')" class="btn-filter-dropdown">
-                            ⚙️ Filtro ▾
+                        <button type="button" onclick="toggleFilterMenu('formulas')" class="btn-filter-dropdown" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <icon name="settings" class="icon-sm" /> <span>Filtro ▾</span>
                         </button>
                         <div id="filter-menu-formulas" class="filter-dropdown-menu">
                             <a href="javascript:void(0)" onclick="filterTableByValue('searchFormulas', 'tableFormulas', '')">Todos los estados</a>
@@ -2033,8 +2033,8 @@
                                                         data-estado="@f.Estado"
                                                         data-optometra="@(f.Optometra?.NombreCompleto ?? "N/A")"
                                                         data-registroopto="@(f.Optometra?.RegistroMedico ?? "N/A")"
-                                                        class="btn-action-icon btn-action-view" title="Ver e Imprimir Receta">
-                                                    👁️ Receta
+                                                        class="btn-action-icon btn-action-view" title="Ver e Imprimir Receta" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="eye" class="icon-sm" /> <span>Receta</span>
                                                 </button>
                                                 <button onclick="abrirModalEditarFormula(this)"
                                                         data-id="@f.Id"
@@ -2051,14 +2051,14 @@
                                                         data-observaciones="@f.Observaciones"
                                                         data-tipolente="@f.TipoLente"
                                                         data-distanciapupilar="@f.DistanciaPupilar"
-                                                        class="btn-action-icon btn-action-edit" title="Editar">
-                                                    ✏️ Editar
+                                                        class="btn-action-icon btn-action-edit" title="Editar" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="pencil" class="icon-sm" /> <span>Editar</span>
                                                 </button>
                                                 <form id="form-delete-formula-@f.Id" asp-controller="Optometra" asp-action="DeleteFormula" method="post" style="display:inline; margin: 0;">
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="id" value="@f.Id" />
-                                                    <button type="button" onclick="confirmDeleteFormula(@f.Id)" class="btn-action-icon btn-action-delete" title="Eliminar fórmula">
-                                                        🗑️ Eliminar
+                                                    <button type="button" onclick="confirmDeleteFormula(@f.Id)" class="btn-action-icon btn-action-delete" title="Eliminar fórmula" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                        <icon name="trash-2" class="icon-sm" /> <span>Eliminar</span>
                                                     </button>
                                                 </form>
                                             </div>
@@ -2150,8 +2150,8 @@
                     <!-- Botones de Acción (Ocultar al Imprimir en CSS) -->
                     <div style="display: flex; gap: 1rem; margin-top: 1.5rem;" class="no-print">
                         <button type="button" onclick="document.getElementById('modal-ver-formula').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer; font-weight:600;">Cerrar</button>
-                        <a id="btn-descargar-receta-pdf" href="#" style="flex: 1; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-100); color: var(--purple-800); cursor: pointer; font-weight:600;">📄 Descargar PDF</a>
-                        <button type="button" onclick="imprimirReceta()" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight:600;">🖨️ Imprimir</button>
+                        <a id="btn-descargar-receta-pdf" href="#" style="flex: 1; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-100); color: var(--purple-800); cursor: pointer; font-weight:600;"><icon name="file-text" class="icon-sm" /> <span>Descargar PDF</span></a>
+                        <button type="button" onclick="imprimirReceta()" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight:600; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;"><icon name="printer" class="icon-sm" /> <span>Imprimir</span></button>
                     </div>
                 </div>
             </div>
@@ -2170,7 +2170,7 @@
                                 <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente *</label>
                                 <div style="position: relative;" id="wrapper-nuevo-formula-paciente">
                                     <div style="position: relative; display: flex; align-items: center;">
-                                        <span style="position: absolute; left: 0.6rem; color: var(--purple-500); font-size: 0.85rem; pointer-events: none;">🔍</span>
+                                        <span style="position: absolute; left: 0.6rem; color: var(--purple-500); font-size: 0.85rem; pointer-events: none; display: flex; align-items: center;"><icon name="search" class="icon-sm" /></span>
                                         <input type="text"
                                                id="search-nuevo-formula-paciente"
                                                placeholder="Buscar paciente por nombre..."
@@ -2182,7 +2182,7 @@
                                                 id="clear-nuevo-formula-paciente"
                                                 onclick="limpiarPacienteSeleccionado('nuevo-formula')"
                                                 style="display: none; position: absolute; right: 0.5rem; background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 0.9rem; padding: 0 0.25rem;"
-                                                title="Limpiar selección">✕</button>
+                                                title="Limpiar selección" aria-label="Limpiar selección"><icon name="x" class="icon-sm" /></button>
                                     </div>
                                     <input type="hidden" name="UserId" id="hidden-nuevo-formula-userid" />
 
@@ -2210,8 +2210,8 @@
                                             No se encontró ningún paciente con ese nombre.
                                         </div>
                                     </div>
-                                    <div id="badge-nuevo-formula-paciente" style="display: none; margin-top: 0.25rem; font-size: 0.75rem; color: #047857; font-weight: 600;">
-                                        ✓ Seleccionado: <span id="badge-name-nuevo-formula"></span>
+                                    <div id="badge-nuevo-formula-paciente" style="display: none; margin-top: 0.25rem; font-size: 0.75rem; color: #047857; font-weight: 600; align-items: center; gap: 0.25rem;">
+                                        <icon name="check" class="icon-sm" style="color: #047857;" /> <span>Seleccionado:</span> <span id="badge-name-nuevo-formula"></span>
                                     </div>
                                 </div>
                             </div>
@@ -2223,8 +2223,8 @@
                         </div>
 
                         <!-- Notificación de precarga de refracción -->
-                        <div id="aviso-auto-refraccion" style="display:none; font-size: 0.75rem; color: var(--purple-700); background: var(--purple-50); border: 1px solid var(--purple-200); padding: 0.4rem 0.6rem; border-radius: 0.25rem;">
-                            ✨ Datos de refracción precargados desde el último examen visual. Son totalmente editables.
+                        <div id="aviso-auto-refraccion" style="display:none; font-size: 0.75rem; color: var(--purple-700); background: var(--purple-50); border: 1px solid var(--purple-200); padding: 0.4rem 0.6rem; border-radius: 0.25rem; display: flex; align-items: center; gap: 0.4rem;">
+                            <icon name="sparkles" class="icon-sm" /> <span id="aviso-auto-refraccion-text">Datos de refracción precargados desde el último examen visual. Son totalmente editables.</span>
                         </div>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
@@ -2306,7 +2306,7 @@
                                 <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente *</label>
                                 <div style="position: relative;" id="wrapper-edit-formula-paciente">
                                     <div style="position: relative; display: flex; align-items: center;">
-                                        <span style="position: absolute; left: 0.6rem; color: var(--purple-500); font-size: 0.85rem; pointer-events: none;">🔍</span>
+                                        <span style="position: absolute; left: 0.6rem; color: var(--purple-500); font-size: 0.85rem; pointer-events: none; display: flex; align-items: center;"><icon name="search" class="icon-sm" /></span>
                                         <input type="text"
                                                id="search-edit-formula-paciente"
                                                placeholder="Buscar paciente por nombre..."
@@ -2318,7 +2318,7 @@
                                                 id="clear-edit-formula-paciente"
                                                 onclick="limpiarPacienteSeleccionado('edit-formula')"
                                                 style="display: none; position: absolute; right: 0.5rem; background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 0.9rem; padding: 0 0.25rem;"
-                                                title="Limpiar selección">✕</button>
+                                                title="Limpiar selección" aria-label="Limpiar selección"><icon name="x" class="icon-sm" /></button>
                                     </div>
                                     <input type="hidden" name="UserId" id="edit-formula-userid" />
 
@@ -2346,8 +2346,8 @@
                                             No se encontró ningún paciente con ese nombre.
                                         </div>
                                     </div>
-                                    <div id="badge-edit-formula-paciente" style="display: none; margin-top: 0.25rem; font-size: 0.75rem; color: #047857; font-weight: 600;">
-                                        ✓ Seleccionado: <span id="badge-name-edit-formula"></span>
+                                    <div id="badge-edit-formula-paciente" style="display: none; margin-top: 0.25rem; font-size: 0.75rem; color: #047857; font-weight: 600; align-items: center; gap: 0.25rem;">
+                                        <icon name="check" class="icon-sm" style="color: #047857;" /> <span>Seleccionado:</span> <span id="badge-name-edit-formula"></span>
                                     </div>
                                 </div>
                             </div>
@@ -2428,7 +2428,7 @@
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
                 <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Perfil Profesional</h1>
                 <button onclick="document.getElementById('modal-editar-perfil').style.display='flex'" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.6rem 1rem; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
-                    ✏️ Editar Perfil
+                    <icon name="pencil" class="icon-sm" /> <span>Editar Perfil</span>
                 </button>
             </div>
 
@@ -3049,8 +3049,13 @@
                     if (ejeOI && ex.ejeOI) ejeOI.value = ex.ejeOI;
 
                     if (aviso) {
-                        aviso.textContent = '✨ Datos de refracción precargados desde el último examen visual (' + ex.fecha + '). Son totalmente editables.';
-                        aviso.style.display = 'block';
+                        const avisoText = document.getElementById('aviso-auto-refraccion-text');
+                        if (avisoText) {
+                            avisoText.textContent = 'Datos de refracción precargados desde el último examen visual (' + ex.fecha + '). Son totalmente editables.';
+                        } else {
+                            aviso.textContent = 'Datos de refracción precargados desde el último examen visual (' + ex.fecha + '). Son totalmente editables.';
+                        }
+                        aviso.style.display = 'flex';
                     }
                 } else {
                     if (aviso) aviso.style.display = 'none';

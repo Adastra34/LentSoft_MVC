@@ -26,7 +26,7 @@
         'nav.dashboard.cuenta': { es: 'Mi Cuenta', en: 'My Account' },
         'nav.greeting': { es: 'Hola,', en: 'Hello,' },
         'nav.logout': { es: 'Cerrar Sesión', en: 'Log Out' },
-        'nav.login': { es: '👤 Ingresar', en: '👤 Sign In' },
+        'nav.login': { es: 'Ingresar', en: 'Sign In' },
 
         // ════════════════════════════════════════════
         //  FOOTER
@@ -42,8 +42,8 @@
         'home.hero.cta': { es: 'Ver ofertas →', en: 'View offers →' },
         'home.hero.services': { es: 'Servicios Ópticos', en: 'Optical Services' },
         'home.hero.exam': { es: 'PROGRAMA TU EXAMEN VISUAL PARA TI Y TU FAMILIA', en: 'SCHEDULE YOUR EYE EXAM FOR YOU AND YOUR FAMILY' },
-        'home.hero.appointment': { es: '📅 Agendar cita ahora', en: '📅 Book appointment now' },
-        'home.hero.frames': { es: '👓 Muestra de montura', en: '👓 Frame showcase' },
+        'home.hero.appointment': { es: 'Agendar cita ahora', en: 'Book appointment now' },
+        'home.hero.frames': { es: 'Muestra de montura', en: 'Frame showcase' },
         'home.hero.personalized': { es: 'Atención personalizada', en: 'Personalized attention' },
         'home.hero.modern': { es: 'Equipos modernos', en: 'Modern equipment' },
         'home.hero.certified': { es: 'Profesionales certificados', en: 'Certified professionals' },
@@ -55,7 +55,7 @@
         'home.banner.noaccount': { es: 'Si no tienes cuenta, ', en: "If you don't have an account, " },
         'home.banner.register': { es: 'regístrate aquí', en: 'register here' },
         'home.banner.benefits': { es: 'Accede a descuentos exclusivos, historial de citas y mucho más', en: 'Access exclusive discounts, appointment history and much more' },
-        'home.banner.signup': { es: '➕ Registrarse →', en: '➕ Sign Up →' },
+        'home.banner.signup': { es: 'Registrarse', en: 'Sign Up' },
 
         // ════════════════════════════════════════════
         //  HOME — TECNOLOGÍA
@@ -90,14 +90,14 @@
         // ════════════════════════════════════════════
         //  HOME — PRODUCTOS CON DESCUENTO
         // ════════════════════════════════════════════
-        'home.disc.badge': { es: '🔥 Ofertas', en: '🔥 Deals' },
+        'home.disc.badge': { es: 'Ofertas', en: 'Deals' },
         'home.disc.title': { es: 'Productos con Descuento', en: 'Discounted Products' },
         'home.disc.buy': { es: 'Comprar Ahora', en: 'Buy Now' },
 
         // ════════════════════════════════════════════
         //  HOME — LENTES DE CONTACTO
         // ════════════════════════════════════════════
-        'home.contact.badge': { es: '👁️ Especialidad', en: '👁️ Specialty' },
+        'home.contact.badge': { es: 'Especialidad', en: 'Specialty' },
         'home.contact.title': { es: 'Lentes de Contacto', en: 'Contact Lenses' },
         'home.contact.soon': { es: 'Próximamente — Lentes de contacto de las mejores marcas', en: 'Coming soon — Contact lenses from the best brands' },
         'home.contact.catalog': { es: 'Estamos preparando un catálogo completo para ti.', en: 'We are preparing a complete catalog for you.' },
@@ -159,9 +159,9 @@
         'auth.reg.section.password': { es: 'CONTRASEÑA', en: 'PASSWORD' },
         'auth.reg.password': { es: 'Contraseña', en: 'Password' },
         'auth.reg.confirm': { es: 'Confirmar contraseña', en: 'Confirm password' },
-        'auth.reg.hint': { es: '🔒 Mín. 8 caract. (Incluye mayúscula, minúscula, número y símbolo especial).', en: '🔒 Min. 8 chars. (Includes uppercase, lowercase, number and special symbol).' },
+        'auth.reg.hint': { es: 'Mín. 8 caract. (Incluye mayúscula, minúscula, número y símbolo especial).', en: 'Min. 8 chars. (Includes uppercase, lowercase, number and special symbol).' },
         'auth.reg.required': { es: '* Campos obligatorios', en: '* Required fields' },
-        'auth.reg.submit': { es: '👤 Crear cuenta', en: '👤 Create account' },
+        'auth.reg.submit': { es: 'Crear cuenta', en: 'Create account' },
         'auth.reg.hasaccount': { es: '¿Ya tienes cuenta?', en: 'Already have an account?' },
         'auth.reg.signin': { es: 'Iniciar sesión', en: 'Sign in' },
         'auth.reg.opt.cc': { es: 'Cédula de ciudadanía (CC)', en: 'Citizenship ID (CC)' },
@@ -180,7 +180,7 @@
         'shop.lessthan': { es: 'Menos de COP $500.000', en: 'Less than COP $500,000' },
         'shop.range': { es: 'COP $500.000 - COP $1.500.000', en: 'COP $500,000 - COP $1,500,000' },
         'shop.morethan': { es: 'Más de COP $1.500.000', en: 'More than COP $1,500,000' },
-        'shop.clear': { es: '✕ Limpiar', en: '✕ Clear' },
+        'shop.clear': { es: 'Limpiar', en: 'Clear' },
         'shop.noproducts': { es: 'No se encontraron productos', en: 'No products found' },
         'shop.changefilters': { es: 'Intenta cambiar los filtros de búsqueda.', en: 'Try changing the search filters.' },
         'shop.viewall': { es: 'Ver todos los productos', en: 'View all products' },
@@ -188,7 +188,7 @@
         // ════════════════════════════════════════════
         //  PRODUCT CARD
         // ════════════════════════════════════════════
-        'product.addcart': { es: '🛒 Añadir al Carrito', en: '🛒 Add to Cart' },
+        'product.addcart': { es: 'Añadir al Carrito', en: 'Add to Cart' },
         'product.soldout': { es: 'Agotado', en: 'Sold Out' },
 
         // ════════════════════════════════════════════
@@ -207,7 +207,7 @@
         'cart.shipping': { es: 'Envío', en: 'Shipping' },
         'cart.free': { es: 'Gratis', en: 'Free' },
         'cart.total': { es: 'Total General', en: 'Grand Total' },
-        'cart.checkout': { es: 'Proceder al pago 💳', en: 'Proceed to checkout 💳' },
+        'cart.checkout': { es: 'Proceder al pago', en: 'Proceed to checkout' },
         'cart.continue': { es: '← Continuar Comprando', en: '← Continue Shopping' },
         'cart.brand': { es: 'Marca:', en: 'Brand:' },
 
@@ -216,11 +216,11 @@
         // ════════════════════════════════════════════
         'sales.portal': { es: 'Portal de Ventas', en: 'Sales Portal' },
         'sales.management': { es: 'Gestión Comercial', en: 'Commercial Management' },
-        'sales.nav.general': { es: '📊 General', en: '📊 General' },
-        'sales.nav.sales': { es: '💳 Ventas', en: '💳 Sales' },
-        'sales.nav.invoices': { es: '🧾 Facturas', en: '🧾 Invoices' },
-        'sales.nav.inventory': { es: '📦 Inventarios', en: '📦 Inventory' },
-        'sales.nav.profile': { es: '⚙️ Mi Perfil', en: '⚙️ My Profile' },
+        'sales.nav.general': { es: 'General', en: 'General' },
+        'sales.nav.sales': { es: 'Ventas', en: 'Sales' },
+        'sales.nav.invoices': { es: 'Facturas', en: 'Invoices' },
+        'sales.nav.inventory': { es: 'Inventarios', en: 'Inventory' },
+        'sales.nav.profile': { es: 'Mi Perfil', en: 'My Profile' },
 
         'sales.general.title': { es: 'Resumen Comercial', en: 'Commercial Summary' },
         'sales.general.monthly': { es: 'Ventas del Mes', en: 'Monthly Sales' },
@@ -259,8 +259,8 @@
         'sales.invoices.filter': { es: 'Filtrar', en: 'Filter' },
         'sales.invoices.number': { es: 'Número', en: 'Number' },
         'sales.invoices.paid': { es: 'Pagada', en: 'Paid' },
-        'sales.invoices.delete': { es: '🗑️ Eliminar', en: '🗑️ Delete' },
-        'sales.invoices.pdf': { es: '📄 PDF', en: '📄 PDF' },
+        'sales.invoices.delete': { es: 'Eliminar', en: 'Delete' },
+        'sales.invoices.pdf': { es: 'PDF', en: 'PDF' },
         'sales.invoices.empty': { es: 'No se encontraron facturas registradas o que coincidan con la búsqueda.', en: 'No registered invoices found matching your search.' },
         'sales.invoices.showing': { es: 'Mostrando registros del', en: 'Showing records from' },
         'sales.invoices.to': { es: 'al', en: 'to' },
@@ -287,60 +287,60 @@
 
         'sales.modal.invoice.title': { es: 'Factura Electrónica de Venta', en: 'Electronic Sales Invoice' },
         'sales.modal.invoice.resolution': { es: 'Resolución DIAN Nº 18764028920000 | Rango: FAC-0001 a FAC-5000', en: 'DIAN Resolution No. 18764028920000 | Range: FAC-0001 to FAC-5000' },
-        'sales.modal.invoice.sec1': { es: '📋 DATOS DEL PEDIDO', en: '📋 ORDER DATA' },
+        'sales.modal.invoice.sec1': { es: 'DATOS DEL PEDIDO', en: 'ORDER DATA' },
         'sales.modal.invoice.orderassoc': { es: 'Pedido Asociado *', en: 'Associated Order *' },
         'sales.modal.invoice.selectorder': { es: '-- Seleccionar Pedido --', en: '-- Select Order --' },
-        'sales.modal.invoice.sec2': { es: '📑 DATOS DE FACTURACIÓN (NÚMERO AUTO-GENERADO)', en: '📑 BILLING DATA (AUTO-GENERATED NUMBER)' },
+        'sales.modal.invoice.sec2': { es: 'DATOS DE FACTURACIÓN (NÚMERO AUTO-GENERADO)', en: 'BILLING DATA (AUTO-GENERATED NUMBER)' },
         'sales.modal.invoice.status': { es: 'Estado *', en: 'Status *' },
         'sales.modal.invoice.paymentmethod': { es: 'Método de Pago *', en: 'Payment Method *' },
         'sales.modal.invoice.cash': { es: 'Efectivo', en: 'Cash' },
         'sales.modal.invoice.card': { es: 'Tarjeta Débito/Crédito', en: 'Debit/Credit Card' },
         'sales.modal.invoice.transfer': { es: 'Transferencia / PSE', en: 'Bank Transfer / PSE' },
-        'sales.modal.invoice.sec3': { es: '💰 VALORES (IVA 19% — ART. 468 E.T.)', en: '💰 VALUES (VAT 19% — ART. 468 E.T.)' },
+        'sales.modal.invoice.sec3': { es: 'VALORES (IVA 19% — ART. 468 E.T.)', en: 'VALUES (VAT 19% — ART. 468 E.T.)' },
         'sales.modal.invoice.subtotal': { es: 'Subtotal', en: 'Subtotal' },
         'sales.modal.invoice.tax': { es: 'IVA 19%', en: 'VAT 19%' },
         'sales.modal.invoice.total': { es: 'TOTAL', en: 'TOTAL' },
         'sales.modal.invoice.autocalc': { es: 'Auto-calculado', en: 'Auto-calculated' },
         'sales.modal.invoice.warning': { es: 'Al crear esta factura se generará un CUFE (Código Único de Factura Electrónica) y estará disponible para descarga en formato PDF conforme a la Resolución DIAN.', en: 'Creating this invoice will generate a CUFE (Unique Electronic Invoice Code) and will be available for PDF download according to DIAN Resolution.' },
         'sales.modal.invoice.cancel': { es: 'Cancelar', en: 'Cancel' },
-        'sales.modal.invoice.emit': { es: '📄 Emitir Factura Electrónica', en: '📄 Issue Electronic Invoice' },
+        'sales.modal.invoice.emit': { es: 'Emitir Factura Electrónica', en: 'Issue Electronic Invoice' },
 
         // ════════════════════════════════════════════
         //  MODAL REGISTRAR VENTA
         // ════════════════════════════════════════════
         'modal.sale.title': { es: 'Registrar Nueva Venta', en: 'Register New Sale' },
-        'modal.sale.sec.client': { es: '👤 DATOS DEL CLIENTE', en: '👤 CLIENT DATA' },
-        'modal.sale.search.name': { es: '🔍 Buscar por Nombre (Clientes)', en: '🔍 Search by Name (Clients)' },
+        'modal.sale.sec.client': { es: 'DATOS DEL CLIENTE', en: 'CLIENT DATA' },
+        'modal.sale.search.name': { es: 'Buscar por Nombre (Clientes)', en: 'Search by Name (Clients)' },
         'modal.sale.search.name.placeholder': { es: '-- Buscar por Nombre --', en: '-- Search by Name --' },
-        'modal.sale.search.doc': { es: '🪪 Buscar por C.C. / Documento (Clientes)', en: '🪪 Search by ID / Document (Clients)' },
+        'modal.sale.search.doc': { es: 'Buscar por C.C. / Documento (Clientes)', en: 'Search by ID / Document (Clients)' },
         'modal.sale.search.doc.placeholder': { es: '-- Buscar por C.C. --', en: '-- Search by ID --' },
         'modal.sale.firstname': { es: 'Nombre *', en: 'First Name *' },
         'modal.sale.lastname': { es: 'Apellido *', en: 'Last Name *' },
         'modal.sale.docnum': { es: 'N° Cédula / Documento *', en: 'ID / Document No. *' },
         'modal.sale.phone': { es: 'Teléfono *', en: 'Phone *' },
         'modal.sale.address': { es: 'Dirección *', en: 'Address *' },
-        'modal.sale.sec.products': { es: '📦 AGREGAR PRODUCTOS A LA VENTA', en: '📦 ADD PRODUCTS TO SALE' },
+        'modal.sale.sec.products': { es: 'AGREGAR PRODUCTOS A LA VENTA', en: 'ADD PRODUCTS TO SALE' },
         'modal.sale.selectproduct': { es: 'Seleccionar Producto', en: 'Select Product' },
         'modal.sale.selectproduct.placeholder': { es: '-- Seleccionar Producto --', en: '-- Select Product --' },
         'modal.sale.qty': { es: 'Cantidad', en: 'Quantity' },
         'modal.sale.additem': { es: '+ Agregar Producto', en: '+ Add Product' },
-        'modal.sale.items.title': { es: '🛒 Productos en la Venta', en: '🛒 Products in Sale' },
+        'modal.sale.items.title': { es: 'Productos en la Venta', en: 'Products in Sale' },
         'modal.sale.noitems': { es: 'No hay productos agregados a esta venta.', en: 'No products added to this sale.' },
-        'modal.sale.sec.summary': { es: '💳 RESUMEN Y PAGO', en: '💳 SUMMARY AND PAYMENT' },
+        'modal.sale.sec.summary': { es: 'RESUMEN Y PAGO', en: 'SUMMARY AND PAYMENT' },
         'modal.sale.paymentmethod': { es: 'Método de Pago *', en: 'Payment Method *' },
-        'modal.sale.confirm': { es: '✓ Confirmar Venta', en: '✓ Confirm Sale' },
+        'modal.sale.confirm': { es: 'Confirmar Venta', en: 'Confirm Sale' },
 
         // ════════════════════════════════════════════
         //  ADMIN DASHBOARD
         // ════════════════════════════════════════════
         'admin.portal': { es: 'Admin Dashboard', en: 'Admin Dashboard' },
         'admin.management': { es: 'Gestión Integral LentSoft', en: 'Comprehensive LentSoft Management' },
-        'admin.nav.general': { es: '📊 General', en: '📊 General' },
-        'admin.nav.inventory': { es: '📦 Inventario', en: '📦 Inventory' },
-        'admin.nav.sales': { es: '💳 Ventas', en: '💳 Sales' },
-        'admin.nav.appointments': { es: '📅 Citas Médicas', en: '📅 Eye Appointments' },
-        'admin.nav.users': { es: '👥 Usuarios', en: '👥 Users' },
-        'admin.nav.invoices': { es: '🧾 Facturas', en: '🧾 Invoices' },
+        'admin.nav.general': { es: 'General', en: 'General' },
+        'admin.nav.inventory': { es: 'Inventario', en: 'Inventory' },
+        'admin.nav.sales': { es: 'Ventas', en: 'Sales' },
+        'admin.nav.appointments': { es: 'Citas Médicas', en: 'Eye Appointments' },
+        'admin.nav.users': { es: 'Usuarios', en: 'Users' },
+        'admin.nav.invoices': { es: 'Facturas', en: 'Invoices' },
 
         'admin.general.title': { es: 'Resumen General', en: 'General Overview' },
         'admin.general.monthly': { es: 'Ventas del Mes', en: 'Monthly Sales' },
@@ -362,7 +362,7 @@
         'admin.inv.searchhistory': { es: 'Buscar en historial...', en: 'Search in history...' },
         'admin.inv.active': { es: 'Activo', en: 'Active' },
         'admin.inv.inactive': { es: 'Inactivo', en: 'Inactive' },
-        'admin.inv.edit': { es: '✏️ Editar', en: '✏️ Edit' },
+        'admin.inv.edit': { es: 'Editar', en: 'Edit' },
         'admin.inv.delete': { es: 'Eliminar', en: 'Delete' },
         'admin.inv.company': { es: 'Empresa', en: 'Company' },
         'admin.inv.producttype': { es: 'Tipo Productos', en: 'Product Type' },
@@ -398,14 +398,14 @@
 
         'admin.users.title': { es: 'Gestión de Usuarios', en: 'User Management' },
         'admin.users.subtitle': { es: 'Administra los clientes y empleados del sistema', en: 'Manage system clients and employees' },
-        'admin.users.tab.clients': { es: '👥 Clientes', en: '👥 Clients' },
-        'admin.users.tab.employees': { es: '👔 Trabajadores (Empleados)', en: '👔 Workers (Employees)' },
+        'admin.users.tab.clients': { es: 'Clientes', en: 'Clients' },
+        'admin.users.tab.employees': { es: 'Trabajadores (Empleados)', en: 'Workers (Employees)' },
         'admin.users.regclients': { es: 'Clientes Registrados', en: 'Registered Clients' },
         'admin.users.newuser': { es: '+ Nuevo Usuario', en: '+ New User' },
         'admin.users.newemployee': { es: '+ Nuevo Trabajador', en: '+ New Worker' },
         'admin.users.showinactive': { es: 'Mostrar inactivos', en: 'Show inactive' },
         'admin.users.searchclients': { es: 'Buscar por nombre o email', en: 'Search by name or email' },
-        'admin.users.reactivate': { es: '🔄 Reactivar', en: '🔄 Reactivate' },
+        'admin.users.reactivate': { es: 'Reactivar', en: 'Reactivate' },
         'admin.users.regdate': { es: 'Fecha Registro', en: 'Registration Date' },
         'admin.users.orderscount': { es: 'Pedidos', en: 'Orders' },
         'admin.users.role.admin': { es: 'Administrador', en: 'Administrator' },
@@ -417,7 +417,7 @@
 
         // Modals Admin
         'admin.modal.product.new': { es: 'Nuevo Producto', en: 'New Product' },
-        'admin.modal.product.edit': { es: '✏️ Editar Producto', en: '✏️ Edit Product' },
+        'admin.modal.product.edit': { es: 'Editar Producto', en: 'Edit Product' },
         'admin.modal.product.name': { es: 'Nombre del Producto *', en: 'Product Name *' },
         'admin.modal.product.price': { es: 'Precio Regular *', en: 'Regular Price *' },
         'admin.modal.product.discountprice': { es: 'Precio Descuento (Opcional)', en: 'Discount Price (Optional)' },
@@ -437,7 +437,7 @@
         'admin.modal.cita.create': { es: 'Crear Cita', en: 'Create Appointment' },
 
         'admin.modal.client.new': { es: '+ Nuevo Cliente', en: '+ New Client' },
-        'admin.modal.client.edit': { es: '✏️ Editar Cliente', en: '✏️ Edit Client' },
+        'admin.modal.client.edit': { es: 'Editar Cliente', en: 'Edit Client' },
         'admin.modal.client.doctype': { es: 'Tipo Doc.', en: 'Doc. Type' },
         'admin.modal.client.docnum': { es: 'Núm. Documento', en: 'Doc. Number' },
         'admin.modal.client.password': { es: 'Contraseña (Opcional, defecto: user123)', en: 'Password (Optional, default: user123)' },
@@ -445,7 +445,7 @@
         'admin.modal.client.update': { es: 'Actualizar Cliente', en: 'Update Client' },
 
         'admin.modal.worker.new': { es: '+ Nuevo Trabajador', en: '+ New Worker' },
-        'admin.modal.worker.edit': { es: '✏️ Editar Trabajador', en: '✏️ Edit Worker' },
+        'admin.modal.worker.edit': { es: 'Editar Trabajador', en: 'Edit Worker' },
         'admin.modal.worker.fullname': { es: 'Nombre Completo *', en: 'Full Name *' },
         'admin.modal.worker.position': { es: 'Puesto', en: 'Position' },
         'admin.modal.worker.department': { es: 'Departamento', en: 'Department' },
@@ -455,7 +455,7 @@
         'admin.modal.worker.update': { es: 'Actualizar Trabajador', en: 'Update Worker' },
 
         'admin.modal.supplier.new': { es: '+ Nuevo Proveedor', en: '+ New Supplier' },
-        'admin.modal.supplier.edit': { es: '✏️ Editar Proveedor', en: '✏️ Edit Supplier' },
+        'admin.modal.supplier.edit': { es: 'Editar Proveedor', en: 'Edit Supplier' },
         'admin.modal.supplier.code': { es: 'Código de Proveedor (Opcional, ej: PROV001)', en: 'Supplier Code (Optional, e.g. PROV001)' },
         'admin.modal.supplier.company': { es: 'Empresa / Proveedor *', en: 'Company / Supplier *' },
         'admin.modal.supplier.producttype': { es: 'Tipo de Productos *', en: 'Product Type *' },
@@ -509,7 +509,7 @@
         'product.reviews': { es: 'reseñas', en: 'reviews' },
         'product.review': { es: 'reseña', en: 'review' },
         'product.soldout.temp': { es: 'Agotado temporalmente', en: 'Temporarily Out of Stock' },
-        'product.frametryon': { es: '👓 MUESTRA DE MONTURA', en: '👓 FRAME SHOWCASE' },
+        'product.frametryon': { es: 'MUESTRA DE MONTURA', en: 'FRAME SHOWCASE' },
         'product.benefit.warranty.title': { es: 'Garantía incluida', en: 'Warranty included' },
         'product.benefit.warranty.desc': { es: 'Cobertura de 12 meses ante defectos de fábrica en todas tus monturas.', en: '12-month coverage against factory defects on all your frames.' },
         'product.benefit.shipping.title': { es: 'Envío gratis', en: 'Free shipping' },
@@ -526,8 +526,8 @@
         'product.fav.add': { es: 'Agregar a favoritos', en: 'Add to favorites' },
         'product.fav.remove': { es: 'Quitar de favoritos', en: 'Remove from favorites' },
         'product.fav.login': { es: 'Inicia sesión para guardar favoritos', en: 'Sign in to save favorites' },
-        'product.fav.added': { es: '❤️ Añadido a favoritos', en: '❤️ Added to favorites' },
-        'product.fav.removed': { es: '🤍 Quitado de favoritos', en: '🤍 Removed from favorites' },
+        'product.fav.added': { es: 'Añadido a favoritos', en: 'Added to favorites' },
+        'product.fav.removed': { es: 'Quitado de favoritos', en: 'Removed from favorites' },
 
         // ════════════════════════════════════════════
         //  MUESTRA DE MONTURA (AR / TRY-ON)
@@ -537,7 +537,7 @@
         'montura.preview.title': { es: 'Vista Previa Interactiva', en: 'Interactive Preview' },
         'montura.preview.instant': { es: 'Prueba virtual instantánea', en: 'Instant virtual try-on' },
         'montura.preview.desc': { es: 'Activa tu cámara web para ver cómo lucen los marcos en tu rostro.', en: 'Turn on your webcam to see how frames look on your face.' },
-        'montura.camera.start': { es: 'Activar Cámara 📸', en: 'Turn On Camera 📸' },
+        'montura.camera.start': { es: 'Activar Cámara', en: 'Turn On Camera' },
         'montura.camera.stop': { es: 'Apagar Cámara', en: 'Turn Off Camera' },
         'montura.camera.errortitle': { es: 'Error de Acceso a la Cámara', en: 'Camera Access Error' },
         'montura.camera.errordesc': { es: 'No se pudo acceder a la cámara. Asegúrate de dar los permisos correspondientes.', en: 'Could not access camera. Please make sure to grant the necessary permissions.' },
@@ -561,7 +561,7 @@
         'checkout.address.placeholder': { es: 'Ingresa tu dirección completa de entrega', en: 'Enter your full shipping address' },
         'checkout.secure.title': { es: 'Entorno Seguro de Simulación:', en: 'Simulated Secure Environment:' },
         'checkout.secure.desc': { es: 'Las transacciones bancarias son simuladas internamente. Ningún dato real de tarjeta de crédito será enviado a procesadores externos ni validado contra instituciones bancarias.', en: 'Bank transactions are simulated internally. No real credit card information is sent to external processors or validated with banks.' },
-        'checkout.submit': { es: 'Confirmar Pago 💳', en: 'Confirm Payment 💳' },
+        'checkout.submit': { es: 'Confirmar Pago', en: 'Confirm Payment' },
         'checkout.ordersummary': { es: 'Resumen del Pedido', en: 'Order Summary' },
         'checkout.success.title': { es: '¡Pago simulado exitosamente!', en: 'Payment Simulated Successfully!' },
         'checkout.success.desc': { es: 'Tu pedido ha sido procesado de forma simulada. A continuación se detallan los datos de tu orden de compra.', en: 'Your simulated order has been processed. The details of your purchase order are shown below.' },
@@ -570,18 +570,18 @@
         'checkout.order.status': { es: 'Estado', en: 'Status' },
         'checkout.order.items': { es: 'Artículos Adquiridos', en: 'Purchased Items' },
         'checkout.order.total': { es: 'Total Pagado', en: 'Total Paid' },
-        'checkout.order.back': { es: 'Volver a la Tienda 👓', en: 'Back to Shop 👓' },
+        'checkout.order.back': { es: 'Volver a la Tienda', en: 'Back to Shop' },
 
         // ════════════════════════════════════════════
         //  USUARIO (USER DASHBOARD)
         // ════════════════════════════════════════════
         'user.portal': { es: 'Mi Cuenta', en: 'My Account' },
-        'user.nav.profile': { es: '👤 Mi Perfil', en: '👤 My Profile' },
-        'user.nav.medical': { es: '📑 Historial Médico', en: '📑 Medical History' },
-        'user.nav.orders': { es: '📦 Mis Pedidos', en: '📦 My Orders' },
-        'user.nav.appointments': { es: '🗓️ Mis Citas', en: '🗓️ My Appointments' },
-        'user.nav.favorites': { es: '❤️ Mis Favoritos', en: '❤️ My Favorites' },
-        'user.nav.settings': { es: '⚙️ Configuración', en: '⚙️ Settings' },
+        'user.nav.profile': { es: 'Mi Perfil', en: 'My Profile' },
+        'user.nav.medical': { es: 'Historial Médico', en: 'Medical History' },
+        'user.nav.orders': { es: 'Mis Pedidos', en: 'My Orders' },
+        'user.nav.appointments': { es: 'Mis Citas', en: 'My Appointments' },
+        'user.nav.favorites': { es: 'Mis Favoritos', en: 'My Favorites' },
+        'user.nav.settings': { es: 'Configuración', en: 'Settings' },
 
         'user.profile.title': { es: 'Información Personal', en: 'Personal Information' },
         'user.profile.fullname': { es: 'Nombre Completo', en: 'Full Name' },
@@ -589,11 +589,11 @@
         'user.profile.phone': { es: 'Teléfono', en: 'Phone Number' },
         'user.profile.update': { es: 'Actualizar Perfil', en: 'Update Profile' },
 
-        'user.medical.title': { es: '📑 Historial Médico de Citas', en: '📑 Medical Appointment History' },
+        'user.medical.title': { es: 'Historial Médico de Citas', en: 'Medical Appointment History' },
         'user.medical.empty': { es: 'No tienes registros de historial médico o fórmulas ópticas registradas.', en: 'You have no medical history or optical prescription records registered.' },
         'user.medical.attendedby': { es: 'Atendido por:', en: 'Attended by:' },
-        'user.medical.completed': { es: '✓ Completada', en: '✓ Completed' },
-        'user.medical.diagnosis': { es: '👁️ Diagnóstico', en: '👁️ Diagnosis' },
+        'user.medical.completed': { es: 'Completada', en: 'Completed' },
+        'user.medical.diagnosis': { es: 'Diagnóstico', en: 'Diagnosis' },
         'user.medical.prescription': { es: 'Fórmula Prescrita', en: 'Prescribed Formula' },
         'user.medical.od': { es: 'Ojo Derecho (OD)', en: 'Right Eye (OD)' },
         'user.medical.oi': { es: 'Ojo Izquierdo (OI)', en: 'Left Eye (OS)' },
@@ -609,7 +609,7 @@
         'user.orders.orderprefix': { es: 'Pedido', en: 'Order' },
         'user.orders.placedon': { es: 'Realizado el:', en: 'Placed on:' },
         'user.orders.total': { es: 'Total:', en: 'Total:' },
-        'user.orders.viewdetail': { es: '👁️ Ver Detalle', en: '👁️ View Details' },
+        'user.orders.viewdetail': { es: 'Ver Detalle', en: 'View Details' },
         'user.orders.tracking': { es: 'Seguimiento de Entrega', en: 'Delivery Tracking' },
         'user.orders.products': { es: 'Productos del Pedido', en: 'Order Products' },
         'user.orders.product': { es: 'Producto', en: 'Product' },
@@ -621,7 +621,7 @@
         'user.orders.status.processing': { es: 'Procesando', en: 'Processing' },
         'user.orders.status.shipped': { es: 'Enviado', en: 'Shipped' },
         'user.orders.status.delivered': { es: 'Entregado', en: 'Delivered' },
-        'user.orders.status.cancelled': { es: '✖ Cancelado', en: '✖ Cancelled' },
+        'user.orders.status.cancelled': { es: 'Cancelado', en: 'Cancelled' },
 
         'user.citas.title': { es: 'Mis Citas Optométricas', en: 'My Optometric Appointments' },
         'user.citas.new': { es: '+ Agendar Nueva Cita', en: '+ Schedule New Appointment' },
@@ -642,17 +642,17 @@
         'user.citas.to': { es: 'al', en: 'to' },
         'user.citas.of': { es: 'de un total de', en: 'of a total of' },
 
-        'user.fav.title': { es: '❤️ Mis Favoritos', en: '❤️ My Favorites' },
+        'user.fav.title': { es: 'Mis Favoritos', en: 'My Favorites' },
         'user.fav.empty': { es: 'Aún no tienes productos en tu lista de favoritos.', en: "You don't have any products in your favorites list yet." },
         'user.fav.explore': { es: 'Explorar la Tienda', en: 'Explore the Shop' },
-        'user.fav.add': { es: '🛒 Añadir', en: '🛒 Add' },
+        'user.fav.add': { es: 'Añadir', en: 'Add' },
         'user.fav.remove': { es: 'Quitar de Favoritos', en: 'Remove from Favorites' },
 
         'user.config.title': { es: 'Configuración de Seguridad', en: 'Security Settings' },
         'user.config.currentpwd': { es: 'Contraseña Actual', en: 'Current Password' },
         'user.config.newpwd': { es: 'Nueva Contraseña', en: 'New Password' },
         'user.config.newpwdplaceholder': { es: 'Ej: Pass1234!', en: 'E.g.: Pass1234!' },
-        'user.config.pwdhint': { es: '🔒 Mín. 8 caract. (Mayúscula, minúscula, número y especial).', en: '🔒 Min. 8 chars. (Uppercase, lowercase, number and special).' },
+        'user.config.pwdhint': { es: 'Mín. 8 caract. (Mayúscula, minúscula, número y especial).', en: 'Min. 8 chars. (Uppercase, lowercase, number and special).' },
         'user.config.confirmpwd': { es: 'Confirmar Nueva Contraseña', en: 'Confirm New Password' },
         'user.config.submit': { es: 'Cambiar Contraseña', en: 'Change Password' },
 
@@ -665,7 +665,7 @@
         'user.modal.agenda.cancel': { es: 'Cancelar', en: 'Cancel' },
         'user.modal.agenda.confirm': { es: 'Confirmar Cita', en: 'Confirm Appointment' },
 
-        'user.modal.reprog.title': { es: '🗓️ Reprogramar Cita', en: '🗓️ Reschedule Appointment' },
+        'user.modal.reprog.title': { es: 'Reprogramar Cita', en: 'Reschedule Appointment' },
         'user.modal.reprog.service': { es: 'Servicio', en: 'Service' },
         'user.modal.reprog.newdatetime': { es: 'Nueva Fecha y Hora *', en: 'New Date & Time *' },
         'user.modal.reprog.cancel': { es: 'Cancelar', en: 'Cancel' },
@@ -828,10 +828,7 @@
         },
         'Detalles de la Montura': { es: 'Detalles de la Montura', en: 'Frame Details' },
         'MUESTRA DE MONTURA': { es: 'MUESTRA DE MONTURA', en: 'FRAME SHOWCASE' },
-        '👓 MUESTRA DE MONTURA': { es: '👓 MUESTRA DE MONTURA', en: '👓 FRAME SHOWCASE' },
         'Añadir al Carrito': { es: 'Añadir al Carrito', en: 'Add to Cart' },
-        '🛒 Añadir al Carrito': { es: '🛒 Añadir al Carrito', en: '🛒 Add to Cart' },
-        '🛒 Agregar al Carrito': { es: '🛒 Agregar al Carrito', en: '🛒 Add to Cart' },
         'Agregar al Carrito': { es: 'Agregar al Carrito', en: 'Add to Cart' },
         'Agotado': { es: 'Agotado', en: 'Sold Out' },
         'Agotado temporalmente': { es: 'Agotado temporalmente', en: 'Temporarily Out of Stock' },
@@ -841,8 +838,7 @@
         'Top ventas': { es: 'Top ventas', en: 'Top Sellers' },
         'Productos Más Vendidos': { es: 'Productos Más Vendidos', en: 'Best Selling Products' },
         'Productos con Descuento': { es: 'Productos con Descuento', en: 'Discounted Products' },
-        'Ofertas': { es: 'Ofertas', en: 'Offers' },
-        '🔥 Ofertas': { es: '🔥 Ofertas', en: '🔥 Offers' }
+        'Ofertas': { es: 'Ofertas', en: 'Offers' }
     };
 
     /**

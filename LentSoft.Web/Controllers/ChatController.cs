@@ -46,7 +46,7 @@ public class ChatController : Controller
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error al procesar mensaje de chat: {Mensaje}", request.Mensaje);
-            return StatusCode(500, new { respuesta = "Lo siento, ocurrió un error al procesar tu mensaje. Por favor intenta de nuevo en unos momentos. 🙁" });
+            return StatusCode(500, new { respuesta = "Lo siento, ocurrió un error al procesar tu mensaje. Por favor intenta de nuevo en unos momentos." });
         }
     }
 }

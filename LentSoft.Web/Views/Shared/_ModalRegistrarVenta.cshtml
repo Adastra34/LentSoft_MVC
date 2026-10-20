@@ -7,7 +7,7 @@
         <!-- Header Morado -->
         <div style="background: linear-gradient(135deg, var(--purple-700), var(--purple-600)); color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: center;">
             <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.2rem; font-weight: 700;">
-                <span>💳</span> <span data-i18n="modal.sale.title">Registrar Nueva Venta</span>
+                <icon name="credit-card" /> <span data-i18n="modal.sale.title">Registrar Nueva Venta</span>
             </div>
             <button type="button" onclick="document.getElementById('modal-venta').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: white; line-height: 1;">&times;</button>
         </div>
@@ -21,7 +21,7 @@
             <!-- Sección 1: Datos del Cliente -->
             <div>
                 <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
-                    <span data-i18n="modal.sale.sec.client">👤 DATOS DEL CLIENTE</span>
+                    <icon name="user" /> <span data-i18n="modal.sale.sec.client">DATOS DEL CLIENTE</span>
                 </div>
 
                 <input type="hidden" id="selectedUserId" name="UserId" value="" />
@@ -36,7 +36,7 @@
 
                 <div style="display: flex; gap: 0.75rem; margin-bottom: 0.75rem;">
                     <div style="flex: 1;">
-                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;" data-i18n="modal.sale.search.name">🔍 Buscar por Nombre (Clientes)</label>
+                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.35rem;"><icon name="search" /> <span data-i18n="modal.sale.search.name">Buscar por Nombre (Clientes)</span></label>
                         <select id="userSelectNombre" class="form-input" onchange="onClientSelectedByName(this)" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); font-size: 0.85rem; background-color: white;">
                             <option value="" data-i18n="modal.sale.search.name.placeholder">-- Buscar por Nombre --</option>
                             @foreach (var user in clientesPorNombre)
@@ -53,7 +53,7 @@
                         </select>
                     </div>
                     <div style="flex: 1;">
-                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: block;" data-i18n="modal.sale.search.doc">🪪 Buscar por C.C. / Documento (Clientes)</label>
+                        <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.8rem; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.35rem;"><icon name="id-card" /> <span data-i18n="modal.sale.search.doc">Buscar por C.C. / Documento (Clientes)</span></label>
                         <select id="userSelectCedula" class="form-input" onchange="onClientSelectedByCedula(this)" style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); font-size: 0.85rem; background-color: white;">
                             <option value="" data-i18n="modal.sale.search.doc.placeholder">-- Buscar por C.C. --</option>
                             @foreach (var user in clientesPorCedula)
@@ -100,7 +100,7 @@
                 <div id="panelFormulaOptica" style="display: none; background: #FAF5FF; border: 1px solid #D8B4FE; border-radius: 0.5rem; padding: 0.85rem; margin-bottom: 0.75rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
                         <span style="font-size: 0.82rem; font-weight: 700; color: #6B21A8; display: flex; align-items: center; gap: 0.35rem;">
-                            👁️ Fórmula Óptica Registrada por Optometría
+                            <icon name="eye" /> Fórmula Óptica Registrada por Optometría
                         </span>
                         <span id="formulaBadgeEstado" style="padding: 0.2rem 0.55rem; border-radius: 9999px; font-size: 0.72rem; font-weight: 700;"></span>
                     </div>
@@ -128,7 +128,7 @@
 
                 <!-- Requisito 3: Alerta Visible para Lentes Graduados sin Fórmula Vigente (no bloqueante) -->
                 <div id="alertaFormulaOptica" style="display: none; background: #FFFBEB; border-left: 4px solid #F59E0B; border: 1px solid #FDE68A; padding: 0.65rem 0.85rem; border-radius: 0.375rem; margin-bottom: 0.75rem; font-size: 0.8rem; color: #92400E; align-items: center; gap: 0.5rem;">
-                    <span style="font-size: 1.1rem;">⚠️</span>
+                    <icon name="alert-triangle" class="icon-lg" />
                     <span><strong>Aviso al vendedor:</strong> Este cliente no tiene una fórmula óptica vigente registrada por el optómetra.</span>
                 </div>
             </div>
@@ -136,13 +136,13 @@
             <!-- Sección 2: Agregar Productos -->
             <div>
                 <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
-                    <span data-i18n="modal.sale.sec.products">👓 SELECCIONAR PRODUCTOS</span>
+                    <icon name="glasses" /> <span data-i18n="modal.sale.sec.products">SELECCIONAR PRODUCTOS</span>
                 </div>
                 <!-- Filtro Inteligente Adaptado a la Fórmula Óptica -->
                 <div id="filtroFormulaContainer" style="display: none; margin-bottom: 0.65rem; background: linear-gradient(135deg, #FAF5FF 0%, #F3E8FF 100%); border: 1px solid #D8B4FE; border-radius: 0.5rem; padding: 0.55rem 0.75rem; box-shadow: 0 1px 3px rgba(124, 58, 237, 0.08);">
                     <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
                         <div style="display: flex; align-items: center; gap: 0.45rem;">
-                            <span style="font-size: 1.05rem; line-height: 1;">✨</span>
+                            <span style="font-size: 1.05rem; line-height: 1; display: inline-flex;"><icon name="sparkles" /></span>
                             <span style="font-size: 0.8rem; font-weight: 700; color: #581C87;">
                                 Catálogo adaptado a fórmula: <span id="filtroFormulaTipoNombre" style="color: #6B21A8; font-weight: 800; background: #EDE9FE; padding: 0.15rem 0.45rem; border-radius: 0.25rem;">-</span>
                             </span>
@@ -153,7 +153,7 @@
                         </label>
                     </div>
                     <div id="filtroFormulaInfoSub" style="font-size: 0.72rem; color: #7E22CE; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.35rem;">
-                        <span>💡</span>
+                        <span style="display: inline-flex;"><icon name="lightbulb" /></span>
                         <span>Se filtran y organizan los productos según la prescripción clínica. Desmarca la casilla si deseas ver todo el inventario.</span>
                     </div>
                 </div>
@@ -220,7 +220,7 @@
             <!-- Sección 3: Totales y Descuento -->
             <div>
                 <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
-                    <span data-i18n="modal.sale.sec.summary">💰 DESCUENTO Y TOTALES</span>
+                    <icon name="banknote" /> <span data-i18n="modal.sale.sec.summary">DESCUENTO Y TOTALES</span>
                 </div>
                 <div style="display: flex; gap: 0.75rem;">
                     <div style="flex: 1;">
@@ -273,7 +273,7 @@
                 </button>
                 <button type="submit" 
                         style="flex: 1.5; background-color: var(--purple-600); color: white; border: none; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
-                    <span>💳</span> <span data-i18n="modal.sale.confirm">Registrar Venta</span>
+                    <icon name="credit-card" /> <span data-i18n="modal.sale.confirm">Registrar Venta</span>
                 </button>
             </div>
         </form>
@@ -641,7 +641,7 @@
         opt.setAttribute('data-iva', p.iva);
         opt.setAttribute('data-stock', p.stock);
 
-        const prefix = esEstrella ? '⭐ ' : '';
+        const prefix = esEstrella ? '[Recomendado] ' : '';
         const suffix = tag ? ` [${tag}]` : '';
         opt.textContent = `${prefix}${p.rawText}${suffix}`;
         return opt;
@@ -682,42 +682,42 @@
         if (soloCompatibles) {
             if (recomendados.length > 0) {
                 const grpRec = document.createElement('optgroup');
-                grpRec.label = `⭐ RECOMENDADOS SEGÚN FÓRMULA (${recomendados.length})`;
+                grpRec.label = `RECOMENDADOS SEGÚN FÓRMULA (${recomendados.length})`;
                 recomendados.forEach(e => grpRec.appendChild(crearOptionElement(e.product, true, e.razon)));
                 select.appendChild(grpRec);
             }
 
             if (compatiblesOtros.length > 0) {
                 const grpComp = document.createElement('optgroup');
-                grpComp.label = `👓 MONTURAS Y COMPONENTES COMPATIBLES (${compatiblesOtros.length})`;
+                grpComp.label = `MONTURAS Y COMPONENTES COMPATIBLES (${compatiblesOtros.length})`;
                 compatiblesOtros.forEach(e => grpComp.appendChild(crearOptionElement(e.product, false, e.razon)));
                 select.appendChild(grpComp);
             }
 
             if (recomendados.length === 0 && compatiblesOtros.length === 0) {
                 const grpTodos = document.createElement('optgroup');
-                grpTodos.label = '📦 TODOS LOS PRODUCTOS (Sin coincidencias estrictas)';
+                grpTodos.label = 'TODOS LOS PRODUCTOS (Sin coincidencias estrictas)';
                 allRawProducts.forEach(p => grpTodos.appendChild(crearOptionElement(p, false, '')));
                 select.appendChild(grpTodos);
             }
         } else {
             if (recomendados.length > 0) {
                 const grpRec = document.createElement('optgroup');
-                grpRec.label = `⭐ RECOMENDADOS SEGÚN FÓRMULA (${recomendados.length})`;
+                grpRec.label = `RECOMENDADOS SEGÚN FÓRMULA (${recomendados.length})`;
                 recomendados.forEach(e => grpRec.appendChild(crearOptionElement(e.product, true, e.razon)));
                 select.appendChild(grpRec);
             }
 
             if (compatiblesOtros.length > 0) {
                 const grpComp = document.createElement('optgroup');
-                grpComp.label = `👓 MONTURAS Y COMPATIBLES (${compatiblesOtros.length})`;
+                grpComp.label = `MONTURAS Y COMPATIBLES (${compatiblesOtros.length})`;
                 compatiblesOtros.forEach(e => grpComp.appendChild(crearOptionElement(e.product, false, e.razon)));
                 select.appendChild(grpComp);
             }
 
             if (noCompatibles.length > 0) {
                 const grpOtros = document.createElement('optgroup');
-                grpOtros.label = `📦 OTROS PRODUCTOS DEL CATÁLOGO (${noCompatibles.length})`;
+                grpOtros.label = `OTROS PRODUCTOS DEL CATÁLOGO (${noCompatibles.length})`;
                 noCompatibles.forEach(e => grpOtros.appendChild(crearOptionElement(e.product, false, '')));
                 select.appendChild(grpOtros);
             }

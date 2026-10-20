@@ -46,15 +46,15 @@
                         
                         <!-- Camera Placeholder -->
                         <div id="cameraPlaceholder" style="text-align: center; color: white; padding: 2rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; z-index: 2;">
-                            <span style="font-size: 4.5rem; animation: pulse 2s infinite; display: inline-block;">📸</span>
+                            <icon name="camera" class="icon-xl" style="width: 4.5rem; height: 4.5rem; animation: pulse 2s infinite; display: inline-block;" />
                             <div>
                                 <p style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.25rem; font-family: var(--font-primary);" data-i18n="montura.preview.instant">Prueba virtual instantánea</p>
                                 <p style="font-size: 0.85rem; color: var(--purple-200); max-width: 280px; margin: 0;" data-i18n="montura.preview.desc">Activa tu cámara web para ver cómo lucen los marcos en tu rostro.</p>
                             </div>
-                            <button type="button" id="startCameraBtn" onclick="startCamera()" style="background: white; color: var(--purple-900); border: none; border-radius: 0.75rem; padding: 0.7rem 1.5rem; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.15);"
+                            <button type="button" id="startCameraBtn" onclick="startCamera()" style="background: white; color: var(--purple-900); border: none; border-radius: 0.75rem; padding: 0.7rem 1.5rem; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.15); display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;"
                                     onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 14px rgba(0,0,0,0.2)';"
-                                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.15)';" data-i18n="montura.camera.start">
-                                Activar Cámara 📸
+                                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.15)';">
+                                <icon name="camera" /> <span data-i18n="montura.camera.start">Activar Cámara</span>
                             </button>
                         </div>
 
@@ -69,18 +69,18 @@
                                 style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: none; pointer-events: none; transform: scaleX(-1);"></canvas>
 
                         <!-- No Face Warning Overlay (Estilo morado distintivo de LentSoft) -->
-                        <div id="noFaceWarning" style="position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); background: rgba(88, 28, 135, 0.90); backdrop-filter: blur(8px); border: 1.5px solid var(--purple-400); color: white; padding: 0.5rem 1.25rem; border-radius: 9999px; font-size: 0.82rem; font-weight: 600; display: none; z-index: 4; text-align: center; white-space: nowrap; box-shadow: 0 8px 20px rgba(88, 28, 135, 0.4); transition: opacity 0.2s ease;">
-                            🔍 Rostro no detectado. Centra tu rostro frente a la cámara.
+                        <div id="noFaceWarning" style="position: absolute; top: 1rem; left: 50%; transform: translateX(-50%); background: rgba(88, 28, 135, 0.90); backdrop-filter: blur(8px); border: 1.5px solid var(--purple-400); color: white; padding: 0.5rem 1.25rem; border-radius: 9999px; font-size: 0.82rem; font-weight: 600; display: none; z-index: 4; text-align: center; white-space: nowrap; box-shadow: 0 8px 20px rgba(88, 28, 135, 0.4); transition: opacity 0.2s ease; align-items: center; gap: 0.4rem;">
+                            <icon name="search" /> <span>Rostro no detectado. Centra tu rostro frente a la cámara.</span>
                         </div>
 
                         <!-- Low Light Warning Overlay (Aviso de poca luz en morado/ámbar) -->
-                        <div id="lowLightWarning" style="position: absolute; top: 3.5rem; left: 50%; transform: translateX(-50%); background: rgba(76, 29, 149, 0.92); backdrop-filter: blur(8px); border: 1.5px solid #fbbf24; color: #fef08a; padding: 0.45rem 1rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; display: none; z-index: 4; text-align: center; white-space: nowrap; box-shadow: 0 6px 16px rgba(0,0,0,0.3); transition: opacity 0.2s ease;">
-                            💡 Poca luz detectada. Para una mejor previsualización, acércate a una fuente de luz.
+                        <div id="lowLightWarning" style="position: absolute; top: 3.5rem; left: 50%; transform: translateX(-50%); background: rgba(76, 29, 149, 0.92); backdrop-filter: blur(8px); border: 1.5px solid #fbbf24; color: #fef08a; padding: 0.45rem 1rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; display: none; z-index: 4; text-align: center; white-space: nowrap; box-shadow: 0 6px 16px rgba(0,0,0,0.3); transition: opacity 0.2s ease; align-items: center; gap: 0.4rem;">
+                            <icon name="lightbulb" /> <span>Poca luz detectada. Para una mejor previsualización, acércate a una fuente de luz.</span>
                         </div>
 
                         <!-- Error Message Container (Fondo morado oscuro consistente) -->
                         <div id="cameraError" style="position: absolute; inset: 0; background: rgba(25, 10, 45, 0.96); display: none; align-items: center; justify-content: center; flex-direction: column; padding: 2rem; text-align: center; color: white; z-index: 5; border: 2px solid var(--purple-600);">
-                            <span style="font-size: 3rem; margin-bottom: 0.75rem;">⚠️</span>
+                            <icon name="alert-triangle" class="icon-xl" style="width: 3rem; height: 3rem; margin-bottom: 0.75rem;" />
                             <h4 id="cameraErrorTitle" style="font-weight: 800; font-family: var(--font-primary); color: #fbcfe8; margin-bottom: 0.5rem; font-size: 1.15rem;" data-i18n="montura.camera.errortitle">Acceso a Cámara no Disponible</h4>
                             <p id="cameraErrorMessage" style="font-size: 0.85rem; color: var(--purple-100); max-width: 330px; margin-bottom: 1.5rem; line-height: 1.45;" data-i18n="montura.camera.errordesc">
                                 No se pudo acceder a la cámara. Asegúrate de dar los permisos correspondientes.
@@ -134,7 +134,7 @@
 
                     <!-- AR Preview Availability Notice -->
                     <div id="arUnavailableNotice" style="display: none; background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); color: #b45309; padding: 0.6rem 0.85rem; border-radius: 0.75rem; font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem; align-items: center; gap: 0.4rem;">
-                        ⚠️ Previsualización no disponible para esta montura
+                        <icon name="alert-triangle" /> <span>Previsualización no disponible para esta montura</span>
                     </div>
 
                     <!-- Selector de Variante / Color Rápido si aplica -->
@@ -150,8 +150,8 @@
                     <button type="button" id="selectedAddToCartBtn" onclick="addSelectedToCart()"
                             style="width: 100%; background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white; border: none; border-radius: 0.75rem; padding: 0.75rem; font-size: 0.95rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem; transition: transform 0.2s; box-shadow: 0 4px 10px rgba(124,58,237,0.2);"
                             onmouseover="this.style.transform='translateY(-2px)'"
-                            onmouseout="this.style.transform='translateY(0)'" data-i18n="product.addcart">
-                        🛒 Agregar al Carrito
+                            onmouseout="this.style.transform='translateY(0)'">
+                        <icon name="shopping-cart" /> <span data-i18n="product.addcart">Agregar al Carrito</span>
                     </button>
                 </div>
 
@@ -180,7 +180,7 @@
                                 }
                                 else
                                 {
-                                    <span style="font-size: 2.5rem;">👓</span>
+                                    <icon name="glasses" class="icon-xl" style="width: 2.5rem; height: 2.5rem;" />
                                 }
 
                                 @if (item.PrecioDescuento.HasValue && item.PrecioDescuento < item.Precio)
@@ -243,6 +243,7 @@
 @section Scripts {
     <script type="module" src="~/js/face-tracking.js"></script>
     <script>
+        const spriteUrl = '@Url.Content("~/img/icons/sprite.svg")';
         // Embed the products JSON safely with overlay calibration and variant pricing
         const productsData = @Html.Raw(JsonSerializer.Serialize(allProductsList.Select(p => new {
             id = p.Id,
@@ -402,7 +403,7 @@
                     startBtn.disabled = false;
                     startBtn.style.opacity = '1';
                     startBtn.style.cursor = 'pointer';
-                    startBtn.textContent = 'Activar Cámara 📸';
+                    startBtn.innerHTML = '<svg class="icon" aria-hidden="true"><use href="' + spriteUrl + '#icon-camera"></use></svg> ' + (lang === 'en' ? 'Start Camera' : 'Activar Cámara');
                 } else {
                     startBtn.disabled = true;
                     startBtn.style.opacity = '0.6';
@@ -418,7 +419,7 @@
                     cartBtn.disabled = false;
                     cartBtn.style.opacity = '1';
                     cartBtn.style.cursor = 'pointer';
-                    cartBtn.textContent = lang === 'en' ? '🛒 Add to Cart' : '🛒 Agregar al Carrito';
+                    cartBtn.innerHTML = '<svg class="icon" aria-hidden="true"><use href="' + spriteUrl + '#icon-shopping-cart"></use></svg> ' + (lang === 'en' ? 'Add to Cart' : 'Agregar al Carrito');
                 } else {
                     cartBtn.disabled = true;
                     cartBtn.style.opacity = '0.5';
@@ -482,7 +483,7 @@
 
             if (startBtn) {
                 startBtn.disabled = true;
-                startBtn.textContent = 'Iniciando cámara y AR... ⏳';
+                startBtn.innerHTML = '<svg class="icon" aria-hidden="true"><use href="' + spriteUrl + '#icon-hourglass"></use></svg> ' + (lang === 'en' ? 'Starting camera and AR...' : 'Iniciando cámara y AR...');
             }
 
             try {
@@ -528,7 +529,7 @@
                 console.error("Error al acceder a la cámara:", err);
                 if (startBtn) {
                     startBtn.disabled = false;
-                    startBtn.textContent = 'Activar Cámara 📸';
+                    startBtn.innerHTML = '<svg class="icon" aria-hidden="true"><use href="' + spriteUrl + '#icon-camera"></use></svg> ' + (lang === 'en' ? 'Start Camera' : 'Activar Cámara');
                 }
 
                 if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
@@ -570,7 +571,7 @@
 
             if (startBtn) {
                 startBtn.disabled = false;
-                startBtn.textContent = 'Activar Cámara 📸';
+                startBtn.innerHTML = '<svg class="icon" aria-hidden="true"><use href="' + spriteUrl + '#icon-camera"></use></svg> ' + (lang === 'en' ? 'Start Camera' : 'Activar Cámara');
             }
         }
 
@@ -584,7 +585,7 @@
             const startBtn = document.getElementById('startCameraBtn');
             if (startBtn) {
                 startBtn.disabled = false;
-                startBtn.textContent = 'Activar Cámara 📸';
+                startBtn.innerHTML = '<svg class="icon" aria-hidden="true"><use href="' + spriteUrl + '#icon-camera"></use></svg> ' + (lang === 'en' ? 'Start Camera' : 'Activar Cámara');
             }
         }
 

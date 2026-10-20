@@ -66,13 +66,13 @@ public partial class TiendaViewModel : ObservableObject
     private bool _isToastVisible;
 
     [ObservableProperty]
-    private string _toastMessage = "🛒 Producto añadido al carrito";
+    private string _toastMessage = "Producto añadido al carrito";
 
     [ObservableProperty]
-    private string _currentLanguageDisplay = "🌐 ES";
+    private string _currentLanguageDisplay = "ES";
 
     [ObservableProperty]
-    private string _selectedProductFavHeart = "🤍";
+    private string _selectedProductFavHeart = "icon_heart.svg";
 
     [ObservableProperty]
     private bool _isChatModalVisible;
@@ -85,7 +85,7 @@ public partial class TiendaViewModel : ObservableObject
         new ChatMessageDto
         {
             Sender = "Bot",
-            Message = "¡Hola! 👋 Soy Morgana, tu asistente experta en salud visual de LentSoft AI. ¿En qué te puedo ayudar hoy?"
+            Message = "¡Hola! Soy Morgana, tu asistente experta en salud visual de LentSoft AI. ¿En qué te puedo ayudar hoy?"
         }
     };
 
@@ -97,7 +97,7 @@ public partial class TiendaViewModel : ObservableObject
     [ObservableProperty] private string _categoryContactText = "Contacto";
     [ObservableProperty] private string _categorySunText = "Sol";
     [ObservableProperty] private string _categoryAccText = "Accesorios";
-    [ObservableProperty] private string _addToCartText = "🛒 Añadir al Carrito";
+    [ObservableProperty] private string _addToCartText = "Añadir al Carrito";
     [ObservableProperty] private string _cartTitleText = "Tu Carrito de Compras";
     [ObservableProperty] private string _checkoutButtonText = "Proceder al pago =";
     [ObservableProperty] private string _paymentTitleText = "Método de Pago Simulado";
@@ -106,7 +106,7 @@ public partial class TiendaViewModel : ObservableObject
     [ObservableProperty] private string _cardExpiryText = "Fecha de Expiración";
     [ObservableProperty] private string _cardCvvText = "CVV";
     [ObservableProperty] private string _shippingAddressText = "Dirección de Envío";
-    [ObservableProperty] private string _confirmPaymentText = "Confirmar Pago 💳";
+    [ObservableProperty] private string _confirmPaymentText = "Confirmar Pago";
     [ObservableProperty] private string _descriptionText = "Descripción";
     [ObservableProperty] private string _warrantyTitle = "Garantía incluida";
     [ObservableProperty] private string _warrantyDesc = "Cobertura de 12 meses ante defectos de fábrica en todas tus monturas.";
@@ -167,14 +167,14 @@ public partial class TiendaViewModel : ObservableObject
         {
             if (SelectedProduct != null)
             {
-                SelectedProductFavHeart = _favService.IsFavorite(SelectedProduct.Id) ? "❤️" : "🤍";
+                SelectedProductFavHeart = _favService.IsFavorite(SelectedProduct.Id) ? "icon_heart_filled.svg" : "icon_heart.svg";
             }
         });
     }
 
     private void RefreshLanguageDisplay()
     {
-        CurrentLanguageDisplay = _locService.CurrentLanguage == "ES" ? "🌐 ES" : "🌐 EN";
+        CurrentLanguageDisplay = _locService.CurrentLanguage == "ES" ? "ES" : "EN";
 
         ShopTitle = _locService.GetString("ShopTitle");
         SearchPlaceholderText = _locService.GetString("SearchPlaceholder");
@@ -222,7 +222,7 @@ public partial class TiendaViewModel : ObservableObject
     {
         string nextLang = _locService.CurrentLanguage == "ES" ? "EN" : "ES";
         _locService.SetLanguage(nextLang);
-        ShowGreenToast(nextLang == "ES" ? "🌐 Idioma: Español (ES)" : "🌐 Language: English (EN)");
+        ShowGreenToast(nextLang == "ES" ? "Idioma: Español (ES)" : "Language: English (EN)");
     }
 
     private void OnCartChanged(object? sender, EventArgs e)
@@ -308,7 +308,7 @@ public partial class TiendaViewModel : ObservableObject
     {
         if (product == null) return;
         SelectedProduct = product;
-        SelectedProductFavHeart = _favService.IsFavorite(product.Id) ? "❤️" : "🤍";
+        SelectedProductFavHeart = _favService.IsFavorite(product.Id) ? "icon_heart_filled.svg" : "icon_heart.svg";
         IsDetailModalVisible = true;
     }
 
@@ -327,7 +327,7 @@ public partial class TiendaViewModel : ObservableObject
 
         _favService.ToggleFavorite(target);
         bool isFav = _favService.IsFavorite(target.Id);
-        SelectedProductFavHeart = isFav ? "❤️" : "🤍";
+        SelectedProductFavHeart = isFav ? "icon_heart_filled.svg" : "icon_heart.svg";
 
         // Trigger CollectionView update
         int index = Products.IndexOf(target);
@@ -336,7 +336,7 @@ public partial class TiendaViewModel : ObservableObject
             Products[index] = target;
         }
 
-        ShowGreenToast(isFav ? $"❤️ {target.DisplayNombre} {_locService.GetString("MyFavorites")}" : $"🤍 {target.DisplayNombre}");
+        ShowGreenToast(isFav ? $"{target.DisplayNombre} {_locService.GetString("MyFavorites")}" : $"{target.DisplayNombre}");
     }
 
     [RelayCommand]

@@ -97,14 +97,14 @@
                                 <div style="display: flex; gap: 0.5rem; justify-content: center; align-items: center;">
                                     <button type="button" 
                                             onclick="confirmDeleteInvoice(@fac.Id, '@fac.NumeroFactura')"
-                                            style="background: transparent; color: var(--error, #EF4444); border: 1px solid var(--error, #EF4444); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease;">
-                                        🗑️ Eliminar
-                                    </button>
+                                            style="background: transparent; color: var(--error, #EF4444); border: 1px solid var(--error, #EF4444); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; transition: all 0.2s ease; display: inline-flex; align-items: center; gap: 0.25rem;">
+                                        <icon name="trash-2" class="icon-sm" /> Eliminar
+                                     </button>
 
-                                    <a href="/Invoice/DownloadPdf/@fac.Id" target="_blank"
-                                       style="background-color: var(--purple-100); color: var(--purple-900); border: 1px solid var(--purple-300); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; transition: all 0.2s ease;">
-                                        📄 PDF DIAN
-                                    </a>
+                                     <a href="/Invoice/DownloadPdf/@fac.Id" target="_blank"
+                                        style="background-color: var(--purple-100); color: var(--purple-900); border: 1px solid var(--purple-300); padding: 0.35rem 0.65rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.25rem; transition: all 0.2s ease;">
+                                        <icon name="file-text" class="icon-sm" /> PDF DIAN
+                                     </a>
                                 </div>
                             </td>
                         </tr>

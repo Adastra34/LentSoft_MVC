@@ -12,23 +12,23 @@
         </div>
 
         <nav style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <a href="?section=perfil" class="nav-item @(Model.ActiveSection == "perfil" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "perfil" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "perfil" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;" data-i18n="user.nav.profile">
-                👤 Mi Perfil
+            <a href="?section=perfil" class="nav-item @(Model.ActiveSection == "perfil" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "perfil" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "perfil" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;">
+                <icon name="user" /> <span data-i18n="user.nav.profile">Mi Perfil</span>
             </a>
-            <a href="?section=historial" class="nav-item @(Model.ActiveSection == "historial" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "historial" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "historial" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;" data-i18n="user.nav.medical">
-                📑 Historial Médico
+            <a href="?section=historial" class="nav-item @(Model.ActiveSection == "historial" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "historial" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "historial" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;">
+                <icon name="files" /> <span data-i18n="user.nav.medical">Historial Médico</span>
             </a>
-            <a href="?section=pedidos" class="nav-item @(Model.ActiveSection == "pedidos" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "pedidos" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "pedidos" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;" data-i18n="user.nav.orders">
-                📦 Mis Pedidos
+            <a href="?section=pedidos" class="nav-item @(Model.ActiveSection == "pedidos" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "pedidos" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "pedidos" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;">
+                <icon name="package" /> <span data-i18n="user.nav.orders">Mis Pedidos</span>
             </a>
-            <a href="?section=citas" class="nav-item @(Model.ActiveSection == "citas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "citas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "citas" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;" data-i18n="user.nav.appointments">
-                🗓️ Mis Citas
+            <a href="?section=citas" class="nav-item @(Model.ActiveSection == "citas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "citas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "citas" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;">
+                <icon name="calendar-days" /> <span data-i18n="user.nav.appointments">Mis Citas</span>
             </a>
-            <a href="?section=favoritos" class="nav-item @(Model.ActiveSection == "favoritos" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "favoritos" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "favoritos" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;" data-i18n="user.nav.favorites">
-                ❤️ Mis Favoritos
+            <a href="?section=favoritos" class="nav-item @(Model.ActiveSection == "favoritos" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "favoritos" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "favoritos" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;">
+                <icon name="heart" class="icon-fill" /> <span data-i18n="user.nav.favorites">Mis Favoritos</span>
             </a>
-            <a href="?section=configuracion" class="nav-item @(Model.ActiveSection == "configuracion" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "configuracion" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "configuracion" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;" data-i18n="user.nav.settings">
-                ⚙️ Configuración
+            <a href="?section=configuracion" class="nav-item @(Model.ActiveSection == "configuracion" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "configuracion" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "configuracion" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;">
+                <icon name="settings" /> <span data-i18n="user.nav.settings">Configuración</span>
             </a>
         </nav>
     </aside>
@@ -38,14 +38,14 @@
         <!-- Notificaciones de feedback -->
         @if (TempData["SuccessMessage"] != null)
         {
-            <div style="background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; padding: 0.85rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-weight: 600;">
-                ✓ @TempData["SuccessMessage"]
+            <div style="background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; padding: 0.85rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                <icon name="check-circle" class="icon-sm" /> <span>@TempData["SuccessMessage"]</span>
             </div>
         }
         @if (TempData["ErrorMessage"] != null)
         {
-            <div style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 0.85rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-weight: 600;">
-                ⚠ @TempData["ErrorMessage"]
+            <div style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 0.85rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                <icon name="alert-triangle" class="icon-sm" /> <span>@TempData["ErrorMessage"]</span>
             </div>
         }
                     
@@ -79,14 +79,14 @@
                     @if (Model.ActiveSection == "historial")
                     {
                         <div id="section-historial">
-                            <h2 style="color: var(--purple-900); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem; font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;" data-i18n="user.medical.title">
-                                📑 Historial Médico de Citas
+                            <h2 style="color: var(--purple-900); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem; font-size: 1.4rem; font-weight: 800; display: flex; align-items: center; gap: 0.5rem;">
+                                <icon name="files" /> <span data-i18n="user.medical.title">Historial Médico de Citas</span>
                             </h2>
 
                             @if (Model.Historiales == null || Model.Historiales.Count == 0)
                             {
                                 <div style="text-align: center; padding: 3rem 1rem; background-color: var(--purple-50); border-radius: 0.75rem; border: 1px dashed var(--purple-200);">
-                                    <span style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;">📑</span>
+                                    <icon name="files" class="icon-xl" style="width: 2.5rem; height: 2.5rem; display: block; margin: 0 auto 0.5rem auto; color: var(--purple-400);" />
                                     <p style="color: var(--gray-600); margin: 0; font-size: 1rem;" data-i18n="user.medical.empty">No tienes registros de historial médico o fórmulas ópticas registradas.</p>
                                 </div>
                             }
@@ -104,7 +104,7 @@
                                             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
                                                 <div>
                                                     <h3 style="color: var(--purple-900); font-size: 1.15rem; font-weight: 700; margin: 0 0 0.25rem 0; display: flex; align-items: center; gap: 0.5rem;">
-                                                        📅 @fechaFormateada
+                                                        <icon name="calendar" /> @fechaFormateada
                                                     </h3>
                                                     <p style="color: var(--purple-700); font-weight: 600; margin: 0; font-size: 0.95rem;">
                                                         @(string.IsNullOrWhiteSpace(h.ExamenesRealizados) ? "Examen de vista completo" : h.ExamenesRealizados)
@@ -114,16 +114,16 @@
                                                     </p>
                                                 </div>
                                                 <div>
-                                                    <span style="background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; padding: 0.35rem 0.85rem; border-radius: 9999px; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem;" data-i18n="user.medical.completed">
-                                                        ✓ Completada
+                                                    <span style="background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; padding: 0.35rem 0.85rem; border-radius: 9999px; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                                        <icon name="check-circle" class="icon-sm" /> <span data-i18n="user.medical.completed">Completada</span>
                                                     </span>
                                                 </div>
                                             </div>
 
                                             <!-- Caja de Diagnóstico -->
                                             <div style="background-color: #faf5ff; border: 1px solid #f3e8ff; border-radius: 0.6rem; padding: 1rem; margin-bottom: 1.25rem;">
-                                                <h4 style="color: var(--purple-900); margin: 0 0 0.35rem 0; font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 0.4rem;" data-i18n="user.medical.diagnosis">
-                                                    👁️ Diagnóstico
+                                                <h4 style="color: var(--purple-900); margin: 0 0 0.35rem 0; font-size: 0.95rem; font-weight: 700; display: flex; align-items: center; gap: 0.4rem;">
+                                                    <icon name="eye" /> <span data-i18n="user.medical.diagnosis">Diagnóstico</span>
                                                 </h4>
                                                 <p style="color: var(--purple-800); margin: 0; font-size: 0.925rem;">
                                                     @h.Diagnostico
@@ -249,14 +249,14 @@
                                                 <div style="text-align: right;">
                                                     @if (isCancelado)
                                                     {
-                                                        <span style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 0.35rem 0.85rem; border-radius: 9999px; font-weight: 600; font-size: 0.85rem;" data-i18n="user.orders.status.cancelled">
-                                                            ✖ Cancelado
+                                                        <span style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 0.35rem 0.85rem; border-radius: 9999px; font-weight: 600; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                                            <icon name="x" class="icon-sm" /> <span data-i18n="user.orders.status.cancelled">Cancelado</span>
                                                         </span>
                                                     }
                                                     else
                                                     {
-                                                        <button type="button" onclick="toggleOrderDetail(@pedido.Id)" style="background: var(--purple-100); color: var(--purple-800); border: 1px solid var(--purple-200); padding: 0.4rem 0.85rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;" data-i18n="user.orders.viewdetail">
-                                                            👁️ Ver Detalle
+                                                        <button type="button" onclick="toggleOrderDetail(@pedido.Id)" style="background: var(--purple-100); color: var(--purple-800); border: 1px solid var(--purple-200); padding: 0.4rem 0.85rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                                            <icon name="eye" /> <span data-i18n="user.orders.viewdetail">Ver Detalle</span>
                                                         </button>
                                                     }
                                                 </div>
@@ -288,7 +288,7 @@
                                                         <!-- Etapa 1: Pendiente -->
                                                         <div style="text-align: center; position: relative; z-index: 3;">
                                                             <div style="width: 32px; height: 32px; border-radius: 50%; background: @(stepIndex >= 1 ? "var(--purple-600)" : "#e2e8f0"); color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.4rem auto; font-size: 0.85rem; font-weight: 700; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                                                @(stepIndex >= 1 ? "✓" : "1")
+                                                                @if (stepIndex >= 1) { <icon name="check" class="icon-sm" /> } else { <span>1</span> }
                                                             </div>
                                                             <span style="font-size: 0.75rem; font-weight: 600; color: @(stepIndex >= 1 ? "var(--purple-900)" : "var(--gray-500)");" data-i18n="user.orders.status.pending">Pendiente</span>
                                                         </div>
@@ -296,7 +296,7 @@
                                                         <!-- Etapa 2: Procesando -->
                                                         <div style="text-align: center; position: relative; z-index: 3;">
                                                             <div style="width: 32px; height: 32px; border-radius: 50%; background: @(stepIndex >= 2 ? "var(--purple-600)" : "#e2e8f0"); color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.4rem auto; font-size: 0.85rem; font-weight: 700; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                                                @(stepIndex >= 2 ? "✓" : "2")
+                                                                @if (stepIndex >= 2) { <icon name="check" class="icon-sm" /> } else { <span>2</span> }
                                                             </div>
                                                             <span style="font-size: 0.75rem; font-weight: 600; color: @(stepIndex >= 2 ? "var(--purple-900)" : "var(--gray-500)");" data-i18n="user.orders.status.processing">Procesando</span>
                                                         </div>
@@ -304,7 +304,7 @@
                                                         <!-- Etapa 3: Enviado -->
                                                         <div style="text-align: center; position: relative; z-index: 3;">
                                                             <div style="width: 32px; height: 32px; border-radius: 50%; background: @(stepIndex >= 3 ? "var(--purple-600)" : "#e2e8f0"); color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.4rem auto; font-size: 0.85rem; font-weight: 700; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                                                @(stepIndex >= 3 ? "✓" : "3")
+                                                                @if (stepIndex >= 3) { <icon name="check" class="icon-sm" /> } else { <span>3</span> }
                                                             </div>
                                                             <span style="font-size: 0.75rem; font-weight: 600; color: @(stepIndex >= 3 ? "var(--purple-900)" : "var(--gray-500)");" data-i18n="user.orders.status.shipped">Enviado</span>
                                                         </div>
@@ -312,7 +312,7 @@
                                                         <!-- Etapa 4: Entregado -->
                                                         <div style="text-align: center; position: relative; z-index: 3;">
                                                             <div style="width: 32px; height: 32px; border-radius: 50%; background: @(stepIndex >= 4 ? "#16a34a" : "#e2e8f0"); color: white; display: flex; align-items: center; justify-content: center; margin: 0 auto 0.4rem auto; font-size: 0.85rem; font-weight: 700; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                                                                @(stepIndex >= 4 ? "✓" : "4")
+                                                                @if (stepIndex >= 4) { <icon name="check" class="icon-sm" /> } else { <span>4</span> }
                                                             </div>
                                                             <span style="font-size: 0.75rem; font-weight: 600; color: @(stepIndex >= 4 ? "#15803d" : "var(--gray-500)");" data-i18n="user.orders.status.delivered">Entregado</span>
                                                         </div>
@@ -436,7 +436,7 @@
                                                             @(cita.Optometra?.NombreCompleto ?? "Por asignar")
                                                         </td>
                                                         <td style="padding: 0.75rem; color: var(--gray-700);">
-                                                            📅 @cita.FechaHora.ToString("dd/MM/yyyy HH:mm") hrs
+                                                            <icon name="calendar" /> @cita.FechaHora.ToString("dd/MM/yyyy HH:mm") hrs
                                                         </td>
                                                         <td style="padding: 0.75rem;">
                                                             <span style="@statusBadge padding: 0.25rem 0.65rem; border-radius: 9999px; font-weight: 600; font-size: 0.8rem; display: inline-block; text-transform: capitalize;">
@@ -505,8 +505,8 @@
                     @if (Model.ActiveSection == "favoritos")
                     {
                         <div id="section-favoritos">
-                            <h2 style="color: var(--purple-800); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem; font-size: 1.35rem; font-weight: 700;" data-i18n="user.fav.title">
-                                ❤️ Mis Favoritos
+                            <h2 style="color: var(--purple-800); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem; font-size: 1.35rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                                <icon name="heart" class="icon-fill" style="color: #EF4444;" /> <span data-i18n="user.fav.title">Mis Favoritos</span>
                             </h2>
 
                             <div id="favoritos-container">
@@ -531,7 +531,7 @@
                                                 else
                                                 {
                                                     <div style="height: 150px; background: linear-gradient(135deg, var(--purple-100), var(--purple-200)); display: flex; align-items: center; justify-content: center;">
-                                                        <span style="font-size: 2.5rem;">👓</span>
+                                                        <icon name="glasses" class="icon-xl" style="width: 2.5rem; height: 2.5rem; color: var(--purple-400);" />
                                                     </div>
                                                 }
 
@@ -552,14 +552,14 @@
                                                     @Html.AntiForgeryToken()
                                                     <input type="hidden" name="productId" value="@product.Id" />
                                                     <input type="hidden" name="quantity" value="1" />
-                                                    <button type="submit" style="width: 100%; background: var(--purple-600); color: white; border: none; padding: 0.5rem 0.5rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.35rem;" data-i18n="user.fav.add">
-                                                        🛒 Añadir
+                                                    <button type="submit" style="width: 100%; background: var(--purple-600); color: white; border: none; padding: 0.5rem 0.5rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.35rem;">
+                                                        <icon name="shopping-cart" /> <span data-i18n="user.fav.add">Añadir</span>
                                                     </button>
                                                 </form>
 
                                                 <!-- Botón para Eliminar de Favoritos (RF-M02-03) -->
-                                                <button type="button" onclick="removeFavoriteAsync(@product.Id)" title="Quitar de Favoritos" data-i18n-title="user.fav.remove" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 0.5rem 0.65rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 700; cursor: pointer;">
-                                                    🗑️
+                                                <button type="button" onclick="removeFavoriteAsync(@product.Id)" title="Quitar de Favoritos" aria-label="Quitar de Favoritos" data-i18n-title="user.fav.remove" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 0.5rem 0.65rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 700; cursor: pointer; display: inline-flex; align-items: center; justify-content: center;">
+                                                    <icon name="trash-2" />
                                                 </button>
                                             </div>
 
@@ -587,8 +587,8 @@
                                 <div class="form-group" style="margin-bottom: 1.25rem;">
                                     <label class="form-label" style="font-weight: 600; color: var(--gray-700);" data-i18n="user.config.newpwd">Nueva Contraseña</label>
                                     <input name="NewPassword" type="password" class="form-input" required placeholder="Ej: Pass1234!" data-i18n-placeholder="user.config.newpwdplaceholder" style="width: 100%; padding: 0.6rem 0.85rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);" />
-                                    <small style="color: var(--gray-500); font-size: 0.75rem; display: block; margin-top: 0.25rem;" data-i18n="user.config.pwdhint">
-                                        🔒 Mín. 8 caract. (Mayúscula, minúscula, número y especial).
+                                    <small style="color: var(--gray-500); font-size: 0.75rem; display: flex; align-items: center; gap: 0.35rem; margin-top: 0.25rem;">
+                                        <icon name="lock" class="icon-sm" /> <span data-i18n="user.config.pwdhint">Mín. 8 caract. (Mayúscula, minúscula, número y especial).</span>
                                     </small>
                                 </div>
                                 <div class="form-group" style="margin-bottom: 1.5rem;">
@@ -649,7 +649,9 @@
 <div id="modal-reprogramar-cita" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
     <div class="card" style="width: 100%; max-width: 450px; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
-            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.2rem; font-weight: 700;" data-i18n="user.modal.reprog.title">🗓️ Reprogramar Cita</h2>
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.2rem; font-weight: 700; display: flex; align-items: center; gap: 0.4rem;">
+                <icon name="calendar-days" /> <span data-i18n="user.modal.reprog.title">Reprogramar Cita</span>
+            </h2>
             <button type="button" onclick="document.getElementById('modal-reprogramar-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         

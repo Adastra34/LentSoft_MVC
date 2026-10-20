@@ -81,7 +81,7 @@
                                 </Grid>
 
                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                                    <Label Grid.Column="0" Text="📅" FontSize="16" VerticalOptions="Center"/>
+                                    <Image Grid.Column="0" Source="icon_calendar_purple.svg" WidthRequest="18" HeightRequest="18" VerticalOptions="Center"/>
                                     <Label Grid.Column="1"
                                            Text="{Binding ProximaCita.DisplayFechaHora}"
                                            FontSize="13"
@@ -90,7 +90,7 @@
                                 </Grid>
 
                                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="10">
-                                    <Label Grid.Column="0" Text="👨‍⚕️" FontSize="16" VerticalOptions="Center"/>
+                                    <Image Grid.Column="0" Source="icon_stethoscope_purple.svg" WidthRequest="18" HeightRequest="18" VerticalOptions="Center"/>
                                     <Label Grid.Column="1"
                                            Text="{Binding ProximaCita.OptometraNombre}"
                                            FontSize="13"
@@ -104,7 +104,8 @@
 
                                 <Grid ColumnDefinitions="*,*" ColumnSpacing="10">
                                     <Button Grid.Column="0"
-                                            Text="🔄 Reprogramar"
+                                            Text="Reprogramar"
+                                            ImageSource="icon_refresh_purple.svg"
                                             Command="{Binding ReprogramarProximaCitaCommand}"
                                             BackgroundColor="{StaticResource PurpleLight}"
                                             TextColor="{StaticResource Purple}"
@@ -115,7 +116,8 @@
                                             Padding="0"/>
 
                                     <Button Grid.Column="1"
-                                            Text="❌ Cancelar"
+                                            Text="Cancelar"
+                                            ImageSource="icon_x_circle_red.svg"
                                             Command="{Binding CancelarProximaCitaCommand}"
                                             BackgroundColor="{StaticResource CoralLight}"
                                             TextColor="{StaticResource Coral}"
@@ -174,7 +176,7 @@
                                                     BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInputBg}}"
                                                     Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"
                                                     StrokeThickness="1">
-                                                <Label Text="👁️" FontSize="18" HorizontalOptions="Center" VerticalOptions="Center"/>
+                                                <Image Source="icon_eye_purple.svg" WidthRequest="20" HeightRequest="20" HorizontalOptions="Center" VerticalOptions="Center"/>
                                             </Border>
 
                                             <!-- Appointment info -->

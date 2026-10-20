@@ -136,44 +136,44 @@ public partial class AgendarCitaViewModel : ObservableObject
         // Validación de Fecha
         if (SelectedDate.Date < DateTime.Today)
         {
-            DateValidationHint = "❌ No puedes seleccionar una fecha anterior al día de hoy.";
+            DateValidationHint = "No puedes seleccionar una fecha anterior al día de hoy.";
             DateHintColor = "#DC2626";
         }
         else if (SelectedDate.DayOfWeek == DayOfWeek.Sunday)
         {
-            DateValidationHint = "❌ Los domingos no hay atención (Atendemos de Lunes a Sábado).";
+            DateValidationHint = "Los domingos no hay atención (Atendemos de Lunes a Sábado).";
             DateHintColor = "#DC2626";
         }
         else if (SelectedDate.Date == DateTime.Today && now.Hour >= 18)
         {
-            DateValidationHint = "❌ La clínica ya cerró por el día de hoy (horario hasta 6:00 p.m.).";
+            DateValidationHint = "La clínica ya cerró por el día de hoy (horario hasta 6:00 p.m.).";
             DateHintColor = "#DC2626";
         }
         else if (SelectedDate.Date == DateTime.Today)
         {
-            DateValidationHint = $"📅 Cita para hoy (debe ser posterior a las {now:hh:mm tt})";
+            DateValidationHint = $"Cita para hoy (debe ser posterior a las {now:hh:mm tt})";
             DateHintColor = "#D97706";
         }
         else
         {
-            DateValidationHint = $"✔️ {SelectedDate:dddd, dd MMMM yyyy}";
+            DateValidationHint = $"{SelectedDate:dddd, dd MMMM yyyy}";
             DateHintColor = "#2FBF71";
         }
 
         // Validación de Hora
         if (SelectedTime.Hours < 8 || SelectedTime.Hours > 18 || (SelectedTime.Hours == 18 && SelectedTime.Minutes > 0))
         {
-            TimeValidationHint = "❌ Horario fuera de servicio (Atención: 8:00 a.m. a 6:00 p.m.)";
+            TimeValidationHint = "Horario fuera de servicio (Atención: 8:00 a.m. a 6:00 p.m.)";
             TimeHintColor = "#DC2626";
         }
         else if (SelectedDate.Date == DateTime.Today && SelectedTime <= now.TimeOfDay)
         {
-            TimeValidationHint = $"❌ Hora ya pasada hoy. Debe ser posterior a las {now:hh:mm tt}.";
+            TimeValidationHint = $"Hora ya pasada hoy. Debe ser posterior a las {now:hh:mm tt}.";
             TimeHintColor = "#DC2626";
         }
         else
         {
-            TimeValidationHint = "✔️ Horario disponible para atención";
+            TimeValidationHint = "Horario disponible para atención";
             TimeHintColor = "#2FBF71";
         }
     }
