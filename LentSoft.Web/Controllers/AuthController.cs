@@ -8,27 +8,34 @@ using LentSoft.Web.Services;
 
 namespace LentSoft.Web.Controllers;
 
+/// <summary>
+/// Controlador web de autenticación, registro y recuperación de contraseña.
+/// </summary>
 public class AuthController : Controller
 {
     private readonly IAuthService _authService;
     private readonly IPasswordResetTokenService _tokenService;
     private readonly IEmailService _emailService;
+    private readonly ILoginAttemptService _loginAttemptService;
     private readonly ILogger<AuthController> _logger;
 
     public AuthController(
         IAuthService authService,
         IPasswordResetTokenService tokenService,
         IEmailService emailService,
+        ILoginAttemptService loginAttemptService,
         ILogger<AuthController> logger)
     {
         _authService = authService;
         _tokenService = tokenService;
         _emailService = emailService;
+        _loginAttemptService = loginAttemptService;
         _logger = logger;
     }
 
     /// <summary>
-    /// Show login form — migrated from Views/login.html
+    /// Muestra el formulario de inicio de sesión.
+    /// Si el usuario ya está autenticado, lo redirige a su panel correspondiente según su rol.
     /// </summary>
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
@@ -42,7 +49,7 @@ public class AuthController : Controller
     }
 
     /// <summary>
-    /// Process login — migrated from login.html form submit + js/auth.js login()
+    /// Procesa las credenciales de inicio de sesión aplicando protección de bloqueo temporal por intentos fallidos.
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -54,21 +61,47 @@ public class AuthController : Controller
             return View(model);
         }
 
-        var user = await _authService.LoginAsync(model.Email, model.Password);
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var clientKey = $"{model.Email?.Trim().ToLowerInvariant()}:{ip}";
 
-        if (user == null)
+        if (_loginAttemptService.IsLockedOut(clientKey, out var remaining))
         {
-            ModelState.AddModelError(string.Empty, "Credenciales inválidas. Intenta nuevamente.");
+            var minutes = Math.Max(1, (int)Math.Ceiling(remaining.TotalMinutes));
+            ModelState.AddModelError(string.Empty, $"Demasiados intentos fallidos. Intenta de nuevo en {minutes} minuto(s).");
             ViewBag.ReturnUrl = returnUrl;
             return View(model);
         }
 
-        // Create authentication cookie with claims
+        var user = await _authService.LoginAsync(model.Email, model.Password);
+
+        if (user == null)
+        {
+            _loginAttemptService.RegisterFailure(clientKey);
+
+            if (_loginAttemptService.IsLockedOut(clientKey, out var rem))
+            {
+                _logger.LogWarning("Bloqueo temporal activado por demasiados intentos fallidos para el correo {Email} desde la IP {IpAddress}.", model.Email?.Trim().ToLowerInvariant(), ip);
+                var minutes = Math.Max(1, (int)Math.Ceiling(rem.TotalMinutes));
+                ModelState.AddModelError(string.Empty, $"Demasiados intentos fallidos. Intenta de nuevo en {minutes} minuto(s).");
+            }
+            else
+            {
+                ModelState.AddModelError(string.Empty, "Credenciales inválidas. Intenta nuevamente.");
+            }
+
+            ViewBag.ReturnUrl = returnUrl;
+            return View(model);
+        }
+
+        // Inicio de sesión exitoso: reiniciar contador de fallos
+        _loginAttemptService.Reset(clientKey);
+
+        // Crear cookie de autenticación con claims del usuario
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(ClaimTypes.Name, string.IsNullOrEmpty(user.Apellido) ? user.Nombre : user.NombreCompleto),
-            new(ClaimTypes.Email, user.Email),
+            new(ClaimTypes.Email, user.Email ?? string.Empty),
             new(ClaimTypes.Role, user.Role)
         };
 
@@ -93,7 +126,7 @@ public class AuthController : Controller
     }
 
     /// <summary>
-    /// Show registration form — migrated from Views/registro.html
+    /// Muestra el formulario de registro de nuevos clientes.
     /// </summary>
     [HttpGet]
     public IActionResult Register()
@@ -106,7 +139,7 @@ public class AuthController : Controller
     }
 
     /// <summary>
-    /// Process registration — migrated from registro.html form submit + AuthController.js register()
+    /// Procesa el registro de clientes garantizando que el rol asignado sea siempre "usuario".
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -130,7 +163,7 @@ public class AuthController : Controller
             return View(model);
         }
 
-        // Auto-login after registration
+        // Auto-login posterior al registro exitoso
         var claims = new List<Claim>
         {
             new(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -151,7 +184,7 @@ public class AuthController : Controller
     }
 
     /// <summary>
-    /// Logout — migrated from js/auth.js AuthService.logout()
+    /// Cierra la sesión activa del usuario y elimina la cookie de autenticación.
     /// </summary>
     [HttpPost]
     [Authorize]
@@ -163,11 +196,11 @@ public class AuthController : Controller
     }
 
     // ══════════════════════════════════════════
-    //  PASSWORD RESET FLOW
+    //  FLUJO DE RECUPERACIÓN DE CONTRASEÑA
     // ══════════════════════════════════════════
 
     /// <summary>
-    /// Show forgot password form
+    /// Muestra la vista para solicitar el enlace de recuperación de contraseña.
     /// </summary>
     [HttpGet]
     public IActionResult ForgotPassword()
@@ -176,8 +209,7 @@ public class AuthController : Controller
     }
 
     /// <summary>
-    /// Process forgot password request — generates JWT token and sends email.
-    /// Always shows success message regardless of whether email exists (security).
+    /// Genera y envía por correo el token de recuperación de contraseña de un solo uso con huella digital (pwdfp).
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -197,27 +229,25 @@ public class AuthController : Controller
         {
             try
             {
-                var token = _tokenService.GenerateToken(user.Id, user.Email);
+                var token = _tokenService.GenerateToken(user.Id, user.Email, user.PasswordHash);
                 var resetLink = Url.Action("ResetPassword", "Auth", new { token }, Request.Scheme)!;
                 await _emailService.SendPasswordResetEmailAsync(user.Email, resetLink);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error al enviar correo de recuperación para {Email}", email);
-                // Don't reveal the error to the user for security
             }
         }
 
-        // Always show success (security: don't reveal if email exists)
         ViewBag.SuccessMessage = successMessage;
         return View();
     }
 
     /// <summary>
-    /// Show reset password form (validates JWT token from URL)
+    /// Muestra el formulario para ingresar la nueva contraseña, validando el token y su fingerprint.
     /// </summary>
     [HttpGet]
-    public IActionResult ResetPassword(string token)
+    public async Task<IActionResult> ResetPassword(string token)
     {
         if (string.IsNullOrWhiteSpace(token))
         {
@@ -226,13 +256,26 @@ public class AuthController : Controller
         }
 
         var userId = _tokenService.ValidateToken(token);
-        ViewBag.TokenValid = userId != null;
+        if (userId == null)
+        {
+            ViewBag.TokenValid = false;
+            return View();
+        }
+
+        var user = await _authService.GetUserByIdAsync(userId.Value);
+        if (user == null || !_tokenService.MatchesCurrentPassword(token, user.PasswordHash))
+        {
+            ViewBag.TokenValid = false;
+            return View();
+        }
+
+        ViewBag.TokenValid = true;
         ViewBag.Token = token;
         return View();
     }
 
     /// <summary>
-    /// Process password reset — validates token again, updates password hash
+    /// Procesa el cambio de contraseña garantizando el token de un solo uso.
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
@@ -245,15 +288,24 @@ public class AuthController : Controller
         }
 
         var userId = _tokenService.ValidateToken(token);
-
         if (userId == null)
         {
             ViewBag.TokenValid = false;
             return View();
         }
 
-        // Validate passwords
-        var isStrongPassword = System.Text.RegularExpressions.Regex.IsMatch(newPassword ?? "", @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$");
+        var user = await _authService.GetUserByIdAsync(userId.Value);
+        if (user == null || !_tokenService.MatchesCurrentPassword(token, user.PasswordHash))
+        {
+            ViewBag.TokenValid = false;
+            return View();
+        }
+
+        // Validar fortaleza de la nueva contraseña
+        var isStrongPassword = System.Text.RegularExpressions.Regex.IsMatch(
+            newPassword ?? string.Empty,
+            @"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\da-zA-Z]).{8,}$");
+
         if (!isStrongPassword)
         {
             ViewBag.TokenValid = true;
@@ -270,14 +322,7 @@ public class AuthController : Controller
             return View();
         }
 
-        // Update password
-        var user = await _authService.GetUserByIdAsync(userId.Value);
-        if (user == null)
-        {
-            ViewBag.TokenValid = false;
-            return View();
-        }
-
+        // Actualizar contraseña: el nuevo hash invalidará automáticamente el token para futuros intentos
         user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
         await _authService.UpdateUserAsync(user);
 

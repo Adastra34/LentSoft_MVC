@@ -22,7 +22,9 @@ appsettings.Development.json
 appsettings.Production.json
 appsettings.Local.json
 secrets.json
+.env
 *.env
 *.env.*
+!.env.example
 TestResults/
 publish/

@@ -167,4 +167,30 @@ dotnet LentSoft.Web.dll
 ### Módulo de Previsualización AR (Webcam & Face-Tracking)
 - El tracking facial opera **100% en el navegador del cliente** utilizando MediaPipe Vision WebAssembly y Canvas HTML5.
 - **Seguridad y Privacidad:** Las capturas y fotogramas de la cámara web **nunca** son transmitidos ni almacenados en los servidores de LentSoft.
-- **Rendimiento:** Cuenta con carga diferida (*lazy loading*), detección automática de dispositivos lentos con limitación a 24-30 FPS, suavizado de movimiento (*smoothing*) y detección de iluminación.
+- **Rendimiento:** Cuenta con carga diferida (*lazy loading*), detección automática de dispositivos lentos con limitación a 24-30 FPS, suavizado de movimiento (*smoothing*) y detección de iluminación.
+
+## Ejecución con Docker
+
+Para desplegar la aplicación y su base de datos SQL Server mediante contenedores de forma rápida y reproducible:
+
+1. **Crear el archivo de entorno**:
+   Copia la plantilla de variables de entorno y ajusta tus contraseñas y claves:
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **Construir las imágenes e iniciar los contenedores**:
+   Ejecuta Docker Compose para levantar tanto el contenedor de SQL Server como la aplicación web:
+   ```bash
+   docker compose up -d --build
+   ```
+
+3. **Verificar el estado de los servicios**:
+   Comprueba que los contenedores estén en estado saludable y en ejecución:
+   ```bash
+   docker compose ps
+   ```
+
+4. **Acceder a la aplicación**:
+   Abre tu navegador en [http://localhost:5000](http://localhost:5000) para acceder a LentSoft.
+

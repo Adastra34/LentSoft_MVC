@@ -12,6 +12,7 @@ public class AuthApiController : ControllerBase
     private readonly IMobileJwtService _jwtService;
     private readonly IPasswordResetTokenService _tokenService;
     private readonly IEmailService _emailService;
+    private readonly ILoginAttemptService _loginAttemptService;
     private readonly ILogger<AuthApiController> _logger;
 
     public AuthApiController(
@@ -19,12 +20,14 @@ public class AuthApiController : ControllerBase
         IMobileJwtService jwtService,
         IPasswordResetTokenService tokenService,
         IEmailService emailService,
+        ILoginAttemptService loginAttemptService,
         ILogger<AuthApiController> logger)
     {
         _authService = authService;
         _jwtService = jwtService;
         _tokenService = tokenService;
         _emailService = emailService;
+        _loginAttemptService = loginAttemptService;
         _logger = logger;
     }
 
@@ -34,19 +37,39 @@ public class AuthApiController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
+        var ip = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var clientKey = $"{request.Email?.Trim().ToLowerInvariant()}:{ip}";
+
+        if (_loginAttemptService.IsLockedOut(clientKey, out var remaining))
+        {
+            var minutes = Math.Max(1, (int)Math.Ceiling(remaining.TotalMinutes));
+            return StatusCode(StatusCodes.Status429TooManyRequests, new { message = $"Demasiados intentos fallidos. Intenta de nuevo en {minutes} minuto(s)." });
+        }
+
         var user = await _authService.LoginAsync(request.Email.Trim(), request.Password);
         if (user == null || !user.Activo)
         {
+            _loginAttemptService.RegisterFailure(clientKey);
+
+            if (_loginAttemptService.IsLockedOut(clientKey, out var rem))
+            {
+                _logger.LogWarning("Bloqueo temporal activado en API por demasiados intentos fallidos para el correo {Email} desde la IP {IpAddress}.", request.Email?.Trim().ToLowerInvariant(), ip);
+                var minutes = Math.Max(1, (int)Math.Ceiling(rem.TotalMinutes));
+                return StatusCode(StatusCodes.Status429TooManyRequests, new { message = $"Demasiados intentos fallidos. Intenta de nuevo en {minutes} minuto(s)." });
+            }
+
             return Unauthorized(new { message = "Credenciales incorrectas o usuario inactivo." });
         }
 
-        var token = _jwtService.GenerateToken(user);
+        _loginAttemptService.Reset(clientKey);
+
+        var token = _jwtService.GenerateToken(user!);
         return Ok(new
         {
             token,
             user = new
             {
-                user.Id,
+                user!.Id,
                 user.Nombre,
                 user.Apellido,
                 user.NombreCompleto,
@@ -111,7 +134,7 @@ public class AuthApiController : ControllerBase
         {
             try
             {
-                var token = _tokenService.GenerateToken(user.Id, user.Email);
+                var token = _tokenService.GenerateToken(user.Id, user.Email, user.PasswordHash);
                 var resetLink = Url.Action("ResetPassword", "Auth", new { token }, Request.Scheme) 
                     ?? $"{Request.Scheme}://{Request.Host}/Auth/ResetPassword?token={token}";
                 await _emailService.SendPasswordResetEmailAsync(user.Email, resetLink);
