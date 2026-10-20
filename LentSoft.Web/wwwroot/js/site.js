@@ -7,7 +7,8 @@ document.addEventListener('DOMContentLoaded', function() {
         togglePassword.addEventListener('click', function() {
             const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
             password.setAttribute('type', type);
-            this.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+            const icon = type === 'password' ? 'eye' : 'eye-off';
+            this.innerHTML = `<svg class="icon" aria-hidden="true"><use href="/img/icons/sprite.svg#icon-${icon}"></use></svg>`;
         });
     }
 
@@ -17,7 +18,8 @@ document.addEventListener('DOMContentLoaded', function() {
         toggleRegisterPassword.addEventListener('click', function() {
             const type = registerPassword.getAttribute('type') === 'password' ? 'text' : 'password';
             registerPassword.setAttribute('type', type);
-            this.textContent = type === 'password' ? '👁️' : '👁️‍🗨️';
+            const icon = type === 'password' ? 'eye' : 'eye-off';
+            this.innerHTML = `<svg class="icon" aria-hidden="true"><use href="/img/icons/sprite.svg#icon-${icon}"></use></svg>`;
         });
     }
 
@@ -61,9 +63,9 @@ async function addToCart(productId, cantidad = 1) {
         const data = await resp.json();
         if (data.success) {
             if (typeof alertify !== 'undefined') {
-                alertify.success('🛒 ' + data.message);
+                alertify.success(data.message);
             } else {
-                alert('🛒 ' + data.message);
+                alert(data.message);
             }
         } else {
             if (typeof alertify !== 'undefined') {

@@ -37,7 +37,7 @@
                     }
                     else
                     {
-                        <span style="font-size: 5rem;">👓</span>
+                        <span style="font-size: 5rem; color: var(--purple-700);"><icon name="glasses" /></span>
                     }
                 </div>
 
@@ -52,8 +52,8 @@
                     }
                     else
                     {
-                        <button type="button" style="border: 2.5px solid var(--purple-600); background: white; border-radius: 0.75rem; width: 80px; height: 80px; padding: 0.25rem; cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none;">
-                            <span style="font-size: 2rem;">👓</span>
+                        <button type="button" style="border: 2.5px solid var(--purple-600); background: white; border-radius: 0.75rem; width: 80px; height: 80px; padding: 0.25rem; cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none; color: var(--purple-700);">
+                            <span style="font-size: 2rem;"><icon name="glasses" /></span>
                         </button>
                     }
                 </div>
@@ -74,11 +74,13 @@
 
                 <!-- Rating -->
                 <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <span style="color: #fbbf24; font-size: 1.15rem; letter-spacing: 1px;">
-                        @for (int i = 0; i < fullStars; i++) { <text>★</text> }
-                        @if (hasHalf) { <text>★</text> }
-                        @for (int i = 0; i < emptyStars; i++) { <text>☆</text> }
-                    </span>
+                    <div class="rating-stars" role="img" aria-label="@($"{Math.Round(Model.Product.Rating, 1)} de 5 estrellas")" style="font-size: 1.15rem;">
+                        @for (int i = 1; i <= 5; i++)
+                        {
+                            var isFilled = i <= fullStars || (i == fullStars + 1 && hasHalf);
+                            <icon name="star" class="@(isFilled ? "icon-fill" : "")" />
+                        }
+                    </div>
                     <span style="color: var(--gray-600); font-size: 0.9rem; font-weight: 500;">
                         (@Model.Product.ReviewCount <span data-i18n="product.reviews">reseñas</span>)
                     </span>
@@ -123,21 +125,21 @@
                 <!-- Benefits Blocks -->
                 <div style="display: flex; flex-direction: column; gap: 0.85rem; background: rgba(255,255,255,0.7); border-radius: 1rem; padding: 1.25rem; border: 1px solid var(--gray-200);">
                     <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                        <span style="font-size: 1.25rem; line-height: 1;">🛡️</span>
+                        <icon name="shield-check" class="icon-lg" style="color: var(--purple-600); margin-top: 0.15rem;" />
                         <div>
                             <strong style="color: var(--purple-900); font-size: 0.875rem; display: block; font-family: var(--font-primary); margin-bottom: 0.15rem;" data-i18n="product.benefit.warranty.title">Garantía incluida</strong>
                             <span style="color: var(--gray-500); font-size: 0.8rem; line-height: 1.3; display: block;" data-i18n="product.benefit.warranty.desc">Cobertura de 12 meses ante defectos de fábrica en todas tus monturas.</span>
                         </div>
                     </div>
                     <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                        <span style="font-size: 1.25rem; line-height: 1;">🚚</span>
+                        <icon name="truck" class="icon-lg" style="color: var(--purple-600); margin-top: 0.15rem;" />
                         <div>
                             <strong style="color: var(--purple-900); font-size: 0.875rem; display: block; font-family: var(--font-primary); margin-bottom: 0.15rem;" data-i18n="product.benefit.shipping.title">Envío gratis</strong>
                             <span style="color: var(--gray-500); font-size: 0.8rem; line-height: 1.3; display: block;" data-i18n="product.benefit.shipping.desc">Recibe tu pedido a domicilio en un plazo de 3 a 5 días hábiles sin costo.</span>
                         </div>
                     </div>
                     <div style="display: flex; align-items: flex-start; gap: 0.75rem;">
-                        <span style="font-size: 1.25rem; line-height: 1;">✨</span>
+                        <icon name="sparkles" class="icon-lg" style="color: var(--purple-600); margin-top: 0.15rem;" />
                         <div>
                             <strong style="color: var(--purple-900); font-size: 0.875rem; display: block; font-family: var(--font-primary); margin-bottom: 0.15rem;" data-i18n="product.benefit.quality.title">Calidad garantizada</strong>
                             <span style="color: var(--gray-500); font-size: 0.8rem; line-height: 1.3; display: block;" data-i18n="product.benefit.quality.desc">Materiales duraderos, cómodos y avalados por profesionales de la salud visual.</span>
@@ -154,21 +156,24 @@
                             onmouseout="this.style.transform='translateY(0)'">
                         @if (Model.Product.HasStock())
                         {
-                            <text><span data-i18n="product.addcart">🛒 Añadir al Carrito</span></text>
+                            <icon name="shopping-cart" /> <span data-i18n="product.addcart">Añadir al Carrito</span>
                         }
                         else
                         {
-                            <text><span data-i18n="product.soldout.temp">Agotado temporalmente</span></text>
+                            <span data-i18n="product.soldout.temp">Agotado temporalmente</span>
                         }
                     </button>
 
                     <!-- Favorite Circular Button -->
                     <button type="button" onclick="toggleFavoriteDetails(@Model.Product.Id, this)"
+                            class="btn-fav @(isFavorite ? "is-active" : "")"
+                            aria-pressed="@(isFavorite ? "true" : "false")"
+                            aria-label="@(isFavorite ? "Quitar de favoritos" : "Agregar a favoritos")"
                             title="@(isFavorite ? "Quitar de favoritos" : "Agregar a favoritos")"
-                            style="background: white; border: 2px solid var(--gray-200); border-radius: 50%; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.5rem; transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; padding: 0;"
+                            style="background: white; border: 2px solid var(--gray-200); border-radius: 50%; width: 52px; height: 52px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.5rem; color: var(--gray-500); transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s; padding: 0;"
                             onmouseover="this.style.transform='scale(1.1)'; this.style.borderColor='var(--purple-300)'; this.style.boxShadow='var(--shadow-md)';"
                             onmouseout="this.style.transform='scale(1)'; this.style.borderColor='var(--gray-200)'; this.style.boxShadow='none';">
-                        @(isFavorite ? "❤️" : "🤍")
+                        <icon name="heart" class="icon @(isFavorite ? "icon-fill" : "")" />
                     </button>
                 </div>
 
@@ -179,13 +184,13 @@
                        style="width: 100%; background: var(--purple-700); color: white; border: none; border-radius: 0.75rem; padding: 0.9rem; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 12px rgba(147,51,234,0.3); text-align: center; text-decoration: none;"
                        onmouseover="this.style.background='var(--purple-800)'; this.style.transform='translateY(-2px)';"
                        onmouseout="this.style.background='var(--purple-700)'; this.style.transform='translateY(0)';">
-                        <span data-i18n="product.frametryon">👓 MUESTRA DE MONTURA</span>
+                        <icon name="glasses" /> <span data-i18n="product.frametryon">MUESTRA DE MONTURA</span>
                     </a>
                 }
                 else
                 {
                     <div style="width: 100%; background: var(--purple-50); color: var(--purple-700); border: 1.5px dashed var(--purple-300); border-radius: 0.75rem; padding: 0.85rem; font-size: 0.9rem; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 0.5rem; text-align: center;">
-                        <span>👓 Previsualización no disponible para esta montura</span>
+                        <icon name="glasses" /> <span>Previsualización no disponible para esta montura</span>
                     </div>
                 }
 
@@ -280,13 +285,23 @@
                 });
                 const data = await resp.json();
                 if (data.isFavorite) {
-                    heartEl.textContent = '❤️';
-                    heartEl.title = lang === 'en' ? 'Remove from favorites' : 'Quitar de favoritos';
-                    alertify.success(lang === 'en' ? '❤️ Added to favorites' : '❤️ Añadido a favoritos');
+                    heartEl.classList.add('is-active');
+                    heartEl.setAttribute('aria-pressed', 'true');
+                    const titleText = lang === 'en' ? 'Remove from favorites' : 'Quitar de favoritos';
+                    heartEl.title = titleText;
+                    heartEl.setAttribute('aria-label', titleText);
+                    const icon = heartEl.querySelector('.icon');
+                    if (icon) icon.classList.add('icon-fill');
+                    alertify.success(lang === 'en' ? 'Added to favorites' : 'Añadido a favoritos');
                 } else {
-                    heartEl.textContent = '🤍';
-                    heartEl.title = lang === 'en' ? 'Add to favorites' : 'Agregar a favoritos';
-                    alertify.message(lang === 'en' ? '🤍 Removed from favorites' : '🤍 Quitado de favoritos');
+                    heartEl.classList.remove('is-active');
+                    heartEl.setAttribute('aria-pressed', 'false');
+                    const titleText = lang === 'en' ? 'Add to favorites' : 'Agregar a favoritos';
+                    heartEl.title = titleText;
+                    heartEl.setAttribute('aria-label', titleText);
+                    const icon = heartEl.querySelector('.icon');
+                    if (icon) icon.classList.remove('icon-fill');
+                    alertify.message(lang === 'en' ? 'Removed from favorites' : 'Quitado de favoritos');
                 }
             } catch (e) {
                 console.error('Error toggling favorite', e);

@@ -16,7 +16,7 @@
             @if (!cartItems.Any())
             {
                 <div style="text-align: center; padding: 4rem 2rem; background: white; border-radius: 1.25rem; box-shadow: var(--shadow-md); border: 1.5px solid var(--gray-100);">
-                    <div style="font-size: 4.5rem; margin-bottom: 1.5rem;">🛒</div>
+                    <div style="margin-bottom: 1.5rem; color: var(--purple-400);"><icon name="shopping-cart" style="width: 4.5rem; height: 4.5rem;" /></div>
                     <h3 style="color: var(--purple-900); font-family: var(--font-primary); font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;" data-i18n="cart.empty">Tu carrito está vacío</h3>
                     <p style="color: var(--gray-500); font-size: 0.95rem; margin-bottom: 1.5rem; max-width: 320px; margin-left: auto; margin-right: auto;" data-i18n="cart.empty.desc">
                         Parece que aún no has agregado productos. Explora nuestro catálogo y encuentra lo que necesitas.
@@ -55,7 +55,7 @@
                                                 }
                                                 else
                                                 {
-                                                    <span style="font-size: 1.5rem;">👓</span>
+                                                    <icon name="glasses" style="width: 1.5rem; height: 1.5rem; color: var(--gray-400);" />
                                                 }
                                             </div>
                                             <div>
@@ -87,8 +87,8 @@
                                         
                                         <!-- Delete item -->
                                         <td style="padding: 1.25rem 1rem; text-align: center;">
-                                            <button type="button" onclick="confirmRemove(@item.ProductId)" style="border: none; background: transparent; font-size: 1.2rem; cursor: pointer; color: var(--error); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'" title="Eliminar artículo">
-                                                🗑️
+                                            <button type="button" onclick="confirmRemove(@item.ProductId)" style="border: none; background: transparent; font-size: 1.2rem; cursor: pointer; color: var(--error); transition: transform 0.2s;" onmouseover="this.style.transform='scale(1.15)'" onmouseout="this.style.transform='scale(1)'" title="Eliminar artículo" aria-label="Eliminar artículo">
+                                                <icon name="trash-2" />
                                             </button>
                                         </td>
                                     </tr>
@@ -120,8 +120,8 @@
 
                         <a asp-controller="Checkout" asp-action="Index" class="btn" style="background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white; border: none; border-radius: 0.75rem; padding: 0.9rem; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(124,58,237,0.3); text-align: center; text-decoration: none;"
                                 onmouseover="this.style.transform='translateY(-2px)'"
-                                onmouseout="this.style.transform='translateY(0)'" data-i18n="cart.checkout">
-                            Proceder al pago 💳
+                                onmouseout="this.style.transform='translateY(0)'">
+                            <span data-i18n="cart.checkout">Proceder al pago</span> <icon name="credit-card" />
                         </a>
                         
                         <a asp-controller="Product" asp-action="Tienda" style="color: var(--purple-600); text-align: center; font-size: 0.85rem; font-weight: 600; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'" data-i18n="cart.continue">
@@ -221,14 +221,17 @@
         // Render empty cart dynamically
         function renderEmptyCartState() {
             const wrapper = document.getElementById('cartContentWrapper');
+            const spriteUrl = '@Url.Content("~/img/icons/sprite.svg")';
             wrapper.innerHTML = `
                 <div style="text-align: center; padding: 4rem 2rem; background: white; border-radius: 1.25rem; box-shadow: var(--shadow-md); border: 1.5px solid var(--gray-100);">
-                    <div style="font-size: 4.5rem; margin-bottom: 1.5rem;">🛒</div>
-                    <h3 style="color: var(--purple-900); font-family: var(--font-primary); font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;">Tu carrito está vacío</h3>
-                    <p style="color: var(--gray-500); font-size: 0.95rem; margin-bottom: 1.5rem; max-width: 320px; margin-left: auto; margin-right: auto;">
+                    <div style="margin-bottom: 1.5rem; color: var(--purple-400);">
+                        <svg class="icon" style="width: 4.5rem; height: 4.5rem;" aria-hidden="true"><use href="${spriteUrl}#icon-shopping-cart"></use></svg>
+                    </div>
+                    <h3 style="color: var(--purple-900); font-family: var(--font-primary); font-size: 1.5rem; font-weight: 700; margin-bottom: 0.5rem;" data-i18n="cart.empty">Tu carrito está vacío</h3>
+                    <p style="color: var(--gray-500); font-size: 0.95rem; margin-bottom: 1.5rem; max-width: 320px; margin-left: auto; margin-right: auto;" data-i18n="cart.empty.desc">
                         Parece que aún no has agregado productos. Explora nuestro catálogo y encuentra lo que necesitas.
                     </p>
-                    <a href="/Product/Tienda" class="btn" style="background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white; padding: 0.75rem 2rem; border-radius: 9999px; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(124,58,237,0.3); display: inline-block; text-decoration: none;">
+                    <a href="/Product/Tienda" class="btn" style="background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white; padding: 0.75rem 2rem; border-radius: 9999px; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(124,58,237,0.3); display: inline-block; text-decoration: none;" data-i18n="cart.goshop">
                         Ir a la Tienda
                     </a>
                 </div>

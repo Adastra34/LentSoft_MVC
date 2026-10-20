@@ -95,7 +95,7 @@
                 @if (hasActiveFilters)
                 {
                     <a href="?section=inventario&subtab=productos" class="inv-btn inv-btn-danger" style="padding: 0.45rem 0.75rem; font-size: 0.8rem; text-decoration: none;" title="Limpiar todos los filtros">
-                        ✕ Limpiar
+                        <icon name="x" class="inv-icon" /> Limpiar
                     </a>
                 }
             </div>
@@ -129,7 +129,7 @@
                     Exportar Selección
                 </button>
                 <button type="button" class="inv-btn inv-btn-secondary" onclick="clearSelectedProducts()" style="padding: 0.35rem 0.65rem; font-size: 0.8rem;">
-                    ✕ Deseleccionar
+                    <icon name="x" class="inv-icon" /> Deseleccionar
                 </button>
             </div>
         </div>
@@ -240,7 +240,7 @@
                                     <a href="/Product/Details/@prod.Id" style="color: var(--purple-700); font-weight: 600; text-decoration: none; display: block;">@prod.Nombre</a>
                                     @if (!string.IsNullOrEmpty(prod.Ubicacion))
                                     {
-                                        <span style="font-size: 0.75rem; color: var(--gray-500);">📍 @prod.Ubicacion</span>
+                                        <span style="font-size: 0.75rem; color: var(--gray-500);"><icon name="map-pin" style="font-size: 0.85em;" /> @prod.Ubicacion</span>
                                     }
                                 </td>
                                 <td data-label="SKU">

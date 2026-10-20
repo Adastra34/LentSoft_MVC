@@ -80,7 +80,7 @@
                 @if (hasActiveMovFilters)
                 {
                     <a href="?section=inventarios&subtab=historial" class="inv-btn inv-btn-danger" style="padding: 0.45rem 0.75rem; font-size: 0.8rem; text-decoration: none;" title="Limpiar todos los filtros">
-                        ✕ Limpiar
+                        <icon name="x" class="inv-icon" /> Limpiar
                     </a>
                 }
             </div>
@@ -247,7 +247,7 @@
                                     @if (!string.IsNullOrEmpty(mov.Nota))
                                     {
                                         <div style="font-size: 0.75rem; color: var(--gray-500); max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 0.2rem;" title="@mov.Nota">
-                                            💬 @mov.Nota
+                                            <icon name="message-square" style="font-size: 0.85em;" /> @mov.Nota
                                         </div>
                                     }
                                 </td>
@@ -317,6 +317,7 @@
 </div>
 
 <script>
+    const spriteUrl = '@Url.Content("~/img/icons/sprite.svg")';
     function submitMovFilters() {
         const s = document.getElementById('searchHistorial')?.value || '';
         applyMovParam('movSearch', s);
@@ -452,7 +453,7 @@
                             <td style="font-weight: 700; color: var(--purple-900); text-align: center;">${m.stockResultante} unid.</td>
                             <td><span class="inv-chip inv-chip-gray">${m.motivo || 'Otro'}</span></td>
                             <td style="font-size: 0.85rem; color: var(--gray-700);">${m.responsable || 'Admin'}</td>
-                            <td style="font-size: 0.8rem; color: var(--gray-500);">${m.referencia ? 'Ref: ' + m.referencia + ' ' : ''}${m.nota ? '💬 ' + m.nota : ''}</td>
+                            <td style="font-size: 0.8rem; color: var(--gray-500);">${m.referencia ? 'Ref: ' + m.referencia + ' ' : ''}${m.nota ? '<svg class="icon icon-sm" aria-hidden="true" style="vertical-align: -0.15em;"><use href="' + spriteUrl + '#icon-message-square"></use></svg> ' + m.nota : ''}</td>
                         `;
                         tbody.appendChild(tr);
                     });

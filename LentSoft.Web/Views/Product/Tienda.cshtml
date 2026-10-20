@@ -14,7 +14,7 @@
         {
             <section style="margin-bottom: 3rem;">
                 <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
-                    <span style="font-size: 1.3rem;">📈</span>
+                    <span style="font-size: 1.3rem; color: var(--purple-700); display: inline-flex;"><icon name="trending-up" /></span>
                     <h2 style="color: var(--purple-900); font-size: 1.5rem; font-weight: 700; margin: 0; font-family: var(--font-primary);" data-i18n="shop.bestsellers">
                         Más Vendidos
                     </h2>
@@ -105,7 +105,7 @@
                     </select>
                     @if (!string.IsNullOrEmpty(Model.Marca) || !string.IsNullOrEmpty(Model.RangoPrecio) || !string.IsNullOrEmpty(Model.Categoria))
                     {
-                        <a asp-action="Tienda" style="color: var(--purple-700); font-size: 0.8rem; font-weight: 600; white-space: nowrap;" data-i18n="shop.clear">✕ Limpiar</a>
+                        <a asp-action="Tienda" style="color: var(--purple-700); font-size: 0.8rem; font-weight: 600; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.25rem;"><icon name="x" /> <span data-i18n="shop.clear">Limpiar</span></a>
                     }
                 </form>
             </div>
@@ -114,7 +114,7 @@
             @if (Model.Products.Count == 0)
             {
                 <div style="text-align: center; padding: 4rem 0;">
-                    <div style="font-size: 3rem; margin-bottom: 1rem;">🔍</div>
+                    <div style="font-size: 3rem; margin-bottom: 1rem; color: var(--purple-600);"><icon name="search" /></div>
                     <h3 style="color: var(--gray-600); margin-bottom: 0.5rem;" data-i18n="shop.noproducts">No se encontraron productos</h3>
                     <p style="color: var(--gray-500);" data-i18n="shop.changefilters">Intenta cambiar los filtros de búsqueda.</p>
                     <a asp-action="Tienda" class="btn btn-primary" style="margin-top: 1rem; display: inline-block;" data-i18n="shop.viewall">Ver todos los productos</a>
@@ -155,11 +155,19 @@
                 });
                 const data = await resp.json();
                 if (data.isFavorite) {
-                    heartEl.textContent = '❤️';
+                    heartEl.classList.add('is-active');
+                    heartEl.setAttribute('aria-pressed', 'true');
                     heartEl.title = 'Quitar de favoritos';
+                    heartEl.setAttribute('aria-label', 'Quitar de favoritos');
+                    const icon = heartEl.querySelector('.icon');
+                    if (icon) icon.classList.add('icon-fill');
                 } else {
-                    heartEl.textContent = '🤍';
+                    heartEl.classList.remove('is-active');
+                    heartEl.setAttribute('aria-pressed', 'false');
                     heartEl.title = 'Agregar a favoritos';
+                    heartEl.setAttribute('aria-label', 'Agregar a favoritos');
+                    const icon = heartEl.querySelector('.icon');
+                    if (icon) icon.classList.remove('icon-fill');
                 }
             } catch (e) {
                 console.error('Error toggling favorite', e);

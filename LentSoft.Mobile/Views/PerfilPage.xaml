@@ -85,7 +85,7 @@
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding MenuItemSelectedCommand}" CommandParameter="Mis favoritos"/>
                             </Grid.GestureRecognizers>
-                            <Label Grid.Column="0" Text="❤️" FontSize="18" VerticalOptions="Center"/>
+                            <Image Grid.Column="0" Source="icon_heart_red.svg" WidthRequest="20" HeightRequest="20" VerticalOptions="Center"/>
                             <Label Grid.Column="1" Text="{Binding MyFavoritesText}" FontSize="15" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}" VerticalOptions="Center"/>
                             <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}" VerticalOptions="Center"/>
                         </Grid>
@@ -97,7 +97,7 @@
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding MenuItemSelectedCommand}" CommandParameter="Mis pedidos"/>
                             </Grid.GestureRecognizers>
-                            <Label Grid.Column="0" Text="📦" FontSize="18" VerticalOptions="Center"/>
+                            <Image Grid.Column="0" Source="icon_package_purple.svg" WidthRequest="20" HeightRequest="20" VerticalOptions="Center"/>
                             <Label Grid.Column="1" Text="{Binding MyOrdersText}" FontSize="15" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}" VerticalOptions="Center"/>
                             <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}" VerticalOptions="Center"/>
                         </Grid>
@@ -109,7 +109,7 @@
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding MenuItemSelectedCommand}" CommandParameter="Fórmula óptica"/>
                             </Grid.GestureRecognizers>
-                            <Label Grid.Column="0" Text="👓" FontSize="18" VerticalOptions="Center"/>
+                            <Image Grid.Column="0" Source="icon_glasses_purple.svg" WidthRequest="20" HeightRequest="20" VerticalOptions="Center"/>
                             <Label Grid.Column="1" Text="{Binding OpticPrescriptionText}" FontSize="15" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}" VerticalOptions="Center"/>
                             <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}" VerticalOptions="Center"/>
                         </Grid>
@@ -121,7 +121,7 @@
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding MenuItemSelectedCommand}" CommandParameter="Mis datos"/>
                             </Grid.GestureRecognizers>
-                            <Label Grid.Column="0" Text="👤" FontSize="18" VerticalOptions="Center"/>
+                            <Image Grid.Column="0" Source="icon_user_purple.svg" WidthRequest="20" HeightRequest="20" VerticalOptions="Center"/>
                             <Label Grid.Column="1" Text="{Binding MyDataText}" FontSize="15" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}" VerticalOptions="Center"/>
                             <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}" VerticalOptions="Center"/>
                         </Grid>
@@ -133,7 +133,7 @@
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding MenuItemSelectedCommand}" CommandParameter="Direcciones"/>
                             </Grid.GestureRecognizers>
-                            <Label Grid.Column="0" Text="📍" FontSize="18" VerticalOptions="Center"/>
+                            <Image Grid.Column="0" Source="icon_map_pin_purple.svg" WidthRequest="20" HeightRequest="20" VerticalOptions="Center"/>
                             <Label Grid.Column="1" Text="{Binding AddressesText}" FontSize="15" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}" VerticalOptions="Center"/>
                             <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}" VerticalOptions="Center"/>
                         </Grid>
@@ -145,7 +145,7 @@
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding MenuItemSelectedCommand}" CommandParameter="Idioma"/>
                             </Grid.GestureRecognizers>
-                            <Label Grid.Column="0" Text="🌐" FontSize="18" VerticalOptions="Center"/>
+                            <Image Grid.Column="0" Source="icon_globe_purple.svg" WidthRequest="20" HeightRequest="20" VerticalOptions="Center"/>
                             <Label Grid.Column="1" Text="{Binding LanguageText}" FontSize="15" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}" VerticalOptions="Center"/>
                             <Border Grid.Column="2" BackgroundColor="{StaticResource Purple}" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="8,4">
                                 <Label Text="{Binding CurrentLanguageDisplay}" FontSize="11" FontAttributes="Bold" TextColor="White"/>
@@ -159,7 +159,7 @@
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding MenuItemSelectedCommand}" CommandParameter="Tema"/>
                             </Grid.GestureRecognizers>
-                            <Label Grid.Column="0" Text="🎨" FontSize="18" VerticalOptions="Center"/>
+                            <Image Grid.Column="0" Source="icon_palette_purple.svg" WidthRequest="20" HeightRequest="20" VerticalOptions="Center"/>
                             <Label Grid.Column="1" Text="Tema de la App / App Theme" FontSize="15" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}" VerticalOptions="Center"/>
                             <Border Grid.Column="2" BackgroundColor="{StaticResource Purple}" StrokeThickness="0" StrokeShape="RoundRectangle 8" Padding="8,4">
                                 <Label Text="{Binding CurrentThemeDisplay}" FontSize="11" FontAttributes="Bold" TextColor="White"/>
@@ -173,7 +173,7 @@
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding MenuItemSelectedCommand}" CommandParameter="Seguridad"/>
                             </Grid.GestureRecognizers>
-                            <Label Grid.Column="0" Text="🔒" FontSize="18" VerticalOptions="Center"/>
+                            <Image Grid.Column="0" Source="icon_lock_purple.svg" WidthRequest="20" HeightRequest="20" VerticalOptions="Center"/>
                             <Label Grid.Column="1" Text="{Binding SecurityText}" FontSize="15" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}" VerticalOptions="Center"/>
                             <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}" VerticalOptions="Center"/>
                         </Grid>
@@ -185,7 +185,7 @@
                             <Grid.GestureRecognizers>
                                 <TapGestureRecognizer Command="{Binding MenuItemSelectedCommand}" CommandParameter="Notificaciones"/>
                             </Grid.GestureRecognizers>
-                            <Label Grid.Column="0" Text="🔔" FontSize="18" VerticalOptions="Center"/>
+                            <Image Grid.Column="0" Source="icon_bell_purple.svg" WidthRequest="20" HeightRequest="20" VerticalOptions="Center"/>
                             <Label Grid.Column="1" Text="{Binding NotificationsText}" FontSize="15" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark={StaticResource DarkInkText}}" VerticalOptions="Center"/>
                             <Label Grid.Column="2" Text="›" FontSize="20" TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}" VerticalOptions="Center"/>
                         </Grid>
@@ -251,18 +251,19 @@
                     <!-- Header -->
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
                         <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
-                            <Label Text="❤️" FontSize="20" VerticalOptions="Center"/>
+                            <Image Source="icon_heart_red.svg" WidthRequest="22" HeightRequest="22" VerticalOptions="Center"/>
                             <Label Text="{Binding MyFavoritesText}" FontSize="18" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}" VerticalOptions="Center"/>
                         </HorizontalStackLayout>
 
-                        <Button Grid.Column="1"
-                                Text="✕"
-                                Command="{Binding CloseFavoritesCommand}"
-                                BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
-                                TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"
-                                CornerRadius="14"
-                                WidthRequest="32" HeightRequest="32"
-                                Padding="0" FontSize="14"/>
+                        <ImageButton Grid.Column="1"
+                                     Source="icon_x_gray.svg"
+                                     Command="{Binding CloseFavoritesCommand}"
+                                     BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
+                                     CornerRadius="14"
+                                     WidthRequest="32" HeightRequest="32"
+                                     Padding="8"
+                                     SemanticProperties.Description="Cerrar"
+                                     Aspect="AspectFit"/>
                     </Grid>
 
                     <!-- Items List -->
@@ -281,10 +282,15 @@
                                             <Label Text="{Binding DisplayPrice}" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
                                         </VerticalStackLayout>
 
-                                        <Button Grid.Column="2" Text="🗑️"
-                                                Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PerfilViewModel}}, Path=RemoveFavoriteCommand}"
-                                                CommandParameter="{Binding .}"
-                                                BackgroundColor="Transparent" FontSize="14" WidthRequest="36" HeightRequest="36"/>
+                                        <ImageButton Grid.Column="2"
+                                                     Source="icon_trash_red.svg"
+                                                     Command="{Binding Source={RelativeSource AncestorType={x:Type vm:PerfilViewModel}}, Path=RemoveFavoriteCommand}"
+                                                     CommandParameter="{Binding .}"
+                                                     BackgroundColor="Transparent"
+                                                     WidthRequest="36" HeightRequest="36"
+                                                     Padding="8"
+                                                     SemanticProperties.Description="Eliminar de favoritos"
+                                                     Aspect="AspectFit"/>
                                     </Grid>
                                 </Border>
                             </DataTemplate>
@@ -292,7 +298,7 @@
 
                         <CollectionView.EmptyView>
                             <VerticalStackLayout Spacing="8" HorizontalOptions="Center" VerticalOptions="Center" Padding="30">
-                                <Label Text="🤍" FontSize="36" HorizontalOptions="Center"/>
+                                <Image Source="icon_heart.svg" WidthRequest="36" HeightRequest="36" HorizontalOptions="Center"/>
                                 <Label Text="Aún no tienes productos favoritos" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
                                 <Label Text="Toca el ícono de corazón en cualquier producto para guardarlo aquí." FontSize="12" TextColor="{StaticResource Muted}" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
                             </VerticalStackLayout>
@@ -328,18 +334,19 @@
                     <!-- Header -->
                     <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
                         <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
-                            <Label Text="📦" FontSize="20" VerticalOptions="Center"/>
+                            <Image Source="icon_package_purple.svg" WidthRequest="22" HeightRequest="22" VerticalOptions="Center"/>
                             <Label Text="{Binding MyOrdersText}" FontSize="18" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}" VerticalOptions="Center"/>
                         </HorizontalStackLayout>
 
-                        <Button Grid.Column="1"
-                                Text="✕"
-                                Command="{Binding CloseOrdersCommand}"
-                                BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
-                                TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"
-                                CornerRadius="14"
-                                WidthRequest="32" HeightRequest="32"
-                                Padding="0" FontSize="14"/>
+                        <ImageButton Grid.Column="1"
+                                     Source="icon_x_gray.svg"
+                                     Command="{Binding CloseOrdersCommand}"
+                                     BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
+                                     CornerRadius="14"
+                                     WidthRequest="32" HeightRequest="32"
+                                     Padding="8"
+                                     SemanticProperties.Description="Cerrar"
+                                     Aspect="AspectFit"/>
                     </Grid>
 
                     <!-- Orders List -->
@@ -373,7 +380,7 @@
 
                         <CollectionView.EmptyView>
                             <VerticalStackLayout Spacing="8" HorizontalOptions="Center" VerticalOptions="Center" Padding="30">
-                                <Label Text="📦" FontSize="36" HorizontalOptions="Center"/>
+                                <Image Source="icon_package_purple.svg" WidthRequest="36" HeightRequest="36" HorizontalOptions="Center"/>
                                 <Label Text="Aún no has realizado pedidos" FontSize="14" FontAttributes="Bold" TextColor="{StaticResource Ink}" HorizontalOptions="Center"/>
                                 <Label Text="Tus compras realizadas en la tienda aparecerán en esta sección." FontSize="12" TextColor="{StaticResource Muted}" HorizontalOptions="Center" HorizontalTextAlignment="Center"/>
                             </VerticalStackLayout>
@@ -408,18 +415,19 @@
                     <!-- Header -->
                     <Grid ColumnDefinitions="*,Auto">
                         <HorizontalStackLayout Grid.Column="0" Spacing="8" VerticalOptions="Center">
-                            <Label Text="👓" FontSize="20" VerticalOptions="Center"/>
+                            <Image Source="icon_glasses_purple.svg" WidthRequest="22" HeightRequest="22" VerticalOptions="Center"/>
                             <Label Text="{Binding OpticPrescriptionText}" FontSize="17" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}" VerticalOptions="Center"/>
                         </HorizontalStackLayout>
 
-                        <Button Grid.Column="1"
-                                Text="✕"
-                                Command="{Binding CloseFormulaCommand}"
-                                BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
-                                TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"
-                                CornerRadius="14"
-                                WidthRequest="32" HeightRequest="32"
-                                Padding="0" FontSize="14"/>
+                        <ImageButton Grid.Column="1"
+                                     Source="icon_x_gray.svg"
+                                     Command="{Binding CloseFormulaCommand}"
+                                     BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
+                                     CornerRadius="14"
+                                     WidthRequest="32" HeightRequest="32"
+                                     Padding="8"
+                                     SemanticProperties.Description="Cerrar"
+                                     Aspect="AspectFit"/>
                     </Grid>
 
                     <!-- Optical Prescription Details Card -->

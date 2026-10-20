@@ -23,23 +23,28 @@
         }
         else
         {
-            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--purple-100), var(--purple-200)); display: flex; align-items: center; justify-content: center;">
-                <span style="font-size: 2.5rem;">👓</span>
+            <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--purple-100), var(--purple-200)); display: flex; align-items: center; justify-content: center; color: var(--purple-700);">
+                <icon name="glasses" class="icon-xl" />
             </div>
         }
 
         <!-- Favorite Heart (top-left) -->
         <button onclick="event.stopPropagation(); toggleFavorite(@Model.Id, this)" type="button"
+                class="btn-fav @(isFavorite ? "is-active" : "")"
+                aria-pressed="@(isFavorite ? "true" : "false")"
+                aria-label="@(isFavorite ? "Quitar de favoritos" : "Agregar a favoritos")"
                 title="@(isFavorite ? "Quitar de favoritos" : "Agregar a favoritos")"
-                style="position: absolute; top: 0.75rem; left: 0.75rem; background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 1.1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.1); transition: transform 0.2s;"
+                style="position: absolute; top: 0.75rem; left: 0.75rem; background: rgba(255,255,255,0.9); border: none; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; cursor: pointer; color: var(--gray-500); box-shadow: 0 2px 6px rgba(0,0,0,0.1); transition: transform 0.2s;"
                 onmouseover="this.style.transform='scale(1.15)'"
-                onmouseout="this.style.transform='scale(1)'">@(isFavorite ? "❤️" : "🤍")</button>
+                onmouseout="this.style.transform='scale(1)'">
+            <icon name="heart" class="icon @(isFavorite ? "icon-fill" : "")" />
+        </button>
 
         <!-- "Top" Badge (top-right) -->
         @if (Model.EsDestacado)
         {
-            <span style="position: absolute; top: 0.75rem; right: 0.75rem; background: var(--purple-700); color: white; padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; box-shadow: 0 2px 6px rgba(126,34,206,0.3);">
-                ⭐ TOP
+            <span style="position: absolute; top: 0.75rem; right: 0.75rem; background: var(--purple-700); color: white; padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.5px; box-shadow: 0 2px 6px rgba(126,34,206,0.3); display: inline-flex; align-items: center; gap: 0.25rem;">
+                <icon name="star" class="icon-fill" style="width: 0.75rem; height: 0.75rem;" /> TOP
             </span>
         }
 
@@ -66,11 +71,13 @@
 
         <!-- Star Rating -->
         <div style="display: flex; align-items: center; gap: 0.25rem; margin-top: 0.25rem;">
-            <span style="color: #f59e0b; font-size: 0.85rem; letter-spacing: 1px;">
-                @for (int i = 0; i < fullStars; i++) { <text>★</text> }
-                @if (hasHalf) { <text>★</text> }
-                @for (int i = 0; i < emptyStars; i++) { <text>☆</text> }
-            </span>
+            <div class="rating-stars" role="img" aria-label="@($"{Math.Round(Model.Rating, 1)} de 5 estrellas")">
+                @for (int i = 1; i <= 5; i++)
+                {
+                    var isFilled = i <= fullStars || (i == fullStars + 1 && hasHalf);
+                    <icon name="star" class="@(isFilled ? "icon-fill" : "")" />
+                }
+            </div>
             <span style="color: var(--gray-500); font-size: 0.75rem;">(@Model.ReviewCount)</span>
         </div>
 
@@ -102,11 +109,11 @@
                 onmouseout="this.style.opacity='1'">
             @if (Model.HasStock())
             {
-                <text><span data-i18n="product.addcart">🛒 Añadir al Carrito</span></text>
+                <icon name="shopping-cart" /> <span data-i18n="product.addcart">Añadir al Carrito</span>
             }
             else
             {
-                <text><span data-i18n="product.soldout">Agotado</span></text>
+                <span data-i18n="product.soldout">Agotado</span>
             }
         </button>
     </div>

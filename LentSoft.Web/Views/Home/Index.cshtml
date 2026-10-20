@@ -15,8 +15,8 @@
                     <!-- Decorative circles -->
                     <div style="position: absolute; top: -40px; right: -40px; width: 200px; height: 200px; border-radius: 50%; background: rgba(255,255,255,0.06);"></div>
                     <div style="position: absolute; bottom: -60px; left: -30px; width: 180px; height: 180px; border-radius: 50%; background: rgba(255,255,255,0.04);"></div>
-                    <!-- Glasses emoji as visual -->
-                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%); font-size: 6rem; opacity: 0.2;">👓</div>
+                    <!-- Glasses icon as visual -->
+                    <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -60%); font-size: 6rem; opacity: 0.2; color: white; display: flex; align-items: center; justify-content: center;"><icon name="glasses" /></div>
                     <div style="position: relative; z-index: 1;">
                         <p style="color: var(--purple-200); font-size: 0.9rem; font-weight: 600; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.25rem;" data-i18n="home.hero.badge">Oferta especial</p>
                         <h2 style="color: white; font-size: 1.75rem; font-weight: 800; margin-bottom: 0.5rem;" data-i18n="home.hero.title">GAFAS FORMULADAS</h2>
@@ -40,11 +40,11 @@
                     </div>
 
                     <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-                        <a asp-controller="Auth" asp-action="Login" style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--success); color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(16,185,129,0.3); transition: transform 0.2s;" data-i18n="home.hero.appointment">
-                            📅 Agendar cita ahora
+                        <a asp-controller="Auth" asp-action="Login" style="display: inline-flex; align-items: center; gap: 0.5rem; background: var(--success); color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(16,185,129,0.3); transition: transform 0.2s;">
+                            <icon name="calendar" /> <span data-i18n="home.hero.appointment">Agendar cita ahora</span>
                         </a>
-                        <a asp-controller="Product" asp-action="Tienda" style="display: inline-flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, var(--purple-600), var(--purple-700)); color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(126,34,206,0.3); transition: transform 0.2s;" data-i18n="home.hero.frames">
-                            👓 Muestra de montura
+                        <a asp-controller="Product" asp-action="Tienda" style="display: inline-flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, var(--purple-600), var(--purple-700)); color: white; padding: 0.75rem 1.5rem; border-radius: 0.75rem; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(126,34,206,0.3); transition: transform 0.2s;">
+                            <icon name="glasses" /> <span data-i18n="home.hero.frames">Muestra de montura</span>
                         </a>
                     </div>
 
@@ -75,8 +75,8 @@
                         Accede a descuentos exclusivos, historial de citas y mucho más
                     </p>
                 </div>
-                <a asp-controller="Auth" asp-action="Register" style="display: inline-flex; align-items: center; gap: 0.5rem; background: white; color: var(--purple-800); padding: 0.7rem 1.5rem; border-radius: 9999px; font-weight: 700; font-size: 0.95rem; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: transform 0.2s;" data-i18n="home.banner.signup">
-                    ➕ Registrarse →
+                <a asp-controller="Auth" asp-action="Register" style="display: inline-flex; align-items: center; gap: 0.5rem; background: white; color: var(--purple-800); padding: 0.7rem 1.5rem; border-radius: 9999px; font-weight: 700; font-size: 0.95rem; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.15); transition: transform 0.2s;">
+                    <icon name="plus" /> <span data-i18n="home.banner.signup">Registrarse</span> <icon name="arrow-right" />
                 </a>
             </div>
         </section>
@@ -92,7 +92,7 @@
                 Sube tu foto o activa tu cámara y visualiza cómo lucen nuestros marcos en tu rostro antes de comprar.
             </p>
             <div style="background: linear-gradient(135deg, var(--purple-50), var(--purple-100)); border-radius: 1rem; padding: 3rem; display: flex; align-items: center; justify-content: center; gap: 1rem; flex-direction: column;">
-                <span style="font-size: 4rem;">📸</span>
+                <span style="font-size: 4rem; color: var(--purple-600); display: inline-flex;"><icon name="camera" /></span>
                 <p style="color: var(--purple-700); font-weight: 600; margin: 0;" data-i18n="home.tech.soon">Prueba virtual disponible próximamente</p>
                 <span style="color: var(--gray-400); font-size: 0.85rem;" data-i18n="home.tech.camera">Activa tu cámara para probarte monturas al instante</span>
             </div>
@@ -109,21 +109,21 @@
             <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;">
                 <!-- Lentes de Sol -->
                 <div class="card" style="text-align: center; padding: 2rem 1.5rem;">
-                    <div style="width: 64px; height: 64px; border-radius: 1rem; background: linear-gradient(135deg, var(--purple-100), var(--purple-200)); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.75rem;">🕶️</div>
+                    <div style="width: 64px; height: 64px; border-radius: 1rem; background: linear-gradient(135deg, var(--purple-100), var(--purple-200)); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.75rem; color: var(--purple-700);"><icon name="sunglasses" class="icon-xl" /></div>
                     <h3 style="color: var(--purple-800); font-size: 1.2rem; margin-bottom: 0.5rem;" data-i18n="home.cat.sun">Lentes de Sol</h3>
                     <p style="color: var(--gray-500); font-size: 0.9rem; margin-bottom: 1rem;" data-i18n="home.cat.sun.desc">Protección y estilo para tus ojos</p>
                     <a asp-controller="Product" asp-action="Tienda" asp-route-categoria="lentes-sol" class="btn btn-outline" style="padding: 0.5rem 1.25rem; font-size: 0.875rem;" data-i18n="home.cat.viewmore">Ver Más</a>
                 </div>
                 <!-- Lentes Graduados -->
                 <div class="card" style="text-align: center; padding: 2rem 1.5rem;">
-                    <div style="width: 64px; height: 64px; border-radius: 1rem; background: linear-gradient(135deg, var(--purple-100), var(--purple-200)); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.75rem;">👓</div>
+                    <div style="width: 64px; height: 64px; border-radius: 1rem; background: linear-gradient(135deg, var(--purple-100), var(--purple-200)); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.75rem; color: var(--purple-700);"><icon name="glasses" class="icon-xl" /></div>
                     <h3 style="color: var(--purple-800); font-size: 1.2rem; margin-bottom: 0.5rem;" data-i18n="home.cat.grad">Lentes Graduados</h3>
                     <p style="color: var(--gray-500); font-size: 0.9rem; margin-bottom: 1rem;" data-i18n="home.cat.grad.desc">Claridad y comodidad garantizada</p>
                     <a asp-controller="Product" asp-action="Tienda" asp-route-categoria="lentes-graduados" class="btn btn-outline" style="padding: 0.5rem 1.25rem; font-size: 0.875rem;" data-i18n="home.cat.viewmore">Ver Más</a>
                 </div>
                 <!-- Lentes de Contacto -->
                 <div class="card" style="text-align: center; padding: 2rem 1.5rem;">
-                    <div style="width: 64px; height: 64px; border-radius: 1rem; background: linear-gradient(135deg, var(--purple-100), var(--purple-200)); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.75rem;">👁️</div>
+                    <div style="width: 64px; height: 64px; border-radius: 1rem; background: linear-gradient(135deg, var(--purple-100), var(--purple-200)); display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; font-size: 1.75rem; color: var(--purple-700);"><icon name="eye" class="icon-xl" /></div>
                     <h3 style="color: var(--purple-800); font-size: 1.2rem; margin-bottom: 0.5rem;" data-i18n="home.cat.contact">Lentes de Contacto</h3>
                     <p style="color: var(--gray-500); font-size: 0.9rem; margin-bottom: 1rem;" data-i18n="home.cat.contact.desc">Libertad y visión perfecta</p>
                     <a asp-controller="Product" asp-action="Tienda" asp-route-categoria="lentes-contacto" class="btn btn-outline" style="padding: 0.5rem 1.25rem; font-size: 0.875rem;" data-i18n="home.cat.viewmore">Ver Más</a>
@@ -154,7 +154,7 @@
                             }
                             else
                             {
-                                <span style="font-size: 3.5rem;">👓</span>
+                                <span style="font-size: 3.5rem; color: var(--purple-300); display: inline-flex;"><icon name="glasses" /></span>
                             }
                         </div>
                         <p style="color: var(--gray-400); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">@(product.Marca ?? "LentSoft")</p>
@@ -188,7 +188,7 @@
             <div class="container">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                     <div>
-                        <span style="display: inline-block; background: #fef3c7; color: #b45309; padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem;" data-i18n="home.disc.badge">🔥 Ofertas</span>
+                        <span style="display: inline-flex; align-items: center; gap: 0.35rem; background: #fef3c7; color: #b45309; padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem;"><icon name="flame" /> <span data-i18n="home.disc.badge">Ofertas</span></span>
                         <h2 style="color: var(--purple-900); margin: 0;" data-i18n="home.disc.title">Productos con Descuento</h2>
                     </div>
                     <a asp-controller="Product" asp-action="Tienda" style="color: var(--purple-700); font-weight: 600; font-size: 0.9rem;" data-i18n="home.best.viewall">Ver todos →</a>
@@ -209,7 +209,7 @@
                                 }
                                 else
                                 {
-                                    <span style="font-size: 3rem;">🕶️</span>
+                                    <span style="font-size: 3rem; color: var(--purple-300); display: inline-flex;"><icon name="sunglasses" /></span>
                                 }
                             </div>
                             <p style="color: var(--gray-400); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">@(product.Marca ?? "LentSoft")</p>
@@ -233,7 +233,7 @@
         <div class="container">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
                 <div>
-                    <span style="display: inline-block; background: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem;" data-i18n="home.contact.badge">👁️ Especialidad</span>
+                    <span style="display: inline-flex; align-items: center; gap: 0.35rem; background: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.5rem;"><icon name="eye" /> <span data-i18n="home.contact.badge">Especialidad</span></span>
                     <h2 style="color: var(--purple-900); margin: 0;" data-i18n="home.contact.title">Lentes de Contacto</h2>
                 </div>
                 <a asp-controller="Product" asp-action="Tienda" asp-route-categoria="lentes-contacto" style="color: var(--purple-700); font-weight: 600; font-size: 0.9rem;" data-i18n="home.best.viewall">Ver todos →</a>
@@ -252,7 +252,7 @@
                                 }
                                 else
                                 {
-                                    <span style="font-size: 3rem;">👁️</span>
+                                    <span style="font-size: 3rem; color: var(--purple-300); display: inline-flex;"><icon name="eye" /></span>
                                 }
                             </div>
                             <p style="color: var(--gray-400); font-size: 0.8rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">@(product.Marca ?? "LentSoft")</p>
@@ -268,7 +268,7 @@
             else
             {
                 <div style="background: var(--purple-50); border-radius: 1rem; padding: 3rem; text-align: center;">
-                    <span style="font-size: 3rem;">👁️</span>
+                    <span style="font-size: 3rem; color: var(--purple-400); display: inline-flex;"><icon name="eye" /></span>
                     <p style="color: var(--purple-700); font-weight: 600; margin-top: 1rem;" data-i18n="home.contact.soon">Próximamente — Lentes de contacto de las mejores marcas</p>
                     <p style="color: var(--gray-500); font-size: 0.9rem;" data-i18n="home.contact.catalog">Estamos preparando un catálogo completo para ti.</p>
                 </div>

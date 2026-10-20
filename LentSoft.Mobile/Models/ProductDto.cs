@@ -154,16 +154,14 @@ public class ProductDto
         }
     }
 
-    public string DisplayRatingStars
-    {
-        get
-        {
-            int fullStars = (int)Math.Floor(Rating);
-            string stars = new string('★', fullStars);
-            return stars.PadRight(5, '☆');
-        }
-    }
+    public string RatingDescription => $"{(int)Math.Floor(Rating)} de 5 estrellas";
+    public string Star1Source => Rating >= 1 ? "icon_star_filled.svg" : "icon_star.svg";
+    public string Star2Source => Rating >= 2 ? "icon_star_filled.svg" : "icon_star.svg";
+    public string Star3Source => Rating >= 3 ? "icon_star_filled.svg" : "icon_star.svg";
+    public string Star4Source => Rating >= 4 ? "icon_star_filled.svg" : "icon_star.svg";
+    public string Star5Source => Rating >= 5 ? "icon_star_filled.svg" : "icon_star.svg";
 
     public bool IsFavorite => Services.FavoriteService.Instance.IsFavorite(Id);
-    public string FavoriteHeartIcon => IsFavorite ? "❤️" : "🤍";
+    public string FavoriteIconSource => IsFavorite ? "icon_heart_filled.svg" : "icon_heart.svg";
+    public string FavoriteHeartIcon => FavoriteIconSource;
 }

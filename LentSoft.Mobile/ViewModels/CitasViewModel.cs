@@ -163,19 +163,19 @@ public partial class CitasViewModel : ObservableObject
                 $"{appointment.Servicio} ({appointment.Estado})",
                 "Cerrar",
                 null,
-                "🔄 Reprogramar cita",
-                "❌ Cancelar cita",
-                "👁️ Ver detalles");
+                "Reprogramar cita",
+                "Cancelar cita",
+                "Ver detalles");
 
-            if (action == "🔄 Reprogramar cita")
+            if (action == "Reprogramar cita")
             {
                 await ReprogramarCitaAsync(appointment);
             }
-            else if (action == "❌ Cancelar cita")
+            else if (action == "Cancelar cita")
             {
                 await CancelarCitaAsync(appointment);
             }
-            else if (action == "👁️ Ver detalles")
+            else if (action == "Ver detalles")
             {
                 await MostrarDetallesAsync(appointment);
             }

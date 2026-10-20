@@ -14,23 +14,23 @@
         </div>
 
         <nav style="display: flex; flex-direction: column; gap: 0.5rem;">
-            <a href="?section=general" class="nav-item @(Model.ActiveSection == "general" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "general" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "general" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="admin.nav.general">
-                📊 General
+            <a href="?section=general" class="nav-item @(Model.ActiveSection == "general" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "general" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "general" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                <icon name="bar-chart-3" class="icon-sm" /> <span data-i18n="admin.nav.general">General</span>
             </a>
-            <a href="?section=inventario&subtab=productos" class="nav-item @(Model.ActiveSection == "inventario" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "inventario" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "inventario" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="admin.nav.inventory">
-                📦 Inventario
+            <a href="?section=inventario&subtab=productos" class="nav-item @(Model.ActiveSection == "inventario" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "inventario" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "inventario" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                <icon name="package" class="icon-sm" /> <span data-i18n="admin.nav.inventory">Inventario</span>
             </a>
-            <a href="?section=ventas" class="nav-item @(Model.ActiveSection == "ventas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "ventas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "ventas" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="admin.nav.sales">
-                💳 Ventas
+            <a href="?section=ventas" class="nav-item @(Model.ActiveSection == "ventas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "ventas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "ventas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                <icon name="credit-card" class="icon-sm" /> <span data-i18n="admin.nav.sales">Ventas</span>
             </a>
-            <a href="?section=citas" class="nav-item @(Model.ActiveSection == "citas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "citas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "citas" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="admin.nav.appointments">
-                📅 Citas Médicas
+            <a href="?section=citas" class="nav-item @(Model.ActiveSection == "citas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "citas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "citas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                <icon name="calendar-days" class="icon-sm" /> <span data-i18n="admin.nav.appointments">Citas Médicas</span>
             </a>
-            <a href="?section=usuarios&subtab=clientes" class="nav-item @(Model.ActiveSection == "usuarios" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "usuarios" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "usuarios" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="admin.nav.users">
-                👥 Usuarios
+            <a href="?section=usuarios&subtab=clientes" class="nav-item @(Model.ActiveSection == "usuarios" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "usuarios" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "usuarios" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                <icon name="users" class="icon-sm" /> <span data-i18n="admin.nav.users">Usuarios</span>
             </a>
-            <a href="?section=facturas" class="nav-item @(Model.ActiveSection == "facturas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "facturas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "facturas" ? "var(--purple-700)" : "transparent"); font-weight: 500;" data-i18n="admin.nav.invoices">
-                🧾 Facturas
+            <a href="?section=facturas" class="nav-item @(Model.ActiveSection == "facturas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "facturas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "facturas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
+                <icon name="receipt" class="icon-sm" /> <span data-i18n="admin.nav.invoices">Facturas</span>
             </a>
         </nav>
     </aside>
@@ -41,13 +41,13 @@
         <!-- Barra Superior con Botón de Cerrar Sesión -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--purple-100); padding-bottom: 1rem;">
             <a asp-controller="Home" asp-action="Index" style="background-color: var(--purple-600); color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.4rem; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
-                🏬 Ir a la Tienda
+                <icon name="glasses" class="icon-sm" /> <span>Ir a la Tienda</span>
             </a>
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <span style="font-size: 0.9rem; color: var(--gray-600); font-weight: 500;">Hola, @(User.Identity?.Name ?? "Administrador")</span>
                 <form asp-controller="Auth" asp-action="Logout" method="post" style="margin: 0;">
-                    <button type="submit" class="btn" style="background-color: white; border: 1px solid var(--purple-300); color: var(--purple-700); padding: 0.4rem 0.8rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.25rem; transition: all 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-50)';" onmouseout="this.style.backgroundColor='white';">
-                        🚪 Cerrar Sesión
+                    <button type="submit" class="btn" style="background-color: white; border: 1px solid var(--purple-300); color: var(--purple-700); padding: 0.4rem 0.8rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.35rem; transition: all 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-50)';" onmouseout="this.style.backgroundColor='white';">
+                        <icon name="log-out" class="icon-sm" /> <span>Cerrar Sesión</span>
                     </button>
                 </form>
             </div>
@@ -114,7 +114,7 @@
                 <h2 style="color: var(--purple-800); font-size: 1.25rem; margin: 0 0 1rem 0;" data-i18n="admin.general.recentorders">Pedidos Recientes</h2>
                 <div style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
                     <div style="position: relative; display: flex; align-items: center; min-width: 260px; max-width: 380px; flex: 1;">
-                        <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
+                        <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none; display: flex; align-items: center;"><icon name="search" class="icon-sm" /></span>
                         <input type="text" id="searchRecentOrders" placeholder="Buscar pedido..." data-i18n-placeholder="admin.general.searchorder" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); font-size: 0.85rem;" onkeyup="filterTable('searchRecentOrders', 'tableRecentOrders')" />
                     </div>
                 </div>
@@ -207,7 +207,7 @@
             <div class="card" style="padding: 1.5rem; background: white;">
                 <div style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
                     <div style="position: relative; display: flex; align-items: center; min-width: 260px; max-width: 380px; flex: 1;">
-                        <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
+                        <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none; display: flex; align-items: center;"><icon name="search" class="icon-sm" /></span>
                         <input type="text" id="searchVentas" placeholder="Buscar venta o cliente..." data-i18n-placeholder="admin.sales.search" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); font-size: 0.85rem;" onkeyup="filterTable('searchVentas', 'tableVentas')" />
                     </div>
                 </div>
@@ -279,7 +279,7 @@
             <div class="card" style="padding: 1.5rem; background: white;">
                 <div style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
                     <div style="position: relative; display: flex; align-items: center; min-width: 260px; max-width: 380px; flex: 1;">
-                        <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
+                        <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none; display: flex; align-items: center;"><icon name="search" class="icon-sm" /></span>
                         <input type="text" id="searchAdminCitas" placeholder="Buscar cita o paciente..." data-i18n-placeholder="admin.citas.search" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); font-size: 0.85rem;" onkeyup="filterAdminCitasCombo()" />
                     </div>
                 </div>
@@ -338,7 +338,7 @@
                                                     data-vecesreprogramada="@c.VecesReprogramada"
                                                     onclick="abrirModalAdminVerCita(this)"
                                                     onmouseover="this.style.backgroundColor='#DDD6FE';" onmouseout="this.style.backgroundColor='#EDE9FE';">
-                                                👁️ Ver
+                                                <icon name="eye" class="icon-sm" /> <span>Ver</span>
                                             </button>
 
                                             <!-- Botón Editar Cita (Pill) -->
@@ -355,7 +355,7 @@
                                                     data-vecesreprogramada="@c.VecesReprogramada"
                                                     onclick="abrirModalAdminEditarCita(this)"
                                                     onmouseover="this.style.backgroundColor='#BFDBFE';" onmouseout="this.style.backgroundColor='#DBEAFE';">
-                                                ✏️ Editar
+                                                <icon name="pencil" class="icon-sm" /> <span>Editar</span>
                                             </button>
 
                                             <!-- Dropdown para Cambio Rápido de Estado -->
@@ -376,7 +376,7 @@
                                                 @Html.AntiForgeryToken()
                                                 <input type="hidden" name="id" value="@c.Id" />
                                                 <button type="submit" style="display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.35rem 0.75rem; border-radius: 9999px; background-color: #FEE2E2; color: #991B1B; border: 1px solid #FECACA; font-size: 0.8rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease;" title="Desactivar Cita" onmouseover="this.style.backgroundColor='#FCD34D'; this.style.color='#78350F';" onmouseout="this.style.backgroundColor='#FEE2E2'; this.style.color='#991B1B';">
-                                                    🗑️ Desactivar
+                                                    <icon name="trash-2" class="icon-sm" /> <span>Desactivar</span>
                                                 </button>
                                             </form>
                                         </div>
@@ -463,11 +463,11 @@
 
             <!-- Sub-tabs -->
             <div style="display: flex; border-bottom: 2px solid var(--purple-200); margin-bottom: 1.5rem;">
-                <button id="nav-subtab-clientes" type="button" onclick="switchUsersSubTab('clientes')" style="padding: 0.75rem 1.5rem; font-weight: 600; background: none; border: none; cursor: pointer; color: @(initialTab == "clientes" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(initialTab == "clientes" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;">
-                    👥 Clientes
+                <button id="nav-subtab-clientes" type="button" onclick="switchUsersSubTab('clientes')" style="padding: 0.75rem 1.5rem; font-weight: 600; background: none; border: none; cursor: pointer; color: @(initialTab == "clientes" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(initialTab == "clientes" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <icon name="users" class="icon-sm" /> <span>Clientes</span>
                 </button>
-                <button id="nav-subtab-trabajadores" type="button" onclick="switchUsersSubTab('trabajadores')" style="padding: 0.75rem 1.5rem; font-weight: 600; background: none; border: none; cursor: pointer; color: @(initialTab == "trabajadores" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(initialTab == "trabajadores" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px;">
-                    💼 Trabajadores
+                <button id="nav-subtab-trabajadores" type="button" onclick="switchUsersSubTab('trabajadores')" style="padding: 0.75rem 1.5rem; font-weight: 600; background: none; border: none; cursor: pointer; color: @(initialTab == "trabajadores" ? "var(--purple-700)" : "var(--gray-500)"); border-bottom: @(initialTab == "trabajadores" ? "3px solid var(--purple-600)" : "none"); margin-bottom: -2px; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <icon name="briefcase" class="icon-sm" /> <span>Trabajadores</span>
                 </button>
             </div>
 
@@ -479,7 +479,7 @@
                             <input type="hidden" name="section" value="usuarios" />
                             <input type="hidden" name="subtab" value="clientes" />
                             <div style="position: relative; display: flex; align-items: center;">
-                                <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
+                                <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none; display: flex; align-items: center;"><icon name="search" class="icon-sm" /></span>
                                 <input type="text" name="searchTerm" value="@Model.ClientesSearchTerm" placeholder="Buscar cliente por nombre o correo..." class="form-input" style="width: 320px; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); font-size: 0.85rem;" />
                             </div>
                             <button type="submit" class="btn" style="background-color: var(--purple-600); color: white; border: none; padding: 0.45rem 0.9rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-700)';" onmouseout="this.style.backgroundColor='var(--purple-600)';">
@@ -532,19 +532,19 @@
                                                 <div class="table-actions-wrapper" style="justify-content: center;">
                                                     <button type="button" class="btn-action-edit btn-edit-client" aria-label="Editar"
                                                         data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = cli.Id, nombre = cli.Nombre, apellido = cli.Apellido, email = cli.Email, telefono = cli.Telefono ?? "", tipoDocumento = cli.TipoDocumento, numeroDocumento = cli.NumeroDocumento }))'>
-                                                        ✏️ Editar
+                                                        <icon name="pencil" class="icon-sm" /> <span>Editar</span>
                                                     </button>
                                                     @if (cli.Activo)
                                                     {
                                                         <form asp-controller="User" asp-action="Delete" asp-route-id="@cli.Id" method="post" style="display:inline;" class="form-delete-client" data-nombre="@cli.NombreCompleto">
-                                                            <button type="submit" class="btn-action-delete" aria-label="Desactivar">🗑️ Desactivar</button>
+                                                            <button type="submit" class="btn-action-delete" aria-label="Desactivar"><icon name="trash-2" class="icon-sm" /> <span>Desactivar</span></button>
                                                         </form>
                                                     }
                                                     else
                                                     {
                                                         <form asp-controller="User" asp-action="ReactivateUser" asp-route-id="@cli.Id" method="post" style="display:inline;">
-                                                            <button type="submit" style="background-color: var(--success); color: white; border: none; padding: 6px 16px; border-radius: 9999px; font-weight: 700; font-size: 0.85rem; cursor: pointer; line-height: 1.2;">
-                                                                ✅ Reactivar
+                                                            <button type="submit" style="background-color: var(--success); color: white; border: none; padding: 6px 16px; border-radius: 9999px; font-weight: 700; font-size: 0.85rem; cursor: pointer; line-height: 1.2; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                                                <icon name="check-circle" class="icon-sm" /> <span>Reactivar</span>
                                                             </button>
                                                         </form>
                                                     }
@@ -631,7 +631,7 @@
                             <input type="hidden" name="section" value="usuarios" />
                             <input type="hidden" name="subtab" value="trabajadores" />
                             <div style="position: relative; display: flex; align-items: center;">
-                                <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
+                                <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none; display: flex; align-items: center;"><icon name="search" class="icon-sm" /></span>
                                 <input type="text" name="searchTerm" value="@Model.TrabajadoresSearchTerm" placeholder="Buscar trabajador por nombre, correo o puesto..." class="form-input" style="width: 340px; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); font-size: 0.85rem;" />
                             </div>
                             <button type="submit" class="btn" style="background-color: var(--purple-600); color: white; border: none; padding: 0.45rem 0.9rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-700)';" onmouseout="this.style.backgroundColor='var(--purple-600)';">
@@ -692,19 +692,19 @@
                                                 <div class="table-actions-wrapper" style="justify-content: center;">
                                                     <button type="button" class="btn-action-edit btn-edit-employee" aria-label="Editar"
                                                         data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = emp.Id, nombre = emp.Nombre, email = emp.Email, telefono = emp.Telefono ?? "", puesto = emp.Puesto, departamento = emp.Departamento, salario = emp.Salario, rol = emp.Rol, activo = emp.Activo }))'>
-                                                        ✏️ Editar
+                                                        <icon name="pencil" class="icon-sm" /> <span>Editar</span>
                                                     </button>
                                                     @if (emp.Activo)
                                                     {
                                                         <form asp-controller="User" asp-action="DeleteEmployee" asp-route-id="@emp.Id" method="post" style="display:inline;" class="form-delete-employee" data-nombre="@emp.Nombre">
-                                                            <button type="submit" class="btn-action-delete" aria-label="Desactivar">🗑️ Desactivar</button>
+                                                            <button type="submit" class="btn-action-delete" aria-label="Desactivar"><icon name="trash-2" class="icon-sm" /> <span>Desactivar</span></button>
                                                         </form>
                                                     }
                                                     else
                                                     {
                                                         <form asp-controller="User" asp-action="ReactivateEmployee" asp-route-id="@emp.Id" method="post" style="display:inline;">
-                                                            <button type="submit" style="background-color: var(--success); color: white; border: none; padding: 6px 16px; border-radius: 9999px; font-weight: 700; font-size: 0.85rem; cursor: pointer; line-height: 1.2;">
-                                                                ✅ Reactivar
+                                                            <button type="submit" style="background-color: var(--success); color: white; border: none; padding: 6px 16px; border-radius: 9999px; font-weight: 700; font-size: 0.85rem; cursor: pointer; line-height: 1.2; display: inline-flex; align-items: center; gap: 0.35rem;">
+                                                                <icon name="check-circle" class="icon-sm" /> <span>Reactivar</span>
                                                             </button>
                                                         </form>
                                                     }
@@ -816,7 +816,7 @@
 
                         <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
                             <div style="position: relative; display: flex; align-items: center;">
-                                <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none;">🔍</span>
+                                <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none; display: flex; align-items: center;"><icon name="search" class="icon-sm" /></span>
                                 <input type="text" name="searchTerm" value="@Model.FacturasSearchTerm" placeholder="Buscar por número o cliente..." class="form-input" style="padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); width: 260px; font-size: 0.85rem;" />
                             </div>
                             <button type="submit" class="btn" style="background-color: var(--purple-600); color: white; border: none; padding: 0.45rem 0.9rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-700)';" onmouseout="this.style.backgroundColor='var(--purple-600)';">
@@ -875,12 +875,12 @@
                                         </td>
                                         <td style="padding: 0.75rem 1rem; text-align: center;">
                                             <div class="table-actions-wrapper" style="justify-content: center;">
-                                                <a href="/Invoice/DownloadPdf/@fac.Id" target="_blank" class="btn-action-edit" aria-label="Descargar PDF">
-                                                    📄 PDF
+                                                <a href="/Invoice/DownloadPdf/@fac.Id" target="_blank" class="btn-action-edit" aria-label="Descargar PDF" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="file-text" class="icon-sm" /> <span>PDF</span>
                                                 </a>
                                                 <form asp-controller="Invoice" asp-action="Delete" asp-route-id="@fac.Id" method="post" class="form-delete-invoice" data-nombre="@fac.NumeroFactura" style="display:inline; margin:0;">
-                                                    <button type="submit" class="btn-action-delete" aria-label="Eliminar Factura">
-                                                        🗑️ Eliminar
+                                                    <button type="submit" class="btn-action-delete" aria-label="Eliminar Factura" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                        <icon name="trash-2" class="icon-sm" /> <span>Eliminar</span>
                                                     </button>
                                                 </form>
                                             </div>
@@ -1889,7 +1889,7 @@
 <div id="modal-crear-cliente" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
     <div class="card" style="width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
-            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✨ Nuevo Cliente</h2>
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;"><icon name="sparkles" class="icon-sm" /> <span>Nuevo Cliente</span></h2>
             <button type="button" onclick="document.getElementById('modal-crear-cliente').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         <form asp-controller="User" asp-action="CreateClient" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
@@ -1945,7 +1945,7 @@
 <div id="modal-editar-cliente" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
     <div class="card" style="width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
-            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✏️ Editar Cliente</h2>
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;"><icon name="pencil" class="icon-sm" /> <span>Editar Cliente</span></h2>
             <button type="button" onclick="document.getElementById('modal-editar-cliente').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         <form asp-controller="User" asp-action="EditClient" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
@@ -1998,7 +1998,7 @@
 <div id="modal-crear-trabajador" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
     <div class="card" style="width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
-            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">💼 Nuevo Trabajador</h2>
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;"><icon name="briefcase" class="icon-sm" /> <span>Nuevo Trabajador</span></h2>
             <button type="button" onclick="document.getElementById('modal-crear-trabajador').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         <form asp-controller="User" asp-action="CreateEmployee" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
@@ -2054,7 +2054,7 @@
 <div id="modal-editar-trabajador" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
     <div class="card" style="width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
-            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">✏️ Editar Trabajador</h2>
+            <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;"><icon name="pencil" class="icon-sm" /> <span>Editar Trabajador</span></h2>
             <button type="button" onclick="document.getElementById('modal-editar-trabajador').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
         </div>
         <form asp-controller="User" asp-action="EditEmployee" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
@@ -2122,7 +2122,7 @@
         <div style="background: linear-gradient(135deg, var(--purple-700), var(--purple-600)); color: white; padding: 1.25rem 1.5rem; display: flex; justify-content: space-between; align-items: flex-start;">
             <div>
                 <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 1.2rem; font-weight: 700;">
-                    <span>📄</span> <span>Factura Electrónica de Venta</span>
+                    <icon name="file-text" class="icon-lg" /> <span>Factura Electrónica de Venta</span>
                 </div>
                 <div style="font-size: 0.78rem; color: var(--purple-100); margin-top: 0.25rem; font-weight: 500;">
                     Resolución DIAN Nº 18764028920000 | Rango: FAC-0001 a FAC-5000
@@ -2138,7 +2138,7 @@
             <!-- Seccion 1: Datos del Pedido -->
             <div>
                 <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
-                    <span>📋 DATOS DEL PEDIDO</span>
+                    <icon name="clipboard-list" class="icon-sm" /> <span>DATOS DEL PEDIDO</span>
                 </div>
                 <div class="form-group">
                     <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Pedido Asociado *</label>
@@ -2156,7 +2156,7 @@
             <!-- Seccion 2: Datos de Facturación -->
             <div>
                 <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
-                    <span>📑 DATOS DE FACTURACIÓN</span>
+                    <icon name="files" class="icon-sm" /> <span>DATOS DE FACTURACIÓN</span>
                 </div>
                 <div style="display: flex; gap: 1rem;">
                     <div style="flex: 1;">
@@ -2181,7 +2181,7 @@
             <!-- Seccion 3: Valores -->
             <div>
                 <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
-                    <span>💰 VALORES (IVA 19%)</span>
+                    <icon name="banknote" class="icon-sm" /> <span>VALORES (IVA 19%)</span>
                 </div>
                 <div style="display: flex; gap: 0.75rem;">
                     <div style="flex: 1;">
@@ -2201,7 +2201,7 @@
 
             <!-- Warning Box CUFE DIAN -->
             <div style="background-color: #FEFCE8; border: 1px solid #FDE047; color: #854D0E; padding: 0.75rem 1rem; border-radius: 0.5rem; font-size: 0.78rem; line-height: 1.4; display: flex; gap: 0.5rem; align-items: flex-start;">
-                <span style="font-size: 0.9rem;">⚠️</span>
+                <icon name="alert-triangle" class="icon-sm" style="flex-shrink: 0; margin-top: 2px;" />
                 <div>
                     Al crear esta factura se generará un <strong>CUFE</strong> (Código Único de Factura Electrónica) y estará disponible para descarga en formato PDF conforme a la Resolución DIAN.
                 </div>
@@ -2215,7 +2215,7 @@
                 </button>
                 <button type="submit" 
                         style="flex: 1.5; background-color: var(--purple-600); color: white; border: none; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.4rem;">
-                    <span>📄 Crear Factura</span>
+                    <icon name="file-text" class="icon-sm" /> <span>Crear Factura</span>
                 </button>
             </div>
         </form>
@@ -2228,7 +2228,7 @@
     <div class="card" style="width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span style="font-size: 1.3rem;">📅</span>
+                <icon name="calendar-days" class="icon-lg" />
                 <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">Programar Nueva Cita</h2>
             </div>
             <button type="button" onclick="document.getElementById('modal-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
@@ -2294,7 +2294,7 @@
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
                 <button type="button" onclick="document.getElementById('modal-cita').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.6rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
                 <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
-                    <span>📅 Agendar Cita</span>
+                    <icon name="calendar" class="icon-sm" /> <span>Agendar Cita</span>
                 </button>
             </div>
         </form>
@@ -2306,7 +2306,7 @@
     <div class="card" style="width: 100%; max-width: 540px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span style="font-size: 1.3rem;">👁️</span>
+                <icon name="eye" class="icon-lg" />
                 <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">Detalle de la Cita Médica</h2>
             </div>
             <button type="button" onclick="document.getElementById('modal-admin-ver-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
@@ -2353,8 +2353,8 @@
 
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem; border-top: 1px solid var(--purple-100); padding-top: 1rem;">
                 <button type="button" onclick="document.getElementById('modal-admin-ver-cita').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.6rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cerrar</button>
-                <button type="button" onclick="abrirModalAdminEditarCitaDesdeVer()" style="background: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: gap: 0.4rem;">
-                    <span>✏️ Editar Cita</span>
+                <button type="button" onclick="abrirModalAdminEditarCitaDesdeVer()" style="background: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
+                    <icon name="pencil" class="icon-sm" /> <span>Editar Cita</span>
                 </button>
             </div>
         </div>
@@ -2366,7 +2366,7 @@
     <div class="card" style="width: 100%; max-width: 580px; max-height: 90vh; overflow-y: auto; background: white; border-radius: 0.75rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
         <div style="display: flex; justify-content: space-between; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--purple-100);">
             <div style="display: flex; align-items: center; gap: 0.5rem;">
-                <span style="font-size: 1.3rem;">✏️</span>
+                <icon name="pencil" class="icon-lg" />
                 <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; font-weight: 700;">Modificar Cita Médica</h2>
             </div>
             <button type="button" onclick="document.getElementById('modal-admin-editar-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
@@ -2426,7 +2426,7 @@
             <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 0.5rem;">
                 <button type="button" onclick="document.getElementById('modal-admin-editar-cita').style.display='none'" style="background: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.6rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer;">Cancelar</button>
                 <button type="submit" style="background: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;">
-                    <span>💾 Guardar Cambios</span>
+                    <icon name="save" class="icon-sm" /> <span>Guardar Cambios</span>
                 </button>
             </div>
         </form>

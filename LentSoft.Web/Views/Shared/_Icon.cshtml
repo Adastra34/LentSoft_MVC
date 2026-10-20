@@ -1,0 +1,8 @@
+@model string
+@{
+    var name = Model;
+    var iconClass = ViewData["Class"]?.ToString();
+    var finalClass = string.IsNullOrWhiteSpace(iconClass) ? "icon" : $"icon {iconClass.Trim()}";
+    var spriteUrl = Url.Content($"~/img/icons/sprite.svg#icon-{name}");
+}
+<svg class="@finalClass" aria-hidden="true"><use href="@spriteUrl"></use></svg>
