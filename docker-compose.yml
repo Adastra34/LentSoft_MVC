@@ -1,0 +1,45 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: lentsoft-sqlserver
+    restart: unless-stopped
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
+    ports:
+      - "1433:1433"
+    volumes:
+      - sqlserverdata:/var/opt/mssql
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: lentsoft-web
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    depends_on:
+      - sqlserver
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=${ConnectionStrings__DefaultConnection}
+      - PasswordResetJwt__SecretKey=${PasswordResetJwt__SecretKey}
+      - PasswordResetJwt__Issuer=LentSoft.Web
+      - PasswordResetJwt__Audience=LentSoft.PasswordReset
+      - SaleConfirmationJwt__SecretKey=${SaleConfirmationJwt__SecretKey}
+      - SaleConfirmationJwt__Issuer=LentSoft.Web
+      - SaleConfirmationJwt__Audience=LentSoft.SaleConfirmation
+      - MobileJwt__SecretKey=${MobileJwt__SecretKey}
+      - MobileJwt__Issuer=LentSoft.Api
+      - MobileJwt__Audience=LentSoft.Mobile
+      - Gemini__ApiKey=${Gemini__ApiKey}
+      - EmailSettings__SmtpServer=${EmailSettings__SmtpServer}
+      - EmailSettings__SmtpPort=${EmailSettings__SmtpPort}
+      - EmailSettings__SmtpUser=${EmailSettings__SmtpUser}
+      - EmailSettings__SmtpPassword=${EmailSettings__SmtpPassword}
+      - EmailSettings__FromEmail=${EmailSettings__FromEmail}
+      - EmailSettings__FromName=${EmailSettings__FromName}
+
+volumes:
+  sqlserverdata:

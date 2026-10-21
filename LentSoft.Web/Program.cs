@@ -38,6 +38,14 @@ if (string.IsNullOrEmpty(jwtSaleKey) ||
     throw new InvalidOperationException("La clave secreta para SaleConfirmationJwt no está configurada o es demasiado corta.");
 }
 
+var mobileJwtValidationKey = builder.Configuration["MobileJwt:SecretKey"];
+if (string.IsNullOrEmpty(mobileJwtValidationKey) || 
+    mobileJwtValidationKey == "CONFIGURAR_EN_USER_SECRETS_O_VARIABLE_DE_ENTORNO" || 
+    mobileJwtValidationKey.Length < 32)
+{
+    throw new InvalidOperationException("La clave secreta para MobileJwt no está configurada o tiene menos de 32 caracteres.");
+}
+
 var geminiApiKey = builder.Configuration["Gemini:ApiKey"];
 if (string.IsNullOrEmpty(geminiApiKey) || geminiApiKey == "CONFIGURAR_TU_API_KEY_DE_GEMINI")
 {
@@ -93,12 +101,14 @@ builder.Services.AddSingleton<ISaleConfirmationTokenService, SaleConfirmationTok
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IChatAgentService, ChatAgentService>();
 builder.Services.AddScoped<IMobileJwtService, MobileJwtService>();
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<ILoginAttemptService, LoginAttemptService>();
 
 // ── Authentication (Cookie-based for Web, JWT Bearer for Mobile API) ──
 var mobileJwtSettings = builder.Configuration.GetSection("MobileJwt");
-var mobileJwtKey = mobileJwtSettings["SecretKey"] ?? "dev-secret-key-lentsoft-mobile-jwt-api-minimum-32-chars";
-var mobileJwtIssuer = mobileJwtSettings["Issuer"] ?? "LentSoft.Api";
-var mobileJwtAudience = mobileJwtSettings["Audience"] ?? "LentSoft.Mobile";
+var mobileJwtKey = mobileJwtSettings["SecretKey"] ?? throw new InvalidOperationException("La clave secreta para MobileJwt no está configurada.");
+var mobileJwtIssuer = mobileJwtSettings["Issuer"] ?? throw new InvalidOperationException("El emisor (Issuer) para MobileJwt no está configurado.");
+var mobileJwtAudience = mobileJwtSettings["Audience"] ?? throw new InvalidOperationException("La audiencia (Audience) para MobileJwt no está configurada.");
 
 builder.Services.AddAuthentication(options =>
     {

@@ -6,6 +6,10 @@ using LentSoft.Web.Models.Entities;
 
 namespace LentSoft.Web.Services;
 
+/// <summary>
+/// Servicio de generación de tokens JWT para la autenticación de la aplicación móvil (MAUI).
+/// Valida de forma estricta que la clave secreta y la configuración existan sin recurrir a valores por defecto inseguros.
+/// </summary>
 public class MobileJwtService : IMobileJwtService
 {
     private readonly IConfiguration _configuration;
@@ -15,12 +19,25 @@ public class MobileJwtService : IMobileJwtService
         _configuration = configuration;
     }
 
+    /// <summary>
+    /// Genera un token JWT para el usuario autenticado en la API móvil.
+    /// </summary>
+    /// <param name="user">Entidad del usuario con sus claims.</param>
+    /// <returns>Token JWT firmado.</returns>
     public string GenerateToken(User user)
     {
         var jwtSettings = _configuration.GetSection("MobileJwt");
-        var secretKey = jwtSettings["SecretKey"] ?? "dev-secret-key-lentsoft-mobile-jwt-api-minimum-32-chars";
-        var issuer = jwtSettings["Issuer"] ?? "LentSoft.Api";
-        var audience = jwtSettings["Audience"] ?? "LentSoft.Mobile";
+        var secretKey = jwtSettings["SecretKey"];
+
+        if (string.IsNullOrEmpty(secretKey) ||
+            secretKey == "CONFIGURAR_EN_USER_SECRETS_O_VARIABLE_DE_ENTORNO" ||
+            secretKey.Length < 32)
+        {
+            throw new InvalidOperationException("La clave secreta para MobileJwt no está configurada o tiene menos de 32 caracteres.");
+        }
+
+        var issuer = jwtSettings["Issuer"] ?? throw new InvalidOperationException("El emisor (Issuer) para MobileJwt no está configurado.");
+        var audience = jwtSettings["Audience"] ?? throw new InvalidOperationException("La audiencia (Audience) para MobileJwt no está configurada.");
         var expirationDays = int.TryParse(jwtSettings["ExpirationDays"], out var days) ? days : 30;
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
