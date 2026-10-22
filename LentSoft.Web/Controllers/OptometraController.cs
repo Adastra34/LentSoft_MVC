@@ -110,10 +110,16 @@ public class OptometraController : Controller
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(estado) || !Appointment.EstadosValidos.Contains(estado, StringComparer.OrdinalIgnoreCase))
+            {
+                TempData["ErrorMessage"] = "Estado no válido. Los valores permitidos son: pendiente, confirmada, completada, cancelada.";
+                return RedirectToAction("Index", new { section = "citas" });
+            }
+
             var cita = await _context.Appointments.FindAsync(id);
             if (cita != null)
             {
-                cita.Estado = estado;
+                cita.Estado = estado.ToLower();
                 await _context.SaveChangesAsync();
                 TempData["SuccessMessage"] = "Estado de cita actualizado.";
             }

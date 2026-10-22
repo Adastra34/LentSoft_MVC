@@ -144,9 +144,9 @@ public partial class AgendarCitaViewModel : ObservableObject
             DateValidationHint = "Los domingos no hay atención (Atendemos de Lunes a Sábado).";
             DateHintColor = "#DC2626";
         }
-        else if (SelectedDate.Date == DateTime.Today && now.Hour >= 18)
+        else if (SelectedDate.Date == DateTime.Today && now.Hour >= 17)
         {
-            DateValidationHint = "La clínica ya cerró por el día de hoy (horario hasta 6:00 p.m.).";
+            DateValidationHint = "La clínica ya cerró citas por el día de hoy (última cita a las 5:00 p.m.).";
             DateHintColor = "#DC2626";
         }
         else if (SelectedDate.Date == DateTime.Today)
@@ -160,10 +160,10 @@ public partial class AgendarCitaViewModel : ObservableObject
             DateHintColor = "#2FBF71";
         }
 
-        // Validación de Hora
-        if (SelectedTime.Hours < 8 || SelectedTime.Hours > 18 || (SelectedTime.Hours == 18 && SelectedTime.Minutes > 0))
+        // Validación de Hora (8:00 a.m. a 6:00 p.m., cita dura 60 min -> última cita a las 5:00 p.m.)
+        if (SelectedTime < TimeSpan.FromHours(8) || SelectedTime + TimeSpan.FromMinutes(60) > TimeSpan.FromHours(18))
         {
-            TimeValidationHint = "Horario fuera de servicio (Atención: 8:00 a.m. a 6:00 p.m.)";
+            TimeValidationHint = "Horario fuera de servicio (Atención: 8:00 a.m. a 6:00 p.m., última cita 5:00 p.m.)";
             TimeHintColor = "#DC2626";
         }
         else if (SelectedDate.Date == DateTime.Today && SelectedTime <= now.TimeOfDay)
@@ -240,17 +240,17 @@ public partial class AgendarCitaViewModel : ObservableObject
         }
 
         // 4. Validar si hoy ya cerró
-        if (SelectedDate.Date == DateTime.Today && now.Hour >= 18)
+        if (SelectedDate.Date == DateTime.Today && now.Hour >= 17)
         {
-            ErrorMessage = "La clínica ya cerró su jornada por el día de hoy (horario hasta las 6:00 p.m.). Por favor selecciona una fecha a partir de mañana.";
+            ErrorMessage = "La clínica ya cerró su jornada de citas por el día de hoy (horario hasta las 6:00 p.m., última cita 5:00 p.m.). Por favor selecciona una fecha a partir de mañana.";
             await Shell.Current.DisplayAlert("Clínica cerrada hoy", ErrorMessage, "Entendido");
             return;
         }
 
-        // 5. Validar horario de atención (8:00 a.m. a 6:00 p.m.)
-        if (SelectedTime.Hours < 8 || SelectedTime.Hours > 18 || (SelectedTime.Hours == 18 && SelectedTime.Minutes > 0))
+        // 5. Validar horario de atención (8:00 a.m. a 6:00 p.m., cita dura 60 min -> fin <= 18:00)
+        if (SelectedTime < TimeSpan.FromHours(8) || SelectedTime + TimeSpan.FromMinutes(60) > TimeSpan.FromHours(18))
         {
-            ErrorMessage = "El horario de atención es únicamente de lunes a sábado, entre 8:00 a.m. y 6:00 p.m.";
+            ErrorMessage = "El horario de atención es únicamente de lunes a sábado, entre 8:00 a.m. y 6:00 p.m. La última cita disponible inicia a las 5:00 p.m.";
             await Shell.Current.DisplayAlert("Horario no permitido", ErrorMessage, "Entendido");
             return;
         }

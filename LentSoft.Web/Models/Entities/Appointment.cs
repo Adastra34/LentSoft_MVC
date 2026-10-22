@@ -67,9 +67,12 @@ public class Appointment : IValidatableObject
             return false;
         }
 
-        // La hora esté entre las 8:00 y las 18:00
-        var time = fechaHora.TimeOfDay;
-        if (time < new TimeSpan(HoraInicio, 0, 0) || time > new TimeSpan(HoraFin, 0, 0))
+        var inicio = fechaHora.TimeOfDay;
+        var horaInicioTime = TimeSpan.FromHours(HoraInicio);
+        var horaFinTime = TimeSpan.FromHours(HoraFin);
+        var duracion = TimeSpan.FromMinutes(DuracionCitaMinutos);
+
+        if (inicio < horaInicioTime || inicio + duracion > horaFinTime)
         {
             return false;
         }

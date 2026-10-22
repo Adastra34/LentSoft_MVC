@@ -744,7 +744,7 @@
         const hours = dt.getHours();
         const minutes = dt.getMinutes();
         const decimalHour = hours + minutes / 60.0;
-        if (decimalHour < 8.0 || decimalHour > 18.0) {
+        if (decimalHour < 8.0 || (decimalHour + 1.0) > 18.0) {
             if (typeof alertify !== 'undefined') {
                 alertify.error("El horario de citas es de 8:00 a.m. a 6:00 p.m.");
             } else {
