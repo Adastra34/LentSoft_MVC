@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using LentSoft.Web.Data;
 using LentSoft.Web.Services;
+using System.IO.Compression;
+using Microsoft.AspNetCore.ResponseCompression;
 
 // ── Culture Configuration (Pesos Colombianos - COP) ──
 var cultureInfo = new System.Globalization.CultureInfo("es-CO");
@@ -166,6 +168,30 @@ builder.Services.AddRateLimiter(options =>
 // ── MVC ──
 builder.Services.AddControllersWithViews();
 
+// â”€â”€ Response Compression â”€â”€
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+    options.MimeTypes = new[]
+    {
+        "text/css",
+        "application/javascript",
+        "text/javascript",
+        "application/json",
+        "image/svg+xml"
+    };
+});
+builder.Services.Configure<BrotliCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Fastest;
+});
+builder.Services.Configure<GzipCompressionProviderOptions>(options =>
+{
+    options.Level = CompressionLevel.Fastest;
+});
+
 var app = builder.Build();
 
 // ── Middleware Pipeline ──
@@ -176,6 +202,7 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseResponseCompression();
 app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthentication();

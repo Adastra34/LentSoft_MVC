@@ -207,7 +207,12 @@ public class DashboardController : Controller
         var todosLosProductos = await _context.Products.AsNoTracking().Include(p => p.Supplier).OrderBy(p => p.Nombre).ToListAsync();
 
         // â”€â”€ Clientes (Paginados y Filtrados) â”€â”€
-        var clientesQuery = _context.Users.Where(u => u.Role == "usuario");
+        clientesPage = Math.Max(1, clientesPage);
+        clientesPageSize = Math.Clamp(clientesPageSize, 1, 100);
+        trabajadoresPage = Math.Max(1, trabajadoresPage);
+        trabajadoresPageSize = Math.Clamp(trabajadoresPageSize, 1, 100);
+
+        var clientesQuery = _context.Users.AsNoTracking().Where(u => u.Role == "usuario");
         if (!includeInactive) clientesQuery = clientesQuery.Where(u => u.Activo);
 
         if (!string.IsNullOrWhiteSpace(clientesSearch))
@@ -230,7 +235,7 @@ public class DashboardController : Controller
             .ToListAsync();
 
         // â”€â”€ Trabajadores (Paginados y Filtrados) â”€â”€
-        var trabajadoresQuery = _context.Employees.AsQueryable();
+        var trabajadoresQuery = _context.Employees.AsNoTracking().AsQueryable();
         if (!includeInactive) trabajadoresQuery = trabajadoresQuery.Where(e => e.Activo);
 
         if (!string.IsNullOrWhiteSpace(trabajadoresSearch))
@@ -252,14 +257,52 @@ public class DashboardController : Controller
             .Take(trabajadoresPageSize)
             .ToListAsync();
 
+        var empEmails = rawTrabajadores
+            .Select(e => e.Email)
+            .Where(email => !string.IsNullOrEmpty(email))
+            .Distinct()
+            .ToList();
+
+        var userByEmail = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var pedidosCountByUserId = new Dictionary<int, int>();
+
+        if (empEmails.Count > 0)
+        {
+            var matchedUsers = await _context.Users
+                .AsNoTracking()
+                .Where(u => empEmails.Contains(u.Email))
+                .Select(u => new { u.Id, u.Email })
+                .ToListAsync();
+
+            foreach (var u in matchedUsers)
+            {
+                userByEmail.TryAdd(u.Email, u.Id);
+            }
+
+            var matchedUserIds = matchedUsers.Select(u => u.Id).Distinct().ToList();
+            if (matchedUserIds.Count > 0)
+            {
+                var pedidosCounts = await _context.Orders
+                    .AsNoTracking()
+                    .Where(o => o.Activo && matchedUserIds.Contains(o.UserId))
+                    .GroupBy(o => o.UserId)
+                    .Select(g => new { UserId = g.Key, Count = g.Count() })
+                    .ToListAsync();
+
+                foreach (var pc in pedidosCounts)
+                {
+                    pedidosCountByUserId[pc.UserId] = pc.Count;
+                }
+            }
+        }
+
         var trabajadoresList = new List<TrabajadorItemViewModel>();
         foreach (var emp in rawTrabajadores)
         {
             int pedidosCount = 0;
-            var userAcc = await _context.Users.FirstOrDefaultAsync(u => u.Email == emp.Email);
-            if (userAcc != null)
+            if (!string.IsNullOrEmpty(emp.Email) && userByEmail.TryGetValue(emp.Email, out var userId))
             {
-                pedidosCount = await _context.Orders.CountAsync(o => o.UserId == userAcc.Id && o.Activo);
+                pedidosCountByUserId.TryGetValue(userId, out pedidosCount);
             }
 
             trabajadoresList.Add(new TrabajadorItemViewModel
