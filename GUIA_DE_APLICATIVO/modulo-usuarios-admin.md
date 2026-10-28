@@ -134,3 +134,59 @@ dotnet test LentSoft.Tests --filter FullyQualifiedName~LoginAttemptServiceTests
 dotnet test LentSoft.Tests --filter FullyQualifiedName~PasswordResetTokenServiceTests
 dotnet test LentSoft.Tests --filter FullyQualifiedName~UserServiceTests
 ```
+
+---
+
+## 8. Rendimiento
+
+### 8.1 Optimizaciones de Desempeño Implementadas
+
+1. **Eliminación de consultas N+1 en listado de trabajadores (`DashboardController.Admin`):**
+   - Anteriormente, para cada empleado de la página visible se ejecutaba una consulta `FirstOrDefaultAsync` sobre la tabla `Users` (por correo) y otra `CountAsync` sobre `Orders` (por `UserId` y `Activo`), generando hasta 2 * N consultas adicionales por recarga.
+   - Se reemplazó por un esquema de consultas por lotes (batching):
+     - Una consulta para obtener identificadores y correos de los usuarios correspondientes a la lista de correos de empleados de la página mediante `AsNoTracking()`.
+     - Una consulta agregada (`GroupBy` y `Count`) sobre `Orders` filtrando únicamente por los identificadores de usuarios obtenidos y con `AsNoTracking()`.
+     - Resolución y mapeo en memoria mediante diccionarios con comparación de correos insensible a mayúsculas/minúsculas (`StringComparer.OrdinalIgnoreCase`) de forma equivalente a la colación por defecto de la base de datos (sin invocar `ToLower()` en la consulta SQL).
+     - El conteo de pedidos activos (`PedidosCount`) devuelve exactamente el mismo valor que antes (0 si el empleado no tiene usuario asociado).
+     - El número de consultas extra pasó de ser dependiente del tamaño de página a un máximo constante de 2 consultas adicionales en total.
+
+2. **Consultas de solo lectura con `AsNoTracking()`:**
+   - Se aplicó `AsNoTracking()` a `clientesQuery` y `trabajadoresQuery` en `DashboardController.Admin`, así como a las consultas por lotes de usuarios y pedidos. Se verificó previamente que las entidades no sufren modificaciones posteriores en el método, eliminando la sobrecarga de seguimiento de cambios en EF Core.
+
+3. **Límites estrictos en parámetros de paginación:**
+   - Se limitaron los parámetros `clientesPage` y `trabajadoresPage` a un mínimo de 1 (`Math.Max(1, page)`).
+   - Se acotaron los tamaños de página `clientesPageSize` y `trabajadoresPageSize` a un rango seguro entre 1 y 100 mediante `Math.Clamp`, manteniendo los valores por defecto (5) y previniendo problemas de sobrecarga por valores arbitrarios o negativos.
+
+4. **Compresión de respuestas HTTP (Brotli y Gzip):**
+   - Se configuró `builder.Services.AddResponseCompression` en `Program.cs` con compresión Brotli y Gzip en nivel `CompressionLevel.Fastest` y `EnableForHttps = true`.
+   - Se restringieron los tipos MIME exclusivamente a recursos estáticos y JSON: `text/css`, `application/javascript`, `text/javascript`, `application/json`, `image/svg+xml`.
+   - El middleware `UseResponseCompression` se integró inmediatamente antes de `UseStaticFiles`.
+
+### 8.2 Decisiones de Arquitectura: Aspectos NO modificados y Justificación
+
+1. **Índice compuesto en base de datos (`Role` + `Activo`):**
+   - Requiere la creación de una nueva migración de EF Core y alteración del esquema de la base de datos. Para mantener un alcance quirúrgico y evitar conflictos con otros módulos en desarrollo concurrente, no se realizaron modificaciones al esquema ni a `LentSoftDbContext`.
+
+2. **Exclusión de `text/html` de la compresión HTTP:**
+   - Las páginas HTML contienen tokens antiforgery dinámicos y datos confidenciales. Comprimir respuestas dinámicas sobre HTTPS expondría la aplicación a ataques de canal lateral tipo **BREACH** (Browser Reconnaissance and Exfiltration via Adaptive Compression of Hypertext).
+
+3. **Costo computacional del login con BCrypt:**
+   - La verificación de contraseñas con BCrypt consume ciclos de CPU de manera intencional (factor de costo de trabajo) para brindar robustez frente a ataques de fuerza bruta y ataques por diccionario fuera de línea. Esta decisión de seguridad no se compromete en favor de la latencia.
+
+### 8.3 Ejecución de Pruebas de Carga
+
+Las pruebas de carga reproducibles se encuentran implementadas en la carpeta `performance/` mediante k6.
+
+Para ejecutarlas sin necesidad de instalar k6 localmente:
+
+```bash
+docker run --rm -i -v "${PWD}/performance:/scripts" \
+  -e BASE_URL=http://host.docker.internal:5000 \
+  -e ADMIN_EMAIL=admin@lentsoft.com \
+  -e ADMIN_PASSWORD=admin123 \
+  -e USER_EMAIL=user@lentsoft.com \
+  -e USER_PASSWORD=user123 \
+  grafana/k6 run /scripts/usuarios-load-test.js
+```
+
+Para consultar la descripción detallada de los escenarios (`api_auth` y `admin_listados`), los umbrales configurados y la plantilla de resultados "Antes vs Después", revisar `performance/README.md`.
