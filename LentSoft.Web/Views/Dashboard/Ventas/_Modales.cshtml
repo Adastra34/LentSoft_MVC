@@ -49,7 +49,7 @@
 
             <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
                 <button type="button" onclick="document.getElementById('modal-factura').style.display='none'" style="flex: 1; border: 1px solid var(--purple-300); background: transparent; color: var(--purple-700); padding: 0.65rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">Cancelar</button>
-                <button type="submit" style="flex: 1.5; background: var(--purple-600); color: white; border: none; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer;">Emitir Factura</button>
+                <button type="submit" data-loading-text="Emitiendo factura..." style="flex: 1.5; background: var(--purple-600); color: white; border: none; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer;">Emitir Factura</button>
             </div>
         </form>
     </div>
@@ -100,7 +100,7 @@
 
             <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
                 <button type="button" onclick="document.getElementById('modal-abono').style.display='none'" style="flex: 1; border: 1px solid var(--purple-300); background: transparent; color: var(--purple-700); padding: 0.65rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">Cancelar</button>
-                <button type="submit" id="btnConfirmarAbono" style="flex: 1.5; background: var(--purple-600); color: white; border: none; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer;">Confirmar Abono</button>
+                <button type="submit" id="btnConfirmarAbono" data-loading-text="Procesando abono..." style="flex: 1.5; background: var(--purple-600); color: white; border: none; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer;">Confirmar Abono</button>
             </div>
         </form>
     </div>
@@ -157,7 +157,7 @@
 
             <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
                 <button type="button" onclick="document.getElementById('modal-tarjeta').style.display='none'" style="flex: 1; border: 1px solid var(--purple-300); background: transparent; color: var(--purple-700); padding: 0.65rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">Cancelar</button>
-                <button type="submit" id="btnCobrarTarjetaSubmit" style="flex: 1.5; background: #312E81; color: white; border: none; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer;">Procesar Pago</button>
+                <button type="submit" id="btnCobrarTarjetaSubmit" data-loading-text="Procesando pago..." style="flex: 1.5; background: #312E81; color: white; border: none; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer;">Procesar Pago</button>
             </div>
         </form>
     </div>
@@ -205,7 +205,7 @@
 
             <div style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
                 <button type="button" onclick="document.getElementById('modal-cambiar-estado').style.display='none'" style="flex: 1; border: 1px solid var(--purple-300); background: transparent; color: var(--purple-700); padding: 0.65rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">Cancelar</button>
-                <button type="submit" style="flex: 1.5; background: var(--purple-600); color: white; border: none; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer;">Actualizar Estado</button>
+                <button type="submit" data-loading-text="Actualizando..." style="flex: 1.5; background: var(--purple-600); color: white; border: none; padding: 0.65rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer;">Actualizar Estado</button>
             </div>
         </form>
     </div>
@@ -240,7 +240,7 @@
 
                 <div style="display: flex; gap: 0.75rem; margin-top: 0.25rem;">
                     <button type="button" onclick="document.getElementById('modal-formula').style.display='none'" style="flex: 1; border: 1px solid var(--purple-300); background: transparent; color: var(--purple-700); padding: 0.6rem; border-radius: 0.5rem; font-weight: 600; cursor: pointer;">Cerrar</button>
-                    <button type="submit" style="flex: 1.5; background: var(--purple-600); color: white; border: none; padding: 0.6rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer;">Guardar Vinculación</button>
+                    <button type="submit" data-loading-text="Guardando..." style="flex: 1.5; background: var(--purple-600); color: white; border: none; padding: 0.6rem; border-radius: 0.5rem; font-weight: 700; cursor: pointer;">Guardar Vinculación</button>
                 </div>
             </form>
         </div>

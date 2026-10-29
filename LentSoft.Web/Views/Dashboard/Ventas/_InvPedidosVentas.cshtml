@@ -1,32 +1,52 @@
 @model DashboardVentasViewModel
 
-<div id="subtab-content-pedidos" style="display: @(Model.ActiveSubTab == "pedidos" ? "block" : "none");">
-    <!-- CONTENIDO PESTAÑA VENTAS (ÚNICA) -->
+@{
+    var isPedidosActive = Model.ActiveSubTab == "pedidos" || Model.ActiveSubTab == "pedidos-ventas";
+    bool hasActivePedidosFilters = !string.IsNullOrWhiteSpace(Model.PedidosSearchTerm) || !string.IsNullOrWhiteSpace(Model.PedidosEstado);
+    string pedQs = $"&pedSearch={Uri.EscapeDataString(Model.PedidosSearchTerm ?? "")}&pedEstado={Uri.EscapeDataString(Model.PedidosEstado ?? "")}&pedPageSize={Model.PedidosPageSize}";
+}
+
+<div id="subtab-content-pedidos" style="display: @(isPedidosActive ? "block" : "none");">
+    <!-- CONTENIDO PESTAÑA PEDIDOS DE VENTA -->
     <div id="content-pedidos-ventas" class="inv-card">
-        <div class="inv-search-bar">
-            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap; flex: 1;">
-                <div class="inv-search-input-wrapper">
+        <div class="inv-search-bar" style="flex-wrap: wrap; gap: 0.75rem;">
+            <div style="display: flex; gap: 0.6rem; align-items: center; flex-wrap: wrap; flex: 1;">
+                <div class="inv-search-input-wrapper" style="min-width: 240px; flex: 1;">
                     <span class="inv-search-icon">
                         <svg class="inv-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
                     </span>
-                    <input type="text" id="searchPedidosVentas" placeholder="Buscar pedidos de clientes..." class="inv-search-input" onkeyup="filterTable('searchPedidosVentas', 'tablePedidosVentas')" oninput="filterTable('searchPedidosVentas', 'tablePedidosVentas')" />
+                    <input type="text" id="searchPedidosVentas" value="@Model.PedidosSearchTerm" placeholder="Buscar por N° pedido, cliente, producto o notas..." class="inv-search-input" onkeydown="if(event.key === 'Enter') submitPedidosVentasFilters();" />
                 </div>
+
+                <button type="button" onclick="submitPedidosVentasFilters()" class="inv-btn inv-btn-secondary" style="padding: 0.45rem 0.85rem; font-size: 0.85rem;" title="Buscar en todos los pedidos">
+                    <svg class="inv-icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                    Buscar
+                </button>
+
                 <div style="position: relative;">
                     <button type="button" onclick="toggleFilterMenu('pedidosVentas')" class="inv-filter-btn">
                         <svg class="inv-icon" viewBox="0 0 24 24"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-                        <span>Filtro</span>
+                        <span>Estado: @(string.IsNullOrEmpty(Model.PedidosEstado) ? "Todos" : Model.PedidosEstado)</span>
                         <svg class="inv-icon" style="width: 0.8em; height: 0.8em;" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9"/></svg>
                     </button>
                     <div id="filter-menu-pedidosVentas" class="inv-dropdown-menu">
-                        <a href="javascript:void(0)" onclick="filterTableByValue('searchPedidosVentas', 'tablePedidosVentas', '')" class="inv-dropdown-item">Todos los estados</a>
-                        <a href="javascript:void(0)" onclick="filterTableByValue('searchPedidosVentas', 'tablePedidosVentas', 'pendiente')" class="inv-dropdown-item">Pendientes</a>
-                        <a href="javascript:void(0)" onclick="filterTableByValue('searchPedidosVentas', 'tablePedidosVentas', 'recibido')" class="inv-dropdown-item">Recibidos / Entregados</a>
-                        <a href="javascript:void(0)" onclick="filterTableByValue('searchPedidosVentas', 'tablePedidosVentas', 'cancelado')" class="inv-dropdown-item">Cancelados</a>
+                        <a href="javascript:void(0)" onclick="applyPedidosVentasParam('pedEstado', '')" class="inv-dropdown-item">Todos los estados</a>
+                        <a href="javascript:void(0)" onclick="applyPedidosVentasParam('pedEstado', 'pendiente')" class="inv-dropdown-item">Pendientes</a>
+                        <a href="javascript:void(0)" onclick="applyPedidosVentasParam('pedEstado', 'enviado')" class="inv-dropdown-item">Enviados</a>
+                        <a href="javascript:void(0)" onclick="applyPedidosVentasParam('pedEstado', 'entregado')" class="inv-dropdown-item">Entregados</a>
+                        <a href="javascript:void(0)" onclick="applyPedidosVentasParam('pedEstado', 'cancelado')" class="inv-dropdown-item">Cancelados</a>
                     </div>
                 </div>
+
+                @if (hasActivePedidosFilters)
+                {
+                    <a href="?section=inventarios&subtab=pedidos" class="inv-btn inv-btn-danger" style="padding: 0.45rem 0.75rem; font-size: 0.8rem; text-decoration: none;" title="Restablecer filtros de pedidos">
+                        <icon name="x" class="inv-icon" /> Limpiar
+                    </a>
+                }
             </div>
             <div>
-                <button type="button" class="inv-btn inv-btn-success inv-btn-toolbar" onclick="document.getElementById('modal-crear-pedido-venta').showModal ? document.getElementById('modal-crear-pedido-venta').showModal() : (document.getElementById('modal-crear-pedido-venta').style.display='flex')">
+                <button type="button" class="inv-btn inv-btn-success inv-btn-toolbar" onclick="document.getElementById('modal-crear-pedido-venta').style.display='flex'">
                     <svg class="inv-icon" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Nuevo Pedido Venta
                 </button>
@@ -40,8 +60,20 @@
                     <div class="inv-empty-state-icon">
                         <svg class="inv-icon" style="width: 28px; height: 28px;" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
                     </div>
-                    <div class="inv-empty-state-title">No hay pedidos de venta registrados</div>
-                    <div class="inv-empty-state-desc">Puedes registrar ventas directas desde el botón "+ Nuevo Pedido Venta".</div>
+                    <div class="inv-empty-state-title">
+                        @(hasActivePedidosFilters ? "No se encontraron pedidos con los filtros aplicados" : "No hay pedidos de venta registrados")
+                    </div>
+                    <div class="inv-empty-state-desc">
+                        @(hasActivePedidosFilters
+                            ? "Prueba con otro término de búsqueda (N° pedido, cliente o producto) o restablece los filtros."
+                            : "Puedes registrar pedidos de clientes vinculando un producto del catálogo desde el botón «+ Nuevo Pedido Venta».")
+                    </div>
+                    @if (hasActivePedidosFilters)
+                    {
+                        <div style="margin-top: 0.75rem;">
+                            <a href="?section=inventarios&subtab=pedidos" class="inv-btn inv-btn-secondary">Restablecer Filtros</a>
+                        </div>
+                    }
                 </div>
             }
             else
@@ -80,10 +112,10 @@
                                             data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = p.Id, numeroPedido = p.NumeroPedido, clienteNombre = p.ClienteNombre, productoNombre = p.ProductoNombre, cantidad = p.Cantidad, precioUnitario = p.PrecioUnitario, estado = p.Estado, notas = p.Notas ?? "" }))'>
                                             <svg class="inv-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                         </button>
-                                        <form asp-action="DeleteSalesOrder" asp-controller="Dashboard" method="post" style="display: inline; margin: 0;" class="form-delete-sales-order">
+                                        <form asp-action="DeleteSalesOrder" asp-controller="Ventas" method="post" style="display: inline; margin: 0;" class="form-delete-sales-order">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@p.Id" />
-                                            <button type="submit" class="inv-btn-icon inv-btn-icon-delete" aria-label="Eliminar pedido" title="Eliminar pedido">
+                                            <button type="submit" data-loading-text="..." class="inv-btn-icon inv-btn-icon-delete" aria-label="Eliminar pedido" title="Eliminar pedido">
                                                 <svg class="inv-icon" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
                                             </button>
                                         </form>
@@ -95,5 +127,53 @@
                 </table>
             }
         </div>
+
+        <!-- Paginación en Servidor para Pedidos de Venta (Sección 4.2) -->
+        @if (Model.PedidosTotalPages > 1)
+        {
+            <div class="inv-pagination">
+                <span class="inv-pagination-info">
+                    Página @Model.PedidosPage de @Model.PedidosTotalPages (Total: @Model.PedidosTotalCount pedidos de venta)
+                </span>
+                <div class="inv-pagination-nav">
+                    @if (Model.PedidosPage > 1)
+                    {
+                        <a href="?section=inventarios&subtab=pedidos&pedPage=1@pedQs" class="inv-pagination-btn" title="Primera página">&laquo;&laquo;</a>
+                        <a href="?section=inventarios&subtab=pedidos&pedPage=@(Model.PedidosPage - 1)@pedQs" class="inv-pagination-btn" title="Página anterior">&laquo; Anterior</a>
+                    }
+                    else
+                    {
+                        <span class="inv-pagination-btn disabled">&laquo; Anterior</span>
+                    }
+
+                    @{
+                        int pedStart = Math.Max(1, Model.PedidosPage - 2);
+                        int pedEnd = Math.Min(Model.PedidosTotalPages, Model.PedidosPage + 2);
+                    }
+
+                    @for (int p = pedStart; p <= pedEnd; p++)
+                    {
+                        if (p == Model.PedidosPage)
+                        {
+                            <span class="inv-pagination-btn active">@p</span>
+                        }
+                        else
+                        {
+                            <a href="?section=inventarios&subtab=pedidos&pedPage=@p@pedQs" class="inv-pagination-btn">@p</a>
+                        }
+                    }
+
+                    @if (Model.PedidosPage < Model.PedidosTotalPages)
+                    {
+                        <a href="?section=inventarios&subtab=pedidos&pedPage=@(Model.PedidosPage + 1)@pedQs" class="inv-pagination-btn" title="Página siguiente">Siguiente &raquo;</a>
+                        <a href="?section=inventarios&subtab=pedidos&pedPage=@Model.PedidosTotalPages@pedQs" class="inv-pagination-btn" title="Última página">&raquo;&raquo;</a>
+                    }
+                    else
+                    {
+                        <span class="inv-pagination-btn disabled">Siguiente &raquo;</span>
+                    }
+                </div>
+            </div>
+        }
     </div>
 </div>

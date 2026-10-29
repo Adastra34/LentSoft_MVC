@@ -12,15 +12,30 @@ public interface IVentasService
         string? searchTerm, 
         int page, 
         int pageSize, 
-        int currentUserId);
+        int currentUserId,
+        string? pedSearch = null,
+        string? pedEstado = null,
+        int pedPage = 1,
+        int pedPageSize = 15,
+        string? movSearch = null,
+        string? movTipo = null,
+        int? movProductId = null,
+        DateTime? movFechaInicio = null,
+        DateTime? movFechaFin = null,
+        string? movMotivo = null,
+        string movSort = "desc",
+        int movPage = 1,
+        int movPageSize = 20);
 
     Task<DataTablesResult<VentaRowDTO>> ListarVentasDataTablesAsync(DataTablesRequestDTO request);
 
+    Task<List<VentaRowDTO>> ExportarVentasFiltradasAsync(DataTablesRequestDTO request);
+
     Task<Order> RegistrarVentaAsync(RegistrarVentaDTO dto, string responsable, string? baseUrl);
 
-    Task<(bool Success, string Message)> CambiarEstadoOrdenAsync(int orderId, string nuevoEstado);
+    Task<(bool Success, string Message)> CambiarEstadoOrdenAsync(int orderId, string nuevoEstado, string? responsable = null);
 
-    Task<(bool Success, string Message)> VincularFormulaAsync(int orderId, int? formulaOpticaId);
+    Task<(bool Success, string Message)> VincularFormulaAsync(int orderId, int? formulaOpticaId, string? responsable = null);
 
     Task<FormulaOpticaVigenteDTO> ObtenerFormulaVigentePorClienteAsync(int userId);
 
@@ -29,4 +44,10 @@ public interface IVentasService
     Task<List<ProductoVendidoReporteDTO>> ObtenerReporteProductosVendidosAsync(DateTime? fechaInicio, DateTime? fechaFin);
 
     Task<Order?> ObtenerVentaPorIdAsync(int saleId);
+
+    Task<ResultadoOperacionPedidoDTO> CrearPedidoVentaAsync(CrearPedidoVentaDTO dto, string responsable);
+
+    Task<ResultadoOperacionPedidoDTO> EditarPedidoVentaAsync(EditarPedidoVentaDTO dto, string responsable);
+
+    Task<ResultadoOperacionPedidoDTO> EliminarPedidoVentaAsync(int id, string responsable);
 }

@@ -75,3 +75,58 @@ public class FormulaOpticaResumenDTO
     public string Estado { get; set; } = string.Empty;
     public bool EsVigente { get; set; }
 }
+
+public class CrearPedidoVentaDTO
+{
+    public string? NumeroPedido { get; set; }
+
+    [Required(ErrorMessage = "El nombre del cliente es obligatorio.")]
+    [StringLength(150, ErrorMessage = "El nombre del cliente no puede superar los 150 caracteres.")]
+    public string ClienteNombre { get; set; } = string.Empty;
+
+    [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un producto válido del catálogo.")]
+    public int ProductId { get; set; }
+
+    [Range(1, 10000, ErrorMessage = "La cantidad debe estar entre 1 y 10,000.")]
+    public int Cantidad { get; set; } = 1;
+
+    [Required(ErrorMessage = "El estado del pedido es obligatorio.")]
+    public string Estado { get; set; } = "Pendiente";
+
+    [StringLength(500, ErrorMessage = "Las notas no pueden superar los 500 caracteres.")]
+    public string? Notas { get; set; }
+}
+
+public class EditarPedidoVentaDTO
+{
+    [Range(1, int.MaxValue, ErrorMessage = "Identificador de pedido inválido.")]
+    public int Id { get; set; }
+
+    [Required(ErrorMessage = "El número de pedido es obligatorio.")]
+    [StringLength(50)]
+    public string NumeroPedido { get; set; } = string.Empty;
+
+    [Required(ErrorMessage = "El nombre del cliente es obligatorio.")]
+    [StringLength(150)]
+    public string ClienteNombre { get; set; } = string.Empty;
+
+    [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un producto válido del catálogo.")]
+    public int ProductId { get; set; }
+
+    [Range(1, 10000, ErrorMessage = "La cantidad debe estar entre 1 y 10,000.")]
+    public int Cantidad { get; set; } = 1;
+
+    [Required(ErrorMessage = "El estado del pedido es obligatorio.")]
+    public string Estado { get; set; } = "Pendiente";
+
+    [StringLength(500)]
+    public string? Notas { get; set; }
+}
+
+public class ResultadoOperacionPedidoDTO
+{
+    public bool Exito { get; set; }
+    public string Mensaje { get; set; } = string.Empty;
+    public string? Advertencia { get; set; }
+    public int? PedidoId { get; set; }
+}

@@ -56,6 +56,12 @@ public class DashboardVentasViewModel
     public int MovTotalPages => (int)Math.Ceiling((double)MovTotalCount / (MovPageSize > 0 ? MovPageSize : 20));
 
     public List<SalesOrder> PedidosVentas { get; set; } = new();
+    public string? PedidosSearchTerm { get; set; }
+    public string? PedidosEstado { get; set; }
+    public int PedidosPage { get; set; } = 1;
+    public int PedidosPageSize { get; set; } = 15;
+    public int PedidosTotalCount { get; set; }
+    public int PedidosTotalPages => (int)Math.Ceiling((double)PedidosTotalCount / (PedidosPageSize > 0 ? PedidosPageSize : 15));
 
     // ── Clientes ──
     public List<User> Clientes { get; set; } = new();

@@ -180,17 +180,26 @@ Para desplegar la aplicación y su base de datos SQL Server mediante contenedore
    ```
 
 2. **Construir las imágenes e iniciar los contenedores**:
-   Ejecuta Docker Compose para levantar tanto el contenedor de SQL Server como la aplicación web:
+   Ejecuta Docker Compose para levantar el contenedor de SQL Server (`sqlserver`), inicializar automáticamente la base de datos e historial de migraciones mediante el servicio de un solo uso (`db-init` que ejecuta `db/lentsoft-schema.sql` con `sqlcmd`, incluyendo los procedimientos almacenados de Ventas y los usuarios iniciales para iniciar sesión), y levantar la aplicación web (`web`) configurada con `UseSqlite=false`:
    ```bash
    docker compose up -d --build
    ```
 
 3. **Verificar el estado de los servicios**:
-   Comprueba que los contenedores estén en estado saludable y en ejecución:
+   Comprueba que `sqlserver` esté saludable (`healthy`), que `db-init` haya finalizado con código `0`, y que `web` esté en ejecución:
    ```bash
    docker compose ps
    ```
 
 4. **Acceder a la aplicación**:
-   Abre tu navegador en [http://localhost:5000](http://localhost:5000) para acceder a LentSoft.
+   Abre tu navegador en [http://localhost:5000](http://localhost:5000) para acceder a LentSoft e iniciar sesión con las credenciales de prueba (ej. `ventas@lentsoft.com` / `admin123` o `admin@lentsoft.com` / `admin123`).
+
+> **Advertencia sobre redirección HTTPS en contenedor:**
+> La imagen del contenedor expone Kestrel únicamente en HTTP (`ASPNETCORE_URLS=http://+:5000`) mientras que `Program.cs` registra `app.UseHttpsRedirection()`. Al ejecutarse en el contenedor sin un puerto HTTPS configurado, ASP.NET Core emite una advertencia en consola (`Failed to determine the https port for redirect`) y sirve el tráfico normalmente por HTTP en `http://localhost:5000`. Si se despliega detrás de un proxy inverso con TLS (Nginx, Traefik, Caddy), el proxy debe terminar HTTPS y reenviar los encabezados `X-Forwarded-Proto`.
+
+5. **Regenerar el script de esquema (solo si cambian migraciones)**:
+   ```bash
+   # En PowerShell:
+   $env:UseSqlite="false"; $env:ConnectionStrings__DefaultConnection="Server=sqlserver,1433;Database=LentSoftDB;User Id=sa;Password=TuPasswordFuerte123!;TrustServerCertificate=True;"; dotnet ef migrations script --idempotent --project LentSoft.Web -o db/lentsoft-schema.sql
+   ```
 

@@ -1,11 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using Microsoft.EntityFrameworkCore;
 
 namespace LentSoft.Web.Models.Entities;
 
-[Index(nameof(NumeroFactura), IsUnique = true)]
 public class Invoice : IValidatableObject
 {
     [Key]

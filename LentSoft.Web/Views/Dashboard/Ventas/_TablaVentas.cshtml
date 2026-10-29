@@ -1,13 +1,18 @@
 @model DashboardVentasViewModel
 
-<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+<div class="ventas-toolbar-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
     <div>
         <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;" data-i18n="sales.management.title">Gestión de Ventas</h1>
-        <p style="color: var(--gray-600); margin: 0.25rem 0 0 0; font-size: 0.88rem;">Listado integral y cobranza en tiempo real</p>
+        <p style="color: var(--gray-600); margin: 0.25rem 0 0 0; font-size: 0.88rem;">Listado integral, cobranza en tiempo real y exportación completa</p>
     </div>
-    <div style="display: flex; gap: 0.75rem;">
+    <div class="ventas-toolbar-actions" style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <button type="button" onclick="exportarVentasCsvCompleto(this)"
+                style="background: white; color: var(--purple-800); border: 1.5px solid var(--purple-400); padding: 0.6rem 1.1rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.88rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.45rem; transition: all 0.2s ease;"
+                title="Descarga en formato CSV todos los registros que coinciden con los filtros actuales (no solo la página visible)">
+            <icon name="download" /> <span>Exportar CSV (Todos los filtrados)</span>
+        </button>
         <button type="button" onclick="document.getElementById('modal-venta').style.display='flex'" 
-                style="background: linear-gradient(135deg, var(--purple-600), var(--purple-700)); color: white; border: none; padding: 0.65rem 1.25rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 6px rgba(124, 58, 237, 0.25); transition: all 0.2s ease;">
+                style="background: linear-gradient(135deg, var(--purple-600), var(--purple-700)); color: white; border: none; padding: 0.65rem 1.25rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 6px rgba(124, 58, 237, 0.25); transition: all 0.2s ease;">
             <icon name="credit-card" /> <span data-i18n="sales.btn.new">Registrar Nueva Venta</span>
         </button>
     </div>
@@ -15,7 +20,7 @@
 
 <!-- Filtros Dinámicos para DataTables Server-Side -->
 <div class="card" style="padding: 1.25rem; background: white; margin-bottom: 1.5rem; border-left: 4px solid var(--purple-600); border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.08);">
-    <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
+    <div class="ventas-filter-grid" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
         <div>
             <label style="font-size: 0.8rem; font-weight: 700; color: var(--purple-900); display: block; margin-bottom: 0.25rem;">Filtro Rápido:</label>
             <div style="display: flex; gap: 0.35rem; flex-wrap: wrap;">
@@ -45,6 +50,7 @@
                 <option value="procesando">Procesando</option>
                 <option value="enviado">Enviado</option>
                 <option value="entregado">Entregado</option>
+                <option value="pagado">Pagado</option>
                 <option value="cancelado">Cancelado</option>
             </select>
         </div>
@@ -61,10 +67,15 @@
         </div>
 
         <div style="margin-left: auto;">
-            <button type="button" onclick="limpiarFiltrosVentas()" style="background: var(--gray-200, #E5E7EB); color: var(--gray-700, #374151); border: none; padding: 0.45rem 0.85rem; border-radius: 0.375rem; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
-                <icon name="refresh-cw" class="icon-sm" /> Restablecer
+            <button type="button" onclick="limpiarFiltrosVentas(this)" style="background: var(--gray-200, #E5E7EB); color: var(--gray-700, #374151); border: none; padding: 0.45rem 0.85rem; border-radius: 0.375rem; font-size: 0.82rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+                <icon name="refresh-cw" class="icon-sm" /> Restablecer Filtros
             </button>
         </div>
+    </div>
+
+    <div class="ventas-search-hint">
+        <icon name="search" class="icon-sm" />
+        <span><strong>Columnas incluidas en el buscador:</strong> N° de Pedido (<code>#ORD-0001</code>), Nombre y Apellido del Cliente, Documento/C.C., Teléfono, Estado del Pedido y Estado de Pago.</span>
     </div>
 </div>
 

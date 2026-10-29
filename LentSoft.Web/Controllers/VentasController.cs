@@ -1,5 +1,6 @@
 using System.IO;
 using System.Security.Claims;
+using System.Text;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -78,16 +79,18 @@ public class VentasController : Controller
         string? movMotivo = null,
         string movSort = "desc",
         int movPage = 1,
-        int movPageSize = 20)
+        int movPageSize = 20,
+        string? pedSearch = null,
+        string? pedEstado = null,
+        int pedPage = 1,
+        int pedPageSize = 15)
     {
-        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var viewModel = await _ventasService.ObtenerDashboardAsync(section, subtab, searchTerm, page, pageSize, userId);
-
-        // Fallback para searchTerm genérico
+        // Fallback para searchTerm genérico según pestaña activa
         if (!string.IsNullOrWhiteSpace(searchTerm))
         {
             if (section == "inventarios" && subtab == "productos" && string.IsNullOrWhiteSpace(prodSearch)) prodSearch = searchTerm;
             if (section == "inventarios" && subtab == "historial" && string.IsNullOrWhiteSpace(movSearch)) movSearch = searchTerm;
+            if (section == "inventarios" && subtab == "pedidos-ventas" && string.IsNullOrWhiteSpace(pedSearch)) pedSearch = searchTerm;
         }
 
         if (section == "inventarios")
@@ -95,14 +98,36 @@ public class VentasController : Controller
             await _productService.AsignarSkusConsecutivosFaltantesAsync();
         }
 
-        // Siempre proveer lista completa de productos y proveedores para filtros y modales
+        var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var viewModel = await _ventasService.ObtenerDashboardAsync(
+            section,
+            subtab,
+            searchTerm,
+            page,
+            pageSize,
+            userId,
+            pedSearch,
+            pedEstado,
+            pedPage,
+            pedPageSize,
+            movSearch,
+            movTipo,
+            movProductId,
+            movFechaInicio,
+            movFechaFin,
+            movMotivo,
+            movSort,
+            movPage,
+            movPageSize);
+
+        // Siempre proveer lista completa de productos y proveedores sin seguimiento (AsNoTracking) para filtros y modales
         var todosLosProductos = await _context.Products.AsNoTracking().Include(p => p.Supplier).OrderBy(p => p.Nombre).ToListAsync();
         var proveedores = await _context.Suppliers.AsNoTracking().Where(s => s.Activo).OrderBy(s => s.Nombre).ToListAsync();
         viewModel.TodosLosProductos = todosLosProductos;
         viewModel.Proveedores = proveedores;
 
-        // ── Productos (Paginados y Filtrados en BD) ──
-        var prodQuery = _context.Products.Include(p => p.Supplier).AsQueryable();
+        // ── Productos (Paginados y Filtrados en BD sin seguimiento) ──
+        var prodQuery = _context.Products.AsNoTracking().Include(p => p.Supplier).AsQueryable();
         if (!string.IsNullOrWhiteSpace(prodSearch))
         {
             var s = prodSearch.Trim().ToLower();
@@ -190,62 +215,6 @@ public class VentasController : Controller
         viewModel.ProdPageSize = prodPageSize;
         viewModel.ProdTotalCount = prodTotalCount;
 
-        // ── Historial de Movimientos (Paginado y Filtrado en BD) ──
-        var movQuery = _context.InventoryMovements.Include(m => m.Product).AsQueryable();
-        if (!string.IsNullOrWhiteSpace(movSearch))
-        {
-            var s = movSearch.Trim().ToLower();
-            movQuery = movQuery.Where(m => (m.NombreProducto != null && m.NombreProducto.ToLower().Contains(s))
-                || (m.Product != null && m.Product.Nombre.ToLower().Contains(s))
-                || (m.Responsable != null && m.Responsable.ToLower().Contains(s))
-                || m.Id.ToString().Contains(s));
-        }
-        if (!string.IsNullOrWhiteSpace(movTipo))
-        {
-            var t = movTipo.Trim().ToLower();
-            movQuery = movQuery.Where(m => m.Tipo != null && m.Tipo.ToLower() == t);
-        }
-        if (movProductId.HasValue && movProductId.Value > 0)
-        {
-            movQuery = movQuery.Where(m => m.ProductId == movProductId.Value);
-        }
-        if (movFechaInicio.HasValue)
-        {
-            var fInicioUtc = DateTime.SpecifyKind(movFechaInicio.Value.Date, DateTimeKind.Utc);
-            movQuery = movQuery.Where(m => m.Fecha >= fInicioUtc);
-        }
-        if (movFechaFin.HasValue)
-        {
-            var fFinUtc = DateTime.SpecifyKind(movFechaFin.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
-            movQuery = movQuery.Where(m => m.Fecha <= fFinUtc);
-        }
-        if (!string.IsNullOrWhiteSpace(movMotivo))
-        {
-            var mot = movMotivo.Trim().ToLower();
-            movQuery = movQuery.Where(m => m.Motivo != null && m.Motivo.ToLower() == mot);
-        }
-        movQuery = (movSort == "asc")
-            ? movQuery.OrderBy(m => m.Fecha)
-            : movQuery.OrderByDescending(m => m.Fecha);
-
-        var movTotalCount = await movQuery.CountAsync();
-        var historialMovimientos = await movQuery
-            .Skip((movPage - 1) * movPageSize)
-            .Take(movPageSize)
-            .ToListAsync();
-
-        viewModel.HistorialMovimientos = historialMovimientos;
-        viewModel.MovSearchTerm = movSearch;
-        viewModel.MovTipo = movTipo;
-        viewModel.MovProductId = movProductId;
-        viewModel.MovFechaInicio = movFechaInicio;
-        viewModel.MovFechaFin = movFechaFin;
-        viewModel.MovMotivo = movMotivo;
-        viewModel.MovSort = movSort;
-        viewModel.MovPage = movPage;
-        viewModel.MovPageSize = movPageSize;
-        viewModel.MovTotalCount = movTotalCount;
-
         viewModel.ActiveSection = section;
         viewModel.ActiveSubTab = subtab;
 
@@ -301,6 +270,78 @@ public class VentasController : Controller
         }
     }
 
+    [HttpGet]
+    public async Task<IActionResult> ExportarVentasCsv(
+        string? searchValue = null,
+        string? estado = null,
+        string? estadoPago = null,
+        DateTime? fechaDesde = null,
+        DateTime? fechaHasta = null,
+        string? filtroRapido = null)
+    {
+        try
+        {
+            var filtro = new DataTablesRequestDTO
+            {
+                SearchValue = searchValue,
+                Estado = estado,
+                EstadoPago = estadoPago,
+                FechaDesde = fechaDesde,
+                FechaHasta = fechaHasta,
+                FiltroRapido = filtroRapido,
+                SortColumnIndex = 2,
+                SortDirection = "desc"
+            };
+
+            var ventas = await _ventasService.ExportarVentasFiltradasAsync(filtro);
+
+            var sb = new StringBuilder();
+            sb.AppendLine("ID Pedido,Cliente,Documento,Telefono,Fecha,Cant. Items,Detalle Productos,Total Venta,Monto Abonado,Saldo Pendiente,Estado Pago,Estado Pedido,Metodo Pago,Formula Optica,Factura");
+
+            static string EscapeCsv(string? val)
+            {
+                if (string.IsNullOrEmpty(val)) return "\"\"";
+                return $"\"{val.Replace("\"", "\"\"")}\"";
+            }
+
+            foreach (var v in ventas)
+            {
+                sb.AppendLine(string.Join(",",
+                    EscapeCsv($"#ORD-{v.Id:D4}"),
+                    EscapeCsv(v.ClienteNombre),
+                    EscapeCsv(v.ClienteDocumento),
+                    EscapeCsv(v.ClienteTelefono),
+                    EscapeCsv(v.FechaPedido.ToString("yyyy-MM-dd HH:mm")),
+                    v.TotalItems,
+                    EscapeCsv(v.ResumenItems),
+                    v.Total.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
+                    v.MontoPagado.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
+                    v.SaldoPendiente.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture),
+                    EscapeCsv(v.EstadoPago),
+                    EscapeCsv(v.Estado),
+                    EscapeCsv(v.MetodoPago),
+                    EscapeCsv(v.FormulaDetalle),
+                    EscapeCsv(v.FacturaNumero ?? "Sin factura")
+                ));
+            }
+
+            var preamble = Encoding.UTF8.GetPreamble();
+            var contentBytes = Encoding.UTF8.GetBytes(sb.ToString());
+            var finalBytes = new byte[preamble.Length + contentBytes.Length];
+            Buffer.BlockCopy(preamble, 0, finalBytes, 0, preamble.Length);
+            Buffer.BlockCopy(contentBytes, 0, finalBytes, preamble.Length, contentBytes.Length);
+
+            var fileName = $"Ventas_LentSoft_{DateTime.UtcNow:yyyyMMdd_HHmm}.csv";
+            return File(finalBytes, "text/csv; charset=utf-8", fileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al exportar CSV completo de ventas");
+            TempData["ErrorMessage"] = "Ocurrió un error al generar la exportación CSV de ventas.";
+            return RedirectToAction("Index", new { section = "ventas" });
+        }
+    }
+
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> RegistrarVenta(RegistrarVentaDTO dto)
@@ -346,7 +387,8 @@ public class VentasController : Controller
     {
         try
         {
-            var (success, message) = await _ventasService.CambiarEstadoOrdenAsync(id, estado);
+            var responsable = User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "Vendedor";
+            var (success, message) = await _ventasService.CambiarEstadoOrdenAsync(id, estado, responsable);
             if (success)
             {
                 TempData["SuccessMessage"] = message;
@@ -515,7 +557,8 @@ public class VentasController : Controller
     {
         try
         {
-            var (success, message) = await _ventasService.VincularFormulaAsync(orderId, formulaOpticaId);
+            var responsable = User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "Vendedor";
+            var (success, message) = await _ventasService.VincularFormulaAsync(orderId, formulaOpticaId, responsable);
             if (success)
             {
                 TempData["SuccessMessage"] = message;
@@ -532,6 +575,121 @@ public class VentasController : Controller
         }
 
         return RedirectToAction("Index", new { section = "ventas" });
+    }
+
+    // ══════════════════════════════════════════════════════════════════════════════
+    // 4.1 PEDIDOS DE VENTA (SalesOrder) — Acciones propias de VentasController
+    // ══════════════════════════════════════════════════════════════════════════════
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateSalesOrder(CrearPedidoVentaDTO dto)
+    {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault()
+                             ?? "Los datos del pedido de venta no son válidos.";
+            if (isAjax) return Json(new { success = false, message = firstError });
+            TempData["ErrorMessage"] = firstError;
+            return RedirectToAction("Index", new { section = "inventarios", subtab = "pedidos-ventas" });
+        }
+
+        var responsable = User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "Vendedor";
+        var resultado = await _ventasService.CrearPedidoVentaAsync(dto, responsable);
+
+        if (isAjax)
+        {
+            return Json(new { success = resultado.Exito, message = resultado.Mensaje, warning = resultado.Advertencia, id = resultado.PedidoId });
+        }
+
+        if (resultado.Exito)
+        {
+            TempData["SuccessMessage"] = resultado.Mensaje;
+            if (!string.IsNullOrWhiteSpace(resultado.Advertencia))
+            {
+                TempData["WarningMessage"] = resultado.Advertencia;
+            }
+        }
+        else
+        {
+            TempData["ErrorMessage"] = resultado.Mensaje;
+        }
+
+        return RedirectToAction("Index", new { section = "inventarios", subtab = "pedidos-ventas" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditSalesOrder(EditarPedidoVentaDTO dto)
+    {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault()
+                             ?? "Los datos para editar el pedido de venta no son válidos.";
+            if (isAjax) return Json(new { success = false, message = firstError });
+            TempData["ErrorMessage"] = firstError;
+            return RedirectToAction("Index", new { section = "inventarios", subtab = "pedidos-ventas" });
+        }
+
+        var responsable = User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "Vendedor";
+        var resultado = await _ventasService.EditarPedidoVentaAsync(dto, responsable);
+
+        if (isAjax)
+        {
+            return Json(new { success = resultado.Exito, message = resultado.Mensaje, warning = resultado.Advertencia, id = resultado.PedidoId });
+        }
+
+        if (resultado.Exito)
+        {
+            TempData["SuccessMessage"] = resultado.Mensaje;
+            if (!string.IsNullOrWhiteSpace(resultado.Advertencia))
+            {
+                TempData["WarningMessage"] = resultado.Advertencia;
+            }
+        }
+        else
+        {
+            TempData["ErrorMessage"] = resultado.Mensaje;
+        }
+
+        return RedirectToAction("Index", new { section = "inventarios", subtab = "pedidos-ventas" });
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteSalesOrder(int id)
+    {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
+
+        var responsable = User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "Vendedor";
+        var resultado = await _ventasService.EliminarPedidoVentaAsync(id, responsable);
+
+        if (isAjax)
+        {
+            return Json(new { success = resultado.Exito, message = resultado.Mensaje, warning = resultado.Advertencia, id = resultado.PedidoId });
+        }
+
+        if (resultado.Exito)
+        {
+            if (!string.IsNullOrWhiteSpace(resultado.Advertencia))
+            {
+                TempData["WarningMessage"] = resultado.Advertencia;
+            }
+            else
+            {
+                TempData["SuccessMessage"] = resultado.Mensaje;
+            }
+        }
+        else
+        {
+            TempData["ErrorMessage"] = resultado.Mensaje;
+        }
+
+        return RedirectToAction("Index", new { section = "inventarios", subtab = "pedidos-ventas" });
     }
 
     [HttpGet]
@@ -584,8 +742,21 @@ public class VentasController : Controller
         return View("~/Views/Ventas/ConfirmarCompra.cshtml", viewModel);
     }
 
-    // ── GESTIÓN DE INVENTARIO (PRODUCTOS Y MOVIMIENTOS) PARA VENTAS ──
+    // ══════════════════════════════════════════════════════════════════════════════
+    // 4.7 NOTA DE MANTENIBILIDAD — DUPLICACIÓN DE ACCIONES DE INVENTARIO EN VENTAS
+    // Las siguientes acciones (CreateProduct, EditProduct, DeleteProduct, ToggleProductStatus,
+    // BulkToggleStatus, CreateMovement, KardexJson, ExportarExcelDatos) duplican flujo de
+    // DashboardController / ProductController / InventoryMovementController para mantener
+    // aislada la navegación del rol 'ventas' hacia ~/Views/Dashboard/Ventas.cshtml sin tocar
+    // controladores de otros módulos. Quedan documentadas para futura unificación con el
+    // equipo de Inventario en un servicio/controlador compartido de catálogo y kardex.
+    // ══════════════════════════════════════════════════════════════════════════════
 
+    /// <summary>
+    /// Crea un producto desde la vista de Inventarios del módulo de Ventas.
+    /// NOTA DE ARQUITECTURA (Sección 4.7): Acción duplicada respecto al módulo de Inventario;
+    /// pendiente de unificar en un endpoint/servicio compartido con el equipo de Inventario.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateProduct(Product product, IFormFile? ImagenArchivo)
@@ -638,6 +809,10 @@ public class VentasController : Controller
         return RedirectToAction("Index", new { section = "inventarios", subtab = "productos" });
     }
 
+    /// <summary>
+    /// Actualiza un producto desde la vista de Inventarios del módulo de Ventas.
+    /// NOTA DE ARQUITECTURA (Sección 4.7): Duplicación documentada para futura unificación con el equipo de Inventario.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditProduct(Product product, IFormFile? ImagenArchivo)
@@ -742,6 +917,10 @@ public class VentasController : Controller
         return RedirectToAction("Index", new { section = "inventarios", subtab = "productos" });
     }
 
+    /// <summary>
+    /// Elimina (inactiva) un producto desde la vista de Inventarios del módulo de Ventas.
+    /// NOTA DE ARQUITECTURA (Sección 4.7): Duplicación documentada para futura unificación con el equipo de Inventario.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteProduct(int id)
@@ -777,6 +956,10 @@ public class VentasController : Controller
         return RedirectToAction("Index", new { section = "inventarios", subtab = "productos" });
     }
 
+    /// <summary>
+    /// Alterna el estado activo/inactivo de un producto desde la vista de Inventarios del módulo de Ventas.
+    /// NOTA DE ARQUITECTURA (Sección 4.7): Duplicación documentada para futura unificación con el equipo de Inventario.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleProductStatus(int id)
@@ -810,6 +993,10 @@ public class VentasController : Controller
         }
     }
 
+    /// <summary>
+    /// Alterna en lote el estado activo/inactivo de productos seleccionados desde Ventas.
+    /// NOTA DE ARQUITECTURA (Sección 4.7): Duplicación documentada para futura unificación con el equipo de Inventario.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> BulkToggleStatus([FromBody] BulkToggleRequest request)
@@ -842,6 +1029,10 @@ public class VentasController : Controller
         return Json(new { success = true, modified = count, message = $"{count} productos actualizados correctamente." });
     }
 
+    /// <summary>
+    /// Registra un movimiento de inventario (Entrada/Salida) desde el módulo de Ventas.
+    /// NOTA DE ARQUITECTURA (Sección 4.7): Duplicación documentada para futura unificación con el equipo de Inventario.
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateMovement(InventoryMovement movement)
@@ -940,16 +1131,21 @@ public class VentasController : Controller
         return RedirectToAction("Index", new { section = "inventarios", subtab = "historial" });
     }
 
+    /// <summary>
+    /// Consulta el kardex de un producto en JSON desde el módulo de Ventas.
+    /// NOTA DE ARQUITECTURA (Sección 4.7): Duplicación documentada para futura unificación con el equipo de Inventario.
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> KardexJson(int productId)
     {
-        var product = await _context.Products.Include(p => p.Supplier).FirstOrDefaultAsync(p => p.Id == productId);
+        var product = await _context.Products.AsNoTracking().Include(p => p.Supplier).FirstOrDefaultAsync(p => p.Id == productId);
         if (product == null)
         {
             return Json(new { success = false, message = "Producto no encontrado." });
         }
 
         var movimientos = await _context.InventoryMovements
+            .AsNoTracking()
             .Where(m => m.ProductId == productId)
             .OrderByDescending(m => m.Fecha)
             .ThenByDescending(m => m.Id)
@@ -984,10 +1180,14 @@ public class VentasController : Controller
         });
     }
 
+    /// <summary>
+    /// Exporta datos filtrados del historial de movimientos desde el módulo de Ventas.
+    /// NOTA DE ARQUITECTURA (Sección 4.7): Duplicación documentada para futura unificación con el equipo de Inventario.
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> ExportarExcelDatos(string? search, string? tipo, int? productId, DateTime? fechaInicio, DateTime? fechaFin, string? sort)
     {
-        var query = _context.InventoryMovements.Include(m => m.Product).AsQueryable();
+        var query = _context.InventoryMovements.AsNoTracking().Include(m => m.Product).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(search))
         {

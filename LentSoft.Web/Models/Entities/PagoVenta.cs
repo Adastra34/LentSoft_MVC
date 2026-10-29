@@ -1,11 +1,9 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using Microsoft.EntityFrameworkCore;
 
 namespace LentSoft.Web.Models.Entities;
 
-[Index(nameof(NumeroComprobante), IsUnique = true)]
 public class PagoVenta
 {
     [Key]

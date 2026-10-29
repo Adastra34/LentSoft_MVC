@@ -10,28 +10,7 @@ namespace LentSoft.Web.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // ── 1. Unique Indexes for Invoices and PagosVentas ──
-            if (migrationBuilder.ActiveProvider == "Microsoft.EntityFrameworkCore.Sqlite")
-            {
-                migrationBuilder.Sql("CREATE UNIQUE INDEX IF NOT EXISTS IX_Invoices_NumeroFactura ON Invoices (NumeroFactura);");
-                migrationBuilder.Sql("CREATE UNIQUE INDEX IF NOT EXISTS IX_PagosVentas_NumeroComprobante ON PagosVentas (NumeroComprobante);");
-            }
-            else
-            {
-                migrationBuilder.CreateIndex(
-                    name: "IX_Invoices_NumeroFactura",
-                    table: "Invoices",
-                    column: "NumeroFactura",
-                    unique: true);
-
-                migrationBuilder.CreateIndex(
-                    name: "IX_PagosVentas_NumeroComprobante",
-                    table: "PagosVentas",
-                    column: "NumeroComprobante",
-                    unique: true);
-            }
-
-            // ── 2. SQL Server Stored Procedures ──
+            // ── SQL Server Stored Procedures ──
             if (migrationBuilder.ActiveProvider == "Microsoft.EntityFrameworkCore.SqlServer")
             {
                 migrationBuilder.Sql(@"
@@ -145,14 +124,6 @@ END;");
                 migrationBuilder.Sql("DROP PROCEDURE IF EXISTS sp_RegistrarVentaProductos;");
                 migrationBuilder.Sql("DROP PROCEDURE IF EXISTS sp_ProductosVendidos;");
             }
-
-            migrationBuilder.DropIndex(
-                name: "IX_Invoices_NumeroFactura",
-                table: "Invoices");
-
-            migrationBuilder.DropIndex(
-                name: "IX_PagosVentas_NumeroComprobante",
-                table: "PagosVentas");
         }
     }
 }

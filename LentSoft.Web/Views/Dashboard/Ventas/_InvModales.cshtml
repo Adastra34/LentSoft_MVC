@@ -118,7 +118,7 @@
 
             <div class="inv-dialog-footer" style="padding: 1rem 0 0 0; background: transparent;">
                 <button type="button" class="inv-btn inv-btn-secondary" onclick="document.getElementById('modal-producto').style.display='none'">Cancelar</button>
-                <button type="submit" class="inv-btn inv-btn-primary">Guardar Producto</button>
+                <button type="submit" data-loading-text="Guardando..." class="inv-btn inv-btn-primary">Guardar Producto</button>
             </div>
         </form>
     </div>
@@ -243,13 +243,13 @@
 
             <div class="inv-dialog-footer" style="padding: 1rem 0 0 0; background: transparent;">
                 <button type="button" class="inv-btn inv-btn-secondary" onclick="document.getElementById('modal-editar-producto').style.display='none'">Cancelar</button>
-                <button type="submit" class="inv-btn inv-btn-primary">Actualizar Producto</button>
+                <button type="submit" data-loading-text="Actualizando..." class="inv-btn inv-btn-primary">Actualizar Producto</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Modal Crear Pedido Venta -->
+<!-- Modal Crear Pedido Venta (Sección 4.1: Selección por ProductId y recálculo en servidor) -->
 <div id="modal-crear-pedido-venta" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
     <div class="inv-card" style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; padding: 0; margin-bottom: 0;">
         <div class="inv-dialog-header">
@@ -260,7 +260,7 @@
             <button type="button" class="inv-dialog-close" onclick="document.getElementById('modal-crear-pedido-venta').style.display='none'">&times;</button>
         </div>
         
-        <form id="form-crear-pedido-venta" asp-controller="Dashboard" asp-action="CreateSalesOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <form id="form-crear-pedido-venta" asp-controller="Ventas" asp-action="CreateSalesOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
             @Html.AntiForgeryToken()
             <div class="inv-form-group">
                 <label class="inv-form-label">Número de Pedido *</label>
@@ -273,24 +273,37 @@
             </div>
 
             <div class="inv-form-group">
-                <label class="inv-form-label">Producto *</label>
-                <input name="ProductoNombre" type="text" class="inv-form-input" required placeholder="Ej: Montura Ray-Ban Especial" list="list-sugerencias-productos" />
-                <datalist id="list-sugerencias-productos">
-                    @foreach (var prod in Model.TodosLosProductos)
+                <label class="inv-form-label">Producto del Catálogo *</label>
+                <select id="createSalesOrderProductId" name="ProductId" class="inv-form-input" required
+                        onchange="onSalesOrderProductChange(this, 'createSalesOrderPrecio', 'createSalesOrderTotalDisplay', 'createSalesOrderCantidad', 'createSalesOrderStockHelp')">
+                    <option value="">-- Seleccionar Producto del Catálogo --</option>
+                    @foreach (var prod in Model.TodosLosProductos.Where(p => p.Activo && p.Stock > 0))
                     {
-                        <option value="@prod.Nombre">Stock: @prod.Stock | Precio: @prod.Precio.ToString("C")</option>
+                        var precioEfectivo = prod.PrecioDescuento ?? prod.Precio;
+                        <option value="@prod.Id"
+                                data-nombre="@prod.Nombre"
+                                data-precio="@precioEfectivo.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                data-stock="@prod.Stock">
+                            @prod.Nombre (Stock: @prod.Stock | Precio: @precioEfectivo.ToString("C"))
+                        </option>
                     }
-                </datalist>
+                </select>
+                <span id="createSalesOrderStockHelp" style="font-size: 0.75rem; color: var(--purple-700); font-weight: 600; display: block; margin-top: 0.25rem;"></span>
             </div>
 
             <div class="inv-form-row">
                 <div class="inv-form-group">
                     <label class="inv-form-label">Cantidad *</label>
-                    <input name="Cantidad" type="number" min="1" value="1" class="inv-form-input" required />
+                    <input id="createSalesOrderCantidad" name="Cantidad" type="number" min="1" value="1" class="inv-form-input" required
+                           oninput="recalcularTotalPedidoModal('createSalesOrderPrecio', 'createSalesOrderCantidad', 'createSalesOrderTotalDisplay')" />
                 </div>
                 <div class="inv-form-group">
-                    <label class="inv-form-label">Precio Unitario ($) *</label>
-                    <input name="PrecioUnitario" type="number" step="100" min="0" value="150000" class="inv-form-input" required />
+                    <label class="inv-form-label">Precio Unitario Catálogo ($)</label>
+                    <input id="createSalesOrderPrecio" type="number" readonly value="0" class="inv-form-input" style="background-color: var(--gray-100); cursor: not-allowed;" />
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Total Calculado ($)</label>
+                    <input id="createSalesOrderTotalDisplay" type="text" readonly value="COP $0" class="inv-form-input" style="background-color: var(--purple-50); font-weight: 700; color: var(--purple-900); cursor: not-allowed;" />
                 </div>
             </div>
 
@@ -311,13 +324,13 @@
 
             <div class="inv-dialog-footer" style="padding: 1rem 0 0 0; background: transparent;">
                 <button type="button" class="inv-btn inv-btn-secondary" onclick="document.getElementById('modal-crear-pedido-venta').style.display='none'">Cancelar</button>
-                <button type="submit" class="inv-btn inv-btn-primary">Guardar Pedido Venta</button>
+                <button type="submit" data-loading-text="Registrando pedido..." class="inv-btn inv-btn-primary">Guardar Pedido Venta</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Modal Editar Pedido Venta -->
+<!-- Modal Editar Pedido Venta (Sección 4.1: Selección por ProductId y recálculo en servidor) -->
 <div id="modal-editar-pedido-venta" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
     <div class="inv-card" style="width: 100%; max-width: 550px; max-height: 90vh; overflow-y: auto; padding: 0; margin-bottom: 0;">
         <div class="inv-dialog-header">
@@ -328,7 +341,7 @@
             <button type="button" class="inv-dialog-close" onclick="document.getElementById('modal-editar-pedido-venta').style.display='none'">&times;</button>
         </div>
         
-        <form id="form-editar-pedido-venta" asp-controller="Dashboard" asp-action="EditSalesOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
+        <form id="form-editar-pedido-venta" asp-controller="Ventas" asp-action="EditSalesOrder" method="post" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
             @Html.AntiForgeryToken()
             <input type="hidden" id="editSalesOrderId" name="Id" />
             <div class="inv-form-group">
@@ -342,18 +355,37 @@
             </div>
 
             <div class="inv-form-group">
-                <label class="inv-form-label">Producto *</label>
-                <input id="editSalesOrderProducto" name="ProductoNombre" type="text" class="inv-form-input" required />
+                <label class="inv-form-label">Producto del Catálogo *</label>
+                <select id="editSalesOrderProductId" name="ProductId" class="inv-form-input" required
+                        onchange="onSalesOrderProductChange(this, 'editSalesOrderPrecio', 'editSalesOrderTotalDisplay', 'editSalesOrderCantidad', 'editSalesOrderStockHelp')">
+                    <option value="">-- Seleccionar Producto del Catálogo --</option>
+                    @foreach (var prod in Model.TodosLosProductos.Where(p => p.Activo))
+                    {
+                        var precioEfectivo = prod.PrecioDescuento ?? prod.Precio;
+                        <option value="@prod.Id"
+                                data-nombre="@prod.Nombre"
+                                data-precio="@precioEfectivo.ToString(System.Globalization.CultureInfo.InvariantCulture)"
+                                data-stock="@prod.Stock">
+                            @prod.Nombre (Stock: @prod.Stock | Precio: @precioEfectivo.ToString("C"))
+                        </option>
+                    }
+                </select>
+                <span id="editSalesOrderStockHelp" style="font-size: 0.75rem; color: var(--purple-700); font-weight: 600; display: block; margin-top: 0.25rem;"></span>
             </div>
 
             <div class="inv-form-row">
                 <div class="inv-form-group">
                     <label class="inv-form-label">Cantidad *</label>
-                    <input id="editSalesOrderCantidad" name="Cantidad" type="number" min="1" class="inv-form-input" required />
+                    <input id="editSalesOrderCantidad" name="Cantidad" type="number" min="1" class="inv-form-input" required
+                           oninput="recalcularTotalPedidoModal('editSalesOrderPrecio', 'editSalesOrderCantidad', 'editSalesOrderTotalDisplay')" />
                 </div>
                 <div class="inv-form-group">
-                    <label class="inv-form-label">Precio Unitario ($) *</label>
-                    <input id="editSalesOrderPrecio" name="PrecioUnitario" type="number" step="100" min="0" class="inv-form-input" required />
+                    <label class="inv-form-label">Precio Unitario Catálogo ($)</label>
+                    <input id="editSalesOrderPrecio" type="number" readonly class="inv-form-input" style="background-color: var(--gray-100); cursor: not-allowed;" />
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Total Calculado ($)</label>
+                    <input id="editSalesOrderTotalDisplay" type="text" readonly value="COP $0" class="inv-form-input" style="background-color: var(--purple-50); font-weight: 700; color: var(--purple-900); cursor: not-allowed;" />
                 </div>
             </div>
 
@@ -374,7 +406,7 @@
 
             <div class="inv-dialog-footer" style="padding: 1rem 0 0 0; background: transparent;">
                 <button type="button" class="inv-btn inv-btn-secondary" onclick="document.getElementById('modal-editar-pedido-venta').style.display='none'">Cancelar</button>
-                <button type="submit" class="inv-btn inv-btn-primary">Actualizar Pedido Venta</button>
+                <button type="submit" data-loading-text="Actualizando pedido..." class="inv-btn inv-btn-primary">Actualizar Pedido Venta</button>
             </div>
         </form>
     </div>
@@ -447,7 +479,7 @@
 
             <div class="inv-dialog-footer" style="padding: 1rem 0 0 0; background: transparent;">
                 <button type="button" class="inv-btn inv-btn-secondary" onclick="document.getElementById('modal-crear-movimiento').style.display='none'">Cancelar</button>
-                <button type="submit" class="inv-btn inv-btn-primary">Registrar Movimiento</button>
+                <button type="submit" data-loading-text="Registrando..." class="inv-btn inv-btn-primary">Registrar Movimiento</button>
             </div>
         </form>
     </div>
@@ -512,7 +544,7 @@
                             </tr>
                         </thead>
                         <tbody id="kardex-tbody">
-                            <!-- Inyectado vía AJAX -->
+                            <!-- Inyectado vía AJAX en ventas.js -->
                         </tbody>
                     </table>
                 </div>
@@ -528,187 +560,3 @@
         </div>
     </div>
 </div>
-
-<script>
-    function handleManualMovTipoChange(val) {
-        const motivoSelect = document.getElementById('manualMovMotivo');
-        const lbl = document.getElementById('lblManualMovMotivo');
-        if (!motivoSelect) return;
-
-        if (val === 'Salida') {
-            lbl.textContent = 'Motivo * (Obligatorio en Salidas)';
-            motivoSelect.required = true;
-            if (motivoSelect.value === 'Compra') {
-                motivoSelect.value = 'Merma';
-            }
-        } else if (val === 'Entrada') {
-            lbl.textContent = 'Motivo *';
-            motivoSelect.required = true;
-            if (motivoSelect.value === 'Merma' || motivoSelect.value === 'Daño') {
-                motivoSelect.value = 'Compra';
-            }
-        } else {
-            lbl.textContent = 'Motivo *';
-            motivoSelect.value = 'Ajuste por conteo';
-        }
-    }
-
-    function exportKardexTableExcel() {
-        if (typeof XLSX === 'undefined') {
-            showToast('Librería de exportación no cargada', 'error');
-            return;
-        }
-        const prodNombre = document.getElementById('kardex-prod-nombre')?.textContent || 'Producto';
-        const prodSku = document.getElementById('kardex-prod-sku')?.textContent || '';
-        const rows = document.querySelectorAll('#kardex-tbody tr');
-        if (!rows || rows.length === 0) {
-            showToast('No hay datos para exportar', 'warning');
-            return;
-        }
-
-        const data = [
-            [`Kardex de Producto: ${prodNombre} (${prodSku})`],
-            [`Generado: ${new Date().toLocaleString()}`],
-            [],
-            ['Fecha y Hora', 'Tipo', 'Cantidad', 'Saldo Resultante', 'Motivo', 'Responsable', 'Referencia y Nota']
-        ];
-
-        rows.forEach(r => {
-            const cols = r.querySelectorAll('td');
-            if (cols.length >= 7) {
-                data.push([
-                    cols[0].innerText.trim(),
-                    cols[1].innerText.trim(),
-                    cols[2].innerText.trim(),
-                    cols[3].innerText.trim(),
-                    cols[4].innerText.trim(),
-                    cols[5].innerText.trim(),
-                    cols[6].innerText.trim()
-                ]);
-            }
-        });
-
-        const ws = XLSX.utils.aoa_to_sheet(data);
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, ws, "Kardex");
-        XLSX.writeFile(wb, `LentSoft_Kardex_${prodNombre.replace(/[^a-zA-Z0-9]/g, '_')}_${new Date().toISOString().slice(0, 10)}.xlsx`);
-        showToast('Kardex exportado exitosamente', 'success');
-    }
-
-    // Funciones de preview de imagen
-    function previewProductImage(input, previewImgId, containerId, infoId) {
-        const file = input.files && input.files[0];
-        const previewImg = document.getElementById(previewImgId);
-        const container = document.getElementById(containerId);
-        const infoText = infoId ? document.getElementById(infoId) : null;
-
-        if (!file) return;
-
-        const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
-        const fileExt = '.' + file.name.split('.').pop().toLowerCase();
-        const validExts = ['.jpg', '.jpeg', '.png', '.webp'];
-
-        if (!validTypes.includes(file.type.toLowerCase()) && !validExts.includes(fileExt)) {
-            showToast('Formato no permitido. Solo se aceptan imágenes JPG, PNG o WEBP.', 'error');
-            input.value = '';
-            if (infoText) infoText.textContent = '';
-            return;
-        }
-
-        if (file.size > 5 * 1024 * 1024) {
-            showToast('El archivo supera el tamaño máximo permitido de 5 MB.', 'error');
-            input.value = '';
-            if (infoText) infoText.textContent = '';
-            return;
-        }
-
-        const reader = new FileReader();
-        reader.onload = function (e) {
-            if (previewImg) previewImg.src = e.target.result;
-            if (container) container.style.display = 'block';
-            if (infoText) infoText.textContent = `${file.name} (${(file.size / 1024).toFixed(0)} KB)`;
-        };
-        reader.readAsDataURL(file);
-    }
-
-    function clearProductImagePreview(inputId, previewImgId, containerId, infoId, fallbackUrl = '') {
-        const input = document.getElementById(inputId);
-        if (input) input.value = '';
-        const previewImg = document.getElementById(previewImgId);
-        const container = document.getElementById(containerId);
-        const infoText = infoId ? document.getElementById(infoId) : null;
-
-        if (fallbackUrl && fallbackUrl.trim() !== '') {
-            if (previewImg) previewImg.src = fallbackUrl;
-            if (container) container.style.display = 'block';
-            if (infoText) infoText.textContent = 'Imagen actual';
-        } else {
-            if (previewImg) previewImg.src = '';
-            if (container) container.style.display = 'none';
-            if (infoText) infoText.textContent = '';
-        }
-    }
-
-    function openEditProductModal(id, nombre, descripcion, precio, precioDescuento, categoria, marca, stock, activo, imagenUrl, sku, costoCompra, stockMinimo, ubicacion, supplierId, rowVersion) {
-        document.getElementById('editProductId').value = id;
-        document.getElementById('editProductNombre').value = nombre || '';
-        document.getElementById('editProductDescripcion').value = descripcion || '';
-        document.getElementById('editProductPrecio').value = precio || 0;
-        document.getElementById('editProductPrecioDescuento').value = precioDescuento || '';
-        document.getElementById('editProductCategoria').value = categoria || 'lentes-sol';
-        document.getElementById('editProductMarca').value = marca || '';
-        document.getElementById('editProductStock').value = stock || 0;
-        document.getElementById('editProductActivo').checked = (activo === true || activo === 'true');
-        document.getElementById('editProductExistingImagenUrl').value = imagenUrl || '';
-
-        if (document.getElementById('editProductSku')) document.getElementById('editProductSku').value = sku || '';
-        if (document.getElementById('editProductCostoCompra')) document.getElementById('editProductCostoCompra').value = costoCompra || '';
-        if (document.getElementById('editProductStockMinimo')) document.getElementById('editProductStockMinimo').value = (stockMinimo !== undefined && stockMinimo !== null) ? stockMinimo : 10;
-        if (document.getElementById('editProductUbicacion')) document.getElementById('editProductUbicacion').value = ubicacion || '';
-        if (document.getElementById('editProductSupplierId')) document.getElementById('editProductSupplierId').value = supplierId || '';
-        if (document.getElementById('editProductRowVersion')) document.getElementById('editProductRowVersion').value = rowVersion || '';
-
-        const fileInput = document.getElementById('editProductImagenArchivo');
-        if (fileInput) fileInput.value = '';
-
-        const previewContainer = document.getElementById('editProductPreviewContainer');
-        const previewImg = document.getElementById('preview-editar-producto');
-        const previewInfo = document.getElementById('editProductImageInfo');
-
-        if (imagenUrl && imagenUrl.trim() !== '') {
-            if (previewImg) previewImg.src = imagenUrl;
-            if (previewContainer) previewContainer.style.display = 'block';
-            if (previewInfo) previewInfo.textContent = 'Imagen actual guardada';
-        } else {
-            if (previewImg) previewImg.src = '';
-            if (previewContainer) previewContainer.style.display = 'none';
-            if (previewInfo) previewInfo.textContent = '';
-        }
-
-        document.getElementById('modal-editar-producto').style.display = 'flex';
-    }
-
-    function openEditSalesOrderModal(id, numero, cliente, producto, cantidad, precio, estado, notas) {
-        document.getElementById('editSalesOrderId').value = id;
-        document.getElementById('editSalesOrderNumero').value = numero;
-        document.getElementById('editSalesOrderCliente').value = cliente;
-        document.getElementById('editSalesOrderProducto').value = producto;
-        document.getElementById('editSalesOrderCantidad').value = cantidad;
-        document.getElementById('editSalesOrderPrecio').value = precio;
-        document.getElementById('editSalesOrderEstado').value = (estado || 'pendiente').toLowerCase();
-        document.getElementById('editSalesOrderNotas').value = notas || '';
-        document.getElementById('modal-editar-pedido-venta').style.display = 'flex';
-    }
-
-    // Cerrar cualquier modal abierto al presionar tecla Escape
-    document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' || e.key === 'Esc') {
-            const modals = document.querySelectorAll('[id^="modal-"]');
-            modals.forEach(m => {
-                if (m.style.display === 'flex' || m.style.display === 'block') {
-                    m.style.display = 'none';
-                }
-            });
-        }
-    });
-</script>

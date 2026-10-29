@@ -10,6 +10,32 @@ services:
       - "1433:1433"
     volumes:
       - sqlserverdata:/var/opt/mssql
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -C -Q \"SELECT 1\" || /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P \"$$MSSQL_SA_PASSWORD\" -Q \"SELECT 1\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  db-init:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: lentsoft-db-init
+    restart: "no"
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD}
+    volumes:
+      - ./db:/db:ro
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        SQLCMD=/opt/mssql-tools18/bin/sqlcmd
+        if [ ! -x "$$SQLCMD" ]; then SQLCMD=/opt/mssql-tools/bin/sqlcmd; fi
+        "$$SQLCMD" -S sqlserver -U sa -P "$$MSSQL_SA_PASSWORD" -C -Q "IF DB_ID('LentSoftDB') IS NULL CREATE DATABASE [LentSoftDB];"
+        "$$SQLCMD" -S sqlserver -U sa -P "$$MSSQL_SA_PASSWORD" -C -d LentSoftDB -i /db/lentsoft-schema.sql
 
   web:
     build:
@@ -20,9 +46,13 @@ services:
     ports:
       - "5000:5000"
     depends_on:
-      - sqlserver
+      sqlserver:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
+      - UseSqlite=false
       - ConnectionStrings__DefaultConnection=${ConnectionStrings__DefaultConnection}
       - PasswordResetJwt__SecretKey=${PasswordResetJwt__SecretKey}
       - PasswordResetJwt__Issuer=LentSoft.Web

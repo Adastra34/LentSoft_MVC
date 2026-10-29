@@ -2,6 +2,8 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using LentSoft.Web.Data;
 using LentSoft.Web.Models.Entities;
 
@@ -11,21 +13,25 @@ public class InvoiceService : IInvoiceService
 {
     private readonly LentSoftDbContext _context;
     private readonly IConfiguration _configuration;
+    private readonly ILogger<InvoiceService> _logger;
+    private readonly ILogger _auditLogger;
 
-    public InvoiceService(LentSoftDbContext context, IConfiguration configuration)
+    public InvoiceService(
+        LentSoftDbContext context,
+        IConfiguration? configuration = null,
+        ILogger<InvoiceService>? logger = null,
+        ILoggerFactory? loggerFactory = null)
     {
         _context = context;
-        _configuration = configuration;
-    }
-
-    public InvoiceService(LentSoftDbContext context)
-        : this(context, new ConfigurationBuilder().Build())
-    {
+        _configuration = configuration ?? new ConfigurationBuilder().Build();
+        _logger = logger ?? NullLogger<InvoiceService>.Instance;
+        _auditLogger = loggerFactory?.CreateLogger("Auditoria.Ventas") ?? (ILogger)_logger;
     }
 
     public async Task<(List<Invoice> Items, int TotalCount)> GetAllAsync(string? searchTerm, int page, int pageSize)
     {
         var query = _context.Invoices
+            .AsNoTracking()
             .Where(i => i.Activo)
             .Include(i => i.Order)
                 .ThenInclude(o => o!.User)
@@ -64,6 +70,7 @@ public class InvoiceService : IInvoiceService
     public async Task<Invoice?> GetByIdAsync(int id)
     {
         return await _context.Invoices
+            .AsNoTracking()
             .Include(i => i.Order)
                 .ThenInclude(o => o!.User)
             .Include(i => i.Order)
@@ -78,6 +85,7 @@ public class InvoiceService : IInvoiceService
     {
         // 1. Evitar doble facturación (validación anti-doble factura)
         var facturaExistente = await _context.Invoices
+            .AsNoTracking()
             .FirstOrDefaultAsync(i => i.OrderId == invoice.OrderId && i.Activo && i.Estado != "cancelada");
 
         if (facturaExistente != null)
@@ -87,6 +95,7 @@ public class InvoiceService : IInvoiceService
 
         // 2. Cargar pedido asociado
         var order = await _context.Orders
+            .AsNoTracking()
             .Include(o => o.OrderItems).ThenInclude(oi => oi.Product)
             .Include(o => o.Pagos)
             .FirstOrDefaultAsync(o => o.Id == invoice.OrderId);
@@ -174,6 +183,7 @@ public class InvoiceService : IInvoiceService
         var prefix = $"FAC-{year}-";
 
         var existingFacturas = await _context.Invoices
+            .AsNoTracking()
             .Where(i => i.NumeroFactura.StartsWith(prefix))
             .Select(i => i.NumeroFactura)
             .ToListAsync();
@@ -187,7 +197,8 @@ public class InvoiceService : IInvoiceService
             }
         }
 
-        using var dbTx = await _context.Database.BeginTransactionAsync();
+        bool ownsTx = _context.Database.CurrentTransaction == null;
+        await using var dbTx = ownsTx ? await _context.Database.BeginTransactionAsync() : null;
         const int maxRetries = 5;
 
         for (int retry = 0; retry < maxRetries; retry++)
@@ -195,6 +206,7 @@ public class InvoiceService : IInvoiceService
             var nextSeq = maxSeq + 1 + retry;
             if (nextSeq > maxConsecutivoPermitido)
             {
+                if (dbTx != null) await dbTx.RollbackAsync();
                 throw new InvalidOperationException($"El consecutivo de facturación ({nextSeq}) supera el rango autorizado por la DIAN ({rangoHasta}).");
             }
 
@@ -212,13 +224,26 @@ public class InvoiceService : IInvoiceService
             {
                 _context.Invoices.Add(invoice);
                 await _context.SaveChangesAsync();
-                await dbTx.CommitAsync();
+                if (dbTx != null) await dbTx.CommitAsync();
+
+                _auditLogger.LogInformation(
+                    "AUDITORIA_VENTAS | Operacion=EmitirFactura | Entidad=Invoice#{InvoiceId}({NumeroFactura})/Order#{OrderId} | EstadoAnterior=N/A | EstadoNuevo={Estado} | Subtotal={Subtotal} | Impuestos={Impuestos} | Total={Total} | CUFE={CUFE} | FechaUtc={FechaUtc:O}",
+                    invoice.Id, invoice.NumeroFactura, invoice.OrderId, invoice.Estado, invoice.Subtotal, invoice.Impuestos, invoice.Total, invoice.CUFE, DateTime.UtcNow);
+
                 return invoice;
+            }
+            catch (DbUpdateConcurrencyException concEx)
+            {
+                if (dbTx != null) await dbTx.RollbackAsync();
+                _logger.LogWarning(concEx, "Conflicto de concurrencia al emitir factura para OrderId={OrderId}", invoice.OrderId);
+                throw new InvalidOperationException("La factura o el pedido fue modificado simultáneamente por otro usuario. Por favor, recargue e intente nuevamente.", concEx);
             }
             catch (DbUpdateException ex)
             {
                 if (retry == maxRetries - 1)
                 {
+                    if (dbTx != null) await dbTx.RollbackAsync();
+                    _logger.LogError(ex, "Error al persistir factura para OrderId={OrderId}", invoice.OrderId);
                     var innerMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
                     throw new InvalidOperationException($"No se pudo crear la factura debido a una restricción de datos en la base de datos: {innerMsg}", ex);
                 }
@@ -231,70 +256,106 @@ public class InvoiceService : IInvoiceService
 
     public async Task<Invoice?> UpdateAsync(Invoice invoice)
     {
-        var existing = await _context.Invoices
-            .Include(i => i.Order).ThenInclude(o => o!.Pagos)
-            .FirstOrDefaultAsync(i => i.Id == invoice.Id);
-
-        if (existing == null) return null;
-
-        // Calcular estado automáticamente según el saldo contable real del pedido
-        if (existing.Order != null)
-        {
-            existing.Estado = CalcularEstadoSegunPedido(existing.Order, invoice.Estado);
-        }
-        else
-        {
-            existing.Estado = invoice.Estado;
-        }
-
-        if (!string.IsNullOrWhiteSpace(existing.Order?.MetodoPagoSimulado))
-        {
-            existing.MetodoPago = existing.Order.MetodoPagoSimulado;
-        }
-        else if (!string.IsNullOrWhiteSpace(invoice.MetodoPago))
-        {
-            existing.MetodoPago = invoice.MetodoPago;
-        }
-        
-        if (invoice.Subtotal > 0) existing.Subtotal = invoice.Subtotal;
-        if (invoice.Impuestos >= 0) existing.Impuestos = invoice.Impuestos;
-        if (invoice.Total > 0) existing.Total = invoice.Total;
-
-        if (existing.Estado == "pagada" && existing.FechaPago == null)
-        {
-            existing.FechaPago = DateTime.UtcNow;
-        }
-        else if (existing.Estado != "pagada")
-        {
-            existing.FechaPago = null;
-        }
+        bool ownsTx = _context.Database.CurrentTransaction == null;
+        await using var dbTx = ownsTx ? await _context.Database.BeginTransactionAsync() : null;
 
         try
         {
+            var existing = await _context.Invoices
+                .Include(i => i.Order).ThenInclude(o => o!.Pagos)
+                .FirstOrDefaultAsync(i => i.Id == invoice.Id);
+
+            if (existing == null) return null;
+
+            var estadoAnterior = existing.Estado;
+
+            if (existing.Order != null)
+            {
+                existing.Estado = CalcularEstadoSegunPedido(existing.Order, invoice.Estado);
+            }
+            else
+            {
+                existing.Estado = invoice.Estado;
+            }
+
+            if (!string.IsNullOrWhiteSpace(existing.Order?.MetodoPagoSimulado))
+            {
+                existing.MetodoPago = existing.Order.MetodoPagoSimulado;
+            }
+            else if (!string.IsNullOrWhiteSpace(invoice.MetodoPago))
+            {
+                existing.MetodoPago = invoice.MetodoPago;
+            }
+
+            if (invoice.Subtotal > 0) existing.Subtotal = invoice.Subtotal;
+            if (invoice.Impuestos >= 0) existing.Impuestos = invoice.Impuestos;
+            if (invoice.Total > 0) existing.Total = invoice.Total;
+
+            if (existing.Estado == "pagada" && existing.FechaPago == null)
+            {
+                existing.FechaPago = DateTime.UtcNow;
+            }
+            else if (existing.Estado != "pagada")
+            {
+                existing.FechaPago = null;
+            }
+
             await _context.SaveChangesAsync();
+            if (dbTx != null) await dbTx.CommitAsync();
+
+            _auditLogger.LogInformation(
+                "AUDITORIA_VENTAS | Operacion=ActualizarFactura | Entidad=Invoice#{InvoiceId}({NumeroFactura}) | EstadoAnterior={EstadoAnterior} | EstadoNuevo={EstadoNuevo} | Total={Total} | FechaUtc={FechaUtc:O}",
+                existing.Id, existing.NumeroFactura, estadoAnterior, existing.Estado, existing.Total, DateTime.UtcNow);
+
             return existing;
+        }
+        catch (DbUpdateConcurrencyException concEx)
+        {
+            if (dbTx != null) await dbTx.RollbackAsync();
+            _logger.LogWarning(concEx, "Conflicto de concurrencia al actualizar factura {InvoiceId}", invoice.Id);
+            throw new InvalidOperationException("La factura fue modificada simultáneamente por otro usuario. Por favor, recargue la página e intente de nuevo.", concEx);
         }
         catch (DbUpdateException ex)
         {
+            if (dbTx != null) await dbTx.RollbackAsync();
+            _logger.LogError(ex, "Error de datos al actualizar factura {InvoiceId}", invoice.Id);
             throw new InvalidOperationException("No se pudo actualizar la factura debido a una restricción de datos.", ex);
         }
     }
 
     public async Task<bool> DeleteAsync(int id)
     {
-        var existing = await _context.Invoices.FindAsync(id);
-        if (existing == null) return false;
-
-        existing.Activo = false;
-        _context.Invoices.Update(existing);
+        bool ownsTx = _context.Database.CurrentTransaction == null;
+        await using var dbTx = ownsTx ? await _context.Database.BeginTransactionAsync() : null;
 
         try
         {
+            var existing = await _context.Invoices.FindAsync(id);
+            if (existing == null) return false;
+
+            var estadoAnterior = existing.Estado;
+            existing.Activo = false;
+            _context.Invoices.Update(existing);
+
             await _context.SaveChangesAsync();
+            if (dbTx != null) await dbTx.CommitAsync();
+
+            _auditLogger.LogInformation(
+                "AUDITORIA_VENTAS | Operacion=AnularFactura | Entidad=Invoice#{InvoiceId}({NumeroFactura}) | EstadoAnterior={EstadoAnterior}(Activo=true) | EstadoNuevo=Anulada(Activo=false) | FechaUtc={FechaUtc:O}",
+                existing.Id, existing.NumeroFactura, estadoAnterior, DateTime.UtcNow);
+
             return true;
+        }
+        catch (DbUpdateConcurrencyException concEx)
+        {
+            if (dbTx != null) await dbTx.RollbackAsync();
+            _logger.LogWarning(concEx, "Conflicto de concurrencia al eliminar factura {InvoiceId}", id);
+            throw new InvalidOperationException("La factura fue modificada simultáneamente por otro usuario. Por favor, intente nuevamente.", concEx);
         }
         catch (DbUpdateException ex)
         {
+            if (dbTx != null) await dbTx.RollbackAsync();
+            _logger.LogError(ex, "Error al eliminar factura {InvoiceId}", id);
             throw new InvalidOperationException("No se pudo eliminar la factura porque está asociada a otros registros.", ex);
         }
     }
@@ -302,10 +363,12 @@ public class InvoiceService : IInvoiceService
     public async Task<List<Order>> GetOrdersAvailableForInvoicingAsync()
     {
         var ordersWithActiveInvoice = _context.Invoices
+            .AsNoTracking()
             .Where(i => i.Activo && i.Estado != "cancelada")
             .Select(i => i.OrderId);
 
         return await _context.Orders
+            .AsNoTracking()
             .Where(o => o.Activo && o.Estado != "cancelado" && !ordersWithActiveInvoice.Contains(o.Id))
             .Include(o => o.User)
             .OrderByDescending(o => o.FechaPedido)
