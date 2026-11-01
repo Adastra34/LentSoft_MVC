@@ -483,4 +483,50 @@ public class InventoryServiceTests : IDisposable
 
         Assert.Contains("inactivo", ex.Message);
     }
+
+    [Fact]
+    public async Task ProcesarPedidoVenta_BusquedaPorSku_DescuentaProductoCorrectoSinAsumirPrimero()
+    {
+        // Arrange
+        var productPrimero = new Product
+        {
+            Nombre = "Primer Producto Por Defecto",
+            Sku = "DEF-001",
+            Precio = 50000m,
+            Stock = 50,
+            Activo = true
+        };
+        var productObjetivo = new Product
+        {
+            Nombre = "Segundo Producto Especifico",
+            Sku = "SKU-OBJETIVO-99",
+            Precio = 120000m,
+            Stock = 20,
+            Activo = true
+        };
+        _context.Products.AddRange(productPrimero, productObjetivo);
+        await _context.SaveChangesAsync();
+
+        var salesOrder = new SalesOrder
+        {
+            NumeroPedido = "PED-SKU-TEST",
+            ClienteNombre = "Sofia Gomez",
+            ProductoNombre = "Nombre Que No Coincide", // Nombre diferente
+            Cantidad = 5,
+            PrecioUnitario = 120000m
+        };
+
+        // Act: Enviar SKU explícito
+        var result = await _inventoryService.ProcesarPedidoVentaAsync(salesOrder, null, "SKU-OBJETIVO-99", "Admin");
+
+        // Assert: Se debió descontar del producto objetivo, NUNCA del primer producto
+        var dbPrimero = await _context.Products.FindAsync(productPrimero.Id);
+        var dbObjetivo = await _context.Products.FindAsync(productObjetivo.Id);
+
+        Assert.NotNull(dbPrimero);
+        Assert.NotNull(dbObjetivo);
+        Assert.Equal(50, dbPrimero.Stock); // El primero permanece intacto
+        Assert.Equal(15, dbObjetivo.Stock); // 20 - 5 = 15
+        Assert.Equal(productObjetivo.Id, result.ProductId);
+    }
 }
