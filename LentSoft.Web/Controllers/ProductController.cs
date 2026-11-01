@@ -17,6 +17,7 @@ public class ProductController : Controller
     private readonly IProductService _productService;
     private readonly IFavoriteService _favoriteService;
     private readonly IFileStorageService _fileStorageService;
+    private readonly ILogger<ProductController>? _logger;
 
     private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
     private const long MaxImageSizeBytes = 5 * 1024 * 1024; // 5 MB
@@ -25,18 +26,21 @@ public class ProductController : Controller
     public ProductController(
         IProductService productService,
         IFavoriteService favoriteService,
-        IFileStorageService fileStorageService)
+        IFileStorageService fileStorageService,
+        ILogger<ProductController>? logger = null)
     {
         _productService = productService;
         _favoriteService = favoriteService;
         _fileStorageService = fileStorageService;
+        _logger = logger;
     }
 
     public ProductController(
         IProductService productService,
         IFavoriteService favoriteService,
-        IWebHostEnvironment webHostEnvironment)
-        : this(productService, favoriteService, new LocalFileStorageService(webHostEnvironment, Microsoft.Extensions.Options.Options.Create(new FileStorageSettings())))
+        IWebHostEnvironment webHostEnvironment,
+        ILogger<ProductController>? logger = null)
+        : this(productService, favoriteService, new LocalFileStorageService(webHostEnvironment, Microsoft.Extensions.Options.Options.Create(new FileStorageSettings())), logger)
     {
     }
 
@@ -96,7 +100,8 @@ public class ProductController : Controller
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, message = ex.Message });
+            _logger?.LogError(ex, "Error al conmutar favorito para producto {ProductId}", productId);
+            return Json(new { success = false, message = "Ocurrió un error al procesar la solicitud." });
         }
     }
 
@@ -149,8 +154,10 @@ public class ProductController : Controller
         }
         catch (Exception ex)
         {
-            if (isAjax) return Json(new { success = false, message = $"Error al crear el producto: {ex.Message}" });
-            TempData["ErrorMessage"] = $"Error al crear el producto: {ex.Message}";
+            _logger?.LogError(ex, "Error al crear el producto {Nombre}", product.Nombre);
+            var safeMsg = "Ocurrió un error al crear el producto. Por favor intente más tarde.";
+            if (isAjax) return Json(new { success = false, message = safeMsg });
+            TempData["ErrorMessage"] = safeMsg;
         }
 
         return RedirectToAction("Admin", "Dashboard");
@@ -188,8 +195,10 @@ public class ProductController : Controller
         }
         catch (Exception ex)
         {
-            if (isAjax) return Json(new { success = false, message = $"Error al eliminar el producto: {ex.Message}" });
-            TempData["ErrorMessage"] = $"Error al eliminar el producto: {ex.Message}";
+            _logger?.LogError(ex, "Error al eliminar el producto #{Id}", id);
+            var safeMsg = "Ocurrió un error al eliminar el producto. Por favor intente más tarde.";
+            if (isAjax) return Json(new { success = false, message = safeMsg });
+            TempData["ErrorMessage"] = safeMsg;
         }
 
         return RedirectToAction("Admin", "Dashboard");
@@ -313,8 +322,10 @@ public class ProductController : Controller
         }
         catch (Exception ex)
         {
-            if (isAjax) return Json(new { success = false, message = $"Error al actualizar el producto: {ex.Message}" });
-            TempData["ErrorMessage"] = $"Error al actualizar el producto: {ex.Message}";
+            _logger?.LogError(ex, "Error al actualizar el producto #{Id}", product.Id);
+            var safeMsg = "Ocurrió un error al actualizar el producto. Por favor intente más tarde.";
+            if (isAjax) return Json(new { success = false, message = safeMsg });
+            TempData["ErrorMessage"] = safeMsg;
         }
 
         return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "productos" });
@@ -353,7 +364,8 @@ public class ProductController : Controller
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, message = $"Error al actualizar estado: {ex.Message}" });
+            _logger?.LogError(ex, "Error al actualizar estado del producto #{Id}", id);
+            return Json(new { success = false, message = "Ocurrió un error al actualizar el estado del producto." });
         }
     }
 

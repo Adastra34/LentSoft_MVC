@@ -15,14 +15,19 @@ public class SupplierController : Controller
 {
     private readonly LentSoftDbContext _context;
     private readonly IFileStorageService _fileStorageService;
+    private readonly ILogger<SupplierController>? _logger;
 
     private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
     private const long MaxImageSizeBytes = 5 * 1024 * 1024; // 5 MB
 
-    public SupplierController(LentSoftDbContext context, IFileStorageService fileStorageService)
+    public SupplierController(
+        LentSoftDbContext context, 
+        IFileStorageService fileStorageService,
+        ILogger<SupplierController>? logger = null)
     {
         _context = context;
         _fileStorageService = fileStorageService;
+        _logger = logger;
     }
 
     /// <summary>
@@ -91,8 +96,10 @@ public class SupplierController : Controller
         }
         catch (Exception ex)
         {
-            if (isAjax) return Json(new { success = false, message = $"Error al crear el proveedor: {ex.Message}" });
-            TempData["ErrorMessage"] = $"Error al crear el proveedor: {ex.Message}";
+            _logger?.LogError(ex, "Error al crear el proveedor {Nombre}", supplier.Nombre);
+            var safeMsg = "Ocurrió un error al crear el proveedor. Por favor intente más tarde.";
+            if (isAjax) return Json(new { success = false, message = safeMsg });
+            TempData["ErrorMessage"] = safeMsg;
         }
 
         return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
@@ -169,8 +176,10 @@ public class SupplierController : Controller
         }
         catch (Exception ex)
         {
-            if (isAjax) return Json(new { success = false, message = $"Error al actualizar el proveedor: {ex.Message}" });
-            TempData["ErrorMessage"] = $"Error al actualizar el proveedor: {ex.Message}";
+            _logger?.LogError(ex, "Error al actualizar el proveedor {Id}", supplier.Id);
+            var safeMsg = "Ocurrió un error al actualizar el proveedor. Por favor intente más tarde.";
+            if (isAjax) return Json(new { success = false, message = safeMsg });
+            TempData["ErrorMessage"] = safeMsg;
         }
 
         return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
@@ -204,8 +213,10 @@ public class SupplierController : Controller
         }
         catch (Exception ex)
         {
-            if (isAjax) return Json(new { success = false, message = $"Error al eliminar el proveedor: {ex.Message}" });
-            TempData["ErrorMessage"] = $"Error al eliminar el proveedor: {ex.Message}";
+            _logger?.LogError(ex, "Error al eliminar el proveedor {Id}", id);
+            var safeMsg = "Ocurrió un error al eliminar el proveedor. Por favor intente más tarde.";
+            if (isAjax) return Json(new { success = false, message = safeMsg });
+            TempData["ErrorMessage"] = safeMsg;
         }
 
         return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "proveedores" });
@@ -232,7 +243,8 @@ public class SupplierController : Controller
         }
         catch (Exception ex)
         {
-            return Json(new { success = false, message = $"Error al actualizar estado: {ex.Message}" });
+            _logger?.LogError(ex, "Error al actualizar estado del proveedor {Id}", id);
+            return Json(new { success = false, message = "Ocurrió un error al actualizar el estado del proveedor." });
         }
     }
 
