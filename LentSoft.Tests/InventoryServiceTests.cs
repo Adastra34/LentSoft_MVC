@@ -347,4 +347,140 @@ public class InventoryServiceTests : IDisposable
             _inventoryService.ProcesarRecepcionParcialPedidoProveedorAsync(order.Id, 1));
         Assert.Contains("ya fue completado previamente", exCompleted.Message);
     }
+
+    [Fact]
+    public async Task ProcesarPedidoVenta_Exitoso_DescuentaStockYRegistraKardexEnTransaccion()
+    {
+        // Arrange
+        var product = new Product
+        {
+            Nombre = "Montura Aviator Pro",
+            Sku = "AV-PRO-100",
+            Precio = 180000m,
+            Stock = 12,
+            Activo = true
+        };
+        _context.Products.Add(product);
+        await _context.SaveChangesAsync();
+
+        var salesOrder = new SalesOrder
+        {
+            NumeroPedido = "PED-TEST-100",
+            ClienteNombre = "Carlos Mendoza",
+            ProductoNombre = product.Nombre,
+            Cantidad = 4,
+            PrecioUnitario = 180000m,
+            Estado = "pendiente"
+        };
+
+        // Act
+        var result = await _inventoryService.ProcesarPedidoVentaAsync(salesOrder, product.Id, null, "AdminTest");
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal(product.Id, result.ProductId);
+        Assert.Equal(720000m, result.Total);
+
+        var productDb = await _context.Products.FindAsync(product.Id);
+        Assert.NotNull(productDb);
+        Assert.Equal(8, productDb.Stock); // 12 - 4 = 8
+
+        var movement = await _context.InventoryMovements
+            .FirstOrDefaultAsync(m => m.Referencia == "PED-TEST-100");
+        Assert.NotNull(movement);
+        Assert.Equal(InventoryConstants.MovementTypes.Salida, movement.Tipo);
+        Assert.Equal(InventoryConstants.MovementMotives.Venta, movement.Motivo);
+        Assert.Equal(4, movement.Cantidad);
+        Assert.Equal(8, movement.StockResultante);
+    }
+
+    [Fact]
+    public async Task ProcesarPedidoVenta_StockInsuficiente_LanzaExcepcionYNoModificaStock()
+    {
+        // Arrange
+        var product = new Product
+        {
+            Nombre = "Lentes de Contacto Ultra",
+            Sku = "LC-ULTRA-01",
+            Precio = 90000m,
+            Stock = 2,
+            Activo = true
+        };
+        _context.Products.Add(product);
+        await _context.SaveChangesAsync();
+
+        var salesOrder = new SalesOrder
+        {
+            NumeroPedido = "PED-TEST-FAIL",
+            ClienteNombre = "Ana Torres",
+            ProductoNombre = product.Nombre,
+            Cantidad = 5, // Excede stock actual de 2
+            PrecioUnitario = 90000m
+        };
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _inventoryService.ProcesarPedidoVentaAsync(salesOrder, product.Id));
+
+        Assert.Contains("Stock insuficiente", ex.Message);
+
+        var productDb = await _context.Products.FindAsync(product.Id);
+        Assert.NotNull(productDb);
+        Assert.Equal(2, productDb.Stock);
+
+        var orderDb = await _context.SalesOrders.FirstOrDefaultAsync(o => o.NumeroPedido == "PED-TEST-FAIL");
+        Assert.Null(orderDb);
+
+        var movementDb = await _context.InventoryMovements.FirstOrDefaultAsync(m => m.Referencia == "PED-TEST-FAIL");
+        Assert.Null(movementDb);
+    }
+
+    [Fact]
+    public async Task ProcesarPedidoVenta_ProductoInexistente_LanzaKeyNotFoundException()
+    {
+        // Arrange
+        var salesOrder = new SalesOrder
+        {
+            NumeroPedido = "PED-INEXISTENTE",
+            ClienteNombre = "Juan Perez",
+            ProductoNombre = "Producto No Existente En BD",
+            Cantidad = 1,
+            PrecioUnitario = 10000m
+        };
+
+        // Act & Assert (Nunca debe tomar el primer producto por defecto)
+        await Assert.ThrowsAsync<KeyNotFoundException>(() =>
+            _inventoryService.ProcesarPedidoVentaAsync(salesOrder, 999999));
+    }
+
+    [Fact]
+    public async Task ProcesarPedidoVenta_ProductoInactivo_LanzaInvalidOperationException()
+    {
+        // Arrange
+        var product = new Product
+        {
+            Nombre = "Lentes Descontinuados",
+            Sku = "DES-001",
+            Precio = 50000m,
+            Stock = 10,
+            Activo = false // Inactivo
+        };
+        _context.Products.Add(product);
+        await _context.SaveChangesAsync();
+
+        var salesOrder = new SalesOrder
+        {
+            NumeroPedido = "PED-INACTIVO",
+            ClienteNombre = "Cliente Test",
+            ProductoNombre = product.Nombre,
+            Cantidad = 1,
+            PrecioUnitario = 50000m
+        };
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _inventoryService.ProcesarPedidoVentaAsync(salesOrder, product.Id));
+
+        Assert.Contains("inactivo", ex.Message);
+    }
 }

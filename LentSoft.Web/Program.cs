@@ -235,6 +235,7 @@ if (app.Environment.IsDevelopment())
             try { db.Database.ExecuteSqlRaw("ALTER TABLE Suppliers ADD COLUMN TiempoEntregaDias INTEGER NULL;"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE Suppliers ADD COLUMN Direccion TEXT NULL;"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE SupplierOrders ADD COLUMN CantidadRecibida INTEGER NOT NULL DEFAULT 0;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE SalesOrders ADD COLUMN ProductId INTEGER NULL;"); } catch { }
         }
         else
         {

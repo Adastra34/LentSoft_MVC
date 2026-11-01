@@ -88,7 +88,13 @@ public class LentSoftDbContext : DbContext
         modelBuilder.Entity<SalesOrder>(entity =>
         {
             entity.HasIndex(e => e.NumeroPedido);
+            entity.HasIndex(e => e.ProductId);
             entity.Property(e => e.Fecha).HasDefaultValueSql(utcDateSql);
+
+            entity.HasOne(e => e.Product)
+                  .WithMany()
+                  .HasForeignKey(e => e.ProductId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         // ── Users ──

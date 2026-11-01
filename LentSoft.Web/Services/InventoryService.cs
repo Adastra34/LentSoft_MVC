@@ -209,6 +209,125 @@ public class InventoryService : IInventoryService
         }
     }
 
+    public async Task<SalesOrder> ProcesarPedidoVentaAsync(SalesOrder order, int? productId = null, string? sku = null, string? responsable = null)
+    {
+        if (order == null)
+        {
+            throw new ArgumentNullException(nameof(order), "Los datos del pedido de venta no pueden ser nulos.");
+        }
+
+        if (order.Cantidad <= 0)
+        {
+            throw new ArgumentException("La cantidad solicitada debe ser mayor a 0.", nameof(order.Cantidad));
+        }
+
+        // Búsqueda estricta por ID o SKU (3.1 Adecuación funcional)
+        Product? product = null;
+
+        var targetId = productId ?? order.ProductId;
+        if (targetId.HasValue && targetId.Value > 0)
+        {
+            product = await _context.Products.FindAsync(targetId.Value);
+        }
+
+        if (product == null && !string.IsNullOrWhiteSpace(sku))
+        {
+            var skuNorm = sku.Trim().ToLower();
+            product = await _context.Products.FirstOrDefaultAsync(p => p.Sku != null && p.Sku.ToLower() == skuNorm);
+        }
+
+        if (product == null && !string.IsNullOrWhiteSpace(order.ProductoNombre))
+        {
+            var prodName = order.ProductoNombre.Trim();
+            if (int.TryParse(prodName, out int parsedId))
+            {
+                product = await _context.Products.FindAsync(parsedId);
+            }
+            if (product == null)
+            {
+                var lower = prodName.ToLower();
+                product = await _context.Products.FirstOrDefaultAsync(p => (p.Sku != null && p.Sku.ToLower() == lower) || p.Nombre.ToLower() == lower);
+            }
+        }
+
+        // NUNCA asumir un producto por defecto si no se encuentra
+        if (product == null)
+        {
+            throw new KeyNotFoundException($"El producto especificado (ID: {targetId}, SKU: {sku}, Referencia: '{order.ProductoNombre}') no existe en el catálogo.");
+        }
+
+        if (!product.Activo)
+        {
+            throw new InvalidOperationException($"El producto '{product.Nombre}' se encuentra inactivo y no puede venderse.");
+        }
+
+        if (product.Stock < order.Cantidad)
+        {
+            throw new InvalidOperationException($"Stock insuficiente para el producto '{product.Nombre}'. Stock disponible: {product.Stock}, solicitado: {order.Cantidad}.");
+        }
+
+        var ownsTransaction = _context.Database.CurrentTransaction == null;
+        var transaction = ownsTransaction ? await _context.Database.BeginTransactionAsync() : null;
+
+        try
+        {
+            order.ProductId = product.Id;
+            order.ProductoNombre = product.Nombre;
+            order.Total = order.Cantidad * order.PrecioUnitario;
+            if (order.Fecha == default) order.Fecha = DateTime.UtcNow;
+            order.Activo = true;
+
+            // Descontar stock
+            product.Stock -= order.Cantidad;
+            if (product.Stock == 0)
+            {
+                product.Activo = false;
+            }
+            _context.Products.Update(product);
+
+            // Registrar movimiento en Kardex
+            var movement = new InventoryMovement
+            {
+                ProductId = product.Id,
+                NombreProducto = product.Nombre,
+                Tipo = InventoryConstants.MovementTypes.Salida,
+                Cantidad = order.Cantidad,
+                Fecha = DateTime.UtcNow,
+                Responsable = ResolveResponsable(responsable),
+                Motivo = InventoryConstants.MovementMotives.Venta,
+                StockResultante = product.Stock,
+                Nota = $"Pedido de venta a {order.ClienteNombre}",
+                Referencia = order.NumeroPedido
+            };
+            _context.InventoryMovements.Add(movement);
+
+            _context.SalesOrders.Add(order);
+
+            await _context.SaveChangesAsync();
+
+            if (transaction != null)
+            {
+                await transaction.CommitAsync();
+            }
+
+            return order;
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            if (transaction != null) await transaction.RollbackAsync();
+            throw new InvalidOperationException("El producto fue modificado por otro usuario, vuelve a intentarlo.", ex);
+        }
+        catch
+        {
+            if (transaction != null) await transaction.RollbackAsync();
+            throw;
+        }
+        finally
+        {
+            if (transaction != null) await transaction.DisposeAsync();
+        }
+    }
+
     public async Task<SupplierOrder> ProcesarRecepcionParcialPedidoProveedorAsync(int supplierOrderId, int cantidadRecibida, string? responsable = null)
     {
         if (cantidadRecibida <= 0)

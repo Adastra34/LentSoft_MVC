@@ -11,5 +11,6 @@ public interface IInventoryService
     Task<Product> DisminuirStockAsync(int productId, int cantidad, string motivo, string? responsable = null, string? nota = null, string? referencia = null);
     Task<SupplierOrder> ProcesarRecepcionPedidoProveedorAsync(int supplierOrderId, string? responsable = null);
     Task<SupplierOrder> ProcesarRecepcionParcialPedidoProveedorAsync(int supplierOrderId, int cantidadRecibida, string? responsable = null);
+    Task<SalesOrder> ProcesarPedidoVentaAsync(SalesOrder order, int? productId = null, string? sku = null, string? responsable = null);
     Task RegistrarMovimientoAsync(int productId, string tipo, int cantidad, string? responsable = null, string? motivo = null, string? nota = null, string? referencia = null);
 }

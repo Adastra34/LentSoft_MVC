@@ -19,6 +19,9 @@ public class SalesOrder
     [StringLength(150)]
     public string ClienteNombre { get; set; } = string.Empty;
 
+    public int? ProductId { get; set; }
+    public Product? Product { get; set; }
+
     [Required(ErrorMessage = "El producto es obligatorio")]
     [StringLength(200)]
     public string ProductoNombre { get; set; } = string.Empty;

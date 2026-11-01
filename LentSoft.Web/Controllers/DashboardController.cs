@@ -18,6 +18,8 @@ public class DashboardController : Controller
     private readonly IOrderService _orderService;
     private readonly IFavoriteService _favoriteService;
     private readonly IInvoiceService _invoiceService;
+    private readonly IInventoryService _inventoryService;
+    private readonly ILogger<DashboardController> _logger;
     private readonly LentSoftDbContext _context;
     private readonly InventorySettings _inventorySettings;
 
@@ -28,6 +30,8 @@ public class DashboardController : Controller
         IOrderService orderService,
         IFavoriteService favoriteService,
         IInvoiceService invoiceService,
+        IInventoryService inventoryService,
+        ILogger<DashboardController> logger,
         LentSoftDbContext context,
         Microsoft.Extensions.Options.IOptions<InventorySettings> inventoryOptions)
     {
@@ -37,6 +41,8 @@ public class DashboardController : Controller
         _orderService = orderService;
         _favoriteService = favoriteService;
         _invoiceService = invoiceService;
+        _inventoryService = inventoryService;
+        _logger = logger;
         _context = context;
         _inventorySettings = inventoryOptions?.Value ?? new InventorySettings();
     }
@@ -1146,64 +1152,47 @@ public class DashboardController : Controller
 
     // ── GESTIÓN DE PEDIDOS DE VENTAS (INDEPENDIENTES) ──
     [HttpPost]
-    [Authorize(Roles = "admin,ventas")]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> CreateSalesOrder(SalesOrder model)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
 
-        if (ModelState.IsValid)
-        {
-            model.Total = model.Cantidad * model.PrecioUnitario;
-            if (model.Fecha == default) model.Fecha = DateTime.UtcNow;
-            model.Activo = true;
-            _context.SalesOrders.Add(model);
-
-            // Registro automático en Historial de Movimientos (SALIDA)
-            var targetProduct = await _context.Products.FirstOrDefaultAsync(p => p.Nombre.ToLower() == model.ProductoNombre.ToLower() || p.Nombre.ToLower().Contains(model.ProductoNombre.ToLower()));
-            if (targetProduct == null)
-            {
-                targetProduct = await _context.Products.FirstOrDefaultAsync();
-            }
-            if (targetProduct != null)
-            {
-                targetProduct.Stock = Math.Max(0, targetProduct.Stock - model.Cantidad);
-                if (targetProduct.Stock == 0)
-                {
-                    targetProduct.Activo = false;
-                }
-                _context.Products.Update(targetProduct);
-
-                var movement = new InventoryMovement
-                {
-                    ProductId = targetProduct.Id,
-                    NombreProducto = targetProduct.Nombre,
-                    Tipo = InventoryConstants.MovementTypes.Salida,
-                    Cantidad = model.Cantidad,
-                    Fecha = DateTime.UtcNow,
-                    Responsable = User.Identity?.Name ?? "Ventas",
-                    Motivo = InventoryConstants.MovementMotives.Venta,
-                    StockResultante = targetProduct.Stock,
-                    Nota = $"Pedido de venta a {model.ClienteNombre}",
-                    Referencia = model.NumeroPedido
-                };
-                _context.InventoryMovements.Add(movement);
-            }
-
-            await _context.SaveChangesAsync();
-            if (isAjax) return Json(new { success = true, message = "Pedido de venta registrado correctamente.", data = model });
-            TempData["SuccessMessage"] = "Pedido de venta registrado correctamente.";
-        }
-        else
+        if (!ModelState.IsValid)
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Verifique los campos ingresados para el pedido de venta.";
             if (isAjax) return Json(new { success = false, message = firstError });
             TempData["ErrorMessage"] = firstError;
+            return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
         }
 
-        if (User.IsInRole("ventas"))
+        try
         {
-            return RedirectToAction("Index", "Ventas", new { section = "inventarios", subtab = "pedidos" });
+            var order = await _inventoryService.ProcesarPedidoVentaAsync(model, model.ProductId, null, User.Identity?.Name);
+            var successMsg = "Pedido de venta registrado correctamente.";
+            if (isAjax) return Json(new { success = true, message = successMsg, data = order });
+            TempData["SuccessMessage"] = successMsg;
         }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Producto no encontrado al crear pedido de venta #{NumeroPedido}", model.NumeroPedido);
+            if (isAjax) return Json(new { success = false, message = ex.Message });
+            TempData["ErrorMessage"] = ex.Message;
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Operación inválida al procesar pedido de venta #{NumeroPedido}", model.NumeroPedido);
+            if (isAjax) return Json(new { success = false, message = ex.Message });
+            TempData["ErrorMessage"] = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error inesperado al crear pedido de venta #{NumeroPedido}", model.NumeroPedido);
+            var safeError = "Ocurrió un error inesperado al registrar el pedido de venta. Por favor intente más tarde.";
+            if (isAjax) return Json(new { success = false, message = safeError });
+            TempData["ErrorMessage"] = safeError;
+        }
+
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
     }
 
