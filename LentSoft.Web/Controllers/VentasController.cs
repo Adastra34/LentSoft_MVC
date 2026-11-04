@@ -1,4 +1,4 @@
-using System.IO;
+﻿using System.IO;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
@@ -55,9 +55,22 @@ public class VentasController : Controller
         _logger = logger;
     }
 
+    /// <summary>
+    /// Redirige a la sección de ventas del panel desde el que se originó la acción
+    /// (Portal de Ventas o Dashboard de Administrador).
+    /// </summary>
+    private IActionResult RedirectToVentasSection()
+    {
+        var referer = Request.Headers["Referer"].ToString();
+        if (!string.IsNullOrEmpty(referer) && referer.Contains("/Dashboard/Admin", StringComparison.OrdinalIgnoreCase))
+        {
+            return RedirectToAction("Admin", "Dashboard", new { section = "ventas" });
+        }
+        return RedirectToAction("Index", new { section = "ventas" });
+    }
+
     [HttpGet]
-    public async Task<IActionResult> Index(
-        string section = "general", 
+    public async Task<IActionResult> Index(        string section = "general", 
         string subtab = "productos", 
         string? searchTerm = null, 
         int page = 1, 
@@ -338,7 +351,7 @@ public class VentasController : Controller
         {
             _logger.LogError(ex, "Error al exportar CSV completo de ventas");
             TempData["ErrorMessage"] = "Ocurrió un error al generar la exportación CSV de ventas.";
-            return RedirectToAction("Index", new { section = "ventas" });
+            return RedirectToVentasSection();
         }
     }
 
@@ -351,7 +364,7 @@ public class VentasController : Controller
             var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() 
                              ?? "Datos del formulario de venta incompletos o inválidos.";
             TempData["ErrorMessage"] = firstError;
-            return RedirectToAction("Index", new { section = "ventas" });
+            return RedirectToVentasSection();
         }
 
         try
@@ -378,7 +391,7 @@ public class VentasController : Controller
             TempData["ErrorMessage"] = "Ocurrió un error inesperado al registrar la venta. Por favor intente nuevamente.";
         }
 
-        return RedirectToAction("Index", new { section = "ventas" });
+        return RedirectToVentasSection();
     }
 
     [HttpPost]
@@ -404,7 +417,7 @@ public class VentasController : Controller
             TempData["ErrorMessage"] = "Ocurrió un error al intentar cambiar el estado del pedido.";
         }
 
-        return RedirectToAction("Index", new { section = "ventas" });
+        return RedirectToVentasSection();
     }
 
     [HttpPost]
@@ -434,7 +447,7 @@ public class VentasController : Controller
             TempData["ErrorMessage"] = "Ocurrió un error al procesar el abono. Por favor intente más tarde.";
         }
 
-        return RedirectToAction("Index", new { section = "ventas" });
+        return RedirectToVentasSection();
     }
 
     [HttpGet]
@@ -444,7 +457,7 @@ public class VentasController : Controller
         if (pago == null)
         {
             TempData["ErrorMessage"] = "No se encontró el comprobante de pago solicitado.";
-            return RedirectToAction("Index", new { section = "ventas" });
+            return RedirectToVentasSection();
         }
 
         try
@@ -457,7 +470,7 @@ public class VentasController : Controller
         {
             _logger.LogError(ex, "Error al generar comprobante PDF {PagoId}", pagoId);
             TempData["ErrorMessage"] = "Ocurrió un error al generar el archivo del comprobante PDF.";
-            return RedirectToAction("Index", new { section = "ventas" });
+            return RedirectToVentasSection();
         }
     }
 
@@ -485,7 +498,7 @@ public class VentasController : Controller
             TempData["ErrorMessage"] = "Ocurrió un error inesperado durante el cobro con tarjeta.";
         }
 
-        return RedirectToAction("Index", new { section = "ventas" });
+        return RedirectToVentasSection();
     }
 
     [HttpGet]
@@ -574,7 +587,7 @@ public class VentasController : Controller
             TempData["ErrorMessage"] = "Ocurrió un error al vincular la fórmula óptica al pedido.";
         }
 
-        return RedirectToAction("Index", new { section = "ventas" });
+        return RedirectToVentasSection();
     }
 
     // ══════════════════════════════════════════════════════════════════════════════

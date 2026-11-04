@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -68,6 +68,20 @@ public class DashboardController : Controller
             .OrderByDescending(a => a.FechaCambio)
             .Take(_inventorySettings.RecentItemsLimit * 2)
             .ToListAsync();
+
+        // Ventas y Facturas: reutilizar exactamente el mismo modelo/vistas del Portal de Ventas
+        var section = (filter.Section ?? "general").ToLowerInvariant();
+        if (section == "ventas" || section == "facturas")
+        {
+            var ventasService = HttpContext.RequestServices.GetRequiredService<IVentasService>();
+            var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            var ventasModel = await ventasService.ObtenerDashboardAsync(
+                section, filter.Subtab ?? "productos", filter.SearchTerm,
+                filter.Page < 1 ? 1 : filter.Page, filter.PageSize < 1 ? 5 : filter.PageSize, userId);
+            ventasModel.ActiveSection = section;
+            ventasModel.ActiveSubTab = filter.Subtab;
+            ViewData["VentasModel"] = ventasModel;
+        }
 
         return View("Admin", viewModel);
     }

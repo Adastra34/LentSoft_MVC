@@ -192,69 +192,10 @@
             <partial name="Inventario/_Historial" model="Model" />
             <partial name="Inventario/_Pedidos" model="Model" />
         }
-        <!-- ==================== SECCIÓN VENTAS ==================== -->
-        @if (Model.ActiveSection == "ventas")
+        <!-- ==================== SECCIÓN VENTAS (misma vista que Portal de Ventas) ==================== -->
+        @if (Model.ActiveSection == "ventas" && ViewData["VentasModel"] is DashboardVentasViewModel ventasSalesModel)
         {
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;" data-i18n="admin.sales.title">Listado de Ventas</h1>
-                <button type="button" onclick="document.getElementById('modal-venta').style.display='flex'" 
-                        style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s ease;"
-                        onmouseover="this.style.backgroundColor='var(--purple-700)'" onmouseout="this.style.backgroundColor='var(--purple-600)'">
-                    <span data-i18n="sales.btn.new">+ Registrar Nueva Venta</span>
-                </button>
-            </div>
-
-            <div class="card" style="padding: 1.5rem; background: white;">
-                <div style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem;">
-                    <div style="position: relative; display: flex; align-items: center; min-width: 260px; max-width: 380px; flex: 1;">
-                        <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none; display: flex; align-items: center;"><icon name="search" class="icon-sm" /></span>
-                        <input type="text" id="searchVentas" placeholder="Buscar venta o cliente..." data-i18n-placeholder="admin.sales.search" class="form-input" style="width: 100%; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); font-size: 0.85rem;" onkeyup="filterTable('searchVentas', 'tableVentas')" />
-                    </div>
-                </div>
-                <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
-                    <table id="tableVentas" style="width: 100%; border-collapse: collapse; text-align: left;">
-                        <thead style="background-color: var(--purple-50); color: var(--purple-900);">
-                            <tr style="border-bottom: 2px solid var(--purple-200);">
-                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="sales.table.order">Venta</th>
-                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="sales.table.client">Cliente</th>
-                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="sales.table.date">Fecha</th>
-                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="sales.table.total">Total</th>
-                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="sales.table.status">Estado</th>
-                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;" data-i18n="sales.table.currentstatus">Actualizar Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var v in Model.Ventas)
-                            {
-                                <tr style="border-bottom: 1px solid var(--purple-100);">
-                                    <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-700);">#ORD-@v.Id.ToString("D4")</td>
-                                    <td style="padding: 0.75rem;">@(v.User?.Nombre ?? "Cliente")</td>
-                                    <td style="padding: 0.75rem; color: var(--gray-600);">@v.FechaPedido.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td style="padding: 0.75rem; font-weight: 600; color: var(--purple-900);">@v.Total.ToString("C")</td>
-                                    <td style="padding: 0.75rem;">
-                                        <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.25rem 0.5rem; border-radius: 9999px; font-size: 0.75rem;">
-                                            @v.Estado
-                                        </span>
-                                    </td>
-                                    <td style="padding: 0.75rem;">
-                                        <form asp-controller="Order" asp-action="UpdateStatus" method="post" style="display:flex; gap:0.5rem; align-items:center;">
-                                            <input type="hidden" name="id" value="@v.Id" />
-                                            <select name="estado" style="padding: 0.25rem; border-radius: 0.25rem; border: 1px solid var(--gray-300); font-size: 0.85rem;">
-                                                <option value="pendiente" selected="@(v.Estado == "pendiente")" data-i18n="sales.status.pending">Pendiente</option>
-                                                <option value="procesando" selected="@(v.Estado == "procesando")" data-i18n="sales.status.processing">Procesando</option>
-                                                <option value="enviado" selected="@(v.Estado == "enviado")" data-i18n="sales.status.shipped">Enviado</option>
-                                                <option value="entregado" selected="@(v.Estado == "entregado")" data-i18n="sales.status.delivered">Entregado</option>
-                                                <option value="cancelado" selected="@(v.Estado == "cancelado")" data-i18n="sales.status.cancelled">Cancelado</option>
-                                            </select>
-                                            <button type="submit" class="btn btn-primary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" data-i18n="admin.sales.save">Guardar</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <partial name="~/Views/Dashboard/Ventas/_TablaVentas.cshtml" model="ventasSalesModel" />
         }
 
         <!-- ==================== SECCIÓN CITAS ==================== -->
@@ -784,180 +725,24 @@
             </div>
         }
 
-        <!-- ==================== SECCIÓN FACTURAS ==================== -->
-        @if (Model.ActiveSection == "facturas")
+        <!-- ==================== SECCIÓN FACTURAS (misma vista que Portal de Ventas) ==================== -->
+        @if (Model.ActiveSection == "facturas" && ViewData["VentasModel"] is DashboardVentasViewModel ventasFacturasModel)
         {
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;">Gestión de Facturas</h1>
-                <div>
-                    <button type="button" class="btn btn-primary" onclick="document.getElementById('modal-factura').style.display='flex'" style="background-color: var(--purple-600); color: white; border: none; padding: 0.6rem 1.25rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-700)';" onmouseout="this.style.backgroundColor='var(--purple-600)';">
-                        + Nueva Factura
-                    </button>
-                </div>
-            </div>
-
-            <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.75rem; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                <!-- Barra de filtros con fondo morado oscuro -->
-                <div style="background-color: var(--purple-900); color: white; padding: 0.85rem 1.25rem; border-top-left-radius: 0.5rem; border-top-right-radius: 0.5rem;">
-                    <form method="get" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; margin: 0;">
-                        <input type="hidden" name="section" value="facturas" />
-                        <input type="hidden" name="page" value="1" />
-
-                        <div style="display: flex; align-items: center; gap: 0.5rem;">
-                            <label for="facturasPageSize" style="font-size: 0.85rem; color: var(--purple-200); font-weight: 500;">Mostrar</label>
-                            <select id="facturasPageSize" name="pageSize" onchange="this.form.submit()" style="padding: 0.4rem 0.6rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); font-size: 0.85rem; font-weight: 600; cursor: pointer;">
-                                <!option value="5" @(Model.FacturasPageSize == 5 ? "selected" : "")>5</!option>
-                                <!option value="10" @(Model.FacturasPageSize == 10 ? "selected" : "")>10</!option>
-                                <!option value="25" @(Model.FacturasPageSize == 25 ? "selected" : "")>25</!option>
-                                <!option value="50" @(Model.FacturasPageSize == 50 ? "selected" : "")>50</!option>
-                            </select>
-                            <span style="font-size: 0.85rem; color: var(--purple-200); font-weight: 500;">registros</span>
-                        </div>
-
-                        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                            <div style="position: relative; display: flex; align-items: center;">
-                                <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none; display: flex; align-items: center;"><icon name="search" class="icon-sm" /></span>
-                                <input type="text" name="searchTerm" value="@Model.FacturasSearchTerm" placeholder="Buscar por número o cliente..." class="form-input" style="padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); width: 260px; font-size: 0.85rem;" />
-                            </div>
-                            <button type="submit" class="btn" style="background-color: var(--purple-600); color: white; border: none; padding: 0.45rem 0.9rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-700)';" onmouseout="this.style.backgroundColor='var(--purple-600)';">
-                                Filtrar
-                            </button>
-                            @if (!string.IsNullOrWhiteSpace(Model.FacturasSearchTerm))
-                            {
-                                <a href="?section=facturas&pageSize=@Model.FacturasPageSize" class="btn" style="padding: 0.45rem 0.85rem; font-size: 0.85rem; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 0.375rem; font-weight: 500;">
-                                    Limpiar
-                                </a>
-                            }
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Tabla Facturas -->
-                <div style="overflow-x: auto; border: 1px solid var(--purple-200); border-top: none; border-bottom-left-radius: 0.5rem; border-bottom-right-radius: 0.5rem;">
-                    <table id="tableFacturas" style="width: 100%; border-collapse: collapse; text-align: left;">
-                        <thead style="background-color: var(--purple-50); color: var(--purple-900);">
-                            <tr style="border-bottom: 2px solid var(--purple-200);">
-                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Número</th>
-                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Cliente</th>
-                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem;">Fecha</th>
-                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: right;">Total</th>
-                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Estado</th>
-                                <th style="padding: 0.75rem 1rem; font-weight: 700; font-size: 0.85rem; text-align: center;">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.Facturas.Any())
-                            {
-                                foreach (var fac in Model.Facturas)
-                                {
-                                    var estadoNorm = (fac.Estado ?? "").ToLower();
-                                    var badgeBg = estadoNorm == "pagada" ? "var(--success)" : (estadoNorm == "pendiente" ? "var(--warning)" : "var(--error)");
-                                    var badgeText = string.IsNullOrEmpty(fac.Estado) ? "Pendiente" : (char.ToUpper(fac.Estado[0]) + fac.Estado.Substring(1).ToLower());
-                                    var clienteNombre = fac.Order?.User?.NombreCompleto ?? "Cliente Genérico";
-
-                                    <tr style="border-bottom: 1px solid var(--purple-100);">
-                                        <td style="padding: 0.75rem 1rem; font-weight: 600; color: var(--purple-900);">
-                                            @fac.NumeroFactura
-                                        </td>
-                                        <td style="padding: 0.75rem 1rem; color: var(--gray-700);">
-                                            @clienteNombre
-                                        </td>
-                                        <td style="padding: 0.75rem 1rem; color: var(--gray-600); font-size: 0.85rem;">
-                                            @fac.FechaEmision.ToString("dd/MM/yyyy HH:mm")
-                                        </td>
-                                        <td style="padding: 0.75rem 1rem; font-weight: 700; color: var(--purple-800); text-align: right;">
-                                            @fac.Total.ToString("C")
-                                        </td>
-                                        <td style="padding: 0.75rem 1rem; text-align: center;">
-                                            <span style="background-color: @badgeBg; color: white; padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; display: inline-block;">
-                                                @badgeText
-                                            </span>
-                                        </td>
-                                        <td style="padding: 0.75rem 1rem; text-align: center;">
-                                            <div class="table-actions-wrapper" style="justify-content: center;">
-                                                <a href="/Invoice/DownloadPdf/@fac.Id" target="_blank" class="btn-action-edit" aria-label="Descargar PDF" style="display: inline-flex; align-items: center; gap: 0.3rem;">
-                                                    <icon name="file-text" class="icon-sm" /> <span>PDF</span>
-                                                </a>
-                                                <form asp-controller="Invoice" asp-action="Delete" asp-route-id="@fac.Id" method="post" class="form-delete-invoice" data-nombre="@fac.NumeroFactura" style="display:inline; margin:0;">
-                                                    <button type="submit" class="btn-action-delete" aria-label="Eliminar Factura" style="display: inline-flex; align-items: center; gap: 0.3rem;">
-                                                        <icon name="trash-2" class="icon-sm" /> <span>Eliminar</span>
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="6" style="padding: 2.5rem; text-align: center; color: var(--gray-500);">
-                                        No se encontraron facturas registradas.
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Paginación Facturas -->
-                @if (Model.FacturasTotalPages > 1)
-                {
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem; flex-wrap: wrap; gap: 0.75rem;">
-                        <span style="font-size: 0.85rem; color: var(--gray-600);">
-                            Página @Model.FacturasPage de @Model.FacturasTotalPages (Total: @Model.FacturasTotalCount facturas)
-                        </span>
-                        <div style="display: flex; gap: 0.35rem; align-items: center;">
-                            @if (Model.FacturasPage > 1)
-                            {
-                                <a href="?section=facturas&page=@(Model.FacturasPage - 1)&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
-                                   style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
-                                    &laquo; Anterior
-                                </a>
-                            }
-                            else
-                            {
-                                <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
-                                    &laquo; Anterior
-                                </span>
-                            }
-
-                            @for (int p = 1; p <= Model.FacturasTotalPages; p++)
-                            {
-                                if (p == Model.FacturasPage)
-                                {
-                                    <span style="padding: 0.35rem 0.75rem; border-radius: 0.375rem; background-color: var(--purple-600); color: white; font-weight: 700; font-size: 0.85rem;">
-                                        @p
-                                    </span>
-                                }
-                                else
-                                {
-                                    <a href="?section=facturas&page=@p&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
-                                       style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
-                                        @p
-                                    </a>
-                                }
-                            }
-
-                            @if (Model.FacturasPage < Model.FacturasTotalPages)
-                            {
-                                <a href="?section=facturas&page=@(Model.FacturasPage + 1)&pageSize=@Model.FacturasPageSize&searchTerm=@Model.FacturasSearchTerm"
-                                   style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
-                                    Siguiente &raquo;
-                                </a>
-                            }
-                            else
-                            {
-                                <span style="padding: 0.35rem 0.75rem; border: 1px solid var(--gray-200); border-radius: 0.375rem; color: var(--gray-400); font-size: 0.85rem; background: var(--gray-50); cursor: not-allowed;">
-                                    Siguiente &raquo;
-                                </span>
-                            }
-                        </div>
-                    </div>
-                }
-            </div>
+            ViewData["VentasBaseUrl"] = "/Dashboard/Admin";
+            <partial name="~/Views/Dashboard/Ventas/_Facturas.cshtml" model="ventasFacturasModel" view-data="ViewData" />
         }
         @section Scripts {
+    @if (ViewData["VentasModel"] is DashboardVentasViewModel)
+    {
+        <!-- Recursos del Portal de Ventas (mismas funcionalidades en Admin) -->
+        <script src="~/lib/datatables/jquery.min.js"></script>
+        <script src="~/lib/datatables/jquery.dataTables.min.js"></script>
+        <script>
+            window.LENTSOFT_SPRITE_URL = '@Url.Content("~/img/icons/sprite.svg")';
+            window.LENTSOFT_INITIAL_SUBTAB = 'productos';
+        </script>
+        <script src="~/js/ventas.js" asp-append-version="true"></script>
+    }
 
     <partial name="_ValidationScriptsPartial" />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
@@ -1884,6 +1669,13 @@
     </script>
 }
 
+<!-- ==================== MODALES DE VENTAS / FACTURAS (compartidos con Portal de Ventas) ==================== -->
+@if (ViewData["VentasModel"] is DashboardVentasViewModel ventasModalesModel)
+{
+    <link rel="stylesheet" href="~/lib/datatables/jquery.dataTables.min.css" />
+    <link rel="stylesheet" href="~/css/ventas.css" asp-append-version="true" />
+    <partial name="~/Views/Dashboard/Ventas/_Modales.cshtml" model="ventasModalesModel" />
+}
 <!-- ==================== MODALES DE INVENTARIO ==================== -->
 <partial name="Inventario/_Modales" model="Model" />
 <!-- ==================== MODALES DE USUARIOS (CLIENTES Y TRABAJADORES) ==================== -->
@@ -2116,6 +1908,8 @@
     </div>
 </div>
 
+@if (ViewData["VentasModel"] == null)
+{
 <!-- ==================== MODAL NUEVA FACTURA ==================== -->
 <div id="modal-factura" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;" onclick="if(event.target === this) this.style.display='none'">
     <div style="width: 100%; max-width: 550px; background: white; border-radius: 0.75rem; overflow: hidden; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.3);">
@@ -2223,6 +2017,7 @@
         </form>
     </div>
 </div>
+}
 
 <!-- ==================== MODALES DE CITAS MÉDICAS ==================== -->
 <!-- Modal Crear Cita Médica -->
