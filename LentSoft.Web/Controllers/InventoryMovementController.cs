@@ -12,11 +12,16 @@ public class InventoryMovementController : Controller
 {
     private readonly IInventoryService _inventoryService;
     private readonly LentSoftDbContext _context;
+    private readonly ILogger<InventoryMovementController>? _logger;
 
-    public InventoryMovementController(IInventoryService inventoryService, LentSoftDbContext context)
+    public InventoryMovementController(
+        IInventoryService inventoryService, 
+        LentSoftDbContext context,
+        ILogger<InventoryMovementController>? logger = null)
     {
         _inventoryService = inventoryService;
         _context = context;
+        _logger = logger;
     }
 
     /// <summary>
@@ -113,7 +118,8 @@ public class InventoryMovementController : Controller
         }
         catch (Exception ex)
         {
-            var msg = $"Error al registrar el movimiento: {ex.Message}";
+            _logger?.LogError(ex, "Error al registrar movimiento en Kardex para producto {ProductId}", movement.ProductId);
+            var msg = "Ocurrió un error al registrar el movimiento. Por favor intente más tarde.";
             if (isAjax) return Json(new { success = false, message = msg });
             TempData["ErrorMessage"] = msg;
         }

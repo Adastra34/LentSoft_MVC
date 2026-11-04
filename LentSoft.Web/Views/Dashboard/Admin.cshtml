@@ -1,4 +1,4 @@
-@model DashboardAdminViewModel
+﻿@model DashboardAdminViewModel
 @inject Microsoft.Extensions.Options.IOptions<LentSoft.Web.Services.InventorySettings> InventoryOptions
 @{
     Layout = "_LayoutDashboard";
@@ -1227,6 +1227,7 @@
         }
 
         async function toggleProductStatus(id, btnElem) {
+            if (!confirm('¿Estás seguro de que deseas cambiar el estado activo/inactivo de este producto?')) return;
             try {
                 const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
                 const res = await fetch('/Product/ToggleStatus/' + id, {
@@ -1257,6 +1258,7 @@
         }
 
         async function toggleSupplierStatus(id, btnElem) {
+            if (!confirm('¿Estás seguro de que deseas cambiar el estado activo/inactivo de este proveedor?')) return;
             try {
                 const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
                 const res = await fetch('/Supplier/ToggleStatus/' + id, {

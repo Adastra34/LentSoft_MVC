@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +18,8 @@ public class DashboardController : Controller
     private readonly IOrderService _orderService;
     private readonly IFavoriteService _favoriteService;
     private readonly IInvoiceService _invoiceService;
+    private readonly IInventoryService _inventoryService;
+    private readonly ILogger<DashboardController> _logger;
     private readonly LentSoftDbContext _context;
     private readonly InventorySettings _inventorySettings;
 
@@ -28,6 +30,8 @@ public class DashboardController : Controller
         IOrderService orderService,
         IFavoriteService favoriteService,
         IInvoiceService invoiceService,
+        IInventoryService inventoryService,
+        ILogger<DashboardController> logger,
         LentSoftDbContext context,
         Microsoft.Extensions.Options.IOptions<InventorySettings> inventoryOptions)
     {
@@ -37,6 +41,8 @@ public class DashboardController : Controller
         _orderService = orderService;
         _favoriteService = favoriteService;
         _invoiceService = invoiceService;
+        _inventoryService = inventoryService;
+        _logger = logger;
         _context = context;
         _inventorySettings = inventoryOptions?.Value ?? new InventorySettings();
     }
@@ -44,602 +50,26 @@ public class DashboardController : Controller
     /// <summary>
     /// Admin dashboard â€” reconstruido con sidebar y 6 secciones
     /// </summary>
+    [HttpGet]
     [Authorize(Roles = "admin")]
-    public async Task<IActionResult> Admin(
-        string section = "general",
-        string subtab = "productos",
-        string? searchTerm = null,
-        int page = 1,
-        int pageSize = 5,
-        string? clientesSearch = null,
-        int clientesPage = 1,
-        int clientesPageSize = 5,
-        string? trabajadoresSearch = null,
-        int trabajadoresPage = 1,
-        int trabajadoresPageSize = 5,
-        bool includeInactive = false,
-        string movSort = "desc",
-        string? prodSearch = null,
-        string? prodEstado = null,
-        string? prodCategoria = null,
-        string? prodProveedor = null,
-        bool prodStockBajo = false,
-        string? prodSortBy = "nombre",
-        string prodSortDir = "asc",
-        int prodPage = 1,
-        int prodPageSize = 20,
-        string? movSearch = null,
-        string? movTipo = null,
-        int? movProductId = null,
-        DateTime? movFechaInicio = null,
-        DateTime? movFechaFin = null,
-        string? movMotivo = null,
-        int movPage = 1,
-        int movPageSize = 20,
-        string? pedidosProvSearch = null,
-        string? pedidosProvEstado = null,
-        int pedidosProvPage = 1,
-        int pedidosProvPageSize = 20)
+    public async Task<IActionResult> Admin([FromQuery] DashboardAdminQueryFilter filter)
     {
-        ViewBag.IncludeInactive = includeInactive;
-        ViewBag.MovSort = movSort;
-        var now = DateTime.UtcNow;
-        var inicioMes = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-        var inicioMesAnterior = inicioMes.AddMonths(-1);
+        ViewBag.IncludeInactive = filter.IncludeInactive;
+        ViewBag.MovSort = filter.MovSort;
 
-        // â”€â”€ Stats del mes actual â”€â”€
-        var ventasMes = await _context.Orders
-            .Where(o => o.Activo && o.Estado != "cancelado" && o.FechaPedido >= inicioMes)
-            .SumAsync(o => (decimal?)o.Total) ?? 0;
+        var viewModel = await _dashboardService.GetDashboardAdminViewModelAsync(filter);
 
-        var ventasMesAnterior = await _context.Orders
-            .Where(o => o.Activo && o.Estado != "cancelado" && o.FechaPedido >= inicioMesAnterior && o.FechaPedido < inicioMes)
-            .SumAsync(o => (decimal?)o.Total) ?? 0;
-
-        var pedidosActivos = await _context.Orders
-            .Where(o => o.Activo)
-            .CountAsync(o => o.Estado == "pendiente" || o.Estado == "procesando" || o.Estado == "enviado");
-
-        var pedidosActivosAnterior = Math.Max(1, pedidosActivos - 1); // mock anterior
-
-        var clientesTotales = await _context.Users.CountAsync(u => u.Role == "usuario" && u.Activo);
-        var clientesAnterior = Math.Max(1, clientesTotales - 1); // mock
-
-        var productosEnStock = await _context.Products.CountAsync(p => p.Activo && p.Stock > 0);
-        var productosAnterior = Math.Max(1, productosEnStock); // mock estable
-
-        // â”€â”€ Datos para las secciones â”€â”€
-        var pedidosRecientes = await _context.Orders
-            .Where(o => o.Activo)
-            .Include(o => o.User)
-            .Include(o => o.OrderItems).ThenInclude(oi => oi.Product)
-            .OrderByDescending(o => o.FechaPedido)
-            .Take(10)
-            .ToListAsync();
-
-        // Fallback para searchTerm genérico
-        if (!string.IsNullOrWhiteSpace(searchTerm))
-        {
-            if (section == "inventario" && subtab == "productos" && string.IsNullOrWhiteSpace(prodSearch)) prodSearch = searchTerm;
-            if (section == "inventario" && subtab == "historial" && string.IsNullOrWhiteSpace(movSearch)) movSearch = searchTerm;
-            if (section == "inventario" && subtab == "pedidos" && string.IsNullOrWhiteSpace(pedidosProvSearch)) pedidosProvSearch = searchTerm;
-        }
-
-        if (section == "inventario")
-        {
-            await _productService.AsignarSkusConsecutivosFaltantesAsync();
-        }
-
-        // ── Productos (Paginados y Filtrados en BD) ──
-        var prodQuery = _context.Products.Include(p => p.Supplier).AsQueryable();
-        if (!string.IsNullOrWhiteSpace(prodSearch))
-        {
-            var s = prodSearch.Trim().ToLower();
-            prodQuery = prodQuery.Where(p => p.Nombre.ToLower().Contains(s)
-                || (p.Sku != null && p.Sku.ToLower().Contains(s))
-                || (p.Marca != null && p.Marca.ToLower().Contains(s))
-                || (p.Categoria != null && p.Categoria.ToLower().Contains(s))
-                || (p.Ubicacion != null && p.Ubicacion.ToLower().Contains(s)));
-        }
-
-        if (!string.IsNullOrWhiteSpace(prodEstado))
-        {
-            var est = prodEstado.Trim().ToLower();
-            if (est == "activo") prodQuery = prodQuery.Where(p => p.Activo);
-            else if (est == "inactivo") prodQuery = prodQuery.Where(p => !p.Activo);
-        }
-
-        if (!string.IsNullOrWhiteSpace(prodCategoria))
-        {
-            var cat = prodCategoria.Trim().ToLower();
-            if (cat == "lentes-sol")
-                prodQuery = prodQuery.Where(p => p.Categoria != null && (p.Categoria.ToLower().Contains("sol") || p.Categoria.ToLower().Contains("lentes-sol")));
-            else if (cat == "monturas")
-                prodQuery = prodQuery.Where(p => p.Categoria != null && p.Categoria.ToLower().Contains("montura"));
-            else if (cat == "lentes-contacto")
-                prodQuery = prodQuery.Where(p => p.Categoria != null && (p.Categoria.ToLower().Contains("contacto") || p.Categoria.ToLower().Contains("lentes-contacto")));
-            else if (cat == "lentes-graduados")
-                prodQuery = prodQuery.Where(p => p.Categoria != null && (p.Categoria.ToLower().Contains("graduado") || p.Categoria.ToLower().Contains("lentes-graduados")));
-            else if (cat == "accesorios")
-                prodQuery = prodQuery.Where(p => p.Categoria != null && p.Categoria.ToLower().Contains("accesorio"));
-            else
-                prodQuery = prodQuery.Where(p => p.Categoria != null && p.Categoria.ToLower().Contains(cat));
-        }
-
-        if (!string.IsNullOrWhiteSpace(prodProveedor))
-        {
-            var supp = prodProveedor.Trim();
-            prodQuery = prodQuery.Where(p => p.SupplierId == supp || (p.Supplier != null && p.Supplier.Nombre.ToLower().Contains(supp.ToLower())));
-        }
-
-        if (prodStockBajo)
-        {
-            prodQuery = prodQuery.Where(p => p.Stock <= p.StockMinimo);
-        }
-
-        // Ordenamiento por columna configurable
-        prodQuery = (prodSortBy?.ToLower(), prodSortDir?.ToLower()) switch
-        {
-            ("sku", "desc") => prodQuery.OrderByDescending(p => p.Sku),
-            ("sku", _) => prodQuery.OrderBy(p => p.Sku),
-            ("categoria", "desc") => prodQuery.OrderByDescending(p => p.Categoria),
-            ("categoria", _) => prodQuery.OrderBy(p => p.Categoria),
-            ("marca", "desc") => prodQuery.OrderByDescending(p => p.Marca),
-            ("marca", _) => prodQuery.OrderBy(p => p.Marca),
-            ("proveedor", "desc") => prodQuery.OrderByDescending(p => p.Supplier != null ? p.Supplier.Nombre : ""),
-            ("proveedor", _) => prodQuery.OrderBy(p => p.Supplier != null ? p.Supplier.Nombre : ""),
-            ("precio", "desc") => prodQuery.OrderByDescending(p => (double)p.Precio),
-            ("precio", _) => prodQuery.OrderBy(p => (double)p.Precio),
-            ("stock", "desc") => prodQuery.OrderByDescending(p => p.Stock),
-            ("stock", _) => prodQuery.OrderBy(p => p.Stock),
-            ("estado", "desc") => prodQuery.OrderByDescending(p => p.Activo),
-            ("estado", _) => prodQuery.OrderBy(p => p.Activo),
-            (_, "desc") => prodQuery.OrderByDescending(p => p.Nombre),
-            _ => prodQuery.OrderBy(p => p.Nombre)
-        };
-
-        var prodTotalCount = await prodQuery.CountAsync();
-        var productos = await prodQuery
-            .Skip((prodPage - 1) * prodPageSize)
-            .Take(prodPageSize)
-            .ToListAsync();
-
-        var todosLosProductos = await _context.Products.AsNoTracking().Include(p => p.Supplier).OrderBy(p => p.Nombre).ToListAsync();
-
-        // â”€â”€ Clientes (Paginados y Filtrados) â”€â”€
-        clientesPage = Math.Max(1, clientesPage);
-        clientesPageSize = Math.Clamp(clientesPageSize, 1, 100);
-        trabajadoresPage = Math.Max(1, trabajadoresPage);
-        trabajadoresPageSize = Math.Clamp(trabajadoresPageSize, 1, 100);
-
-        var clientesQuery = _context.Users.AsNoTracking().Where(u => u.Role == "usuario");
-        if (!includeInactive) clientesQuery = clientesQuery.Where(u => u.Activo);
-
-        if (!string.IsNullOrWhiteSpace(clientesSearch))
-        {
-            var term = clientesSearch.Trim().ToLower();
-            clientesQuery = clientesQuery.Where(u => u.Nombre.ToLower().Contains(term) || u.Apellido.ToLower().Contains(term) || u.Email.ToLower().Contains(term));
-        }
-        else if (section == "usuarios" && subtab == "clientes" && !string.IsNullOrWhiteSpace(searchTerm))
-        {
-            var term = searchTerm.Trim().ToLower();
-            clientesQuery = clientesQuery.Where(u => u.Nombre.ToLower().Contains(term) || u.Apellido.ToLower().Contains(term) || u.Email.ToLower().Contains(term));
-            clientesSearch = searchTerm;
-        }
-
-        var clientesTotalCount = await clientesQuery.CountAsync();
-        var clientesList = await clientesQuery
-            .OrderBy(u => u.Nombre)
-            .Skip((clientesPage - 1) * clientesPageSize)
-            .Take(clientesPageSize)
-            .ToListAsync();
-
-        // â”€â”€ Trabajadores (Paginados y Filtrados) â”€â”€
-        var trabajadoresQuery = _context.Employees.AsNoTracking().AsQueryable();
-        if (!includeInactive) trabajadoresQuery = trabajadoresQuery.Where(e => e.Activo);
-
-        if (!string.IsNullOrWhiteSpace(trabajadoresSearch))
-        {
-            var term = trabajadoresSearch.Trim().ToLower();
-            trabajadoresQuery = trabajadoresQuery.Where(e => e.Nombre.ToLower().Contains(term) || e.Email.ToLower().Contains(term) || e.Puesto.ToLower().Contains(term));
-        }
-        else if (section == "usuarios" && subtab == "trabajadores" && !string.IsNullOrWhiteSpace(searchTerm))
-        {
-            var term = searchTerm.Trim().ToLower();
-            trabajadoresQuery = trabajadoresQuery.Where(e => e.Nombre.ToLower().Contains(term) || e.Email.ToLower().Contains(term) || e.Puesto.ToLower().Contains(term));
-            trabajadoresSearch = searchTerm;
-        }
-
-        var trabajadoresTotalCount = await trabajadoresQuery.CountAsync();
-        var rawTrabajadores = await trabajadoresQuery
-            .OrderBy(e => e.Nombre)
-            .Skip((trabajadoresPage - 1) * trabajadoresPageSize)
-            .Take(trabajadoresPageSize)
-            .ToListAsync();
-
-        var empEmails = rawTrabajadores
-            .Select(e => e.Email)
-            .Where(email => !string.IsNullOrEmpty(email))
-            .Distinct()
-            .ToList();
-
-        var userByEmail = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
-        var pedidosCountByUserId = new Dictionary<int, int>();
-
-        if (empEmails.Count > 0)
-        {
-            var matchedUsers = await _context.Users
-                .AsNoTracking()
-                .Where(u => empEmails.Contains(u.Email))
-                .Select(u => new { u.Id, u.Email })
-                .ToListAsync();
-
-            foreach (var u in matchedUsers)
-            {
-                userByEmail.TryAdd(u.Email, u.Id);
-            }
-
-            var matchedUserIds = matchedUsers.Select(u => u.Id).Distinct().ToList();
-            if (matchedUserIds.Count > 0)
-            {
-                var pedidosCounts = await _context.Orders
-                    .AsNoTracking()
-                    .Where(o => o.Activo && matchedUserIds.Contains(o.UserId))
-                    .GroupBy(o => o.UserId)
-                    .Select(g => new { UserId = g.Key, Count = g.Count() })
-                    .ToListAsync();
-
-                foreach (var pc in pedidosCounts)
-                {
-                    pedidosCountByUserId[pc.UserId] = pc.Count;
-                }
-            }
-        }
-
-        var trabajadoresList = new List<TrabajadorItemViewModel>();
-        foreach (var emp in rawTrabajadores)
-        {
-            int pedidosCount = 0;
-            if (!string.IsNullOrEmpty(emp.Email) && userByEmail.TryGetValue(emp.Email, out var userId))
-            {
-                pedidosCountByUserId.TryGetValue(userId, out pedidosCount);
-            }
-
-            trabajadoresList.Add(new TrabajadorItemViewModel
-            {
-                Id = emp.Id,
-                Nombre = emp.Nombre,
-                Email = emp.Email,
-                Telefono = emp.Telefono,
-                Puesto = emp.Puesto,
-                Departamento = emp.Departamento,
-                Salario = emp.Salario,
-                Rol = string.IsNullOrWhiteSpace(emp.Rol) ? "Trabajador" : emp.Rol,
-                Activo = emp.Activo,
-                PedidosCount = pedidosCount
-            });
-        }
-
-        var ventas = await _context.Orders
-            .Where(o => o.Activo)
-            .Include(o => o.User)
-            .OrderByDescending(o => o.FechaPedido)
-            .ToListAsync();
-
-        var citas = await _context.Appointments
-            .Where(a => a.Activo)
-            .Include(a => a.User)
-            .Include(a => a.Optometra)
-            .OrderByDescending(a => a.FechaHora)
-            .ToListAsync();
-
-        // Obtener facturas usando IInvoiceService (paginadas y filtradas)
-        var (facturasList, facturasTotalCount) = await _invoiceService.GetAllAsync(searchTerm, page, pageSize);
-        var pedidosDisponibles = await _invoiceService.GetOrdersAvailableForInvoicingAsync();
-
-        // ── Inventario: Resumen ──
-        var valorTotalInventario = await _context.Products
-            .Where(p => p.Activo)
-            .SumAsync(p => p.Stock * (p.CostoCompra ?? p.Precio));
-
-        var totalProductosActivos = await _context.Products
-            .CountAsync(p => p.Activo);
-
-        var totalPedidosPendientesProv = await _context.SupplierOrders
-            .CountAsync(s => s.Activo && s.Estado == "pendiente");
-
-        // 1. Notificaciones de inventario: Agotados (Stock == 0) y Por agotarse (0 < Stock <= 10) usando CountAsync agregado
-        var productosAgotadosCount = await _context.Products.CountAsync(p => p.Stock == 0);
-        var productosPorAgotarseCount = await _context.Products.CountAsync(p => p.Stock > 0 && p.Stock <= _inventorySettings.LowStockThreshold);
-
-        var productosAgotados = await _context.Products
-            .Include(p => p.Supplier)
-            .Where(p => p.Stock == 0)
-            .OrderBy(p => p.Nombre)
-            .Take(10)
-            .ToListAsync();
-
-        var productosPorAgotarse = await _context.Products
-            .Include(p => p.Supplier)
-            .Where(p => p.Stock > 0 && p.Stock <= _inventorySettings.LowStockThreshold)
-            .OrderBy(p => p.Stock)
-            .ThenBy(p => p.Nombre)
-            .Take(10)
-            .ToListAsync();
-
-        // 1.1 Productos sin movimiento en 60 días
-        var hace60Dias = now.AddDays(-60);
-        var productosConMovimiento60 = await _context.InventoryMovements
-            .Where(m => m.Fecha >= hace60Dias)
-            .Select(m => m.ProductId)
-            .Distinct()
-            .ToListAsync();
-
-        var productosSinMovimiento60 = await _context.Products
-            .Include(p => p.Supplier)
-            .Where(p => p.Activo && p.Stock > 0 && !productosConMovimiento60.Contains(p.Id))
-            .OrderBy(p => p.Nombre)
-            .Take(10)
-            .ToListAsync();
-
-        // 2. Productos más vendidos a partir de OrderItem / SalesOrder
-        var topItems = await _context.OrderItems
-            .Include(oi => oi.Product)
-            .Where(oi => oi.Order.Activo && oi.Order.Estado != "cancelado" && oi.Product != null)
-            .GroupBy(oi => new { oi.ProductId, oi.Product!.Nombre, oi.Product.Categoria, oi.Product.ImagenUrl, oi.Product.Stock, oi.Product.Activo })
-            .Select(g => new TopProductoVendidoViewModel
-            {
-                ProductId = g.Key.ProductId,
-                Nombre = g.Key.Nombre,
-                Categoria = g.Key.Categoria,
-                ImagenUrl = g.Key.ImagenUrl,
-                StockActual = g.Key.Stock,
-                Activo = g.Key.Activo,
-                CantidadVendida = g.Sum(x => x.Cantidad),
-                TotalRecaudado = g.Sum(x => x.Cantidad * x.PrecioUnitario)
-            })
-            .ToListAsync();
-
-        var salesOrders = await _context.SalesOrders
-            .Where(so => so.Activo && so.Estado != "cancelado")
-            .ToListAsync();
-
-        foreach (var so in salesOrders)
-        {
-            var existing = topItems.FirstOrDefault(t => t.Nombre.Equals(so.ProductoNombre, StringComparison.OrdinalIgnoreCase));
-            if (existing != null)
-            {
-                existing.CantidadVendida += so.Cantidad;
-                existing.TotalRecaudado += so.Total > 0 ? so.Total : (so.Cantidad * so.PrecioUnitario);
-            }
-            else
-            {
-                var matchedProd = await _context.Products.FirstOrDefaultAsync(p => p.Nombre.ToLower() == so.ProductoNombre.ToLower());
-                topItems.Add(new TopProductoVendidoViewModel
-                {
-                    ProductId = matchedProd?.Id ?? 0,
-                    Nombre = so.ProductoNombre,
-                    Categoria = matchedProd?.Categoria ?? "general",
-                    ImagenUrl = matchedProd?.ImagenUrl,
-                    StockActual = matchedProd?.Stock ?? 0,
-                    Activo = matchedProd?.Activo ?? true,
-                    CantidadVendida = so.Cantidad,
-                    TotalRecaudado = so.Total > 0 ? so.Total : (so.Cantidad * so.PrecioUnitario)
-                });
-            }
-        }
-
-        var productosMasVendidos = topItems
-            .OrderByDescending(x => x.CantidadVendida)
-            .ThenByDescending(x => x.TotalRecaudado)
-            .Take(10)
-            .ToList();
-
-        // 3. Gráfico de evolución de ventas e inventario en el tiempo (últimos 6 meses)
-        var fechaInicioEvolucion = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-5);
-        var pedidosHistoricos = await _context.Orders
-            .Where(o => o.Activo && o.Estado != "cancelado" && o.FechaPedido >= fechaInicioEvolucion)
-            .ToListAsync();
-
-        var movimientosHistoricos = await _context.InventoryMovements
-            .Where(m => m.Fecha >= fechaInicioEvolucion)
-            .ToListAsync();
-
-        var evolucionVentas = new List<ChartDataPoint>();
-        for (int i = 5; i >= 0; i--)
-        {
-            var targetDate = now.AddMonths(-i);
-            var mesNombre = targetDate.ToString("MMM yyyy", new System.Globalization.CultureInfo("es-CO"));
-            var pedidosMes = pedidosHistoricos.Where(o => o.FechaPedido.Year == targetDate.Year && o.FechaPedido.Month == targetDate.Month).ToList();
-            var movimientosMes = movimientosHistoricos.Where(m => m.Fecha.Year == targetDate.Year && m.Fecha.Month == targetDate.Month).ToList();
-
-            var entradas = movimientosMes.Where(m => m.Tipo != null && m.Tipo.Equals("Entrada", StringComparison.OrdinalIgnoreCase)).Sum(m => m.Cantidad);
-            var salidas = movimientosMes.Where(m => m.Tipo != null && !m.Tipo.Equals("Entrada", StringComparison.OrdinalIgnoreCase)).Sum(m => m.Cantidad);
-
-            evolucionVentas.Add(new ChartDataPoint
-            {
-                Periodo = char.ToUpper(mesNombre[0]) + mesNombre.Substring(1),
-                TotalVentas = pedidosMes.Sum(o => o.Total),
-                CantidadPedidos = pedidosMes.Count,
-                EntradasStock = entradas,
-                SalidasStock = salidas
-            });
-        }
-
-            // ── Historial de Movimientos (Paginado y Filtrado en BD) ──
-            var movQuery = _context.InventoryMovements.Include(m => m.Product).AsQueryable();
-            if (!string.IsNullOrWhiteSpace(movSearch))
-            {
-                var s = movSearch.Trim().ToLower();
-                movQuery = movQuery.Where(m => (m.NombreProducto != null && m.NombreProducto.ToLower().Contains(s))
-                    || (m.Product != null && m.Product.Nombre.ToLower().Contains(s))
-                    || (m.Responsable != null && m.Responsable.ToLower().Contains(s))
-                    || m.Id.ToString().Contains(s));
-            }
-            if (!string.IsNullOrWhiteSpace(movTipo))
-            {
-                var t = movTipo.Trim().ToLower();
-                movQuery = movQuery.Where(m => m.Tipo != null && m.Tipo.ToLower() == t);
-            }
-            if (movProductId.HasValue && movProductId.Value > 0)
-            {
-                movQuery = movQuery.Where(m => m.ProductId == movProductId.Value);
-            }
-            if (movFechaInicio.HasValue)
-            {
-                var fInicioUtc = DateTime.SpecifyKind(movFechaInicio.Value.Date, DateTimeKind.Utc);
-                movQuery = movQuery.Where(m => m.Fecha >= fInicioUtc);
-            }
-            if (movFechaFin.HasValue)
-            {
-                var fFinUtc = DateTime.SpecifyKind(movFechaFin.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Utc);
-                movQuery = movQuery.Where(m => m.Fecha <= fFinUtc);
-            }
-            if (!string.IsNullOrWhiteSpace(movMotivo))
-            {
-                var mot = movMotivo.Trim().ToLower();
-                movQuery = movQuery.Where(m => m.Motivo != null && m.Motivo.ToLower() == mot);
-            }
-            movQuery = (movSort == "asc")
-                ? movQuery.OrderBy(m => m.Fecha)
-                : movQuery.OrderByDescending(m => m.Fecha);
-
-            var movTotalCount = await movQuery.CountAsync();
-            var historialMovimientos = await movQuery
-                .Skip((movPage - 1) * movPageSize)
-                .Take(movPageSize)
-                .ToListAsync();
-
-            // ── Pedidos a Proveedores (Paginados y Filtrados en BD) ──
-            var pedidosProvQuery = _context.SupplierOrders
-                .Include(o => o.Supplier)
-                .Include(o => o.Product)
-                .Where(o => o.Activo)
-                .AsQueryable();
-
-            if (!string.IsNullOrWhiteSpace(pedidosProvSearch))
-            {
-                var s = pedidosProvSearch.Trim().ToLower();
-                pedidosProvQuery = pedidosProvQuery.Where(o => (o.NumeroPedido != null && o.NumeroPedido.ToLower().Contains(s))
-                    || (o.Supplier != null && o.Supplier.Nombre.ToLower().Contains(s))
-                    || (o.Product != null && o.Product.Nombre.ToLower().Contains(s)));
-            }
-            if (!string.IsNullOrWhiteSpace(pedidosProvEstado))
-            {
-                var est = pedidosProvEstado.Trim().ToLower();
-                pedidosProvQuery = pedidosProvQuery.Where(o => o.Estado != null && o.Estado.ToLower() == est);
-            }
-            pedidosProvQuery = pedidosProvQuery.OrderByDescending(o => o.Fecha);
-
-            var pedidosProvTotalCount = await pedidosProvQuery.CountAsync();
-            var pedidosProveedores = await pedidosProvQuery
-                .Skip((pedidosProvPage - 1) * pedidosProvPageSize)
-                .Take(pedidosProvPageSize)
-                .ToListAsync();
-
-            var viewModel = new DashboardAdminViewModel
-            {
-                // Stats
-                VentasDelMes = ventasMes,
-                VentasDelMesAnterior = ventasMesAnterior,
-                PedidosActivos = pedidosActivos,
-                PedidosActivosAnterior = pedidosActivosAnterior,
-                ClientesTotales = clientesTotales,
-                ClientesTotalesAnterior = clientesAnterior,
-                ProductosEnStock = productosEnStock,
-                ProductosEnStockAnterior = productosAnterior,
-
-                // Secciones
-                PedidosRecientes = pedidosRecientes,
-                Productos = productos,
-                TodosLosProductos = todosLosProductos,
-                ProdSearchTerm = prodSearch,
-                ProdEstado = prodEstado,
-                ProdCategoria = prodCategoria,
-                ProdProveedor = prodProveedor,
-                ProdStockBajo = prodStockBajo,
-                ProdSortBy = prodSortBy,
-                ProdSortDir = prodSortDir,
-                ProdPage = prodPage,
-                ProdPageSize = prodPageSize,
-                ProdTotalCount = prodTotalCount,
-                Ventas = ventas,
-                Citas = citas,
-
-                // Clientes
-                Clientes = clientesList,
-                TodosLosClientes = await _context.Users.Where(u => u.Activo && u.Role == "usuario").OrderBy(u => u.Nombre).ThenBy(u => u.Apellido).ToListAsync(),
-                ClientesSearchTerm = clientesSearch,
-                ClientesPage = clientesPage,
-                ClientesPageSize = clientesPageSize,
-                ClientesTotalCount = clientesTotalCount,
-
-                // Trabajadores
-                Trabajadores = trabajadoresList,
-                TrabajadoresSearchTerm = trabajadoresSearch,
-                TrabajadoresPage = trabajadoresPage,
-                TrabajadoresPageSize = trabajadoresPageSize,
-                TrabajadoresTotalCount = trabajadoresTotalCount,
-
-                // Facturas
-                Facturas = facturasList,
-                FacturasSearchTerm = searchTerm,
-                FacturasPage = page,
-                FacturasPageSize = pageSize,
-                FacturasTotalCount = facturasTotalCount,
-                PedidosDisponibles = pedidosDisponibles,
-
-                // Inventario: Resumen
-                ValorTotalInventario = valorTotalInventario,
-                TotalProductosActivos = totalProductosActivos,
-                TotalPedidosPendientesProveedor = totalPedidosPendientesProv,
-                ProductosSinMovimiento60Dias = productosSinMovimiento60,
-                EvolucionVentas = evolucionVentas,
-                ProductosMasVendidos = productosMasVendidos,
-                ProductosAgotados = productosAgotados,
-                ProductosAgotadosCount = productosAgotadosCount,
-                ProductosPorAgotarse = productosPorAgotarse,
-                ProductosPorAgotarseCount = productosPorAgotarseCount,
-
-                // Proveedores, Historial y Pedidos reales de Inventario
-                Proveedores = await _context.Suppliers.Where(s => s.Activo).OrderBy(s => s.Nombre).ToListAsync(),
-                HistorialMovimientos = historialMovimientos,
-                MovSearchTerm = movSearch,
-                MovTipo = movTipo,
-                MovProductId = movProductId,
-                MovFechaInicio = movFechaInicio,
-                MovFechaFin = movFechaFin,
-                MovMotivo = movMotivo,
-                MovSort = movSort,
-                MovPage = movPage,
-                MovPageSize = movPageSize,
-                MovTotalCount = movTotalCount,
-
-                PedidosVentas = await _context.SalesOrders.Where(o => o.Activo).OrderByDescending(o => o.Fecha).ToListAsync(),
-                PedidosProveedores = pedidosProveedores,
-                PedidosProvSearchTerm = pedidosProvSearch,
-                PedidosProvEstado = pedidosProvEstado,
-                PedidosProvPage = pedidosProvPage,
-                PedidosProvPageSize = pedidosProvPageSize,
-                PedidosProvTotalCount = pedidosProvTotalCount,
-
-                // Navigation
-                ActiveSection = section,
-                ActiveSubTab = subtab
-            };
-
-        ViewBag.Optometras = await _context.Users
+        ViewBag.Optometras = await _context.Users.AsNoTracking()
             .Where(u => u.Role == "optometra" && u.Activo)
             .OrderBy(u => u.Nombre)
             .ToListAsync();
 
-        // Auditoría de cambios de estado de citas (solo lectura)
-        ViewBag.AuditoriaCitas = await _context.AuditoriaCitas
+        ViewBag.AuditoriaCitas = await _context.AuditoriaCitas.AsNoTracking()
             .OrderByDescending(a => a.FechaCambio)
-            .Take(20)
+            .Take(_inventorySettings.RecentItemsLimit * 2)
             .ToListAsync();
 
-        return View(viewModel);
+        return View("Admin", viewModel);
     }
 
     /// <summary>
@@ -1146,92 +576,86 @@ public class DashboardController : Controller
 
     // ── GESTIÓN DE PEDIDOS DE VENTAS (INDEPENDIENTES) ──
     [HttpPost]
-    [Authorize(Roles = "admin,ventas")]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> CreateSalesOrder(SalesOrder model)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
 
-        if (ModelState.IsValid)
-        {
-            model.Total = model.Cantidad * model.PrecioUnitario;
-            if (model.Fecha == default) model.Fecha = DateTime.UtcNow;
-            model.Activo = true;
-            _context.SalesOrders.Add(model);
-
-            // Registro automático en Historial de Movimientos (SALIDA)
-            var targetProduct = await _context.Products.FirstOrDefaultAsync(p => p.Nombre.ToLower() == model.ProductoNombre.ToLower() || p.Nombre.ToLower().Contains(model.ProductoNombre.ToLower()));
-            if (targetProduct == null)
-            {
-                targetProduct = await _context.Products.FirstOrDefaultAsync();
-            }
-            if (targetProduct != null)
-            {
-                targetProduct.Stock = Math.Max(0, targetProduct.Stock - model.Cantidad);
-                if (targetProduct.Stock == 0)
-                {
-                    targetProduct.Activo = false;
-                }
-                _context.Products.Update(targetProduct);
-
-                var movement = new InventoryMovement
-                {
-                    ProductId = targetProduct.Id,
-                    NombreProducto = targetProduct.Nombre,
-                    Tipo = InventoryConstants.MovementTypes.Salida,
-                    Cantidad = model.Cantidad,
-                    Fecha = DateTime.UtcNow,
-                    Responsable = User.Identity?.Name ?? "Ventas",
-                    Motivo = InventoryConstants.MovementMotives.Venta,
-                    StockResultante = targetProduct.Stock,
-                    Nota = $"Pedido de venta a {model.ClienteNombre}",
-                    Referencia = model.NumeroPedido
-                };
-                _context.InventoryMovements.Add(movement);
-            }
-
-            await _context.SaveChangesAsync();
-            if (isAjax) return Json(new { success = true, message = "Pedido de venta registrado correctamente.", data = model });
-            TempData["SuccessMessage"] = "Pedido de venta registrado correctamente.";
-        }
-        else
+        if (!ModelState.IsValid)
         {
             var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault() ?? "Verifique los campos ingresados para el pedido de venta.";
             if (isAjax) return Json(new { success = false, message = firstError });
             TempData["ErrorMessage"] = firstError;
+            return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
         }
 
-        if (User.IsInRole("ventas"))
+        try
         {
-            return RedirectToAction("Index", "Ventas", new { section = "inventarios", subtab = "pedidos" });
+            var order = await _inventoryService.ProcesarPedidoVentaAsync(model, model.ProductId, null, User.Identity?.Name);
+            var successMsg = "Pedido de venta registrado correctamente.";
+            if (isAjax) return Json(new { success = true, message = successMsg, data = order });
+            TempData["SuccessMessage"] = successMsg;
         }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Producto no encontrado al crear pedido de venta #{NumeroPedido}", model.NumeroPedido);
+            if (isAjax) return Json(new { success = false, message = ex.Message });
+            TempData["ErrorMessage"] = ex.Message;
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Operación inválida al procesar pedido de venta #{NumeroPedido}", model.NumeroPedido);
+            if (isAjax) return Json(new { success = false, message = ex.Message });
+            TempData["ErrorMessage"] = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error inesperado al crear pedido de venta #{NumeroPedido}", model.NumeroPedido);
+            var safeError = "Ocurrió un error inesperado al registrar el pedido de venta. Por favor intente más tarde.";
+            if (isAjax) return Json(new { success = false, message = safeError });
+            TempData["ErrorMessage"] = safeError;
+        }
+
         return RedirectToAction("Admin", new { section = "inventario", subtab = "pedidos", innerTab = "ventas" });
     }
 
     [HttpPost]
-    [Authorize(Roles = "admin,ventas")]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> EditSalesOrder(SalesOrder model)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
 
-        var existing = await _context.SalesOrders.FindAsync(model.Id);
-        if (existing != null)
+        try
         {
-            existing.NumeroPedido = model.NumeroPedido;
-            existing.ClienteNombre = model.ClienteNombre;
-            existing.ProductoNombre = model.ProductoNombre;
-            existing.Cantidad = model.Cantidad;
-            existing.PrecioUnitario = model.PrecioUnitario;
-            existing.Total = model.Cantidad * model.PrecioUnitario;
-            existing.Estado = model.Estado;
-            existing.Notas = model.Notas;
-            await _context.SaveChangesAsync();
-            if (isAjax) return Json(new { success = true, message = "Pedido de venta actualizado correctamente.", data = existing });
-            TempData["SuccessMessage"] = "Pedido de venta actualizado correctamente.";
+            var existing = await _context.SalesOrders.FindAsync(model.Id);
+            if (existing != null)
+            {
+                existing.NumeroPedido = model.NumeroPedido;
+                existing.ClienteNombre = model.ClienteNombre;
+                existing.ProductoNombre = model.ProductoNombre;
+                existing.Cantidad = model.Cantidad;
+                existing.PrecioUnitario = model.PrecioUnitario;
+                existing.Total = model.Cantidad * model.PrecioUnitario;
+                existing.Estado = model.Estado;
+                existing.Notas = model.Notas;
+                await _context.SaveChangesAsync();
+                if (isAjax) return Json(new { success = true, message = "Pedido de venta actualizado correctamente.", data = existing });
+                TempData["SuccessMessage"] = "Pedido de venta actualizado correctamente.";
+            }
+            else
+            {
+                if (isAjax) return Json(new { success = false, message = "No se encontró el pedido de venta especificado." });
+                TempData["ErrorMessage"] = "No se encontró el pedido de venta especificado.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            if (isAjax) return Json(new { success = false, message = "No se encontró el pedido de venta especificado." });
-            TempData["ErrorMessage"] = "No se encontró el pedido de venta especificado.";
+            _logger.LogError(ex, "Error al actualizar pedido de venta #{Id}", model.Id);
+            var safeMsg = "Ocurrió un error al actualizar el pedido de venta. Por favor intente más tarde.";
+            if (isAjax) return Json(new { success = false, message = safeMsg });
+            TempData["ErrorMessage"] = safeMsg;
         }
 
         if (User.IsInRole("ventas"))
@@ -1242,22 +666,34 @@ public class DashboardController : Controller
     }
 
     [HttpPost]
-    [Authorize(Roles = "admin,ventas")]
+    [ValidateAntiForgeryToken]
+    [Authorize(Roles = "admin")]
     public async Task<IActionResult> DeleteSalesOrder(int id)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
 
-        var existing = await _context.SalesOrders.FindAsync(id);
-        if (existing != null)
+        try
         {
-            existing.Activo = false;
-            await _context.SaveChangesAsync();
-            if (isAjax) return Json(new { success = true, message = "Pedido de venta eliminado correctamente.", id });
-            TempData["SuccessMessage"] = "Pedido de venta eliminado correctamente.";
+            var existing = await _context.SalesOrders.FindAsync(id);
+            if (existing != null)
+            {
+                existing.Activo = false;
+                await _context.SaveChangesAsync();
+                if (isAjax) return Json(new { success = true, message = "Pedido de venta eliminado correctamente.", id });
+                TempData["SuccessMessage"] = "Pedido de venta eliminado correctamente.";
+            }
+            else
+            {
+                if (isAjax) return Json(new { success = false, message = "No se encontró el pedido de venta especificado." });
+                TempData["ErrorMessage"] = "No se encontró el pedido de venta especificado.";
+            }
         }
-        else
+        catch (Exception ex)
         {
-            if (isAjax) return Json(new { success = false, message = "No se encontró el pedido de venta especificado." });
+            _logger.LogError(ex, "Error al eliminar pedido de venta #{Id}", id);
+            var safeMsg = "Ocurrió un error al eliminar el pedido de venta. Por favor intente más tarde.";
+            if (isAjax) return Json(new { success = false, message = safeMsg });
+            TempData["ErrorMessage"] = safeMsg;
         }
 
         if (User.IsInRole("ventas"))
@@ -1289,4 +725,38 @@ public class DashboardController : Controller
         return Json(movimientos);
     }
 
+
+    /// <summary>
+    /// GET /Dashboard/SearchCustomersAjax?term={term}&limit={limit}
+    /// Carga bajo demanda para selectores y autocompletado de clientes
+    /// </summary>
+    [HttpGet]
+    [Authorize(Roles = "admin,optometra,ventas")]
+    public async Task<IActionResult> SearchCustomersAjax(string? term, int limit = 20)
+    {
+        var query = _context.Users.AsNoTracking().Where(u => u.Role == "usuario" && u.Activo);
+        if (!string.IsNullOrWhiteSpace(term))
+        {
+            var s = term.Trim().ToLower();
+            query = query.Where(u => u.Nombre.ToLower().Contains(s)
+                || u.Apellido.ToLower().Contains(s)
+                || u.Email.ToLower().Contains(s)
+                || (u.NumeroDocumento != null && u.NumeroDocumento.Contains(s)));
+        }
+
+        var results = await query
+            .OrderBy(u => u.Nombre)
+            .Take(limit)
+            .Select(u => new
+            {
+                id = u.Id,
+                nombreCompleto = (u.Nombre + " " + u.Apellido).Trim(),
+                email = u.Email,
+                documento = u.NumeroDocumento,
+                telefono = u.Telefono
+            })
+            .ToListAsync();
+
+        return Json(new { success = true, data = results });
+    }
 }

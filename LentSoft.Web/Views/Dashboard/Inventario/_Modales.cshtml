@@ -1,4 +1,4 @@
-@model DashboardAdminViewModel
+﻿@model DashboardAdminViewModel
 @inject Microsoft.Extensions.Options.IOptions<LentSoft.Web.Services.InventorySettings> InventoryOptions
 
 <!-- ==================== MODALES DEL MÓDULO DE INVENTARIO ==================== -->
@@ -505,8 +505,17 @@
             </div>
 
             <div class="inv-form-group">
-                <label class="inv-form-label">Producto *</label>
-                <input name="ProductoNombre" type="text" class="inv-form-input" required placeholder="Ej: Montura Ray-Ban Especial" />
+                <label class="inv-form-label">Producto de Inventario (ID / SKU) *</label>
+                <select id="crearPedidoVentaProductId" name="ProductId" class="inv-form-input" required onchange="onPedidoVentaProductoChange(this)">
+                    <option value="">-- Seleccione un Producto por Nombre o SKU --</option>
+                    @foreach (var p in Model.TodosLosProductos)
+                    {
+                        <option value="@p.Id" data-nombre="@p.Nombre" data-precio="@p.Precio" data-stock="@p.Stock" data-sku="@p.Sku">
+                            [@(string.IsNullOrEmpty(p.Sku) ? $"ID {p.Id}" : p.Sku)] @p.Nombre (Stock: @p.Stock, $@p.Precio.ToString("N0"))
+                        </option>
+                    }
+                </select>
+                <input type="hidden" id="crearPedidoVentaProductoNombre" name="ProductoNombre" value="" />
             </div>
 
             <div class="inv-form-row">
@@ -963,6 +972,24 @@
 </div>
 
 <script>
+    function onPedidoVentaProductoChange(selectElem) {
+        if (!selectElem) return;
+        const opt = selectElem.options[selectElem.selectedIndex];
+        if (opt && opt.value) {
+            const nombre = opt.getAttribute('data-nombre');
+            const precio = opt.getAttribute('data-precio');
+            const hiddenNombre = document.getElementById('crearPedidoVentaProductoNombre');
+            if (hiddenNombre) hiddenNombre.value = nombre || '';
+            const precioInput = document.querySelector('#form-crear-pedido-venta input[name="PrecioUnitario"]');
+            if (precioInput && precio) {
+                precioInput.value = Math.round(parseFloat(precio));
+            }
+        } else {
+            const hiddenNombre = document.getElementById('crearPedidoVentaProductoNombre');
+            if (hiddenNombre) hiddenNombre.value = '';
+        }
+    }
+
     function handleManualMovTipoChange(val) {
         const motivoSelect = document.getElementById('manualMovMotivo');
         const lbl = document.getElementById('lblManualMovMotivo');
@@ -1038,5 +1065,20 @@
                 }
             });
         }
+    });
+
+    // Indicador de carga en envio de formularios modales
+    document.addEventListener('DOMContentLoaded', function () {
+        var modalForms = document.querySelectorAll('.inv-modal form');
+        modalForms.forEach(function (f) {
+            f.addEventListener('submit', function (ev) {
+                var btn = f.querySelector('button[type="submit"]');
+                if (btn && !btn.disabled) {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.7';
+                    btn.innerText = 'Procesando...';
+                }
+            });
+        });
     });
 </script>

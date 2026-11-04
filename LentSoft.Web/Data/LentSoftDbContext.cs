@@ -31,6 +31,23 @@ public class LentSoftDbContext : DbContext
     public DbSet<PagoVenta> PagosVentas => Set<PagoVenta>();
     public DbSet<TransaccionPago> TransaccionesPagos => Set<TransaccionPago>();
 
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        if (Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            foreach (var entry in ChangeTracker.Entries<Product>())
+            {
+                if (entry.State == EntityState.Modified)
+                {
+                    var newVersion = new byte[8];
+                    Random.Shared.NextBytes(newVersion);
+                    entry.Entity.RowVersion = newVersion;
+                }
+            }
+        }
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -53,6 +70,8 @@ public class LentSoftDbContext : DbContext
             entity.HasIndex(e => e.ProductId);
             entity.HasIndex(e => e.Tipo);
             entity.HasIndex(e => e.Fecha).IsDescending();
+            entity.HasIndex(e => new { e.ProductId, e.Fecha }).IsDescending();
+            entity.HasIndex(e => new { e.Tipo, e.Fecha });
             entity.Property(e => e.Fecha).HasDefaultValueSql(utcDateSql);
             entity.Property(e => e.Motivo).HasDefaultValue("Otro").HasMaxLength(100);
             entity.Property(e => e.Nota).HasMaxLength(300);
@@ -71,6 +90,9 @@ public class LentSoftDbContext : DbContext
             entity.HasIndex(e => e.NumeroPedido);
             entity.HasIndex(e => e.SupplierId);
             entity.HasIndex(e => e.ProductId);
+            entity.HasIndex(e => e.Estado);
+            entity.HasIndex(e => new { e.SupplierId, e.Estado });
+            entity.HasIndex(e => new { e.ProductId, e.Estado });
             entity.Property(e => e.Fecha).HasDefaultValueSql(utcDateSql);
 
             entity.HasOne(e => e.Supplier)
@@ -88,7 +110,13 @@ public class LentSoftDbContext : DbContext
         modelBuilder.Entity<SalesOrder>(entity =>
         {
             entity.HasIndex(e => e.NumeroPedido);
+            entity.HasIndex(e => e.ProductId);
             entity.Property(e => e.Fecha).HasDefaultValueSql(utcDateSql);
+
+            entity.HasOne(e => e.Product)
+                  .WithMany()
+                  .HasForeignKey(e => e.ProductId)
+                  .OnDelete(DeleteBehavior.Restrict);
         });
 
         // ── Users ──
@@ -110,6 +138,8 @@ public class LentSoftDbContext : DbContext
             entity.HasIndex(e => e.Nombre);
             entity.HasIndex(e => e.Activo);
             entity.HasIndex(e => e.EsDestacado);
+            entity.HasIndex(e => e.SupplierId);
+            entity.HasIndex(e => new { e.Activo, e.Stock });
             var skuIndex = entity.HasIndex(e => e.Sku).IsUnique();
             if (!isSqlite)
             {
@@ -133,6 +163,11 @@ public class LentSoftDbContext : DbContext
             {
                 entity.Property(e => e.RowVersion).IsRowVersion();
             }
+
+            entity.HasOne(e => e.Supplier)
+                  .WithMany()
+                  .HasForeignKey(e => e.SupplierId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
 
         // ── Favorites ──

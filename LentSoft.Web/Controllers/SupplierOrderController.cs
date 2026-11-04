@@ -13,15 +13,18 @@ public class SupplierOrderController : Controller
     private readonly LentSoftDbContext _context;
     private readonly IInventoryService _inventoryService;
     private readonly IPdfPurchaseOrderService _pdfService;
+    private readonly ILogger<SupplierOrderController>? _logger;
 
     public SupplierOrderController(
         LentSoftDbContext context, 
         IInventoryService inventoryService,
-        IPdfPurchaseOrderService pdfService)
+        IPdfPurchaseOrderService pdfService,
+        ILogger<SupplierOrderController>? logger = null)
     {
         _context = context;
         _inventoryService = inventoryService;
         _pdfService = pdfService;
+        _logger = logger;
     }
 
     [HttpPost]
@@ -82,7 +85,8 @@ public class SupplierOrderController : Controller
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                var error = $"Error al registrar el pedido a proveedor: {ex.Message}";
+                _logger?.LogError(ex, "Error al registrar pedido a proveedor #{NumeroPedido}", model.NumeroPedido);
+                var error = "Ocurrió un error al registrar el pedido a proveedor. Por favor intente más tarde.";
                 if (isAjax) return Json(new { success = false, message = error });
                 TempData["ErrorMessage"] = error;
             }
@@ -158,7 +162,8 @@ public class SupplierOrderController : Controller
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            var error = $"Error al actualizar el pedido a proveedor: {ex.Message}";
+            _logger?.LogError(ex, "Error al actualizar pedido a proveedor #{Id}", model.Id);
+            var error = "Ocurrió un error al actualizar el pedido a proveedor. Por favor intente más tarde.";
             if (isAjax) return Json(new { success = false, message = error });
             TempData["ErrorMessage"] = error;
         }
@@ -209,7 +214,8 @@ public class SupplierOrderController : Controller
         }
         catch (Exception ex)
         {
-            var msg = $"Error al recibir el pedido: {ex.Message}";
+            _logger?.LogError(ex, "Error al recibir pedido a proveedor #{Id}", id);
+            var msg = "Ocurrió un error al recibir el pedido a proveedor. Por favor intente más tarde.";
             if (isAjax) return Json(new { success = false, message = msg });
             TempData["ErrorMessage"] = msg;
         }
@@ -245,7 +251,8 @@ public class SupplierOrderController : Controller
         }
         catch (Exception ex)
         {
-            var msg = $"Error al registrar recepción parcial: {ex.Message}";
+            _logger?.LogError(ex, "Error al registrar recepción parcial en pedido #{Id}", id);
+            var msg = "Ocurrió un error al registrar la recepción parcial. Por favor intente más tarde.";
             if (isAjax) return Json(new { success = false, message = msg });
             TempData["ErrorMessage"] = msg;
         }

@@ -19,4 +19,5 @@ public interface IProductService
     Task<List<Product>> GetGafasAsync();
     Task<string> GenerateNextSkuAsync();
     Task AsignarSkusConsecutivosFaltantesAsync();
+    Task<List<Product>> SearchAsync(string? term, int limit = 20);
 }

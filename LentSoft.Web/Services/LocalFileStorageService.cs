@@ -5,7 +5,7 @@ using Microsoft.Extensions.Options;
 
 namespace LentSoft.Web.Services;
 
-public class LocalFileStorageService : IFileStorageService
+public class LocalFileStorageService : IFileStorage, IFileStorageService
 {
     private readonly IWebHostEnvironment _webHostEnvironment;
     private readonly FileStorageSettings _settings;
@@ -45,7 +45,11 @@ public class LocalFileStorageService : IFileStorageService
         try
         {
             var webRoot = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            var targetDir = Path.Combine(webRoot, _settings.BaseUploadPath, subFolder);
+            var basePath = Path.IsPathRooted(_settings.BaseUploadPath)
+                ? _settings.BaseUploadPath
+                : Path.Combine(webRoot, _settings.BaseUploadPath);
+
+            var targetDir = Path.Combine(basePath, subFolder);
             if (!Directory.Exists(targetDir))
             {
                 Directory.CreateDirectory(targetDir);
@@ -59,7 +63,8 @@ public class LocalFileStorageService : IFileStorageService
                 await file.CopyToAsync(stream);
             }
 
-            var relativePath = $"/{_settings.BaseUploadPath}/{subFolder}/{uniqueFileName}".Replace("//", "/");
+            var urlPrefix = Path.IsPathRooted(_settings.BaseUploadPath) ? "uploads" : _settings.BaseUploadPath;
+            var relativePath = $"/{urlPrefix}/{subFolder}/{uniqueFileName}".Replace("//", "/");
             return (true, relativePath, null);
         }
         catch (Exception ex)
@@ -76,7 +81,9 @@ public class LocalFileStorageService : IFileStorageService
         {
             var normalized = relativePath.Replace('\\', '/').TrimStart('/');
             var webRoot = _webHostEnvironment.WebRootPath ?? Path.Combine(Directory.GetCurrentDirectory(), "wwwroot");
-            var fullPath = Path.Combine(webRoot, normalized.Replace('/', Path.DirectorySeparatorChar));
+            var fullPath = Path.IsPathRooted(_settings.BaseUploadPath)
+                ? Path.Combine(_settings.BaseUploadPath, normalized.Replace('/', Path.DirectorySeparatorChar))
+                : Path.Combine(webRoot, normalized.Replace('/', Path.DirectorySeparatorChar));
             if (File.Exists(fullPath))
             {
                 File.Delete(fullPath);

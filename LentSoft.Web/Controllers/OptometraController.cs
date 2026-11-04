@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -892,18 +892,31 @@ public class OptometraController : Controller
         var fechaFin = hasta ?? DateTime.UtcNow;
 
         var resultados = new List<ReporteCitasEstadoDto>();
-        try
+        if (_context.Database.IsSqlServer())
         {
-            resultados = await _context.Database
-                .SqlQueryRaw<ReporteCitasEstadoDto>(
-                    "EXEC sp_ReporteCitasPorEstado @FechaInicio = {0}, @FechaFin = {1}, @OptometraId = {2}",
-                    fechaInicio, fechaFin, optometraId)
-                .ToListAsync();
+            try
+            {
+                resultados = await _context.Database
+                    .SqlQueryRaw<ReporteCitasEstadoDto>(
+                        "EXEC sp_ReporteCitasPorEstado @FechaInicio = {0}, @FechaFin = {1}, @OptometraId = {2}",
+                        fechaInicio, fechaFin, optometraId)
+                    .ToListAsync();
+            }
+            catch
+            {
+                resultados = await _context.Appointments
+                    .Where(a => a.Activo
+                             && a.OptometraId == optometraId
+                             && a.FechaHora >= fechaInicio
+                             && a.FechaHora <= fechaFin)
+                    .GroupBy(a => a.Estado)
+                    .Select(g => new ReporteCitasEstadoDto { Estado = g.Key, Total = g.Count() })
+                    .ToListAsync();
+            }
         }
-        catch
+        else
         {
-            // Si el SP aún no existe, hacer la consulta LINQ equivalente
-            var grupos = await _context.Appointments
+            resultados = await _context.Appointments
                 .Where(a => a.Activo
                          && a.OptometraId == optometraId
                          && a.FechaHora >= fechaInicio
@@ -911,7 +924,6 @@ public class OptometraController : Controller
                 .GroupBy(a => a.Estado)
                 .Select(g => new ReporteCitasEstadoDto { Estado = g.Key, Total = g.Count() })
                 .ToListAsync();
-            resultados = grupos;
         }
 
         ViewBag.ReporteCitas = resultados;
@@ -925,52 +937,24 @@ public class OptometraController : Controller
     public async Task<IActionResult> HistorialCompleto(int pacienteId)
     {
         var resultados = new List<HistorialCompletoDto>();
-        try
+        if (_context.Database.IsSqlServer())
         {
-            resultados = await _context.Database
-                .SqlQueryRaw<HistorialCompletoDto>(
-                    "EXEC sp_HistorialCompletoPaciente @PacienteId = {0}",
-                    pacienteId)
-                .ToListAsync();
+            try
+            {
+                resultados = await _context.Database
+                    .SqlQueryRaw<HistorialCompletoDto>(
+                        "EXEC sp_HistorialCompletoPaciente @PacienteId = {0}",
+                        pacienteId)
+                    .ToListAsync();
+            }
+            catch
+            {
+                resultados = await ObtenerHistorialCompletoLinqAsync(pacienteId);
+            }
         }
-        catch
+        else
         {
-            // Fallback LINQ si el SP aún no existe
-            var historiales = await _context.HistorialesClinicos
-                .Where(h => h.UserId == pacienteId && h.Activo)
-                .Select(h => new HistorialCompletoDto
-                {
-                    TipoRegistro = "Historial",
-                    Fecha = h.Fecha,
-                    Descripcion = h.Diagnostico ?? "Sin diagnóstico",
-                    Detalles = h.Observaciones
-                }).ToListAsync();
-
-            var examenes = await _context.ExamenesVisuales
-                .Where(e => e.UserId == pacienteId && e.Activo)
-                .Select(e => new HistorialCompletoDto
-                {
-                    TipoRegistro = "Examen",
-                    Fecha = e.Fecha,
-                    Descripcion = e.TipoExamen ?? "Examen visual",
-                    Detalles = e.Resultado
-                }).ToListAsync();
-
-            var formulas = await _context.FormulasOpticas
-                .Where(f => f.UserId == pacienteId && f.Activo)
-                .Select(f => new HistorialCompletoDto
-                {
-                    TipoRegistro = "Formula",
-                    Fecha = f.Fecha,
-                    Descripcion = f.TipoLente ?? "Fórmula óptica",
-                    Detalles = f.Observaciones
-                }).ToListAsync();
-
-            resultados = historiales
-                .Concat(examenes)
-                .Concat(formulas)
-                .OrderByDescending(r => r.Fecha)
-                .ToList();
+            resultados = await ObtenerHistorialCompletoLinqAsync(pacienteId);
         }
 
         ViewBag.HistorialCompleto = resultados;
@@ -1006,5 +990,44 @@ public class OptometraController : Controller
                 ejeOI = examen.EjeOI ?? ""
             }
         });
+    }
+
+    private async Task<List<HistorialCompletoDto>> ObtenerHistorialCompletoLinqAsync(int pacienteId)
+    {
+        var historiales = await _context.HistorialesClinicos
+            .Where(h => h.UserId == pacienteId && h.Activo)
+            .Select(h => new HistorialCompletoDto
+            {
+                TipoRegistro = "Historial",
+                Fecha = h.Fecha,
+                Descripcion = h.Diagnostico ?? "Sin diagnóstico",
+                Detalles = h.Observaciones
+            }).ToListAsync();
+
+        var examenes = await _context.ExamenesVisuales
+            .Where(e => e.UserId == pacienteId && e.Activo)
+            .Select(e => new HistorialCompletoDto
+            {
+                TipoRegistro = "Examen",
+                Fecha = e.Fecha,
+                Descripcion = e.TipoExamen ?? "Examen visual",
+                Detalles = e.Resultado
+            }).ToListAsync();
+
+        var formulas = await _context.FormulasOpticas
+            .Where(f => f.UserId == pacienteId && f.Activo)
+            .Select(f => new HistorialCompletoDto
+            {
+                TipoRegistro = "Formula",
+                Fecha = f.Fecha,
+                Descripcion = f.TipoLente ?? "Fórmula óptica",
+                Detalles = f.Observaciones
+            }).ToListAsync();
+
+        return historiales
+            .Concat(examenes)
+            .Concat(formulas)
+            .OrderByDescending(r => r.Fecha)
+            .ToList();
     }
 }

@@ -93,7 +93,7 @@
                                             data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = p.Id, numeroPedido = p.NumeroPedido, clienteNombre = p.ClienteNombre, productoNombre = p.ProductoNombre, cantidad = p.Cantidad, precioUnitario = p.PrecioUnitario, estado = p.Estado, notas = p.Notas ?? "" }))'>
                                             <svg class="inv-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                         </button>
-                                        <form asp-action="DeleteSalesOrder" asp-controller="Dashboard" method="post" style="display: inline; margin: 0;" class="form-delete-sales-order">
+                                        <form asp-action="DeleteSalesOrder" asp-controller="Dashboard" method="post" style="display: inline; margin: 0;" class="form-delete-sales-order" onsubmit="return confirm('¿Estás seguro de que deseas eliminar este pedido de venta?');">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@p.Id" />
                                             <button type="submit" class="inv-btn-icon inv-btn-icon-delete" aria-label="Eliminar pedido" title="Eliminar pedido">
@@ -216,7 +216,7 @@
                                             data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = p.Id, numeroPedido = p.NumeroPedido, supplierId = p.SupplierId, productId = p.ProductId, cantidad = p.Cantidad, precioUnitario = p.PrecioUnitario, estado = p.Estado, notas = p.Notas ?? "" }))'>
                                             <svg class="inv-icon" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
                                         </button>
-                                        <form asp-action="Delete" asp-controller="SupplierOrder" method="post" style="display: inline; margin: 0;" class="form-delete-supplier-order">
+                                        <form asp-action="Delete" asp-controller="SupplierOrder" method="post" style="display: inline; margin: 0;" class="form-delete-supplier-order" onsubmit="return confirm('¿Estás seguro de que deseas eliminar esta orden de compra?');">
                                             @Html.AntiForgeryToken()
                                             <input type="hidden" name="id" value="@p.Id" />
                                             <button type="submit" class="inv-btn-icon inv-btn-icon-delete" aria-label="Eliminar orden" title="Eliminar orden">

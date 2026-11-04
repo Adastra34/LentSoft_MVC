@@ -1,8 +1,11 @@
+using LentSoft.Web.Models.ViewModels;
+
 namespace LentSoft.Web.Services;
 
 public interface IDashboardService
 {
     Task<DashboardStats> GetAdminStatsAsync();
+    Task<DashboardAdminViewModel> GetDashboardAdminViewModelAsync(DashboardAdminQueryFilter filter);
 }
 
 public class DashboardStats

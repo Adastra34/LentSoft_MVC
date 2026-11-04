@@ -207,7 +207,7 @@ public class ProductService : IProductService
         product.Categoria = updated.Categoria;
         product.Marca = updated.Marca;
         product.CostoCompra = updated.CostoCompra;
-        product.StockMinimo = updated.StockMinimo > 0 ? updated.StockMinimo : 10;
+        product.StockMinimo = updated.StockMinimo > 0 ? updated.StockMinimo : _inventorySettings.DefaultStockMinimo;
         product.Ubicacion = updated.Ubicacion;
         product.Stock = updated.Stock;
         product.ImagenUrl = updated.ImagenUrl;
@@ -434,5 +434,23 @@ public class ProductService : IProductService
         }
 
         await _context.SaveChangesAsync();
+    }
+
+    public async Task<List<Product>> SearchAsync(string? term, int limit = 20)
+    {
+        var query = _context.Products.AsNoTracking().Where(p => p.Activo);
+        if (!string.IsNullOrWhiteSpace(term))
+        {
+            var s = term.Trim().ToLower();
+            query = query.Where(p => p.Nombre.ToLower().Contains(s)
+                || (p.Sku != null && p.Sku.ToLower().Contains(s))
+                || (p.Marca != null && p.Marca.ToLower().Contains(s))
+                || (p.Categoria != null && p.Categoria.ToLower().Contains(s)));
+        }
+
+        return await query
+            .OrderBy(p => p.Nombre)
+            .Take(limit)
+            .ToListAsync();
     }
 }
