@@ -140,6 +140,12 @@ Configura las siguientes variables en el servidor o contenedor (usando doble gui
 | `EmailSettings__FromEmail` | Correo remitente |
 | `EmailSettings__FromName` | Nombre del remitente (`LentSoft Óptica`) |
 | `Gemini__ApiKey` | API Key de Google Gemini para el asistente virtual Morgana |
+| `AutoMigrate` | `true` para aplicar migraciones e índices automáticamente al iniciar |
+| `FileStorageSettings__BaseUploadPath` | Carpeta de carga de imágenes (ej: `uploads` o `/app/uploads`) |
+| `InventorySettings__LowStockThreshold` | Umbral para alertar stock bajo (por defecto `10`) |
+| `InventorySettings__DefaultPageSize` | Cantidad de ítems por página en el panel de inventario (por defecto `20`) |
+| `InventorySettings__TopProductsLimit` | Cantidad de productos en resúmenes de top ventas / agotados (por defecto `10`) |
+| `InventorySettings__InactiveDaysThreshold` | Días sin movimiento para alertar productos estancados (por defecto `60`) |
 
 *(Puedes guiarte con los ejemplos incluidos en `LentSoft.Web/appsettings.Example.json`).*
 
@@ -163,6 +169,14 @@ dotnet publish LentSoft.Web/LentSoft.Web.csproj -c Release -o ./publish
 cd ./publish
 dotnet LentSoft.Web.dll
 ```
+
+### Módulo 3: Gestión de Inventario, Proveedores y Kardex
+- **Transaccionalidad Atómica y Concurrencia:** Los descuentos de stock, pedidos de venta y recepciones de órdenes a proveedores operan bajo transacciones ACID en `IInventoryService` registrando movimientos automáticos de Kardex. Se utiliza `RowVersion` para control de concurrencia optimista (`DbUpdateConcurrencyException`).
+- **Paginación y Rendimiento del Lado del Servidor:** Las tablas de productos, movimientos de inventario y pedidos a proveedores utilizan consultas paginadas (`Skip`/`Take`) con proyecciones y `.AsNoTracking()`.
+- **Carga Bajo Demanda (AJAX):** Endpoints dedicados para autocompletado en selectores (`/Product/SearchAjax`, `/Supplier/SearchAjax`, `/Dashboard/SearchCustomersAjax`).
+- **Almacenamiento de Archivos Portátil:** Interfaz `IFileStorage` con implementación configurable `LocalFileStorageService` que permite desacoplar los uploads fuera de `wwwroot`.
+- **Compatibilidad Dual SQL Server / SQLite:** Conmutación automática según configuración (`UseSqlite`), procedimientos almacenados con alternativa nativa LINQ transparente y compatibilidad en tokens de concurrencia.
+- **Integración B2B con Proveedores:** Interfaz `ISupplierGateway` con `MockSupplierGateway` documentado para simulación de órdenes y consulta de catálogos remotos.
 
 ### Módulo de Previsualización AR (Webcam & Face-Tracking)
 - El tracking facial opera **100% en el navegador del cliente** utilizando MediaPipe Vision WebAssembly y Canvas HTML5.
