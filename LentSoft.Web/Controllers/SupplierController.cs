@@ -307,4 +307,36 @@ public class SupplierController : Controller
             pedidos
         });
     }
+
+    /// <summary>
+    /// GET /Supplier/SearchAjax?term={term}&limit={limit}
+    /// Carga bajo demanda para selectores y autocompletado de proveedores
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> SearchAjax(string? term, int limit = 20)
+    {
+        var query = _context.Suppliers.AsNoTracking().Where(s => s.Activo);
+        if (!string.IsNullOrWhiteSpace(term))
+        {
+            var s = term.Trim().ToLower();
+            query = query.Where(x => x.Nombre.ToLower().Contains(s)
+                || (x.Id != null && x.Id.ToLower().Contains(s))
+                || (x.Contacto != null && x.Contacto.ToLower().Contains(s)));
+        }
+
+        var results = await query
+            .OrderBy(x => x.Nombre)
+            .Take(limit)
+            .Select(x => new
+            {
+                id = x.Id,
+                nombre = x.Nombre,
+                contacto = x.Contacto,
+                email = x.Correo,
+                telefono = x.Telefono
+            })
+            .ToListAsync();
+
+        return Json(new { success = true, data = results });
+    }
 }

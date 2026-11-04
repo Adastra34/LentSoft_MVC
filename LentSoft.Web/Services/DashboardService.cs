@@ -186,7 +186,20 @@ public class DashboardService : IDashboardService
             .Take(prodPageSize)
             .ToListAsync();
 
-        var todosLosProductos = await _context.Products.AsNoTracking().Include(p => p.Supplier).OrderBy(p => p.Nombre).ToListAsync();
+        var todosLosProductos = await _context.Products.AsNoTracking()
+            .Where(p => p.Activo)
+            .Select(p => new Product
+            {
+                Id = p.Id,
+                Nombre = p.Nombre,
+                Sku = p.Sku,
+                Precio = p.Precio,
+                CostoCompra = p.CostoCompra,
+                Stock = p.Stock,
+                SupplierId = p.SupplierId
+            })
+            .OrderBy(p => p.Nombre)
+            .ToListAsync();
 
         // ── Clientes (Paginados y Filtrados) ──
         var clientesPage = Math.Max(1, filter.ClientesPage);
@@ -302,35 +315,55 @@ public class DashboardService : IDashboardService
             });
         }
 
-        var ventas = await _context.Orders.AsNoTracking()
-            .Where(o => o.Activo)
-            .Include(o => o.User)
-            .OrderByDescending(o => o.FechaPedido)
-            .ToListAsync();
+        var ventas = (filter.Section == "ventas")
+            ? await _context.Orders.AsNoTracking().Where(o => o.Activo).Include(o => o.User).OrderByDescending(o => o.FechaPedido).ToListAsync()
+            : new List<Order>();
 
-        var citas = await _context.Appointments.AsNoTracking()
-            .Where(a => a.Activo)
-            .Include(a => a.User)
-            .Include(a => a.Optometra)
-            .OrderByDescending(a => a.FechaHora)
-            .ToListAsync();
+        var citas = (filter.Section == "citas")
+            ? await _context.Appointments.AsNoTracking().Where(a => a.Activo).Include(a => a.User).Include(a => a.Optometra).OrderByDescending(a => a.FechaHora).ToListAsync()
+            : new List<Appointment>();
 
-        var (facturasList, facturasTotalCount) = await _invoiceService.GetAllAsync(filter.SearchTerm, filter.Page, filter.PageSize);
-        var pedidosDisponibles = await _invoiceService.GetOrdersAvailableForInvoicingAsync();
+        var facturasList = new List<Invoice>();
+        int facturasTotalCount = 0;
+        var pedidosDisponibles = new List<Order>();
+        if (filter.Section == "facturacion")
+        {
+            var (invoices, totalCount) = await _invoiceService.GetAllAsync(filter.SearchTerm, filter.Page, filter.PageSize);
+            facturasList = invoices;
+            facturasTotalCount = totalCount;
+            pedidosDisponibles = await _invoiceService.GetOrdersAvailableForInvoicingAsync();
+        }
 
-        // ── Inventario: Resumen ──
-        var valorTotalInventario = await _context.Products.AsNoTracking()
-            .Where(p => p.Activo)
-            .SumAsync(p => p.Stock * (p.CostoCompra ?? p.Precio));
+        // ── Inventario: Resumen (con caché) ──
+        decimal valorTotalInventario;
+        int totalProductosActivos, totalPedidosPendientesProv, productosAgotadosCount, productosPorAgotarseCount;
 
-        var totalProductosActivos = await _context.Products.AsNoTracking()
-            .CountAsync(p => p.Activo);
+        var invCountsCacheKey = "admin_dashboard_inv_summary_counts";
+        if (_cache != null && _cache.TryGetValue(invCountsCacheKey, out (decimal vt, int pa, int pp, int ag, int paCnt) cachedInv))
+        {
+            valorTotalInventario = cachedInv.vt;
+            totalProductosActivos = cachedInv.pa;
+            totalPedidosPendientesProv = cachedInv.pp;
+            productosAgotadosCount = cachedInv.ag;
+            productosPorAgotarseCount = cachedInv.paCnt;
+        }
+        else
+        {
+            valorTotalInventario = await _context.Products.AsNoTracking()
+                .Where(p => p.Activo)
+                .SumAsync(p => p.Stock * (p.CostoCompra ?? p.Precio));
 
-        var totalPedidosPendientesProv = await _context.SupplierOrders.AsNoTracking()
-            .CountAsync(s => s.Activo && s.Estado == "pendiente");
+            totalProductosActivos = await _context.Products.AsNoTracking()
+                .CountAsync(p => p.Activo);
 
-        var productosAgotadosCount = await _context.Products.AsNoTracking().CountAsync(p => p.Stock == 0);
-        var productosPorAgotarseCount = await _context.Products.AsNoTracking().CountAsync(p => p.Stock > 0 && p.Stock <= _inventorySettings.LowStockThreshold);
+            totalPedidosPendientesProv = await _context.SupplierOrders.AsNoTracking()
+                .CountAsync(s => s.Activo && s.Estado == "pendiente");
+
+            productosAgotadosCount = await _context.Products.AsNoTracking().CountAsync(p => p.Stock == 0);
+            productosPorAgotarseCount = await _context.Products.AsNoTracking().CountAsync(p => p.Stock > 0 && p.Stock <= _inventorySettings.LowStockThreshold);
+
+            _cache?.Set(invCountsCacheKey, (valorTotalInventario, totalProductosActivos, totalPedidosPendientesProv, productosAgotadosCount, productosPorAgotarseCount), TimeSpan.FromMinutes(2));
+        }
 
         var productosAgotados = await _context.Products.AsNoTracking()
             .Include(p => p.Supplier)
@@ -527,7 +560,19 @@ public class DashboardService : IDashboardService
             .Take(pedidosProvPageSize)
             .ToListAsync();
 
-        var proveedores = await _context.Suppliers.AsNoTracking().Where(s => s.Activo).OrderBy(s => s.Nombre).ToListAsync();
+        var proveedores = await _context.Suppliers.AsNoTracking()
+            .Where(s => s.Activo)
+            .Select(s => new Supplier
+            {
+                Id = s.Id,
+                Nombre = s.Nombre,
+                Telefono = s.Telefono,
+                Correo = s.Correo,
+                Contacto = s.Contacto,
+                Activo = s.Activo
+            })
+            .OrderBy(s => s.Nombre)
+            .ToListAsync();
         var pedidosVentas = await _context.SalesOrders.AsNoTracking().Where(s => s.Activo).OrderByDescending(s => s.Fecha).ToListAsync();
 
         return new DashboardAdminViewModel

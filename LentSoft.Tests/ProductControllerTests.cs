@@ -33,6 +33,7 @@ public class ProductControllerTests
         public Task<List<string>> GetMarcasAsync() => Task.FromResult(new List<string>());
         public Task<string> GenerateNextSkuAsync() => Task.FromResult("1010");
         public Task AsignarSkusConsecutivosFaltantesAsync() => Task.CompletedTask;
+        public Task<List<Product>> SearchAsync(string? term, int limit = 20) => Task.FromResult(Products.FindAll(p => p.Activo && (string.IsNullOrWhiteSpace(term) || p.Nombre.Contains(term, StringComparison.OrdinalIgnoreCase))));
     }
 
     private class FakeFavoriteService : IFavoriteService
@@ -162,6 +163,27 @@ public class ProductControllerTests
 
         // Assert
         Assert.IsType<NotFoundResult>(result);
+    }
+
+    [Fact]
+    public async Task SearchAjax_ReturnsFilteredProducts()
+    {
+        // Arrange
+        var fakeProductService = new FakeProductService();
+        var fakeFavService = new FakeFavoriteService();
+        var fakeEnv = new FakeWebHostEnvironment();
+
+        fakeProductService.Products.Add(new Product { Id = 1, Nombre = "Gafas de Sol Aviator", Sku = "SOL-001", Precio = 200000m, Stock = 10, Activo = true });
+        fakeProductService.Products.Add(new Product { Id = 2, Nombre = "Montura Wayfarer", Sku = "MON-002", Precio = 180000m, Stock = 5, Activo = true });
+
+        var controller = new ProductController(fakeProductService, fakeFavService, fakeEnv);
+
+        // Act
+        var result = await controller.SearchAjax("Aviator", 10);
+
+        // Assert
+        var jsonResult = Assert.IsType<JsonResult>(result);
+        Assert.NotNull(jsonResult.Value);
     }
 }
 

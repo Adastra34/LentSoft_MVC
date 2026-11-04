@@ -37,3 +37,4 @@ public class DashboardAdminQueryFilter
     public int PedidosProvPage { get; set; } = 1;
     public int PedidosProvPageSize { get; set; } = 20;
 }
+

@@ -479,6 +479,28 @@ public class ProductController : Controller
         }
         return Json(new { success = true, modified = count, message = $"{count} productos actualizados correctamente." });
     }
+
+    /// <summary>
+    /// GET /Product/SearchAjax?term={term}&limit={limit}
+    /// Carga bajo demanda para selectores y autocompletado de productos
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> SearchAjax(string? term, int limit = 20)
+    {
+        var items = await _productService.SearchAsync(term, limit);
+        var results = items.Select(p => new
+        {
+            id = p.Id,
+            nombre = p.Nombre,
+            sku = p.Sku ?? "",
+            precio = p.Precio,
+            costoCompra = p.CostoCompra,
+            stock = p.Stock,
+            categoria = p.Categoria
+        });
+
+        return Json(new { success = true, data = results });
+    }
 }
 
 public class BulkToggleRequest

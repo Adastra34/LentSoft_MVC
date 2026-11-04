@@ -53,6 +53,8 @@ public class LentSoftDbContext : DbContext
             entity.HasIndex(e => e.ProductId);
             entity.HasIndex(e => e.Tipo);
             entity.HasIndex(e => e.Fecha).IsDescending();
+            entity.HasIndex(e => new { e.ProductId, e.Fecha }).IsDescending();
+            entity.HasIndex(e => new { e.Tipo, e.Fecha });
             entity.Property(e => e.Fecha).HasDefaultValueSql(utcDateSql);
             entity.Property(e => e.Motivo).HasDefaultValue("Otro").HasMaxLength(100);
             entity.Property(e => e.Nota).HasMaxLength(300);
@@ -71,6 +73,9 @@ public class LentSoftDbContext : DbContext
             entity.HasIndex(e => e.NumeroPedido);
             entity.HasIndex(e => e.SupplierId);
             entity.HasIndex(e => e.ProductId);
+            entity.HasIndex(e => e.Estado);
+            entity.HasIndex(e => new { e.SupplierId, e.Estado });
+            entity.HasIndex(e => new { e.ProductId, e.Estado });
             entity.Property(e => e.Fecha).HasDefaultValueSql(utcDateSql);
 
             entity.HasOne(e => e.Supplier)
@@ -116,6 +121,8 @@ public class LentSoftDbContext : DbContext
             entity.HasIndex(e => e.Nombre);
             entity.HasIndex(e => e.Activo);
             entity.HasIndex(e => e.EsDestacado);
+            entity.HasIndex(e => e.SupplierId);
+            entity.HasIndex(e => new { e.Activo, e.Stock });
             var skuIndex = entity.HasIndex(e => e.Sku).IsUnique();
             if (!isSqlite)
             {
@@ -139,6 +146,11 @@ public class LentSoftDbContext : DbContext
             {
                 entity.Property(e => e.RowVersion).IsRowVersion();
             }
+
+            entity.HasOne(e => e.Supplier)
+                  .WithMany()
+                  .HasForeignKey(e => e.SupplierId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
 
         // ── Favorites ──

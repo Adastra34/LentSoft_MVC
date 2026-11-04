@@ -725,4 +725,38 @@ public class DashboardController : Controller
         return Json(movimientos);
     }
 
+
+    /// <summary>
+    /// GET /Dashboard/SearchCustomersAjax?term={term}&limit={limit}
+    /// Carga bajo demanda para selectores y autocompletado de clientes
+    /// </summary>
+    [HttpGet]
+    [Authorize(Roles = "admin,optometra,ventas")]
+    public async Task<IActionResult> SearchCustomersAjax(string? term, int limit = 20)
+    {
+        var query = _context.Users.AsNoTracking().Where(u => u.Role == "usuario" && u.Activo);
+        if (!string.IsNullOrWhiteSpace(term))
+        {
+            var s = term.Trim().ToLower();
+            query = query.Where(u => u.Nombre.ToLower().Contains(s)
+                || u.Apellido.ToLower().Contains(s)
+                || u.Email.ToLower().Contains(s)
+                || (u.NumeroDocumento != null && u.NumeroDocumento.Contains(s)));
+        }
+
+        var results = await query
+            .OrderBy(u => u.Nombre)
+            .Take(limit)
+            .Select(u => new
+            {
+                id = u.Id,
+                nombreCompleto = (u.Nombre + " " + u.Apellido).Trim(),
+                email = u.Email,
+                documento = u.NumeroDocumento,
+                telefono = u.Telefono
+            })
+            .ToListAsync();
+
+        return Json(new { success = true, data = results });
+    }
 }
