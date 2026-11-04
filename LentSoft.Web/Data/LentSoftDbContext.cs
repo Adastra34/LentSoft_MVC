@@ -31,6 +31,23 @@ public class LentSoftDbContext : DbContext
     public DbSet<PagoVenta> PagosVentas => Set<PagoVenta>();
     public DbSet<TransaccionPago> TransaccionesPagos => Set<TransaccionPago>();
 
+    public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        if (Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            foreach (var entry in ChangeTracker.Entries<Product>())
+            {
+                if (entry.State == EntityState.Modified)
+                {
+                    var newVersion = new byte[8];
+                    Random.Shared.NextBytes(newVersion);
+                    entry.Entity.RowVersion = newVersion;
+                }
+            }
+        }
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

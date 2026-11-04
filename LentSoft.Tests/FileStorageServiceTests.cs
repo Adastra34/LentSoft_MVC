@@ -72,3 +72,4 @@ public class FileStorageServiceTests
         Assert.Contains("Formato no permitido", result.ErrorMessage);
     }
 }
+

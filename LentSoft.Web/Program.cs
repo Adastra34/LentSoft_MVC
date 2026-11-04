@@ -84,6 +84,7 @@ builder.Services.AddHttpContextAccessor();
 // ── Services (DI) ──
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<ISupplierGateway, MockSupplierGateway>();
 builder.Services.AddScoped<IFileStorage, LocalFileStorageService>();
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<IProductService, ProductService>();
