@@ -84,6 +84,7 @@ builder.Services.AddHttpContextAccessor();
 // ── Services (DI) ──
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IInventoryService, InventoryService>();
+builder.Services.AddScoped<IFileStorage, LocalFileStorageService>();
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
@@ -214,8 +215,8 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
-// ── Database migration + seed on startup (solo en desarrollo) ──
-if (app.Environment.IsDevelopment())
+// ── Database migration + seed on startup ──
+if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("AutoMigrate", true))
 {
     using (var scope = app.Services.CreateScope())
     {
@@ -228,13 +229,16 @@ if (app.Environment.IsDevelopment())
             try { db.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN StockMinimo INTEGER NOT NULL DEFAULT 10;"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE Products ADD COLUMN Ubicacion TEXT NULL;"); } catch { }
             try { db.Database.ExecuteSqlRaw("CREATE UNIQUE INDEX IF NOT EXISTS IX_Products_Sku ON Products (Sku) WHERE Sku IS NOT NULL;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("CREATE INDEX IF NOT EXISTS IX_Products_SupplierId ON Products (SupplierId);"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE InventoryMovements ADD COLUMN Motivo TEXT NOT NULL DEFAULT 'Otro';"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE InventoryMovements ADD COLUMN Nota TEXT NULL;"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE InventoryMovements ADD COLUMN StockResultante INTEGER NOT NULL DEFAULT 0;"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE InventoryMovements ADD COLUMN Referencia TEXT NULL;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("CREATE INDEX IF NOT EXISTS IX_InventoryMovements_ProductId_Fecha ON InventoryMovements (ProductId, Fecha DESC);"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE Suppliers ADD COLUMN TiempoEntregaDias INTEGER NULL;"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE Suppliers ADD COLUMN Direccion TEXT NULL;"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE SupplierOrders ADD COLUMN CantidadRecibida INTEGER NOT NULL DEFAULT 0;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("CREATE INDEX IF NOT EXISTS IX_SupplierOrders_SupplierId_Estado ON SupplierOrders (SupplierId, Estado);"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE SalesOrders ADD COLUMN ProductId INTEGER NULL;"); } catch { }
         }
         else
