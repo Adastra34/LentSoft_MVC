@@ -207,7 +207,7 @@ public class ProductService : IProductService
         product.Categoria = updated.Categoria;
         product.Marca = updated.Marca;
         product.CostoCompra = updated.CostoCompra;
-        product.StockMinimo = updated.StockMinimo > 0 ? updated.StockMinimo : 10;
+        product.StockMinimo = updated.StockMinimo > 0 ? updated.StockMinimo : _inventorySettings.DefaultStockMinimo;
         product.Ubicacion = updated.Ubicacion;
         product.Stock = updated.Stock;
         product.ImagenUrl = updated.ImagenUrl;
