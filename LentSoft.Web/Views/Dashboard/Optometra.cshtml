@@ -28,9 +28,9 @@
     }
 }
 
-<div style="display: flex; min-height: 100vh; background-color: var(--purple-50);">
+<div class="optometra-layout-wrapper" style="display: flex; min-height: 100vh; background-color: var(--purple-50);">
     <!-- Sidebar Navigation -->
-    <aside style="width: 260px; background-color: var(--purple-900); color: white; padding: 1.5rem 1rem; flex-shrink: 0; display: flex; flex-direction: column; justify-content: space-between;">
+    <aside class="optometra-sidebar" style="width: 260px; background-color: var(--purple-900); color: white; padding: 1.5rem 1rem; flex-shrink: 0; display: flex; flex-direction: column; justify-content: space-between;">
         <div>
             <div style="padding: 0 0.5rem 1.5rem 0.5rem; border-bottom: 1px solid var(--purple-700); margin-bottom: 1.5rem;">
                 <h2 style="color: white; font-size: 1.4rem; margin: 0; font-family: var(--font-primary, sans-serif); font-weight: 700;">LentSoft</h2>
@@ -79,10 +79,10 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main style="flex: 1; padding: 2rem; overflow-y: auto;">
+    <main class="optometra-main" style="flex: 1; padding: 2rem; overflow-y: auto;">
 
         <!-- Barra Superior con Botón de Cerrar Sesión -->
-        <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--purple-100); padding-bottom: 1rem;">
+        <div class="optometra-topbar" style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--purple-100); padding-bottom: 1rem;">
             <div style="display: flex; align-items: center; gap: 1rem;">
                 <span style="font-size: 0.9rem; color: var(--gray-600); font-weight: 500;">Hola, @(Model.UsuarioActual?.NombreCompleto ?? "Optómetra")</span>
                 <form asp-controller="Auth" asp-action="Logout" method="post" style="margin: 0;">
@@ -432,7 +432,7 @@
                         <p id="ver-paciente-observaciones" style="background-color: var(--purple-50); padding: 0.75rem; border-radius: 0.375rem; color: var(--gray-700); margin: 0; min-height: 60px; font-style: italic; white-space: pre-line;"></p>
                     </div>
 
-                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
                         <button type="button" onclick="document.getElementById('modal-ver-paciente').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer; font-weight: 600;">Cerrar</button>
                         <button type="button" id="btn-ver-editar-paciente" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Editar Paciente</button>
                     </div>
@@ -518,7 +518,7 @@
                             <textarea name="observacionesPaciente" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
                         </div>
 
-                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
                             <button type="button" onclick="document.getElementById('modal-nuevo-paciente').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
                             <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Registrar Paciente</button>
                         </div>
@@ -617,7 +617,7 @@
                             <textarea name="observacionesPaciente" id="edit-paciente-observaciones" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
                         </div>
 
-                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
                             <button type="button" onclick="document.getElementById('modal-editar-paciente').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
                             <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar Cambios</button>
                         </div>
@@ -794,7 +794,7 @@
                         </div>
                     </div>
 
-                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                    <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
                         <button type="button" onclick="document.getElementById('modal-ver-cita').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer; font-weight: 600;">Cerrar</button>
                         <button type="button" id="btn-ver-editar-cita" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Editar Cita</button>
                     </div>
@@ -842,7 +842,7 @@
                             <textarea name="Notas" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
                         </div>
 
-                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
                             <button type="button" onclick="document.getElementById('modal-nueva-cita').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
                             <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Crear Cita</button>
                         </div>
@@ -903,7 +903,7 @@
                             <textarea name="Notas" id="edit-cita-notas" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
                         </div>
 
-                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
                             <button type="button" onclick="document.getElementById('modal-editar-cita').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
                             <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar Cambios</button>
                         </div>
@@ -1269,7 +1269,7 @@
                             <textarea name="Observaciones" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
                         </div>
 
-                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
                             <button type="button" onclick="document.getElementById('modal-nuevo-historial').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
                             <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar</button>
                         </div>
@@ -1361,7 +1361,7 @@
                             </div>
                         </div>
 
-                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
                             <button type="button" onclick="document.getElementById('modal-editar-historial').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
                             <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar Cambios</button>
                         </div>
@@ -1603,7 +1603,7 @@
                     </div>
 
                     <!-- Botones de Acción (no-print) -->
-                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;" class="no-print">
+                    <div class="optometra-modal-actions no-print" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
                         <button type="button" onclick="document.getElementById('modal-ver-examen').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer; font-weight: 600;">Cerrar</button>
                         <button type="button" onclick="window.print()" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;"><icon name="printer" class="icon-sm" /> <span>Imprimir</span></button>
                     </div>
@@ -1775,7 +1775,7 @@
                             <textarea name="Observaciones" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="1"></textarea>
                         </div>
 
-                        <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 0.5rem;">
                             <button type="button" onclick="document.getElementById('modal-nuevo-examen').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
                             <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Registrar Examen</button>
                         </div>
@@ -1937,7 +1937,7 @@
                             <textarea name="Observaciones" id="edit-examen-observaciones" style="padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="1"></textarea>
                         </div>
 
-                        <div style="display: flex; gap: 1rem; margin-top: 0.5rem;">
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 0.5rem;">
                             <button type="button" onclick="document.getElementById('modal-editar-examen').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
                             <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar Cambios</button>
                         </div>
@@ -2148,7 +2148,7 @@
                     </div>
 
                     <!-- Botones de Acción (Ocultar al Imprimir en CSS) -->
-                    <div style="display: flex; gap: 1rem; margin-top: 1.5rem;" class="no-print">
+                    <div class="optometra-modal-actions no-print" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
                         <button type="button" onclick="document.getElementById('modal-ver-formula').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer; font-weight:600;">Cerrar</button>
                         <a id="btn-descargar-receta-pdf" href="#" style="flex: 1; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-100); color: var(--purple-800); cursor: pointer; font-weight:600;"><icon name="file-text" class="icon-sm" /> <span>Descargar PDF</span></a>
                         <button type="button" onclick="imprimirReceta()" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight:600; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;"><icon name="printer" class="icon-sm" /> <span>Imprimir</span></button>
@@ -2282,7 +2282,7 @@
                             <textarea name="Observaciones" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
                         </div>
 
-                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
                             <button type="button" onclick="document.getElementById('modal-nueva-formula').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
                             <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar</button>
                         </div>
@@ -2413,7 +2413,7 @@
                             <textarea name="Observaciones" id="edit-formula-observaciones" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
                         </div>
 
-                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
                             <button type="button" onclick="document.getElementById('modal-editar-formula').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
                             <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar Cambios</button>
                         </div>
@@ -2544,7 +2544,7 @@
                             </div>
                         </div>
 
-                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
                             <button type="button" onclick="document.getElementById('modal-editar-perfil').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
                             <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar Cambios</button>
                         </div>
@@ -3584,6 +3584,143 @@
         background-color: #f5f3ff !important;
         color: #4c1d95 !important;
     }
+    /* ==================== REGLAS RESPONSIVE (MÓDULO OPTÓMETRA) ==================== */
+    @@media screen and (max-width: 768px) {
+        /* Barra lateral (sidebar) apilada y flexible */
+        .optometra-layout-wrapper {
+            flex-direction: column !important;
+            min-height: auto !important;
+        }
+        .optometra-sidebar {
+            width: 100% !important;
+            padding: 1rem !important;
+            flex-shrink: 0 !important;
+        }
+        .optometra-sidebar nav {
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            gap: 0.35rem !important;
+        }
+        .optometra-sidebar .nav-item {
+            flex: 1 1 calc(50% - 0.35rem);
+            padding: 0.55rem 0.75rem !important;
+            font-size: 0.85rem !important;
+            justify-content: flex-start !important;
+        }
+        .optometra-main {
+            padding: 1rem !important;
+            width: 100% !important;
+            overflow-x: hidden !important;
+        }
+        .optometra-topbar {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.75rem !important;
+        }
+
+        /* Barras moradas de búsqueda y filtros apilables */
+        .table-toolbar-purple {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.65rem !important;
+            padding: 0.85rem 1rem !important;
+        }
+        .table-search-box {
+            min-width: 100% !important;
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+        .table-toolbar-purple > div:not(.table-search-box) {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 0.5rem !important;
+            width: 100% !important;
+        }
+        .btn-filter-dropdown {
+            flex: 1 1 auto;
+            justify-content: center;
+        }
+
+        /* Tablas con scroll horizontal contenido sin romper el layout */
+        .table-container-purple {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            display: block !important;
+        }
+        .custom-table-modern {
+            min-width: 650px !important;
+            width: 100% !important;
+        }
+        .custom-table-modern th,
+        .custom-table-modern td {
+            padding: 0.65rem 0.75rem !important;
+            white-space: nowrap;
+        }
+
+        /* Modales: ancho máximo 100% con padding razonable */
+        div[id^="modal-"] {
+            padding: 0.75rem !important;
+            align-items: flex-start !important;
+            overflow-y: auto !important;
+        }
+        div[id^="modal-"] > div {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 1rem auto !important;
+            padding: 1.25rem 1rem !important;
+            max-height: 90vh !important;
+            border-radius: 0.5rem !important;
+        }
+
+        /* Formularios en grid apilados */
+        div[id^="modal-"] form div[style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+            gap: 0.75rem !important;
+        }
+
+        /* Botones de acción del pie de modales: solo se estiran los de .optometra-modal-actions */
+        .optometra-modal-actions {
+            flex-direction: column-reverse !important;
+            gap: 0.5rem !important;
+            width: 100% !important;
+        }
+        .optometra-modal-actions > button,
+        .optometra-modal-actions > a {
+            width: 100% !important;
+            justify-content: center !important;
+            text-align: center !important;
+        }
+    }
+
+    @@media screen and (max-width: 480px) {
+        .optometra-sidebar {
+            padding: 0.75rem !important;
+        }
+        .optometra-sidebar .nav-item {
+            flex: 1 1 100% !important;
+        }
+        .optometra-main {
+            padding: 0.65rem !important;
+        }
+        div[id^="modal-"] {
+            padding: 0.35rem !important;
+        }
+        div[id^="modal-"] > div {
+            padding: 1rem 0.75rem !important;
+            max-height: 94vh !important;
+        }
+        div[style*="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr))"] {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 0.5rem !important;
+        }
+        .btn-action-icon {
+            padding: 0.3rem 0.5rem !important;
+            font-size: 0.75rem !important;
+        }
+    }
+
     @@media print {
         /* Ocultar elementos de layout no necesarios en impresión */
         nav, header, footer, .sidebar, #sidebar, .no-print, .table-toolbar-purple, .table-container-purple {

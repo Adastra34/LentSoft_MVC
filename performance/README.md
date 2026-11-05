@@ -122,3 +122,47 @@ Para obtener una medicion comparativa estricta y reproducible del impacto de las
 - **Fecha de medicion:** 
 - **Especificaciones de la maquina:** 
 - **Version de Docker:** 
+
+
+---
+
+## 7. Pruebas de Rendimiento - Modulo Optometra
+
+### 7.1 Objetivo
+Evaluar el impacto de la optimizacion segura con AsNoTracking() sobre el dashboard del optómetra bajo concurrencia, simulando una rampa de 5 a 20 usuarios virtuales concurrentes consultando las secciones de citas (/Optometra?section=citas) y pacientes (/Optometra?section=pacientes).
+
+- **Umbral definido (SLO):** Percentil 95 (p(95)) inferior a 2.000 ms (p(95)<2000) y tasa de fallos de peticion inferior al 1% (http_req_failed rate<0.01).
+
+### 7.2 Ejecucion con Docker
+Desde la raiz del proyecto:
+
+`ash
+docker run --rm -i -v "${PWD}/performance:/scripts" \
+  -e BASE_URL=http://host.docker.internal:5000 \
+  -e OPTOMETRA_EMAIL=optometra@lentsoft.com \
+  -e OPTOMETRA_PASSWORD=admin123 \
+  grafana/k6 run /scripts/optometra-load-test.js
+`
+
+### 7.3 Ejecucion local con binario k6
+Si k6 esta instalado localmente en el sistema:
+
+`ash
+k6 run performance/optometra-load-test.js
+`
+
+### 7.4 Plantilla de Resultados - Modulo Optometra
+
+> Nota: Las celdas se presentan para ser completadas tras la ejecucion real de k6 en un host con Docker o k6 instalado.
+
+| Metrica | Antes (sin AsNoTracking) | Despues (con AsNoTracking) | Variacion (%) |
+|---|---|---|---|
+| p50 optometra_dashboard (ms) | | | |
+| p95 optometra_dashboard (ms) | | | |
+| Maximo optometra_dashboard (ms) | | | |
+| Tasa de errores (http_req_failed) | | | |
+| Peticiones por segundo (req/s) | | | |
+
+- **Fecha de medicion:** 
+- **Especificaciones de la maquina:** 
+- **Version de k6 / Docker:** 

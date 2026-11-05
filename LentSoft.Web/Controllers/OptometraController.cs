@@ -1,4 +1,4 @@
-﻿using System.Globalization;
+using System.Globalization;
 using System.Security.Claims;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -27,13 +27,14 @@ public class OptometraController : Controller
     public async Task<IActionResult> Index(string section = "dashboard", int? detalleId = null)
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-        var usuario = await _context.Users.FindAsync(userId);
+        var usuario = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
 
         var now = DateTime.UtcNow;
         var inicioMes = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
         var hoy = now.Date;
 
         var citas = await _context.Appointments
+            .AsNoTracking()
             .Where(a => a.Activo)
             .Include(a => a.User)
             .Include(a => a.Optometra)
@@ -41,11 +42,13 @@ public class OptometraController : Controller
             .ToListAsync();
 
         var pacientes = await _context.Users
+            .AsNoTracking()
             .Where(u => u.Role == "usuario" && u.Activo)
             .OrderBy(u => u.Nombre)
             .ToListAsync();
 
         var historiales = await _context.HistorialesClinicos
+            .AsNoTracking()
             .Where(h => h.Activo)
             .Include(h => h.User)
             .Include(h => h.Optometra)
@@ -53,6 +56,7 @@ public class OptometraController : Controller
             .ToListAsync();
 
         var examenes = await _context.ExamenesVisuales
+            .AsNoTracking()
             .Where(e => e.Activo)
             .Include(e => e.User)
             .Include(e => e.Optometra)
@@ -60,6 +64,7 @@ public class OptometraController : Controller
             .ToListAsync();
 
         var formulas = await _context.FormulasOpticas
+            .AsNoTracking()
             .Where(f => f.Activo)
             .Include(f => f.User)
             .Include(f => f.Optometra)
@@ -98,6 +103,7 @@ public class OptometraController : Controller
 
         ViewBag.DetalleId = detalleId;
         ViewBag.Optometras = await _context.Users
+            .AsNoTracking()
             .Where(u => u.Role == "optometra" && u.Activo)
             .OrderBy(u => u.Nombre)
             .ToListAsync();
@@ -512,6 +518,7 @@ public class OptometraController : Controller
     public async Task<IActionResult> DownloadRecetaPdf(int id)
     {
         var formula = await _context.FormulasOpticas
+            .AsNoTracking()
             .Include(f => f.User)
             .Include(f => f.Optometra)
             .FirstOrDefaultAsync(f => f.Id == id && f.Activo);
@@ -966,6 +973,7 @@ public class OptometraController : Controller
     public async Task<IActionResult> GetUltimoExamenPorPaciente(int userId)
     {
         var examen = await _context.ExamenesVisuales
+            .AsNoTracking()
             .Where(e => e.UserId == userId && e.Activo)
             .OrderByDescending(e => e.Fecha)
             .FirstOrDefaultAsync();
@@ -995,6 +1003,7 @@ public class OptometraController : Controller
     private async Task<List<HistorialCompletoDto>> ObtenerHistorialCompletoLinqAsync(int pacienteId)
     {
         var historiales = await _context.HistorialesClinicos
+            .AsNoTracking()
             .Where(h => h.UserId == pacienteId && h.Activo)
             .Select(h => new HistorialCompletoDto
             {
@@ -1005,6 +1014,7 @@ public class OptometraController : Controller
             }).ToListAsync();
 
         var examenes = await _context.ExamenesVisuales
+            .AsNoTracking()
             .Where(e => e.UserId == pacienteId && e.Activo)
             .Select(e => new HistorialCompletoDto
             {
@@ -1015,6 +1025,7 @@ public class OptometraController : Controller
             }).ToListAsync();
 
         var formulas = await _context.FormulasOpticas
+            .AsNoTracking()
             .Where(f => f.UserId == pacienteId && f.Activo)
             .Select(f => new HistorialCompletoDto
             {
