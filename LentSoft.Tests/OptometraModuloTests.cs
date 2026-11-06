@@ -11,9 +11,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using LentSoft.Web.Controllers;
 using LentSoft.Web.Data;
+using LentSoft.Web.Models.DTOs;
 using LentSoft.Web.Models.Entities;
+using LentSoft.Web.Services;
 using Xunit;
 
 namespace LentSoft.Tests;
@@ -73,9 +77,40 @@ public class OptometraModuloTests : IDisposable
         public void SaveTempData(HttpContext context, IDictionary<string, object> values) { }
     }
 
-    private OptometraController CreateController(int optometraId = 3)
+    private sealed class FakeTokenService : ISaleConfirmationTokenService
     {
-        var controller = new OptometraController(_context);
+        public string GenerateToken(int saleId) => $"token-{saleId}";
+        public int? ValidateToken(string token) => 1;
+    }
+
+    private sealed class FakeEmailService : IEmailService
+    {
+        public Task SendPasswordResetEmailAsync(string toEmail, string resetLink) => Task.CompletedTask;
+        public Task SendSaleConfirmationEmailAsync(string toEmail, Order order, string confirmLink) => Task.CompletedTask;
+    }
+
+    private IVentasService CreateVentasService()
+    {
+        var invSettings = Options.Create(new InventorySettings
+        {
+            LowStockThreshold = 5,
+            MaxStock = 500
+        });
+        var inventoryService = new InventoryService(_context, invSettings, new HttpContextAccessor());
+        var invoiceService = new InvoiceService(_context);
+        return new VentasService(
+            _context,
+            invoiceService,
+            new FakeTokenService(),
+            new FakeEmailService(),
+            NullLogger<VentasService>.Instance,
+            inventoryService,
+            NullLoggerFactory.Instance);
+    }
+
+    private OptometraController CreateController(int optometraId = 3, IVentasService? ventasService = null, bool isAjax = false)
+    {
+        var controller = new OptometraController(_context, null, ventasService);
         var claims = new[]
         {
             new Claim(ClaimTypes.NameIdentifier, optometraId.ToString()),
@@ -87,6 +122,10 @@ public class OptometraModuloTests : IDisposable
         {
             User = new ClaimsPrincipal(identity)
         };
+        if (isAjax)
+        {
+            httpContext.Request.Headers["X-Requested-With"] = "XMLHttpRequest";
+        }
         controller.ControllerContext = new ControllerContext
         {
             HttpContext = httpContext
@@ -404,5 +443,226 @@ public class OptometraModuloTests : IDisposable
         // Assert
         Assert.NotNull(authorizeAttr);
         Assert.Equal("optometra", authorizeAttr.Roles);
+    }
+
+    // ── (7) Pruebas de generación de Pedido de Venta desde Fórmula Óptica ──
+
+    [Fact]
+    public async Task CrearPedidoDesdeFormula_FormulaInexistente_RetornaError()
+    {
+        // Arrange
+        var controller = CreateController();
+
+        // Act
+        var result = await controller.CrearPedidoDesdeFormula(formulaId: 99999, productId: 1, cantidad: 1) as RedirectToActionResult;
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("Index", result.ActionName);
+        Assert.Equal("formulas", result.RouteValues?["section"]);
+        Assert.Equal("La fórmula óptica no fue encontrada o se encuentra inactiva.", controller.TempData["ErrorMessage"]?.ToString());
+    }
+
+    [Fact]
+    public async Task CrearPedidoDesdeFormula_FormulaVencida_RetornaErrorClaro()
+    {
+        // Arrange
+        var formulaVencida = new FormulaOptica
+        {
+            UserId = 2,
+            OptometraId = 3,
+            Fecha = DateTime.UtcNow.AddMonths(-15), // Más de 12 meses => Vencida
+            TipoLente = "Monofocal",
+            Activo = true
+        };
+        _context.FormulasOpticas.Add(formulaVencida);
+        await _context.SaveChangesAsync();
+
+        var controller = CreateController();
+
+        // Act
+        var result = await controller.CrearPedidoDesdeFormula(formulaId: formulaVencida.Id, productId: 1, cantidad: 1) as RedirectToActionResult;
+
+        // Assert
+        Assert.NotNull(result);
+        Assert.Equal("La fórmula está vencida; no se puede generar el pedido.", controller.TempData["ErrorMessage"]?.ToString());
+    }
+
+    [Fact]
+    public async Task CrearPedidoDesdeFormula_StockInsuficiente_RetornaMensajeStockInsuficiente()
+    {
+        // Arrange
+        var producto = new Product
+        {
+            Nombre = "Montura Stock Limitado",
+            Descripcion = "Prueba stock",
+            Precio = 100000,
+            Stock = 2,
+            Categoria = "Monturas",
+            Activo = true
+        };
+        _context.Products.Add(producto);
+
+        var formula = new FormulaOptica
+        {
+            UserId = 2,
+            OptometraId = 3,
+            Fecha = DateTime.UtcNow,
+            TipoLente = "Monofocal",
+            Activo = true
+        };
+        _context.FormulasOpticas.Add(formula);
+        await _context.SaveChangesAsync();
+
+        var ventasService = CreateVentasService();
+        var controller = CreateController(ventasService: ventasService);
+
+        // Act (solicita cantidad 5 > stock 2)
+        var result = await controller.CrearPedidoDesdeFormula(formulaId: formula.Id, productId: producto.Id, cantidad: 5, ventasService: ventasService) as RedirectToActionResult;
+
+        // Assert
+        Assert.NotNull(result);
+        var errorMsg = controller.TempData["ErrorMessage"]?.ToString();
+        Assert.NotNull(errorMsg);
+        Assert.Contains("Stock insuficiente", errorMsg);
+    }
+
+    [Fact]
+    public async Task CrearPedidoDesdeFormula_PedidoDuplicadoActivo_RetornaAvisoPedidoExistente()
+    {
+        // Arrange
+        var formula = new FormulaOptica
+        {
+            UserId = 2,
+            OptometraId = 3,
+            Fecha = DateTime.UtcNow,
+            TipoLente = "Monofocal",
+            Activo = true
+        };
+        _context.FormulasOpticas.Add(formula);
+        await _context.SaveChangesAsync();
+
+        var pedidoExistente = new SalesOrder
+        {
+            NumeroPedido = "PV-2026-999",
+            ClienteNombre = "Paciente Test",
+            ProductId = 1,
+            Cantidad = 1,
+            PrecioUnitario = 100000,
+            Total = 100000,
+            Estado = "Pendiente",
+            FormulaOpticaId = formula.Id,
+            Activo = true,
+            Fecha = DateTime.UtcNow
+        };
+        _context.SalesOrders.Add(pedidoExistente);
+        await _context.SaveChangesAsync();
+
+        var controller = CreateController();
+
+        // Act
+        var result = await controller.CrearPedidoDesdeFormula(formulaId: formula.Id, productId: 1, cantidad: 1) as RedirectToActionResult;
+
+        // Assert
+        Assert.NotNull(result);
+        var warningMsg = controller.TempData["WarningMessage"]?.ToString();
+        Assert.NotNull(warningMsg);
+        Assert.Contains("Ya existe un pedido para esta fórmula", warningMsg);
+        Assert.Contains("PV-2026-999", warningMsg);
+    }
+
+    [Fact]
+    public async Task CrearPedidoDesdeFormula_Exito_CreaPedidoVinculadoConEstadoPendienteYNotasFormateadas()
+    {
+        // Arrange
+        var producto = new Product
+        {
+            Nombre = "Lente Antirreflejo Test",
+            Descripcion = "Lente de prueba",
+            Precio = 120000,
+            Stock = 10,
+            Categoria = "Lentes",
+            Activo = true
+        };
+        _context.Products.Add(producto);
+
+        var formula = new FormulaOptica
+        {
+            UserId = 2,
+            OptometraId = 3,
+            Fecha = DateTime.UtcNow,
+            TipoLente = "Monofocal",
+            Activo = true
+        };
+        _context.FormulasOpticas.Add(formula);
+        await _context.SaveChangesAsync();
+
+        var ventasService = CreateVentasService();
+        var controller = CreateController(ventasService: ventasService, isAjax: true);
+
+        // Act
+        var result = await controller.CrearPedidoDesdeFormula(
+            formulaId: formula.Id,
+            productId: producto.Id,
+            cantidad: 2,
+            notas: "Filtro azul solicitado por el paciente",
+            ventasService: ventasService) as JsonResult;
+
+        // Assert
+        Assert.NotNull(result);
+        var jsonVal = result.Value;
+        var successProp = jsonVal?.GetType().GetProperty("success")?.GetValue(jsonVal) as bool?;
+        Assert.True(successProp);
+
+        var pedidoDb = await _context.SalesOrders
+            .FirstOrDefaultAsync(o => o.FormulaOpticaId == formula.Id && o.Activo);
+
+        Assert.NotNull(pedidoDb);
+        Assert.Equal("Pendiente", pedidoDb.Estado);
+        Assert.Equal(formula.Id, pedidoDb.FormulaOpticaId);
+        Assert.Equal(2, pedidoDb.Cantidad);
+        Assert.Contains($"Fórmula #FOR-{formula.Id:D4}", pedidoDb.Notas);
+        Assert.Contains("Filtro azul solicitado por el paciente", pedidoDb.Notas);
+
+        // El stock del producto debe haberse descontado en 2
+        var prodDb = await _context.Products.FindAsync(producto.Id);
+        Assert.NotNull(prodDb);
+        Assert.Equal(8, prodDb.Stock);
+    }
+
+    [Fact]
+    public async Task CrearPedidoVenta_FlujoNormalSinFormula_CreaPedidoConFormulaOpticaIdNulo()
+    {
+        // Arrange
+        var producto = new Product
+        {
+            Nombre = "Gafas de Sol Clásicas",
+            Descripcion = "Gafas de sol",
+            Precio = 80000,
+            Stock = 5,
+            Categoria = "Gafas",
+            Activo = true
+        };
+        _context.Products.Add(producto);
+        await _context.SaveChangesAsync();
+
+        var ventasService = CreateVentasService();
+        var dto = new CrearPedidoVentaDTO
+        {
+            ClienteNombre = "Cliente Mostrador",
+            ProductId = producto.Id,
+            Cantidad = 1,
+            Estado = "Pendiente",
+            Notas = "Pedido desde portal de ventas"
+        };
+
+        // Act
+        var resultado = await ventasService.CrearPedidoVentaAsync(dto, "Vendedor");
+
+        // Assert
+        Assert.True(resultado.Exito);
+        var pedido = await _context.SalesOrders.FindAsync(resultado.PedidoId);
+        Assert.NotNull(pedido);
+        Assert.Null(pedido.FormulaOpticaId);
     }
 }

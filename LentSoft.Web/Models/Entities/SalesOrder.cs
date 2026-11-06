@@ -22,6 +22,9 @@ public class SalesOrder
     public int? ProductId { get; set; }
     public Product? Product { get; set; }
 
+    public int? FormulaOpticaId { get; set; }
+    public FormulaOptica? FormulaOptica { get; set; }
+
     [Required(ErrorMessage = "El producto es obligatorio")]
     [StringLength(200)]
     public string ProductoNombre { get; set; } = string.Empty;

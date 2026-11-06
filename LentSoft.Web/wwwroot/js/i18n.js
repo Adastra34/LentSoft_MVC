@@ -331,6 +331,21 @@
         'modal.sale.confirm': { es: 'Confirmar Venta', en: 'Confirm Sale' },
 
         // ════════════════════════════════════════════
+        //  OPTOMETRA — PEDIDO DESDE FÓRMULA
+        // ════════════════════════════════════════════
+        'optometra.formula.generarpedido': { es: 'Generar pedido', en: 'Create Order' },
+        'optometra.formula.modal.title': { es: 'Generar Pedido de Venta', en: 'Create Sales Order' },
+        'optometra.formula.modal.patient': { es: 'Paciente', en: 'Patient' },
+        'optometra.formula.modal.date': { es: 'Fecha de Emisión', en: 'Issue Date' },
+        'optometra.formula.modal.lens': { es: 'Tipo de Lente', en: 'Lens Type' },
+        'optometra.formula.modal.product': { es: 'Producto en Inventario *', en: 'Inventory Product *' },
+        'optometra.formula.modal.selectproduct': { es: '-- Seleccionar producto en inventario --', en: '-- Select product in inventory --' },
+        'optometra.formula.modal.qty': { es: 'Cantidad *', en: 'Quantity *' },
+        'optometra.formula.modal.notes': { es: 'Notas / Observaciones (opcional)', en: 'Notes / Observations (optional)' },
+        'optometra.formula.modal.cancel': { es: 'Cancelar', en: 'Cancel' },
+        'optometra.formula.modal.submit': { es: 'Generar Pedido', en: 'Generate Order' },
+
+        // ════════════════════════════════════════════
         //  ADMIN DASHBOARD
         // ════════════════════════════════════════════
         'admin.portal': { es: 'Admin Dashboard', en: 'Admin Dashboard' },

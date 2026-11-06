@@ -1,4 +1,4 @@
-﻿IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
+IF OBJECT_ID(N'[__EFMigrationsHistory]') IS NULL
 BEGIN
     CREATE TABLE [__EFMigrationsHistory] (
         [MigrationId] nvarchar(150) NOT NULL,
@@ -3740,6 +3740,39 @@ IF NOT EXISTS (
 BEGIN
     INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
     VALUES (N'20261021163500_UpdateCitasHorarioLaboralValidacion', N'9.0.7');
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261106201151_AddFormulaOpticaToSalesOrder'
+)
+BEGIN
+    ALTER TABLE [SalesOrders] ADD [FormulaOpticaId] int NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261106201151_AddFormulaOpticaToSalesOrder'
+)
+BEGIN
+    CREATE INDEX [IX_SalesOrders_FormulaOpticaId] ON [SalesOrders] ([FormulaOpticaId]);
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261106201151_AddFormulaOpticaToSalesOrder'
+)
+BEGIN
+    ALTER TABLE [SalesOrders] ADD CONSTRAINT [FK_SalesOrders_FormulasOpticas_FormulaOpticaId] FOREIGN KEY ([FormulaOpticaId]) REFERENCES [FormulasOpticas] ([Id]) ON DELETE SET NULL;
+END;
+
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261106201151_AddFormulaOpticaToSalesOrder'
+)
+BEGIN
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261106201151_AddFormulaOpticaToSalesOrder', N'9.0.7');
 END;
 
 COMMIT;

@@ -241,6 +241,7 @@ if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("AutoMig
             try { db.Database.ExecuteSqlRaw("ALTER TABLE SupplierOrders ADD COLUMN CantidadRecibida INTEGER NOT NULL DEFAULT 0;"); } catch { }
             try { db.Database.ExecuteSqlRaw("CREATE INDEX IF NOT EXISTS IX_SupplierOrders_SupplierId_Estado ON SupplierOrders (SupplierId, Estado);"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE SalesOrders ADD COLUMN ProductId INTEGER NULL;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("ALTER TABLE SalesOrders ADD COLUMN FormulaOpticaId INTEGER NULL;"); } catch { }
         }
         else
         {

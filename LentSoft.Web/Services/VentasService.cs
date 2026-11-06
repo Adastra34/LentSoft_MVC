@@ -1003,7 +1003,7 @@ public class VentasService : IVentasService
     // 4.1 PEDIDOS DE VENTA (SalesOrder) — Selección por ProductId, recálculo servidor y control de stock
     // ══════════════════════════════════════════════════════════════════════════════
 
-    public async Task<ResultadoOperacionPedidoDTO> CrearPedidoVentaAsync(CrearPedidoVentaDTO dto, string responsable)
+    public async Task<ResultadoOperacionPedidoDTO> CrearPedidoVentaAsync(CrearPedidoVentaDTO dto, string responsable, int? formulaOpticaId = null)
     {
         if (string.IsNullOrWhiteSpace(dto.ClienteNombre))
         {
@@ -1071,11 +1071,13 @@ public class VentasService : IVentasService
             {
                 NumeroPedido = numeroPedido,
                 ClienteNombre = dto.ClienteNombre.Trim(),
+                ProductId = producto.Id,
                 ProductoNombre = producto.Nombre,
                 Cantidad = dto.Cantidad,
                 PrecioUnitario = precioReal,
                 Total = totalReal,
                 Estado = estadoValido,
+                FormulaOpticaId = formulaOpticaId,
                 Notas = string.IsNullOrWhiteSpace(dto.Notas) ? null : dto.Notas.Trim(),
                 Fecha = DateTime.UtcNow,
                 Activo = true

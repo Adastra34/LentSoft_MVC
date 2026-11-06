@@ -28,6 +28,10 @@ public class DashboardOptometraViewModel
     // ── Fórmulas Ópticas ──
     public List<FormulaOptica> FormulasOpticas { get; set; } = new();
 
+    // ── Pedidos de Venta y Productos para Órdenes desde Fórmulas ──
+    public List<Product> ProductosDisponibles { get; set; } = new();
+    public Dictionary<int, SalesOrder> PedidosPorFormula { get; set; } = new();
+
     // ── Perfil del optómetra ──
     public User? UsuarioActual { get; set; }
 

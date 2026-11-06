@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using LentSoft.Web.Data;
+using LentSoft.Web.Models.DTOs;
 using LentSoft.Web.Models.ViewModels;
 using LentSoft.Web.Models.Entities;
 using LentSoft.Web.Services;
@@ -17,11 +18,16 @@ public class OptometraController : Controller
 {
     private readonly LentSoftDbContext _context;
     private readonly IPdfRecetaService _pdfRecetaService;
+    private readonly IVentasService? _ventasService;
 
-    public OptometraController(LentSoftDbContext context, IPdfRecetaService? pdfRecetaService = null)
+    public OptometraController(
+        LentSoftDbContext context,
+        IPdfRecetaService? pdfRecetaService = null,
+        IVentasService? ventasService = null)
     {
         _context = context;
         _pdfRecetaService = pdfRecetaService ?? new PdfRecetaService();
+        _ventasService = ventasService;
     }
 
     public async Task<IActionResult> Index(string section = "dashboard", int? detalleId = null)
@@ -83,6 +89,31 @@ public class OptometraController : Controller
             ? proximaCitaObj.FechaHora.ToLocalTime().ToString("dd MMM", new System.Globalization.CultureInfo("es-ES"))
             : "Sin citas";
 
+        List<Product> productosDisponibles = new();
+        Dictionary<int, SalesOrder> pedidosPorFormula = new();
+
+        if (string.Equals(section, "formulas", StringComparison.OrdinalIgnoreCase))
+        {
+            productosDisponibles = await _context.Products
+                .AsNoTracking()
+                .Where(p => p.Activo && p.Stock > 0)
+                .OrderBy(p => p.Nombre)
+                .ToListAsync();
+
+            var formulaIds = formulas.Select(f => f.Id).ToList();
+            if (formulaIds.Any())
+            {
+                var pedidos = await _context.SalesOrders
+                    .AsNoTracking()
+                    .Where(o => o.Activo && o.Estado != "cancelado" && o.FormulaOpticaId != null && formulaIds.Contains(o.FormulaOpticaId.Value))
+                    .ToListAsync();
+
+                pedidosPorFormula = pedidos
+                    .GroupBy(p => p.FormulaOpticaId!.Value)
+                    .ToDictionary(g => g.Key, g => g.First());
+            }
+        }
+
         var viewModel = new DashboardOptometraViewModel
         {
             TotalPacientes = pacientes.Count,
@@ -98,6 +129,8 @@ public class OptometraController : Controller
             HistorialClinico = historiales,
             ExamenesVisuales = examenes,
             FormulasOpticas = formulas,
+            ProductosDisponibles = productosDisponibles,
+            PedidosPorFormula = pedidosPorFormula,
             ActiveSection = section
         };
 
@@ -512,6 +545,124 @@ public class OptometraController : Controller
         }
 
         return RedirectToAction("Index", new { section = "formulas" });
+    }
+
+    /// <summary>
+    /// Genera una orden de pedido de venta (SalesOrder) vinculada a una fórmula óptica de un paciente.
+    /// Valida vigencia, disponibilidad de stock, evita duplicados accidentales y registra el pedido en Inventario.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CrearPedidoDesdeFormula(
+        int formulaId,
+        int productId,
+        int cantidad,
+        string? notas = null,
+        [FromServices] IVentasService? ventasService = null)
+    {
+        bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest"
+                      || (Request.Headers.Accept.ToString()?.Contains("application/json") ?? false);
+
+        IActionResult Responder(bool success, string message, bool warning = false, int? id = null, string? numeroPedido = null)
+        {
+            if (isAjax)
+            {
+                return Json(new { success, message, warning, id, numeroPedido });
+            }
+
+            if (success)
+            {
+                TempData["SuccessMessage"] = message;
+            }
+            else if (warning)
+            {
+                TempData["WarningMessage"] = message;
+            }
+            else
+            {
+                TempData["ErrorMessage"] = message;
+            }
+
+            return RedirectToAction("Index", new { section = "formulas" });
+        }
+
+        if (productId <= 0)
+        {
+            return Responder(false, "Debe seleccionar un producto válido del catálogo.");
+        }
+
+        if (cantidad < 1 || cantidad > 10000)
+        {
+            return Responder(false, "La cantidad debe estar entre 1 y 10.000 unidades.");
+        }
+
+        var formula = await _context.FormulasOpticas
+            .Include(f => f.User)
+            .Include(f => f.Optometra)
+            .FirstOrDefaultAsync(f => f.Id == formulaId && f.Activo);
+
+        if (formula == null)
+        {
+            return Responder(false, "La fórmula óptica no fue encontrada o se encuentra inactiva.");
+        }
+
+        if (formula.Estado == "Vencida")
+        {
+            return Responder(false, "La fórmula está vencida; no se puede generar el pedido.");
+        }
+
+        // Evitar duplicados accidentales: si ya existe un pedido activo para esta misma fórmula
+        var pedidoExistente = await _context.SalesOrders
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.FormulaOpticaId == formulaId && o.Activo && o.Estado != "cancelado");
+
+        if (pedidoExistente != null)
+        {
+            return Responder(false, $"Ya existe un pedido para esta fórmula (#{pedidoExistente.NumeroPedido})", warning: true, id: pedidoExistente.Id, numeroPedido: pedidoExistente.NumeroPedido);
+        }
+
+        var pacienteNombre = formula.User?.NombreCompleto ?? "Paciente N/A";
+        var optometraNombre = formula.Optometra?.NombreCompleto ?? "Optómetra N/A";
+
+        var notaDetalle = $"Fórmula #FOR-{formula.Id:D4} · Paciente: {pacienteNombre} · Optómetra: {optometraNombre}";
+        if (!string.IsNullOrWhiteSpace(notas))
+        {
+            notaDetalle += $" · {notas.Trim()}";
+        }
+        if (notaDetalle.Length > 500)
+        {
+            notaDetalle = notaDetalle.Substring(0, 500);
+        }
+
+        var dto = new CrearPedidoVentaDTO
+        {
+            ClienteNombre = pacienteNombre,
+            ProductId = productId,
+            Cantidad = cantidad,
+            Estado = "Pendiente",
+            Notas = notaDetalle
+        };
+
+        var service = ventasService ?? _ventasService ?? HttpContext.RequestServices.GetRequiredService<IVentasService>();
+        var responsable = User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? optometraNombre;
+
+        var resultado = await service.CrearPedidoVentaAsync(dto, responsable, formulaId);
+
+        if (!resultado.Exito)
+        {
+            return Responder(false, resultado.Mensaje ?? "No se pudo registrar el pedido.");
+        }
+
+        string? numeroPedido = null;
+        if (resultado.PedidoId.HasValue)
+        {
+            numeroPedido = await _context.SalesOrders
+                .Where(o => o.Id == resultado.PedidoId.Value)
+                .Select(o => o.NumeroPedido)
+                .FirstOrDefaultAsync();
+        }
+
+        return Responder(true, resultado.Mensaje ?? "Pedido generado exitosamente desde la fórmula.", id: resultado.PedidoId, numeroPedido: numeroPedido);
     }
 
     [HttpGet]

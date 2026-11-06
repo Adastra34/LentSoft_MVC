@@ -111,12 +111,18 @@ public class LentSoftDbContext : DbContext
         {
             entity.HasIndex(e => e.NumeroPedido);
             entity.HasIndex(e => e.ProductId);
+            entity.HasIndex(e => e.FormulaOpticaId);
             entity.Property(e => e.Fecha).HasDefaultValueSql(utcDateSql);
 
             entity.HasOne(e => e.Product)
                   .WithMany()
                   .HasForeignKey(e => e.ProductId)
                   .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.FormulaOptica)
+                  .WithMany()
+                  .HasForeignKey(e => e.FormulaOpticaId)
+                  .OnDelete(DeleteBehavior.SetNull);
         });
 
         // ── Users ──

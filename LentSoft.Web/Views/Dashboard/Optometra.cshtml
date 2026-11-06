@@ -2006,6 +2006,37 @@
                                         </td>
                                         <td style="text-align: right;">
                                             <div style="display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                                                @if (Model.PedidosPorFormula.TryGetValue(f.Id, out var pedExistente))
+                                                {
+                                                    <span class="badge-status-solid" style="background-color: var(--purple-100); color: var(--purple-700); border: 1px solid var(--purple-300); display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.6rem; font-size: 0.8rem; font-weight: 600; border-radius: 9999px;" title="Pedido de venta generado: #@pedExistente.NumeroPedido">
+                                                        <icon name="shopping-bag" class="icon-sm" /> <span>#@pedExistente.NumeroPedido</span>
+                                                    </span>
+                                                }
+                                                else if (f.Estado == "Vigente")
+                                                {
+                                                    <button type="button"
+                                                            id="btn-generar-pedido-@f.Id"
+                                                            onclick="abrirModalCrearPedidoFormula(this)"
+                                                            data-formulaid="@f.Id"
+                                                            data-paciente="@(f.User?.NombreCompleto ?? "N/A")"
+                                                            data-tipolente="@f.TipoLente"
+                                                            data-fecha="@f.Fecha.ToLocalTime().ToString("dd/MM/yyyy")"
+                                                            class="btn-action-icon"
+                                                            style="background: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); display: inline-flex; align-items: center; gap: 0.3rem;"
+                                                            title="Generar pedido">
+                                                        <icon name="shopping-bag" class="icon-sm" /> <span data-i18n="optometra.formula.generarpedido">Generar pedido</span>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button type="button"
+                                                            disabled
+                                                            class="btn-action-icon"
+                                                            style="opacity: 0.45; cursor: not-allowed; display: inline-flex; align-items: center; gap: 0.3rem;"
+                                                            title="La fórmula está vencida; no se puede generar el pedido.">
+                                                        <icon name="shopping-bag" class="icon-sm" /> <span data-i18n="optometra.formula.generarpedido">Generar pedido</span>
+                                                    </button>
+                                                }
                                                 <button onclick="abrirModalVerFormula(this)"
                                                         data-id="@f.Id"
                                                         data-paciente="@(f.User?.NombreCompleto ?? "N/A")"
@@ -2406,6 +2437,80 @@
                         <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
                             <button type="button" onclick="document.getElementById('modal-editar-formula').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
                             <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal para Generar Pedido de Venta desde Fórmula Óptica -->
+            <div id="modal-crear-pedido-formula" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 500px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--purple-100); padding-bottom: 0.75rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem;" data-i18n="optometra.formula.modal.title">
+                            <icon name="shopping-bag" class="icon-md" style="color: var(--purple-600);" />
+                            <span>Generar Pedido de Venta</span>
+                        </h2>
+                        <button type="button" onclick="cerrarModalCrearPedidoFormula()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500); line-height: 1;">&times;</button>
+                    </div>
+
+                    <div id="pedido-formula-error" style="display: none; background-color: #FEE2E2; color: #991B1B; padding: 0.65rem 0.85rem; border-radius: 0.375rem; font-size: 0.85rem; border: 1px solid #FCA5A5; margin-bottom: 1rem; align-items: center; gap: 0.5rem;">
+                        <icon name="alert-circle" class="icon-sm" style="flex-shrink: 0;" />
+                        <span id="pedido-formula-error-msg"></span>
+                    </div>
+
+                    <form id="form-crear-pedido-formula" onsubmit="enviarCrearPedidoFormula(event)" style="display:flex; flex-direction:column; gap:1rem;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="formulaId" id="pedido-formula-id" />
+
+                        <!-- Datos de solo lectura de la fórmula -->
+                        <div style="background-color: var(--purple-50); border: 1px solid var(--purple-100); border-radius: 0.375rem; padding: 0.85rem; font-size: 0.85rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                            <div>
+                                <span style="color: var(--gray-500); font-size: 0.75rem; font-weight: 600; text-transform: uppercase;" data-i18n="optometra.formula.modal.patient">Paciente</span>
+                                <div id="pedido-formula-paciente" style="font-weight: 600; color: var(--purple-950);"></div>
+                            </div>
+                            <div>
+                                <span style="color: var(--gray-500); font-size: 0.75rem; font-weight: 600; text-transform: uppercase;" data-i18n="optometra.formula.modal.date">Fecha</span>
+                                <div id="pedido-formula-fecha" style="font-weight: 600; color: var(--gray-700);"></div>
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <span style="color: var(--gray-500); font-size: 0.75rem; font-weight: 600; text-transform: uppercase;" data-i18n="optometra.formula.modal.lens">Tipo de Lente</span>
+                                <div id="pedido-formula-tipolente" style="font-weight: 600; color: var(--purple-800);"></div>
+                            </div>
+                        </div>
+
+                        <!-- Selector de Producto -->
+                        <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);" data-i18n="optometra.formula.modal.product">Producto en Inventario *</label>
+                            <select name="productId" id="pedido-formula-productid" class="form-input" required style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--purple-200); border-radius: 0.375rem; font-size: 0.875rem; background: white;" onchange="actualizarMaxCantidadStock()">
+                                <option value="" data-i18n="optometra.formula.modal.selectproduct">-- Seleccionar producto en inventario --</option>
+                                @foreach (var prod in Model.ProductosDisponibles)
+                                {
+                                    <option value="@prod.Id" data-stock="@prod.Stock" data-precio="@prod.Precio">
+                                        @prod.Nombre - Stock: @prod.Stock - $@prod.Precio.ToString("N0")
+                                    </option>
+                                }
+                            </select>
+                            <small id="pedido-formula-stock-hint" style="color: var(--gray-500); font-size: 0.75rem;"></small>
+                        </div>
+
+                        <!-- Cantidad -->
+                        <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);" data-i18n="optometra.formula.modal.qty">Cantidad *</label>
+                            <input name="cantidad" id="pedido-formula-cantidad" type="number" min="1" max="10000" value="1" class="form-input" required style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--purple-200); border-radius: 0.375rem; font-size: 0.875rem;" />
+                        </div>
+
+                        <!-- Notas Opcionales -->
+                        <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);" data-i18n="optometra.formula.modal.notes">Notas / Observaciones (opcional)</label>
+                            <textarea name="notas" id="pedido-formula-notas" rows="2" maxlength="250" placeholder="Instrucciones para taller o laboratorio..." class="form-input" style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--purple-200); border-radius: 0.375rem; font-size: 0.875rem;"></textarea>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="optometra-modal-actions" style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+                            <button type="button" onclick="cerrarModalCrearPedidoFormula()" style="flex: 1; padding: 0.55rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer; font-weight: 600;" data-i18n="optometra.formula.modal.cancel">Cancelar</button>
+                            <button type="submit" id="btn-submit-pedido-formula" style="flex: 1; padding: 0.55rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;">
+                                <icon name="check" class="icon-sm" /> <span data-i18n="optometra.formula.modal.submit">Generar Pedido</span>
+                            </button>
                         </div>
                     </form>
                 </div>
@@ -3230,6 +3335,151 @@
         document.getElementById('edit-formula-tipolente').value = btn.getAttribute('data-tipolente');
         document.getElementById('edit-formula-distanciapupilar').value = btn.getAttribute('data-distanciapupilar');
         document.getElementById('modal-editar-formula').style.display = 'flex';
+    }
+
+    function abrirModalCrearPedidoFormula(btn) {
+        const formulaId = btn.getAttribute('data-formulaid');
+        const paciente = btn.getAttribute('data-paciente') || 'N/A';
+        const tipolente = btn.getAttribute('data-tipolente') || 'N/A';
+        const fecha = btn.getAttribute('data-fecha') || 'N/A';
+
+        document.getElementById('pedido-formula-id').value = formulaId;
+        document.getElementById('pedido-formula-paciente').textContent = paciente;
+        document.getElementById('pedido-formula-tipolente').textContent = tipolente;
+        document.getElementById('pedido-formula-fecha').textContent = fecha;
+
+        document.getElementById('pedido-formula-productid').value = '';
+        document.getElementById('pedido-formula-cantidad').value = '1';
+        document.getElementById('pedido-formula-notas').value = '';
+        document.getElementById('pedido-formula-stock-hint').textContent = '';
+
+        const errBox = document.getElementById('pedido-formula-error');
+        if (errBox) {
+            errBox.style.display = 'none';
+            document.getElementById('pedido-formula-error-msg').textContent = '';
+        }
+
+        const modal = document.getElementById('modal-crear-pedido-formula');
+        if (modal) modal.style.display = 'flex';
+    }
+
+    function cerrarModalCrearPedidoFormula() {
+        const modal = document.getElementById('modal-crear-pedido-formula');
+        if (modal) modal.style.display = 'none';
+    }
+
+    function actualizarMaxCantidadStock() {
+        const sel = document.getElementById('pedido-formula-productid');
+        const hint = document.getElementById('pedido-formula-stock-hint');
+        const selectedOpt = sel.options[sel.selectedIndex];
+        if (selectedOpt && selectedOpt.value) {
+            const stock = selectedOpt.getAttribute('data-stock');
+            hint.textContent = `Stock disponible: ${stock} unidad(es)`;
+        } else {
+            hint.textContent = '';
+        }
+    }
+
+    async function enviarCrearPedidoFormula(e) {
+        e.preventDefault();
+        const form = document.getElementById('form-crear-pedido-formula');
+        const submitBtn = document.getElementById('btn-submit-pedido-formula');
+        const errBox = document.getElementById('pedido-formula-error');
+        const errMsg = document.getElementById('pedido-formula-error-msg');
+
+        errBox.style.display = 'none';
+        errMsg.textContent = '';
+
+        const formulaId = document.getElementById('pedido-formula-id').value;
+        const productId = document.getElementById('pedido-formula-productid').value;
+        const cantidad = parseInt(document.getElementById('pedido-formula-cantidad').value, 10);
+
+        if (!productId) {
+            errBox.style.display = 'flex';
+            errMsg.textContent = 'Debe seleccionar un producto del catálogo.';
+            return;
+        }
+
+        if (isNaN(cantidad) || cantidad < 1) {
+            errBox.style.display = 'flex';
+            errMsg.textContent = 'La cantidad debe ser mayor o igual a 1.';
+            return;
+        }
+
+        const prevBtnHtml = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<span>Procesando...</span>';
+
+        try {
+            const formData = new FormData(form);
+            const response = await fetch('/Optometra/CrearPedidoDesdeFormula', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                cerrarModalCrearPedidoFormula();
+                const numPedido = result.numeroPedido ? '#' + result.numeroPedido : (result.message?.match(/#?[A-Za-z0-9\-]+/)?.[0] || 'Pedido creado');
+                
+                // Notificación de éxito
+                if (typeof alertify !== 'undefined') {
+                    alertify.success(result.message || 'Pedido generado con éxito.');
+                } else {
+                    showToast(result.message || 'Pedido generado con éxito.', 'success');
+                }
+
+                // Reemplazar botón en la tabla por badge con número de pedido
+                const btnGenerar = document.getElementById(`btn-generar-pedido-${formulaId}`);
+                if (btnGenerar) {
+                    const badge = document.createElement('span');
+                    badge.className = 'badge-status-solid';
+                    badge.style.cssText = 'background-color: var(--purple-100); color: var(--purple-700); border: 1px solid var(--purple-300); display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.6rem; font-size: 0.8rem; font-weight: 600; border-radius: 9999px;';
+                    badge.title = `Pedido de venta generado: ${numPedido}`;
+                    badge.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon-sm"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg> <span>${numPedido}</span>`;
+                    btnGenerar.parentNode.replaceChild(badge, btnGenerar);
+                }
+            } else {
+                // Error devuelto por el servidor (ej: stock insuficiente o ya existe pedido)
+                errBox.style.display = 'flex';
+                errMsg.textContent = result.message || 'Error al generar el pedido.';
+            }
+        } catch (err) {
+            console.error(err);
+            errBox.style.display = 'flex';
+            errMsg.textContent = 'Ocurrió un error inesperado de comunicación con el servidor.';
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = prevBtnHtml;
+        }
+    }
+
+    function showToast(msg, type = 'success') {
+        let container = document.getElementById('inv-toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'inv-toast-container';
+            container.style.cssText = 'position: fixed; bottom: 20px; right: 20px; z-index: 99999; display: flex; flex-direction: column; gap: 10px; pointer-events: none;';
+            document.body.appendChild(container);
+        }
+        const bg = type === 'success' ? '#059669' : (type === 'warning' ? '#d97706' : '#dc2626');
+        const toast = document.createElement('div');
+        toast.style.cssText = `pointer-events: auto; padding: 12px 18px; border-radius: 8px; color: white; font-weight: 500; font-size: 0.875rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.3); transition: all 0.25s ease; opacity: 0; transform: translateY(12px); display: flex; align-items: center; gap: 10px; background: ${bg};`;
+        toast.innerHTML = `<span>${msg}</span>`;
+        container.appendChild(toast);
+        setTimeout(() => {
+            toast.style.opacity = '1';
+            toast.style.transform = 'translateY(0)';
+        }, 10);
+        setTimeout(() => {
+            toast.style.opacity = '0';
+            toast.style.transform = 'translateY(12px)';
+            setTimeout(() => toast.remove(), 250);
+        }, 4000);
     }
 
     function confirmDeactivatePaciente(id, nombre) {

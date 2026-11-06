@@ -45,7 +45,7 @@ public interface IVentasService
 
     Task<Order?> ObtenerVentaPorIdAsync(int saleId);
 
-    Task<ResultadoOperacionPedidoDTO> CrearPedidoVentaAsync(CrearPedidoVentaDTO dto, string responsable);
+    Task<ResultadoOperacionPedidoDTO> CrearPedidoVentaAsync(CrearPedidoVentaDTO dto, string responsable, int? formulaOpticaId = null);
 
     Task<ResultadoOperacionPedidoDTO> EditarPedidoVentaAsync(EditarPedidoVentaDTO dto, string responsable);
 
