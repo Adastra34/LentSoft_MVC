@@ -677,6 +677,13 @@
         'user.service.first': { es: 'Primera consulta', en: 'First consultation' },
         'user.service.contact': { es: 'Adaptación de lentes de contacto', en: 'Contact lens fitting' },
         'user.service.adjustment': { es: 'Ajuste y mantenimiento de lentes', en: 'Glasses adjustment and maintenance' },
+        'user.service.exam_vista': { es: 'Examen de vista', en: 'Eye examination' },
+        'user.service.ajuste': { es: 'Ajuste de lentes', en: 'Lens adjustment' },
+        'user.service.consulta_contacto': { es: 'Consulta por lentes de contacto', en: 'Contact lens consultation' },
+        'user.service.adaptacion_contacto': { es: 'Adaptación lentes contacto', en: 'Contact lens fitting' },
+        'user.service.control_opto': { es: 'Control optometría', en: 'Optometry check' },
+        'user.service.glaucoma': { es: 'Seguimiento glaucoma', en: 'Glaucoma monitoring' },
+        'user.service.general': { es: 'Consulta General', en: 'General consultation' },
 
         // ════════════════════════════════════════════
         //  LANGUAGE SWITCHER

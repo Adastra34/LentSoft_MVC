@@ -170,4 +170,25 @@ public class AuthServiceTests : IDisposable
         Assert.NotNull(result);
         Assert.Equal("usuario", result.Role);
     }
+
+    [Fact]
+    public async Task RegisterDetailedAsync_DistinguirConflictoEmailYDocumento()
+    {
+        // Arrange
+        await _authService.RegisterAsync("Primero", "User", "CC", "12345678", "base@test.com", "3001112233", "Pass123456*");
+
+        // Act 1: Mismo email, diferente documento
+        var resEmail = await _authService.RegisterDetailedAsync("Segundo", "User", "CC", "87654321", "base@test.com", "3001112234", "Pass123456*");
+        Assert.False(resEmail.Success);
+        Assert.True(resEmail.EmailExists);
+        Assert.False(resEmail.DocumentExists);
+        Assert.Contains("Este usuario ya existe", resEmail.ErrorMessage);
+
+        // Act 2: Mismo documento, diferente email
+        var resDoc = await _authService.RegisterDetailedAsync("Tercero", "User", "CC", "12345678", "otro@test.com", "3001112235", "Pass123456*");
+        Assert.False(resDoc.Success);
+        Assert.False(resDoc.EmailExists);
+        Assert.True(resDoc.DocumentExists);
+        Assert.Contains("Este usuario ya existe", resDoc.ErrorMessage);
+    }
 }

@@ -34,6 +34,11 @@ public interface IAuthService
     Task<User?> RegisterAsync(string nombre, string apellido, string tipoDocumento, string numeroDocumento, string email, string telefono, string password);
 
     /// <summary>
+    /// Registra un nuevo usuario indicando detalladamente el resultado y si existieron conflictos de unicidad por correo o documento.
+    /// </summary>
+    Task<RegisterResult> RegisterDetailedAsync(string nombre, string apellido, string tipoDocumento, string numeroDocumento, string email, string telefono, string password);
+
+    /// <summary>
     /// Obtiene un usuario a partir de su identificador numérico único.
     /// </summary>
     /// <param name="id">Identificador del usuario.</param>

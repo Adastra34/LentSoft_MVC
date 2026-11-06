@@ -1717,3 +1717,169 @@ document.addEventListener('keydown', function (e) {
     }
 });
 
+// ── Tarea 3: Registrar nuevo cliente dentro del modal de Registrar Venta ──
+function toggleNuevoClienteSection(show) {
+    const sec = document.getElementById('seccionNuevoCliente');
+    if (!sec) return;
+    const isVisible = sec.style.display !== 'none';
+    const shouldShow = typeof show === 'boolean' ? show : !isVisible;
+    sec.style.display = shouldShow ? 'block' : 'none';
+
+    const err = document.getElementById('nuevoClienteError');
+    if (err) {
+        err.style.display = 'none';
+        err.textContent = '';
+    }
+
+    if (shouldShow) {
+        const firstInput = document.getElementById('ncNumDoc');
+        if (firstInput) firstInput.focus();
+    }
+}
+
+async function guardarNuevoCliente() {
+    const tipoDoc = document.getElementById('ncTipoDoc')?.value?.trim() || 'CC';
+    const numDoc = document.getElementById('ncNumDoc')?.value?.trim() || '';
+    const nombre = document.getElementById('ncNombre')?.value?.trim() || '';
+    const apellido = document.getElementById('ncApellido')?.value?.trim() || '';
+    const telefono = document.getElementById('ncTelefono')?.value?.trim() || '';
+    const email = document.getElementById('ncEmail')?.value?.trim() || '';
+
+    const err = document.getElementById('nuevoClienteError');
+    const showError = (msg) => {
+        if (err) {
+            err.textContent = msg;
+            err.style.display = 'block';
+        } else {
+            showToast(msg, 'error');
+        }
+    };
+
+    if (err) {
+        err.style.display = 'none';
+        err.textContent = '';
+    }
+
+    // Validaciones del cliente basadas en RegisterViewModel
+    if (!numDoc || numDoc.length < 5 || numDoc.length > 20 || !/^[a-zA-Z0-9]{5,20}$/.test(numDoc)) {
+        showError('El número de documento debe tener entre 5 y 20 caracteres alfanuméricos sin espacios.');
+        return;
+    }
+    if (!nombre || nombre.length < 2 || nombre.length > 100 || !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/.test(nombre)) {
+        showError('El nombre debe tener entre 2 y 100 caracteres y solo contener letras.');
+        return;
+    }
+    if (!apellido || apellido.length < 2 || apellido.length > 100 || !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s'-]+$/.test(apellido)) {
+        showError('El apellido debe tener entre 2 y 100 caracteres y solo contener letras.');
+        return;
+    }
+    if (!telefono || telefono.length < 7 || telefono.length > 15 || !/^[+]?[0-9\s-]{7,15}$/.test(telefono)) {
+        showError('El teléfono debe tener entre 7 y 15 dígitos.');
+        return;
+    }
+    if (!email || !/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(email)) {
+        showError('Ingresa un formato de correo electrónico válido.');
+        return;
+    }
+
+    const btn = document.getElementById('btnGuardarNuevoCliente');
+    const originalText = btn ? btn.textContent : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Guardando...';
+    }
+
+    try {
+        const token = document.querySelector('#modal-venta input[name="__RequestVerificationToken"]')?.value
+                   || document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+        const formData = new FormData();
+        formData.append('__RequestVerificationToken', token);
+        formData.append('TipoDocumento', tipoDoc);
+        formData.append('NumeroDocumento', numDoc);
+        formData.append('Nombre', nombre);
+        formData.append('Apellido', apellido);
+        formData.append('Telefono', telefono);
+        formData.append('Email', email);
+
+        const res = await fetch('/Ventas/RegistrarClienteRapido', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        const data = await res.json();
+        if (!data.success) {
+            showError(data.message || 'Este usuario ya existe');
+            return;
+        }
+
+        const user = data.user;
+        const nombreCompleto = user.nombreCompleto || `${user.nombre} ${user.apellido}`.trim();
+        const docLabel = user.numeroDocumento ? `(C.C. ${user.numeroDocumento})` : '';
+
+        // Actualizar select de clientes por nombre
+        const selectNombre = document.getElementById('userSelectNombre');
+        if (selectNombre) {
+            const optNombre = new Option(`${nombreCompleto} ${docLabel}`.trim(), user.id);
+            optNombre.setAttribute('data-nombre', user.nombre || '');
+            optNombre.setAttribute('data-apellido', user.apellido || '');
+            optNombre.setAttribute('data-cedula', user.numeroDocumento || '');
+            optNombre.setAttribute('data-telefono', user.telefono || '');
+            optNombre.setAttribute('data-direccion', user.direccion || '');
+            selectNombre.add(optNombre);
+            selectNombre.value = user.id;
+        }
+
+        // Actualizar select de clientes por cédula
+        const selectCedula = document.getElementById('userSelectCedula');
+        if (selectCedula) {
+            const docPrefix = user.numeroDocumento ? `C.C. ${user.numeroDocumento}` : 'Sin C.C.';
+            const optCedula = new Option(`${docPrefix} - ${nombreCompleto}`, user.id);
+            optCedula.setAttribute('data-nombre', user.nombre || '');
+            optCedula.setAttribute('data-apellido', user.apellido || '');
+            optCedula.setAttribute('data-cedula', user.numeroDocumento || '');
+            optCedula.setAttribute('data-telefono', user.telefono || '');
+            optCedula.setAttribute('data-direccion', user.direccion || '');
+            selectCedula.add(optCedula);
+            selectCedula.value = user.id;
+        }
+
+        // Actualizar campos ocultos y visibles de la venta sin perder ítems
+        const selUserEl = document.getElementById('selectedUserId');
+        if (selUserEl) selUserEl.value = user.id;
+        const saleNomEl = document.getElementById('saleNombre');
+        if (saleNomEl) saleNomEl.value = user.nombre || '';
+        const saleApeEl = document.getElementById('saleApellido');
+        if (saleApeEl) saleApeEl.value = user.apellido || '';
+        const saleCedEl = document.getElementById('saleCedula');
+        if (saleCedEl) saleCedEl.value = user.numeroDocumento || '';
+        const saleTelEl = document.getElementById('saleTelefono');
+        if (saleTelEl) saleTelEl.value = user.telefono || '';
+        const saleDirEl = document.getElementById('saleDireccion');
+        if (saleDirEl) saleDirEl.value = user.direccion || '';
+
+        setCustomerFieldsReadOnly(true);
+        consultarFormulaCliente(user.id);
+
+        // Limpiar campos del formulario rápido
+        document.getElementById('ncNumDoc').value = '';
+        document.getElementById('ncNombre').value = '';
+        document.getElementById('ncApellido').value = '';
+        document.getElementById('ncTelefono').value = '';
+        document.getElementById('ncEmail').value = '';
+
+        toggleNuevoClienteSection(false);
+        showToast('Cliente registrado y seleccionado exitosamente.', 'success');
+    } catch (e) {
+        showError('Ocurrió un error inesperado al registrar el cliente.');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    }
+}
+

@@ -1,4 +1,4 @@
-﻿using System.IO;
+using System.IO;
 using System.Security.Claims;
 using System.Text;
 using Microsoft.AspNetCore.Authorization;
@@ -392,6 +392,61 @@ public class VentasController : Controller
         }
 
         return RedirectToVentasSection();
+    }
+
+    /// <summary>
+    /// Registra un nuevo cliente desde el modal de ventas mediante AJAX.
+    /// Crea el usuario con Role = "usuario", contraseña segura aleatoria hasheada con BCrypt
+    /// y validación de unicidad de correo y número de documento.
+    /// </summary>
+    [HttpPost]
+    [Authorize(Roles = "ventas,admin")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RegistrarClienteRapido(
+        [FromForm] RegistrarClienteRapidoDTO dto,
+        [FromServices] IAuthService authService)
+    {
+        if (!ModelState.IsValid)
+        {
+            var firstError = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).FirstOrDefault()
+                             ?? "Datos del formulario incompletos o inválidos.";
+            return Json(new { success = false, message = firstError });
+        }
+
+        // Generar contraseña segura aleatoria que nunca se expone
+        var randomPassword = Guid.NewGuid().ToString("N") + "!Aa1";
+
+        var result = await authService.RegisterDetailedAsync(
+            dto.Nombre,
+            dto.Apellido,
+            dto.TipoDocumento,
+            dto.NumeroDocumento,
+            dto.Email,
+            dto.Telefono,
+            randomPassword);
+
+        if (!result.Success)
+        {
+            return Json(new { success = false, message = "Este usuario ya existe" });
+        }
+
+        var user = result.User!;
+        return Json(new
+        {
+            success = true,
+            message = "Cliente registrado exitosamente.",
+            user = new
+            {
+                id = user.Id,
+                nombre = user.Nombre,
+                apellido = user.Apellido,
+                nombreCompleto = user.NombreCompleto,
+                numeroDocumento = user.NumeroDocumento,
+                tipoDocumento = user.TipoDocumento,
+                telefono = user.Telefono,
+                direccion = user.Direccion ?? string.Empty
+            }
+        });
     }
 
     [HttpPost]

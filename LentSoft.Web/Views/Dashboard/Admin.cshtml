@@ -1,4 +1,4 @@
-﻿@model DashboardAdminViewModel
+@model DashboardAdminViewModel
 @inject Microsoft.Extensions.Options.IOptions<LentSoft.Web.Services.InventorySettings> InventoryOptions
 @{
     Layout = "_LayoutDashboard";
@@ -2064,16 +2064,7 @@
                 <div style="flex: 1; min-width: 220px;">
                     <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Servicio *</label>
                     <select name="Servicio" class="form-input" required style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
-                        <option value="Examen visual completo">Examen visual completo</option>
-                        <option value="Examen de vista">Examen de vista</option>
-                        <option value="Primera consulta">Primera consulta</option>
-                        <option value="Control de lentes">Control de lentes</option>
-                        <option value="Ajuste de lentes">Ajuste de lentes</option>
-                        <option value="Consulta por lentes de contacto">Consulta por lentes de contacto</option>
-                        <option value="Adaptación lentes contacto">Adaptación lentes contacto</option>
-                        <option value="Control optometría">Control optometría</option>
-                        <option value="Seguimiento glaucoma">Seguimiento glaucoma</option>
-                        <option value="Consulta General">Consulta General</option>
+                        <partial name="_ServiciosCitaOptions" model='(string?)"Examen visual completo"' />
                     </select>
                 </div>
                 <div style="flex: 1; min-width: 220px;">
@@ -2196,16 +2187,7 @@
                 <div style="flex: 1; min-width: 220px;">
                     <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem; margin-bottom: 0.35rem; display: block;">Servicio *</label>
                     <select name="Servicio" id="admin-edit-cita-servicio" class="form-input" required style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
-                        <option value="Examen visual completo">Examen visual completo</option>
-                        <option value="Examen de vista">Examen de vista</option>
-                        <option value="Primera consulta">Primera consulta</option>
-                        <option value="Control de lentes">Control de lentes</option>
-                        <option value="Ajuste de lentes">Ajuste de lentes</option>
-                        <option value="Consulta por lentes de contacto">Consulta por lentes de contacto</option>
-                        <option value="Adaptación lentes contacto">Adaptación lentes contacto</option>
-                        <option value="Control optometría">Control optometría</option>
-                        <option value="Seguimiento glaucoma">Seguimiento glaucoma</option>
-                        <option value="Consulta General">Consulta General</option>
+                        <partial name="_ServiciosCitaOptions" model='(string?)null' />
                     </select>
                 </div>
                 <div style="flex: 1; min-width: 220px;">
@@ -2584,7 +2566,16 @@
             if (elPac) elPac.value = btn.getAttribute('data-paciente') || '';
 
             const elSrv = document.getElementById('admin-edit-cita-servicio');
-            if (elSrv) elSrv.value = btn.getAttribute('data-servicio') || 'Consulta General';
+            if (elSrv) {
+                const srvVal = btn.getAttribute('data-servicio') || 'Consulta General';
+                if (srvVal && ![...elSrv.options].some(o => o.value === srvVal)) {
+                    const opt = document.createElement('option');
+                    opt.value = srvVal;
+                    opt.textContent = srvVal;
+                    elSrv.appendChild(opt);
+                }
+                elSrv.value = srvVal;
+            }
 
             const elFecha = document.getElementById('admin-edit-cita-fechahora');
             if (elFecha) elFecha.value = btn.getAttribute('data-fechahora') || '';

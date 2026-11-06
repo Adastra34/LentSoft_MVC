@@ -148,7 +148,7 @@ public class AuthController : Controller
         if (!ModelState.IsValid)
             return View(model);
 
-        var user = await _authService.RegisterAsync(
+        var result = await _authService.RegisterDetailedAsync(
             model.Nombre,
             model.Apellido,
             model.TipoDocumento,
@@ -157,11 +157,24 @@ public class AuthController : Controller
             model.Telefono,
             model.Password);
 
-        if (user == null)
+        if (!result.Success)
         {
-            ModelState.AddModelError(string.Empty, "Error al crear la cuenta. El email o el número de documento ya están registrados.");
+            if (result.EmailExists)
+            {
+                ModelState.AddModelError(nameof(model.Email), "Este usuario ya existe (el correo ya está registrado).");
+            }
+            if (result.DocumentExists)
+            {
+                ModelState.AddModelError(nameof(model.NumeroDocumento), "Este usuario ya existe (el documento ya está registrado).");
+            }
+            if (!result.EmailExists && !result.DocumentExists)
+            {
+                ModelState.AddModelError(string.Empty, result.ErrorMessage ?? "Este usuario ya existe.");
+            }
             return View(model);
         }
+
+        var user = result.User!;
 
         // Auto-login posterior al registro exitoso
         var claims = new List<Claim>

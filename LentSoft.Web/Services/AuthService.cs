@@ -58,6 +58,15 @@ public class AuthService : IAuthService
     /// <returns>El nuevo <see cref="User"/> creado o <c>null</c> si ya existe un registro con el mismo correo o documento.</returns>
     public async Task<User?> RegisterAsync(string nombre, string apellido, string tipoDocumento, string numeroDocumento, string email, string telefono, string password)
     {
+        var result = await RegisterDetailedAsync(nombre, apellido, tipoDocumento, numeroDocumento, email, telefono, password);
+        return result.User;
+    }
+
+    /// <summary>
+    /// Registra un nuevo usuario indicando detalladamente el resultado y si existieron conflictos de unicidad por correo o documento.
+    /// </summary>
+    public async Task<RegisterResult> RegisterDetailedAsync(string nombre, string apellido, string tipoDocumento, string numeroDocumento, string email, string telefono, string password)
+    {
         var normalizedEmail = email?.Trim().ToLowerInvariant() ?? string.Empty;
         var normalizedDoc = numeroDocumento?.Trim() ?? string.Empty;
 
@@ -65,15 +74,25 @@ public class AuthService : IAuthService
         var existingEmail = await _context.Users
             .AnyAsync(u => u.Email == normalizedEmail);
 
-        if (existingEmail)
-            return null;
-
         // Comprobar si el número de documento ya existe
         var existingDoc = await _context.Users
             .AnyAsync(u => u.NumeroDocumento == normalizedDoc);
 
-        if (existingDoc)
-            return null;
+        if (existingEmail || existingDoc)
+        {
+            var msg = (existingEmail && existingDoc)
+                ? "Este usuario ya existe (el correo electrónico y el documento ya están registrados)."
+                : existingEmail
+                    ? "Este usuario ya existe (el correo electrónico ya está registrado)."
+                    : "Este usuario ya existe (el número de documento ya está registrado).";
+
+            return new RegisterResult
+            {
+                EmailExists = existingEmail,
+                DocumentExists = existingDoc,
+                ErrorMessage = msg
+            };
+        }
 
         var user = new User
         {
@@ -93,7 +112,7 @@ public class AuthService : IAuthService
         {
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
-            return user;
+            return new RegisterResult { User = user };
         }
         catch (DbUpdateConcurrencyException ex)
         {

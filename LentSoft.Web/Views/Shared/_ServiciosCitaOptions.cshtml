@@ -1,0 +1,42 @@
+@model string?
+@{
+    var selectedValue = Model;
+    var servicios = LentSoft.Web.Models.ViewModels.ServiciosCita.Todos;
+    var tieneSeleccionado = !string.IsNullOrEmpty(selectedValue);
+    var estaEnLista = tieneSeleccionado && servicios.Contains(selectedValue, StringComparer.OrdinalIgnoreCase);
+}
+
+@if (tieneSeleccionado && !estaEnLista)
+{
+    <option value="@selectedValue" selected>@selectedValue</option>
+}
+
+@foreach (var servicio in servicios)
+{
+    var isSelected = tieneSeleccionado && string.Equals(servicio, selectedValue, StringComparison.OrdinalIgnoreCase);
+    var tieneI18n = LentSoft.Web.Models.ViewModels.ServiciosCita.ClavesI18n.TryGetValue(servicio, out var i18nKey);
+
+    if (isSelected)
+    {
+        if (tieneI18n)
+        {
+            <option value="@servicio" data-i18n="@i18nKey" selected>@servicio</option>
+        }
+        else
+        {
+            <option value="@servicio" selected>@servicio</option>
+        }
+    }
+    else
+    {
+        if (tieneI18n)
+        {
+            <option value="@servicio" data-i18n="@i18nKey">@servicio</option>
+        }
+        else
+        {
+            <option value="@servicio">@servicio</option>
+        }
+    }
+}
+

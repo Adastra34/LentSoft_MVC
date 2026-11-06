@@ -619,11 +619,7 @@
                 <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;" data-i18n="user.modal.agenda.service">Servicio *</label>
                 <select name="Servicio" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300);">
                     <option value="" data-i18n="user.modal.agenda.selectservice">-- Selecciona un servicio --</option>
-                    <option value="Examen visual completo" data-i18n="user.service.exam">Examen visual completo</option>
-                    <option value="Control de lentes" data-i18n="user.service.control">Control de lentes</option>
-                    <option value="Primera consulta" data-i18n="user.service.first">Primera consulta</option>
-                    <option value="Adaptación de lentes de contacto" data-i18n="user.service.contact">Adaptación de lentes de contacto</option>
-                    <option value="Ajuste y mantenimiento de lentes" data-i18n="user.service.adjustment">Ajuste y mantenimiento de lentes</option>
+                    <partial name="_ServiciosCitaOptions" model='(string?)null' />
                 </select>
             </div>
 

@@ -3,11 +3,13 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using LentSoft.Web.Controllers;
 using LentSoft.Web.Data;
 using LentSoft.Web.Models.DTOs;
 using LentSoft.Web.Models.Entities;
@@ -457,6 +459,57 @@ public class VentasCalidadTests : IDisposable
         });
         Assert.Equal(7, todasPagadas.Count);
         Assert.All(todasPagadas, v => Assert.Equal("pagado", v.Estado));
+    }
+
+    // ── 8. Registro rápido de cliente desde modal de venta ──
+    [Fact]
+    public async Task RegistrarClienteRapido_CreaUsuarioConRolUsuario_Y_RechazaDuplicados()
+    {
+        var authService = new AuthService(_context);
+        var controller = new VentasController(
+            _ventasService,
+            _pagoService,
+            null!,
+            _pasarelaService,
+            null!,
+            null!,
+            null!,
+            null!,
+            _context,
+            NullLogger<VentasController>.Instance);
+
+        var dto = new RegistrarClienteRapidoDTO
+        {
+            TipoDocumento = "CC",
+            NumeroDocumento = "1122334455",
+            Nombre = "Cliente",
+            Apellido = "Nuevo",
+            Telefono = "3009998877",
+            Email = "cliente.nuevo@test.com"
+        };
+
+        // Act 1: Registro exitoso
+        var result = await controller.RegistrarClienteRapido(dto, authService) as JsonResult;
+        Assert.NotNull(result);
+        var data = result.Value;
+        Assert.NotNull(data);
+
+        // Verificar que el usuario fue creado en la base de datos con rol "usuario"
+        var userDb = await _context.Users.FirstOrDefaultAsync(u => u.Email == "cliente.nuevo@test.com");
+        Assert.NotNull(userDb);
+        Assert.Equal("usuario", userDb.Role);
+        Assert.Equal("1122334455", userDb.NumeroDocumento);
+        Assert.True(userDb.Activo);
+        Assert.False(string.IsNullOrEmpty(userDb.PasswordHash));
+
+        // Act 2: Intento duplicado
+        var dupResult = await controller.RegistrarClienteRapido(dto, authService) as JsonResult;
+        Assert.NotNull(dupResult);
+        var dupData = dupResult.Value;
+        var successProp = dupData?.GetType().GetProperty("success")?.GetValue(dupData) as bool?;
+        var msgProp = dupData?.GetType().GetProperty("message")?.GetValue(dupData) as string;
+        Assert.False(successProp ?? true);
+        Assert.Equal("Este usuario ya existe", msgProp);
     }
 
     // ── Helpers para pruebas de resiliencia ──

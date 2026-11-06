@@ -20,8 +20,66 @@
 
             <!-- Sección 1: Datos del Cliente -->
             <div>
-                <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;">
-                    <icon name="user" /> <span data-i18n="modal.sale.sec.client">DATOS DEL CLIENTE</span>
+                <div style="color: var(--purple-900); font-weight: 700; font-size: 0.85rem; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.3rem; margin-bottom: 0.75rem; display: flex; align-items: center; justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 0.4rem;">
+                        <icon name="user" /> <span data-i18n="modal.sale.sec.client">DATOS DEL CLIENTE</span>
+                    </div>
+                    <button type="button" id="btnToggleNuevoCliente" onclick="toggleNuevoClienteSection()" class="btn btn-outline" style="border: 1px solid var(--purple-500); color: var(--purple-700); background: var(--purple-50); padding: 0.25rem 0.65rem; border-radius: 0.375rem; font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem;">
+                        + Nuevo cliente
+                    </button>
+                </div>
+
+                <!-- Formulario desplegable: Registrar Nuevo Cliente -->
+                <div id="seccionNuevoCliente" style="display: none; background: var(--purple-50); border: 1px solid var(--purple-200); border-radius: 0.5rem; padding: 1rem; margin-bottom: 0.75rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <span style="font-weight: 700; font-size: 0.85rem; color: var(--purple-900);">Registrar Nuevo Cliente</span>
+                        <button type="button" onclick="toggleNuevoClienteSection(false)" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--gray-500); line-height: 1;">&times;</button>
+                    </div>
+
+                    <div style="display: flex; gap: 0.75rem; margin-bottom: 0.5rem;">
+                        <div style="flex: 1;">
+                            <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.75rem; margin-bottom: 0.2rem; display: block;">Tipo Documento *</label>
+                            <select id="ncTipoDoc" class="form-input" style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.8rem; background: white;">
+                                <option value="CC" selected>CC</option>
+                                <option value="CE">CE</option>
+                                <option value="TI">TI</option>
+                                <option value="Pasaporte">Pasaporte</option>
+                            </select>
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.75rem; margin-bottom: 0.2rem; display: block;">N° Documento *</label>
+                            <input id="ncNumDoc" type="text" class="form-input" placeholder="Ej: 1020304050" style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.8rem;" />
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 0.75rem; margin-bottom: 0.5rem;">
+                        <div style="flex: 1;">
+                            <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.75rem; margin-bottom: 0.2rem; display: block;">Nombre *</label>
+                            <input id="ncNombre" type="text" class="form-input" placeholder="Ej: Juan" style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.8rem;" />
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.75rem; margin-bottom: 0.2rem; display: block;">Apellido *</label>
+                            <input id="ncApellido" type="text" class="form-input" placeholder="Ej: Pérez" style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.8rem;" />
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 0.75rem; margin-bottom: 0.5rem;">
+                        <div style="flex: 1;">
+                            <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.75rem; margin-bottom: 0.2rem; display: block;">Teléfono *</label>
+                            <input id="ncTelefono" type="text" class="form-input" placeholder="Ej: 3001234567" style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.8rem;" />
+                        </div>
+                        <div style="flex: 1;">
+                            <label class="form-label" style="font-weight: 600; color: var(--purple-900); font-size: 0.75rem; margin-bottom: 0.2rem; display: block;">Correo Electrónico *</label>
+                            <input id="ncEmail" type="email" class="form-input" placeholder="Ej: cliente@correo.com" style="width: 100%; padding: 0.45rem 0.65rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.8rem;" />
+                        </div>
+                    </div>
+
+                    <div id="nuevoClienteError" style="display: none; background: #FEF2F2; color: #DC2626; border: 1px solid #FECACA; border-radius: 0.375rem; padding: 0.5rem 0.75rem; font-size: 0.8rem; margin-bottom: 0.5rem;"></div>
+
+                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem;">
+                        <button type="button" onclick="toggleNuevoClienteSection(false)" class="btn btn-outline" style="padding: 0.4rem 0.75rem; border: 1px solid var(--gray-300); border-radius: 0.375rem; background: white; color: var(--gray-700); font-size: 0.8rem; cursor: pointer;">Cancelar</button>
+                        <button type="button" id="btnGuardarNuevoCliente" onclick="guardarNuevoCliente()" class="btn btn-primary" style="padding: 0.4rem 0.85rem; border-radius: 0.375rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; background: var(--purple-600); color: white; border: none;">Guardar Cliente</button>
+                    </div>
                 </div>
 
                 <input type="hidden" id="selectedUserId" name="UserId" value="" />
