@@ -4,6 +4,7 @@
 let FaceLandmarkerModule = null;
 let FilesetResolverModule = null;
 let faceLandmarker = null;
+let initPromise = null;
 let activeLoop = false;
 let currentMonturaImg = new Image();
 let currentMonturaUrl = null;
@@ -112,36 +113,77 @@ export function validarCompatibilidad() {
     return { compatible: true };
 }
 
-// 2. Carga perezosa (Lazy load) de MediaPipe
-async function initLandmarker() {
-    if (faceLandmarker) return faceLandmarker;
-
+// Helper para instanciar FaceLandmarker con delegate GPU y fallback a CPU
+async function createLandmarkerWithDelegate(faceLandmarkerClass, vision, modelPath) {
     try {
-        console.log("Cargando módulos de MediaPipe Vision (Lazy Load)...");
-        // Import dinámico para no bloquear la carga inicial de la página
-        const visionBundle = await import("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/vision_bundle.mjs");
-        FaceLandmarkerModule = visionBundle.FaceLandmarker;
-        FilesetResolverModule = visionBundle.FilesetResolver;
-
-        const vision = await FilesetResolverModule.forVisionTasks(
-            "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm"
-        );
-
-        faceLandmarker = await FaceLandmarkerModule.createFromOptions(vision, {
+        return await faceLandmarkerClass.createFromOptions(vision, {
             baseOptions: {
-                modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task",
+                modelAssetPath: modelPath,
                 delegate: "GPU"
             },
             runningMode: "VIDEO",
             numFaces: 1
         });
-
-        console.log("MediaPipe FaceLandmarker inicializado con éxito.");
-        return faceLandmarker;
-    } catch (error) {
-        console.error("Error al inicializar MediaPipe FaceLandmarker:", error);
-        throw error;
+    } catch (gpuError) {
+        console.warn("Fallo al inicializar FaceLandmarker con delegate GPU. Reintentando con CPU...", gpuError);
+        return await faceLandmarkerClass.createFromOptions(vision, {
+            baseOptions: {
+                modelAssetPath: modelPath,
+                delegate: "CPU"
+            },
+            runningMode: "VIDEO",
+            numFaces: 1
+        });
     }
+}
+
+// Helper para cargar e inicializar módulos MediaPipe desde fuentes dadas
+async function loadLandmarkerFromSources(bundleUrl, wasmUrl, modelPath) {
+    const visionBundle = await import(bundleUrl);
+    FaceLandmarkerModule = visionBundle.FaceLandmarker;
+    FilesetResolverModule = visionBundle.FilesetResolver;
+
+    const vision = await FilesetResolverModule.forVisionTasks(wasmUrl);
+    return await createLandmarkerWithDelegate(FaceLandmarkerModule, vision, modelPath);
+}
+
+// 2. Carga perezosa (Lazy load) de MediaPipe con prioridad local y respaldo a CDN
+async function initLandmarker() {
+    if (faceLandmarker) return faceLandmarker;
+    if (initPromise) return initPromise;
+
+    initPromise = (async () => {
+        try {
+            console.log("Cargando módulos de MediaPipe Vision desde almacenamiento local...");
+            faceLandmarker = await loadLandmarkerFromSources(
+                "/lib/mediapipe/vision_bundle.mjs",
+                "/lib/mediapipe/wasm",
+                "/lib/mediapipe/models/face_landmarker.task"
+            );
+            console.log("MediaPipe FaceLandmarker inicializado con éxito desde almacenamiento local.");
+            return faceLandmarker;
+        } catch (localError) {
+            console.warn("No se pudo cargar MediaPipe desde archivos locales. Reintentando con CDN...", localError);
+            try {
+                faceLandmarker = await loadLandmarkerFromSources(
+                    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/vision_bundle.mjs",
+                    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.8/wasm",
+                    "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task"
+                );
+                console.log("MediaPipe FaceLandmarker inicializado con éxito desde CDN.");
+                return faceLandmarker;
+            } catch (cdnError) {
+                console.error("Error definitivo al inicializar MediaPipe FaceLandmarker (local y CDN fallaron):", cdnError);
+                throw cdnError;
+            }
+        } finally {
+            if (!faceLandmarker) {
+                initPromise = null;
+            }
+        }
+    })();
+
+    return initPromise;
 }
 
 // 3. Función auxiliar para interpolación lineal (Lerp)

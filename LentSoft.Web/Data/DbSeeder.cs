@@ -71,21 +71,21 @@ public static class DbSeeder
             }
         }
 
-        // 0.2 Actualizar ImagenOverlayUrl de productos AR con las nuevas imágenes .png
+        // 0.2 Actualizar ImagenOverlayUrl de productos AR con las nuevas imágenes .png solo si es nulo o vacío
         var rayban = allProducts.FirstOrDefault(p => p.Nombre.Contains("Ray-Ban Aviator", StringComparison.OrdinalIgnoreCase));
-        if (rayban != null && rayban.ImagenOverlayUrl != "/img/overlays/rayban_aviator_final.png")
+        if (rayban != null && string.IsNullOrEmpty(rayban.ImagenOverlayUrl))
         {
             rayban.ImagenOverlayUrl = "/img/overlays/rayban_aviator_final.png";
         }
 
         var classic = allProducts.FirstOrDefault(p => p.Nombre.Contains("Graduados Classic", StringComparison.OrdinalIgnoreCase));
-        if (classic != null && classic.ImagenOverlayUrl != "/img/overlays/lentes_graduados_classic_final.png")
+        if (classic != null && string.IsNullOrEmpty(classic.ImagenOverlayUrl))
         {
             classic.ImagenOverlayUrl = "/img/overlays/lentes_graduados_classic_final.png";
         }
 
         var obrien = allProducts.FirstOrDefault(p => p.Nombre.Contains("O'Brien Deluxe", StringComparison.OrdinalIgnoreCase));
-        if (obrien != null && obrien.ImagenOverlayUrl != "/img/overlays/obrien_deluxe_final.png")
+        if (obrien != null && string.IsNullOrEmpty(obrien.ImagenOverlayUrl))
         {
             obrien.ImagenOverlayUrl = "/img/overlays/obrien_deluxe_final.png";
         }

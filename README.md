@@ -165,6 +165,41 @@ dotnet LentSoft.Web.dll
 ```
 
 ### Módulo de Previsualización AR (Webcam & Face-Tracking)
-- El tracking facial opera **100% en el navegador del cliente** utilizando MediaPipe Vision WebAssembly y Canvas HTML5.
-- **Seguridad y Privacidad:** Las capturas y fotogramas de la cámara web **nunca** son transmitidos ni almacenados en los servidores de LentSoft.
-- **Rendimiento:** Cuenta con carga diferida (*lazy loading*), detección automática de dispositivos lentos con limitación a 24-30 FPS, suavizado de movimiento (*smoothing*) y detección de iluminación.
+
+El módulo de realidad aumentada permite a los clientes probarse virtualmente las monturas en tiempo real usando su cámara web o móvil.
+
+#### Características Principales
+- **Procesamiento 100% en el cliente:** El tracking facial opera enteramente en el navegador del usuario utilizando MediaPipe Tasks Vision (WebAssembly + Canvas HTML5).
+- **Seguridad y Privacidad:** Las capturas y fotogramas de la cámara web **nunca** son transmitidos ni almacenados en servidores de LentSoft.
+- **Rendimiento Adaptativo:** Lazy loading al presionar "Activar Cámara", detección de iluminación, suavizado de jitter (*smoothing*), tolerancia a pérdida temporal de rostros y limitación adaptativa de FPS para dispositivos de gama baja.
+- **Alta Disponibilidad (Local con Fallback CDN):** Carga preferente de binarios locales (`/lib/mediapipe/`) y respaldo automático a CDNs públicos si falla la carga local. Soporte dual de aceleración por hardware (`GPU`) con tolerancia y degradación elegante a `CPU`.
+
+#### Archivos que Componen el Módulo
+| Archivo | Rol en el Sistema |
+| :--- | :--- |
+| `LentSoft.Web/Views/Product/MuestraMontura.cshtml` | Vista Razor que renderiza el catálogo responsive (2 columnas en escritorio, 1 en móvil) y el contenedor de vista previa interactiva. |
+| `LentSoft.Web/wwwroot/js/muestra-montura.js` | Controlador UI de cámara, control de errores, selección de variantes, soporte dinámico de i18n mediante `getLang()` y estado de botones. |
+| `LentSoft.Web/wwwroot/js/face-tracking.js` | Módulo ES que encapsula MediaPipe FaceLandmarker, ciclo de renderizado sobre canvas, ajuste de calibración y estimación de puntos faciales (iris 468 y 473). |
+| `LentSoft.Web/wwwroot/lib/mediapipe/` | Paquete local autónomo: `vision_bundle.mjs`, `wasm/vision_wasm_internal.*` y `models/face_landmarker.task`. |
+| `LentSoft.Web/Services/ProductService.cs` | Consulta `GetGafasAsync()` que filtra de forma insensible a mayúsculas monturas y lentes de sol excluyendo lentes de contacto y accesorios. |
+| `LentSoft.Web/Data/DbSeeder.cs` y `LentSoftDbContext.cs` | Semillero de datos y calibración por defecto para overlays existentes. |
+| `LentSoft.Web/Program.cs` | Configuración de `FileExtensionContentTypeProvider` para servir `.wasm` (`application/wasm`) y `.task` (`application/octet-stream`). |
+| `LentSoft.Tests/ArPreviewContractTests.cs` | Suite de pruebas de contrato y guardas anti-regresión xUnit. |
+| `scripts/check-js.ps1` | Script de validación de sintaxis para JavaScript (`node --check`). |
+
+#### Qué NO se debe tocar sin correr `dotnet test`
+1. **Rutas e integridad de MediaPipe local:** No mover ni borrar archivos en `wwwroot/lib/mediapipe/` sin actualizar los contratos en `ArPreviewContractTests.cs`.
+2. **Scripts inline en `MuestraMontura.cshtml`:** No volver a insertar lógica de negocio o referencias sueltas a `lang` dentro de bloques `<script>` en la vista. Toda la lógica debe permanecer en `muestra-montura.js`.
+3. **Manejo de idioma en `muestra-montura.js`:** Toda referencia al idioma activo debe resolverse invocando `getLang()` en tiempo de ejecución.
+4. **Archivos de overlay:** Toda ruta de overlay referenciada en `DbSeeder.cs` o `LentSoftDbContext.cs` debe existir físicamente en `wwwroot/img/overlays/`.
+5. **Filtro de catálogo:** Cualquier modificación en `GetGafasAsync()` debe preservar la exclusión de lentes de contacto y accesorios.
+
+#### Cómo Agregar un Overlay Nuevo
+1. **Crear el diseño del marco:** Diseñar o exportar el marco en formato **PNG con fondo transparente**, asegurando que los cristales/lentes sean transparentes y el marco esté centrado y nivelado horizontalmente.
+2. **Copiar a wwwroot:** Guardar el archivo en la carpeta `LentSoft.Web/wwwroot/img/overlays/` (ejemplo: `mi_montura_optica.png`).
+3. **Configurar desde el Panel de Administración o Base de Datos:**
+   - **`ImagenOverlayUrl`**: Ruta relativa al archivo, ej: `/img/overlays/mi_montura_optica.png`.
+   - **`EscalaOverlay`**: Factor de escala para ajustar el ancho de la montura respecto a la distancia entre pupilas (valor base recomendado: `2.30`).
+   - **`OffsetXOverlay`**: Ajuste horizontal fino (`0.00` centrado).
+   - **`OffsetYOverlay`**: Ajuste vertical fino (`0.12` para situar el puente sobre la nariz).
+   *(Si un producto no tiene `ImagenOverlayUrl`, el catálogo mostrará la etiqueta "Sin prueba AR" y seguirá siendo visible y comprable sin causar errores).*

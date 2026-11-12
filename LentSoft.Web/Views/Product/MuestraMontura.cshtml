@@ -163,54 +163,72 @@
                     <span data-i18n="montura.gallery.title">Galería de Marcos</span> (@Model.Gafas.Count)
                 </h3>
                 
-                <div style="max-height: 640px; overflow-y: auto; padding-right: 0.5rem; display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem;" class="gallery-scroll">
-                    @foreach (var item in Model.Gafas)
-                    {
-                        var isPreselected = item.Id == defaultId;
-                        <div id="product-card-@item.Id" onclick="selectProduct(@item.Id)" 
-                             style="background: white; border-radius: 1rem; overflow: hidden; cursor: pointer; transition: all 0.2s; border: 2.5px solid @(isPreselected ? "var(--purple-600)" : "var(--gray-100)"); box-shadow: @(isPreselected ? "var(--shadow-lg)" : "var(--shadow-sm)"); display: flex; flex-direction: column;"
-                             onmouseover="if(currentSelectedId !== @item.Id) { this.style.borderColor='var(--purple-300)'; this.style.transform='translateY(-2px)'; }"
-                             onmouseout="if(currentSelectedId !== @item.Id) { this.style.borderColor='var(--gray-100)'; this.style.transform='translateY(0)'; }">
-                            
-                            <!-- Thumbnail Image -->
-                            <div style="height: 130px; background: var(--gray-50); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
-                                @if (!string.IsNullOrWhiteSpace(item.ImagenUrl))
-                                {
-                                    <img src="@item.ImagenUrl" alt="@item.Nombre" style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 0.5rem;" />
-                                }
-                                else
-                                {
-                                    <span style="font-size: 2.5rem;">👓</span>
-                                }
+                @if (Model.Gafas.Count == 0)
+                {
+                    <div style="background: white; border-radius: 1rem; padding: 2.5rem; text-align: center; color: var(--gray-600); border: 1px dashed var(--purple-200); box-shadow: var(--shadow-sm);">
+                        <span style="font-size: 2.5rem; display: block; margin-bottom: 0.5rem;">👓</span>
+                        <p style="font-weight: 700; font-size: 1.1rem; color: var(--purple-900); margin: 0;">No hay monturas disponibles</p>
+                        <p style="font-size: 0.85rem; color: var(--gray-500); margin-top: 0.25rem;">Pronto añadiremos más opciones a nuestro catálogo.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="gallery-grid gallery-scroll">
+                        @foreach (var item in Model.Gafas)
+                        {
+                            var isPreselected = item.Id == defaultId;
+                            <div id="product-card-@item.Id" onclick="selectProduct(@item.Id)" 
+                                 style="background: white; border-radius: 1rem; overflow: hidden; cursor: pointer; transition: all 0.2s; border: 2.5px solid @(isPreselected ? "var(--purple-600)" : "var(--gray-100)"); box-shadow: @(isPreselected ? "var(--shadow-lg)" : "var(--shadow-sm)"); display: flex; flex-direction: column;"
+                                 onmouseover="if(currentSelectedId !== @item.Id) { this.style.borderColor='var(--purple-300)'; this.style.transform='translateY(-2px)'; }"
+                                 onmouseout="if(currentSelectedId !== @item.Id) { this.style.borderColor='var(--gray-100)'; this.style.transform='translateY(0)'; }">
+                                
+                                <!-- Thumbnail Image -->
+                                <div style="height: 130px; background: var(--gray-50); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative;">
+                                    @if (string.IsNullOrWhiteSpace(item.ImagenOverlayUrl))
+                                    {
+                                        <span style="position: absolute; top: 0.5rem; left: 0.5rem; background: rgba(107, 114, 128, 0.9); color: white; padding: 0.2rem 0.5rem; border-radius: 9999px; font-size: 0.65rem; font-weight: 700; z-index: 2;">
+                                            Sin prueba AR
+                                        </span>
+                                    }
 
-                                @if (item.PrecioDescuento.HasValue && item.PrecioDescuento < item.Precio)
-                                {
-                                    <span style="position: absolute; top: 0.5rem; right: 0.5rem; background: var(--success); color: white; padding: 0.15rem 0.4rem; border-radius: 9999px; font-size: 0.65rem; font-weight: 700;">
-                                        -@item.GetDiscountPercentage()%
-                                    </span>
-                                }
-                            </div>
+                                    @if (!string.IsNullOrWhiteSpace(item.ImagenUrl))
+                                    {
+                                        <img src="@item.ImagenUrl" alt="@item.Nombre" style="max-width: 100%; max-height: 100%; object-fit: contain; padding: 0.5rem;" />
+                                    }
+                                    else
+                                    {
+                                        <span style="font-size: 2.5rem;">👓</span>
+                                    }
 
-                            <!-- Spec info -->
-                            <div style="padding: 0.85rem; flex-grow: 1; display: flex; flex-direction: column; gap: 0.25rem;">
-                                <h5 style="color: var(--purple-900); font-size: 0.9rem; font-weight: 700; margin: 0; line-height: 1.3;" data-i18n-product-name="@item.Nombre">
-                                    @item.Nombre
-                                </h5>
-                                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: auto; padding-top: 0.5rem;">
-                                    <span style="font-size: 0.8rem; color: var(--gray-500);" data-i18n-spec-val="@(item.Estilo ?? "Clásico")">
-                                        @(item.Estilo ?? "Clásico")
-                                    </span>
-                                    <span style="font-weight: 700; color: var(--purple-700); font-size: 0.95rem;">
-                                        @(item.PrecioDescuento.HasValue && item.PrecioDescuento < item.Precio ? item.PrecioDescuento.Value.ToString("C") : item.Precio.ToString("C"))
-                                    </span>
+                                    @if (item.PrecioDescuento.HasValue && item.PrecioDescuento < item.Precio)
+                                    {
+                                        <span style="position: absolute; top: 0.5rem; right: 0.5rem; background: var(--success); color: white; padding: 0.15rem 0.4rem; border-radius: 9999px; font-size: 0.65rem; font-weight: 700;">
+                                            -@item.GetDiscountPercentage()%
+                                        </span>
+                                    }
                                 </div>
-                                <div style="font-size: 0.75rem; color: var(--gray-400);">
-                                    <span data-i18n="montura.selected.size">Medidas</span>: <span data-i18n-spec-val="@(item.Tamanio ?? "Estándar")">@(item.Tamanio ?? "Estándar")</span>
+
+                                <!-- Spec info -->
+                                <div style="padding: 0.85rem; flex-grow: 1; display: flex; flex-direction: column; gap: 0.25rem;">
+                                    <h5 style="color: var(--purple-900); font-size: 0.9rem; font-weight: 700; margin: 0; line-height: 1.3;" data-i18n-product-name="@item.Nombre">
+                                        @item.Nombre
+                                    </h5>
+                                    <div style="display: flex; justify-content: space-between; align-items: baseline; margin-top: auto; padding-top: 0.5rem;">
+                                        <span style="font-size: 0.8rem; color: var(--gray-500);" data-i18n-spec-val="@(item.Estilo ?? "Clásico")">
+                                            @(item.Estilo ?? "Clásico")
+                                        </span>
+                                        <span style="font-weight: 700; color: var(--purple-700); font-size: 0.95rem;">
+                                            @(item.PrecioDescuento.HasValue && item.PrecioDescuento < item.Precio ? item.PrecioDescuento.Value.ToString("C") : item.Precio.ToString("C"))
+                                        </span>
+                                    </div>
+                                    <div style="font-size: 0.75rem; color: var(--gray-400);">
+                                        <span data-i18n="montura.selected.size">Medidas</span>: <span data-i18n-spec-val="@(item.Tamanio ?? "Estándar")">@(item.Tamanio ?? "Estándar")</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    }
-                </div>
+                        }
+                    </div>
+                }
             </div>
 
         </div>
@@ -223,6 +241,17 @@
         0% { transform: scale(1); }
         50% { transform: scale(1.08); }
         100% { transform: scale(1); }
+    }
+    .gallery-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.25rem;
+        padding-right: 0.5rem;
+    }
+    @@media (max-width: 768px) {
+        .gallery-grid {
+            grid-template-columns: 1fr;
+        }
     }
     .gallery-scroll::-webkit-scrollbar {
         width: 6px;
@@ -241,356 +270,34 @@
 </style>
 
 @section Scripts {
-    <script type="module" src="~/js/face-tracking.js"></script>
     <script>
-        // Embed the products JSON safely with overlay calibration and variant pricing
-        const productsData = @Html.Raw(JsonSerializer.Serialize(allProductsList.Select(p => new {
-            id = p.Id,
-            nombre = p.Nombre,
-            color = p.Color ?? "Estándar",
-            estilo = p.Estilo ?? "No especificado",
-            tamanio = p.Tamanio ?? "No especificado",
-            precio = p.Precio,
-            precioDescuento = p.PrecioDescuento,
-            precioStr = p.PrecioDescuento.HasValue && p.PrecioDescuento < p.Precio 
-                ? p.PrecioDescuento.Value.ToString("C") 
-                : p.Precio.ToString("C"),
-            precioRegularStr = p.Precio.ToString("C"),
-            descuentoPorcentaje = p.GetDiscountPercentage(),
-            hasDiscount = p.PrecioDescuento.HasValue && p.PrecioDescuento < p.Precio,
-            descripcion = p.Descripcion ?? "Excelente diseño y materiales de alta calidad, seleccionados para garantizar tu bienestar visual.",
-            imagenUrl = p.ImagenUrl ?? "",
-            imagenOverlayUrl = p.ImagenOverlayUrl ?? "",
-            hasStock = p.HasStock(1),
-            escalaOverlay = p.EscalaOverlay,
-            offsetXOverlay = p.OffsetXOverlay,
-            offsetYOverlay = p.OffsetYOverlay
-        })));
-
-        let currentSelectedId = @defaultId;
-        let cameraStream = null;
-
-        // Wait for window.faceTracking to be defined and assigned
-        function ensureFaceTracking() {
-            if (window.faceTracking) return Promise.resolve(window.faceTracking);
-            return new Promise(resolve => {
-                window.addEventListener('faceTrackingModuleLoaded', () => {
-                    resolve(window.faceTracking);
-                }, { once: true });
-            });
-        }
-
-        // Initialize display with default/preselected product (WITHOUT downloading MediaPipe on page load)
-        document.addEventListener('DOMContentLoaded', () => {
-            if (currentSelectedId !== 0) {
-                selectProduct(currentSelectedId);
-            }
-        });
-
-        // Function to select product/variant in gallery or variant chips
-        function selectProduct(id) {
-            const product = productsData.find(p => p.id === id);
-            if (!product) return;
-
-            currentSelectedId = id;
-            const lang = typeof getCurrentLang === 'function' ? getCurrentLang() : 'es';
-            const translate = typeof translateProductText === 'function' ? translateProductText : (t => t);
-
-            // Update container and canvas data attributes for maintainability
-            const previewContainer = document.getElementById('cameraPreviewContainer');
-            if (previewContainer) {
-                previewContainer.setAttribute('data-escala', product.escalaOverlay);
-                previewContainer.setAttribute('data-offset-x', product.offsetXOverlay);
-                previewContainer.setAttribute('data-offset-y', product.offsetYOverlay);
-            }
-            const canvasEl = document.getElementById('webcamCanvas');
-            if (canvasEl) {
-                canvasEl.setAttribute('data-escala', product.escalaOverlay);
-                canvasEl.setAttribute('data-offset-x', product.offsetXOverlay);
-                canvasEl.setAttribute('data-offset-y', product.offsetYOverlay);
-            }
-
-            // Remove highlighted borders in gallery
-            productsData.forEach(p => {
-                const card = document.getElementById('product-card-' + p.id);
-                if (card) {
-                    card.style.borderColor = 'var(--gray-100)';
-                    card.style.boxShadow = 'var(--shadow-sm)';
-                }
-            });
-
-            // Highlight new selected
-            const selectedCard = document.getElementById('product-card-' + id);
-            if (selectedCard) {
-                selectedCard.style.borderColor = 'var(--purple-600)';
-                selectedCard.style.boxShadow = 'var(--shadow-lg)';
-            }
-
-            // Update details card on the left
-            document.getElementById('selectedName').textContent = translate(product.nombre, lang);
-            document.getElementById('selectedColor').textContent = translate(product.color, lang);
-            document.getElementById('selectedStyle').textContent = translate(product.estilo, lang);
-            document.getElementById('selectedSize').textContent = translate(product.tamanio, lang);
-            document.getElementById('selectedDesc').textContent = translate(product.descripcion, lang);
-
-            // Price by variant: update real-time without reloading
-            const priceEl = document.getElementById('selectedPrice');
-            const discountRow = document.getElementById('selectedDiscountRow');
-            const regularPriceEl = document.getElementById('selectedRegularPrice');
-            const discountBadgeEl = document.getElementById('selectedDiscountBadge');
-
-            if (priceEl) {
-                priceEl.textContent = product.precioStr;
-                // Micro-animación visual para feedback instantáneo de precio
-                priceEl.style.transform = 'scale(1.08)';
-                setTimeout(() => { priceEl.style.transform = 'scale(1)'; }, 200);
-            }
-
-            if (product.hasDiscount) {
-                if (regularPriceEl) regularPriceEl.textContent = product.precioRegularStr;
-                if (discountBadgeEl) discountBadgeEl.textContent = `-${product.descuentoPorcentaje}%`;
-                if (discountRow) discountRow.style.display = 'flex';
-            } else {
-                if (discountRow) discountRow.style.display = 'none';
-            }
-
-            // Variants / Colors quick chips: group by style or offer related frames
-            const variantsSection = document.getElementById('variantsSection');
-            const variantsList = document.getElementById('variantsList');
-            if (variantsSection && variantsList) {
-                // Find products with similar style or frames to offer variants
-                const relatedVariants = productsData.filter(p => p.estilo === product.estilo || p.id === product.id);
-                if (relatedVariants.length > 1) {
-                    variantsSection.style.display = 'block';
-                    variantsList.innerHTML = '';
-                    relatedVariants.forEach(v => {
-                        const chip = document.createElement('button');
-                        chip.type = 'button';
-                        chip.textContent = v.color || v.nombre;
-                        chip.title = `${v.nombre} - ${v.precioStr}`;
-                        const isCurrent = v.id === product.id;
-                        chip.style.cssText = `
-                            padding: 0.3rem 0.65rem;
-                            border-radius: 9999px;
-                            font-size: 0.75rem;
-                            font-weight: 600;
-                            cursor: pointer;
-                            border: 1.5px solid ${isCurrent ? 'var(--purple-600)' : 'var(--purple-200)'};
-                            background: ${isCurrent ? 'var(--purple-600)' : 'var(--purple-50)'};
-                            color: ${isCurrent ? 'white' : 'var(--purple-800)'};
-                            transition: all 0.15s;
-                        `;
-                        chip.onclick = () => selectProduct(v.id);
-                        variantsList.appendChild(chip);
-                    });
-                } else {
-                    variantsSection.style.display = 'none';
-                }
-            }
-
-            // Update AR availability notice & Try-On button state
-            const arNotice = document.getElementById('arUnavailableNotice');
-            const startBtn = document.getElementById('startCameraBtn');
-            const hasOverlay = Boolean(product.imagenOverlayUrl && product.imagenOverlayUrl.trim() !== '');
-
-            if (arNotice) {
-                arNotice.style.display = hasOverlay ? 'none' : 'flex';
-            }
-
-            if (startBtn) {
-                if (hasOverlay) {
-                    startBtn.disabled = false;
-                    startBtn.style.opacity = '1';
-                    startBtn.style.cursor = 'pointer';
-                    startBtn.textContent = 'Activar Cámara 📸';
-                } else {
-                    startBtn.disabled = true;
-                    startBtn.style.opacity = '0.6';
-                    startBtn.style.cursor = 'not-allowed';
-                    startBtn.textContent = 'Previsualización no disponible para esta montura';
-                }
-            }
-
-            // Update Add to Cart Button state
-            const cartBtn = document.getElementById('selectedAddToCartBtn');
-            if (cartBtn) {
-                if (product.hasStock) {
-                    cartBtn.disabled = false;
-                    cartBtn.style.opacity = '1';
-                    cartBtn.style.cursor = 'pointer';
-                    cartBtn.textContent = lang === 'en' ? '🛒 Add to Cart' : '🛒 Agregar al Carrito';
-                } else {
-                    cartBtn.disabled = true;
-                    cartBtn.style.opacity = '0.5';
-                    cartBtn.style.cursor = 'not-allowed';
-                    cartBtn.textContent = lang === 'en' ? 'Sold Out' : 'Agotado';
-                }
-            }
-
-            // Update frame overlay dynamically in real-time if faceTracking is active
-            if (window.faceTracking) {
-                window.faceTracking.cambiarMontura(product.imagenOverlayUrl, {
-                    escala: product.escalaOverlay,
-                    offsetX: product.offsetXOverlay,
-                    offsetY: product.offsetYOverlay
-                });
-            }
-        }
-
-        // Listen for global language switch events
-        window.addEventListener('languageChanged', () => {
-            if (currentSelectedId) {
-                selectProduct(currentSelectedId);
-            }
-        });
-
-        // Add selected to cart
-        function addSelectedToCart() {
-            addToCart(currentSelectedId);
-        }
-
-        // Camera Activation with Lazy Load, Low Resolution and Strict Compatibility Checks
-        async function startCamera() {
-            const placeholder = document.getElementById('cameraPlaceholder');
-            const video = document.getElementById('webcamVideo');
-            const errorContainer = document.getElementById('cameraError');
-            const controls = document.getElementById('cameraControls');
-            const canvas = document.getElementById('webcamCanvas');
-            const startBtn = document.getElementById('startCameraBtn');
-
-            errorContainer.style.display = 'none';
-
-            // 1. Validaciones previas de compatibilidad (HTTPS, getUserMedia, WebAssembly)
-            const trackingModule = await ensureFaceTracking();
-            if (trackingModule.validarCompatibilidad) {
-                const check = trackingModule.validarCompatibilidad();
-                if (!check.compatible) {
-                    showCameraError(check.mensaje, 'Incompatibilidad de Sistema');
-                    return;
-                }
-            } else if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                showCameraError('Tu navegador no soporta el acceso a la cámara mediante WebRTC. Por favor utiliza un navegador moderno como Chrome, Safari, Firefox o Edge.', 'Navegador no compatible');
-                return;
-            }
-
-            // Verificar si el producto actual tiene overlay disponible
-            const product = productsData.find(p => p.id === currentSelectedId);
-            if (!product || !product.imagenOverlayUrl) {
-                showCameraError('Esta montura no dispone de una imagen de previsualización AR.', 'Montura sin previsualización');
-                return;
-            }
-
-            if (startBtn) {
-                startBtn.disabled = true;
-                startBtn.textContent = 'Iniciando cámara y AR... ⏳';
-            }
-
-            try {
-                // 2. Reducción de resolución a 640x480 para celulares de gama baja
-                cameraStream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: "user",
-                        width: { ideal: 640, max: 640 },
-                        height: { ideal: 480, max: 480 },
-                        frameRate: { ideal: 30, max: 30 }
-                    } 
-                });
-
-                video.srcObject = cameraStream;
-                await video.play();
-
-                video.style.display = 'block';
-                placeholder.style.display = 'none';
-                controls.style.display = 'block';
-
-                // 3. Lazy Load real del modelo MediaPipe solo al activar la cámara
-                try {
-                    const tracking = await ensureFaceTracking();
-                    if (!tracking.isReady()) {
-                        await tracking.init();
-                    }
-                    
-                    // Configurar montura con valores calibrados del modelo
-                    tracking.cambiarMontura(product.imagenOverlayUrl, {
-                        escala: product.escalaOverlay,
-                        offsetX: product.offsetXOverlay,
-                        offsetY: product.offsetYOverlay
-                    });
-
-                    tracking.iniciarDeteccion(video, canvas);
-                    canvas.style.display = 'block';
-                } catch (trackErr) {
-                    console.error("Error al inicializar detector facial:", trackErr);
-                    stopCamera();
-                    showCameraError('No se pudo inicializar el modelo de reconocimiento facial. Por favor verifica tu conexión a internet y vuelve a intentar.', 'Error en Reconocimiento Facial');
-                }
-            } catch (err) {
-                console.error("Error al acceder a la cámara:", err);
-                if (startBtn) {
-                    startBtn.disabled = false;
-                    startBtn.textContent = 'Activar Cámara 📸';
-                }
-
-                if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                    showCameraError('Permiso de cámara denegado. Haz clic en el ícono de permisos/candado en la barra de direcciones de tu navegador y autoriza el acceso.', 'Permiso Denegado');
-                } else if (err.name === 'NotFoundError' || err.name === 'DevicesNotFoundError') {
-                    showCameraError('No se detectó ninguna cámara disponible en tu dispositivo.', 'Cámara no Encontrada');
-                } else if (err.name === 'NotReadableError' || err.name === 'TrackStartError') {
-                    showCameraError('La cámara está siendo utilizada por otra aplicación. Por favor cierra otras apps que usen la cámara y reintenta.', 'Cámara Ocupada');
-                } else {
-                    showCameraError('Ocurrió un inconveniente al conectar con la cámara: ' + (err.message || 'Error desconocido'), 'Error de Conexión');
-                }
-            }
-        }
-
-        function stopCamera() {
-            const placeholder = document.getElementById('cameraPlaceholder');
-            const video = document.getElementById('webcamVideo');
-            const controls = document.getElementById('cameraControls');
-            const canvas = document.getElementById('webcamCanvas');
-            const startBtn = document.getElementById('startCameraBtn');
-
-            if (window.faceTracking) {
-                window.faceTracking.detenerDeteccion();
-            }
-
-            if (canvas) {
-                canvas.style.display = 'none';
-            }
-
-            if (cameraStream) {
-                cameraStream.getTracks().forEach(track => track.stop());
-                cameraStream = null;
-            }
-
-            video.srcObject = null;
-            video.style.display = 'none';
-            placeholder.style.display = 'flex';
-            controls.style.display = 'none';
-
-            if (startBtn) {
-                startBtn.disabled = false;
-                startBtn.textContent = 'Activar Cámara 📸';
-            }
-        }
-
-        function showCameraError(msg, title = 'Acceso a Cámara no Disponible') {
-            const errTitle = document.getElementById('cameraErrorTitle');
-            const errMsg = document.getElementById('cameraErrorMessage');
-            if (errTitle) errTitle.textContent = title;
-            if (errMsg) errMsg.textContent = msg;
-            document.getElementById('cameraError').style.display = 'flex';
-
-            const startBtn = document.getElementById('startCameraBtn');
-            if (startBtn) {
-                startBtn.disabled = false;
-                startBtn.textContent = 'Activar Cámara 📸';
-            }
-        }
-
-        function retryCamera() {
-            document.getElementById('cameraError').style.display = 'none';
-            startCamera();
-        }
+        window.MONTURA_DATA = {
+            products: @Html.Raw(JsonSerializer.Serialize(allProductsList.Select(p => new {
+                id = p.Id,
+                nombre = p.Nombre,
+                color = p.Color ?? "Estándar",
+                estilo = p.Estilo ?? "No especificado",
+                tamanio = p.Tamanio ?? "No especificado",
+                precio = p.Precio,
+                precioDescuento = p.PrecioDescuento,
+                precioStr = p.PrecioDescuento.HasValue && p.PrecioDescuento < p.Precio 
+                    ? p.PrecioDescuento.Value.ToString("C") 
+                    : p.Precio.ToString("C"),
+                precioRegularStr = p.Precio.ToString("C"),
+                descuentoPorcentaje = p.GetDiscountPercentage(),
+                hasDiscount = p.PrecioDescuento.HasValue && p.PrecioDescuento < p.Precio,
+                descripcion = p.Descripcion ?? "Excelente diseño y materiales de alta calidad, seleccionados para garantizar tu bienestar visual.",
+                imagenUrl = p.ImagenUrl ?? "",
+                imagenOverlayUrl = p.ImagenOverlayUrl ?? "",
+                hasStock = p.HasStock(1),
+                escalaOverlay = p.EscalaOverlay,
+                offsetXOverlay = p.OffsetXOverlay,
+                offsetYOverlay = p.OffsetYOverlay
+            }))),
+            defaultId: @defaultId,
+            spriteUrl: '@Url.Content("~/img/icons/sprite.svg")'
+        };
     </script>
+    <script src="~/js/muestra-montura.js" asp-append-version="true"></script>
+    <script type="module" src="~/js/face-tracking.js"></script>
 }

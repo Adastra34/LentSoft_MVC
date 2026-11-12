@@ -92,6 +92,7 @@ builder.Services.AddSingleton<ISaleConfirmationTokenService, SaleConfirmationTok
 builder.Services.AddScoped<IEmailService, EmailService>();
 builder.Services.AddScoped<IChatAgentService, ChatAgentService>();
 builder.Services.AddScoped<IMobileJwtService, MobileJwtService>();
+builder.Services.AddScoped<IVentasService, VentasService>();
 
 // ── Authentication (Cookie-based for Web, JWT Bearer for Mobile API) ──
 var mobileJwtSettings = builder.Configuration.GetSection("MobileJwt");
@@ -165,7 +166,15 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStaticFiles();
+
+var contentTypeProvider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
+contentTypeProvider.Mappings[".wasm"] = "application/wasm";
+contentTypeProvider.Mappings[".task"] = "application/octet-stream";
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    ContentTypeProvider = contentTypeProvider
+});
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
