@@ -1,6 +1,7 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using Microsoft.Extensions.Hosting;
 using Microsoft.IdentityModel.Tokens;
 
 namespace LentSoft.Web.Services;
@@ -8,16 +9,36 @@ namespace LentSoft.Web.Services;
 public class SaleConfirmationTokenService : ISaleConfirmationTokenService
 {
     private readonly IConfiguration _configuration;
+    private readonly IHostEnvironment _environment;
 
-    public SaleConfirmationTokenService(IConfiguration configuration)
+    public SaleConfirmationTokenService(IConfiguration configuration, IHostEnvironment environment)
     {
         _configuration = configuration;
+        _environment = environment;
+    }
+
+    private string GetValidatedSecretKey()
+    {
+        var jwtSettings = _configuration.GetSection("SaleConfirmationJwt");
+        var secretKey = jwtSettings["SecretKey"];
+
+        if (string.IsNullOrWhiteSpace(secretKey))
+        {
+            throw new InvalidOperationException("La clave secreta para SaleConfirmationJwt no está configurada.");
+        }
+
+        if (secretKey.StartsWith("dev-", StringComparison.OrdinalIgnoreCase) && !_environment.IsDevelopment())
+        {
+            throw new InvalidOperationException("Error de configuración de seguridad: la clave secreta de confirmación de venta ('SaleConfirmationJwt:SecretKey') no puede usar el prefijo de desarrollo 'dev-' en un entorno de producción o pruebas.");
+        }
+
+        return secretKey;
     }
 
     public string GenerateToken(int saleId)
     {
         var jwtSettings = _configuration.GetSection("SaleConfirmationJwt");
-        var secretKey = jwtSettings["SecretKey"]!;
+        var secretKey = GetValidatedSecretKey();
         var issuer = jwtSettings["Issuer"]!;
         var audience = jwtSettings["Audience"]!;
         var expirationMinutes = int.Parse(jwtSettings["ExpirationMinutes"] ?? "4320");
@@ -46,7 +67,7 @@ public class SaleConfirmationTokenService : ISaleConfirmationTokenService
     public int? ValidateToken(string token)
     {
         var jwtSettings = _configuration.GetSection("SaleConfirmationJwt");
-        var secretKey = jwtSettings["SecretKey"]!;
+        var secretKey = GetValidatedSecretKey();
         var issuer = jwtSettings["Issuer"]!;
         var audience = jwtSettings["Audience"]!;
 

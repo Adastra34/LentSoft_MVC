@@ -42,45 +42,95 @@ public class PagoVentaService : IPagoVentaService
             throw new InvalidOperationException($"El monto del abono (${monto:N2}) supera el saldo pendiente (${saldoActual:N2}).");
         }
 
-        // Generar Número de Comprobante único REC-YYYY-XXXX
+        // Generar Número de Comprobante único REC-YYYY-XXXX (mayor consecutivo + 1 con reintento)
         var year = DateTime.UtcNow.Year;
-        var count = (await _context.PagosVentas.CountAsync()) + 1;
-        var candidate = $"REC-{year}-{count:D4}";
+        var prefix = $"REC-{year}-";
+        const int maxIntentos = 5;
 
-        while (await _context.PagosVentas.AnyAsync(p => p.NumeroComprobante == candidate))
+        for (int intento = 1; intento <= maxIntentos; intento++)
         {
-            count++;
-            candidate = $"REC-{year}-{count:D4}";
+            var hasExternalTx = _context.Database.CurrentTransaction != null;
+            var transaction = hasExternalTx ? null : await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                var recibosDelAnio = await _context.PagosVentas
+                    .Where(p => p.NumeroComprobante.StartsWith(prefix))
+                    .Select(p => p.NumeroComprobante)
+                    .ToListAsync();
+
+                int maxConsecutivo = 0;
+                foreach (var rec in recibosDelAnio)
+                {
+                    var match = System.Text.RegularExpressions.Regex.Match(rec, @"(\d+)$");
+                    if (match.Success && int.TryParse(match.Value, out int seq))
+                    {
+                        if (seq > maxConsecutivo) maxConsecutivo = seq;
+                    }
+                }
+
+                int siguiente = maxConsecutivo + 1;
+                var candidate = $"REC-{year}-{siguiente:D4}";
+
+                var pago = new PagoVenta
+                {
+                    VentaId = ventaId,
+                    Monto = Math.Round(monto, 2),
+                    MetodoPago = string.IsNullOrWhiteSpace(metodoPago) ? "Efectivo" : metodoPago,
+                    Responsable = string.IsNullOrWhiteSpace(responsable) ? "Ventas" : responsable,
+                    FechaPago = DateTime.UtcNow,
+                    NumeroComprobante = candidate
+                };
+
+                _context.PagosVentas.Add(pago);
+
+                // Actualizar datos calculados en Order
+                var nuevoTotalAbonado = totalAbonadoActual + pago.Monto;
+                order.MontoPagado = nuevoTotalAbonado;
+
+                if (nuevoTotalAbonado >= order.Total)
+                {
+                    order.EstadoPago = "pagado";
+                    order.Estado = "pagado";
+                }
+                else
+                {
+                    order.EstadoPago = "abonado";
+                }
+
+                await _context.SaveChangesAsync();
+
+                if (transaction != null)
+                {
+                    await transaction.CommitAsync();
+                }
+
+                return pago;
+            }
+            catch (DbUpdateException ex)
+            {
+                if (transaction != null)
+                {
+                    await transaction.RollbackAsync();
+                }
+
+                if (intento >= maxIntentos)
+                {
+                    throw new InvalidOperationException("No se pudo generar un número de comprobante único para el abono tras múltiples intentos por concurrencia.", ex);
+                }
+
+                await Task.Delay(50 * intento);
+            }
+            finally
+            {
+                if (transaction != null)
+                {
+                    await transaction.DisposeAsync();
+                }
+            }
         }
 
-        var pago = new PagoVenta
-        {
-            VentaId = ventaId,
-            Monto = Math.Round(monto, 2),
-            MetodoPago = string.IsNullOrWhiteSpace(metodoPago) ? "Efectivo" : metodoPago,
-            Responsable = string.IsNullOrWhiteSpace(responsable) ? "Ventas" : responsable,
-            FechaPago = DateTime.UtcNow,
-            NumeroComprobante = candidate
-        };
-
-        _context.PagosVentas.Add(pago);
-
-        // Actualizar datos calculados en Order
-        var nuevoTotalAbonado = totalAbonadoActual + pago.Monto;
-        order.MontoPagado = nuevoTotalAbonado;
-
-        if (nuevoTotalAbonado >= order.Total)
-        {
-            order.EstadoPago = "pagado";
-            order.Estado = "pagado";
-        }
-        else
-        {
-            order.EstadoPago = "abonado";
-        }
-
-        await _context.SaveChangesAsync();
-        return pago;
+        throw new InvalidOperationException("Error inesperado al registrar el comprobante de abono.");
     }
 
     public async Task<List<PagoVenta>> ObtenerAbonosPorVentaAsync(int ventaId)

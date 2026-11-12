@@ -1,3 +1,6 @@
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.EntityFrameworkCore;
 using LentSoft.Web.Data;
 using LentSoft.Web.Models.Entities;
@@ -7,10 +10,12 @@ namespace LentSoft.Web.Services;
 public class InvoiceService : IInvoiceService
 {
     private readonly LentSoftDbContext _context;
+    private readonly IConfiguration? _configuration;
 
-    public InvoiceService(LentSoftDbContext context)
+    public InvoiceService(LentSoftDbContext context, IConfiguration? configuration = null)
     {
         _context = context;
+        _configuration = configuration;
     }
 
     public async Task<(List<Invoice> Items, int TotalCount)> GetAllAsync(string? searchTerm, int page, int pageSize)
@@ -66,24 +71,29 @@ public class InvoiceService : IInvoiceService
 
     public async Task<Invoice> CreateAsync(Invoice invoice)
     {
-        // 1. Evitar doble facturación (validación anti-doble factura)
+        // 1. Evitar doble facturación (validación anti-doble factura con factura activa)
         var facturaExistente = await _context.Invoices
-            .FirstOrDefaultAsync(i => i.OrderId == invoice.OrderId && i.Activo);
+            .FirstOrDefaultAsync(i => i.OrderId == invoice.OrderId && i.Activo && i.Estado != "cancelada");
 
         if (facturaExistente != null)
         {
             throw new InvalidOperationException($"El pedido #ORD-{invoice.OrderId:D4} ya cuenta con una factura activa ({facturaExistente.NumeroFactura}).");
         }
 
-        // 2. Cargar pedido asociado
+        // 2. Cargar pedido asociado y validar su estado
         var order = await _context.Orders
             .Include(o => o.OrderItems).ThenInclude(oi => oi.Product)
             .Include(o => o.Pagos)
             .FirstOrDefaultAsync(o => o.Id == invoice.OrderId);
 
-        if (order == null)
+        if (order == null || !order.Activo)
         {
-            throw new KeyNotFoundException($"No se encontró la orden #{invoice.OrderId} para la factura.");
+            throw new KeyNotFoundException($"No se encontró la orden activa #{invoice.OrderId} para la factura.");
+        }
+
+        if (string.Equals(order.Estado, "cancelado", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException($"No se puede emitir una factura sobre el pedido #ORD-{order.Id:D4} porque se encuentra cancelado.");
         }
 
         // 3. Fijar método de pago desde la venta original
@@ -92,76 +102,60 @@ public class InvoiceService : IInvoiceService
             invoice.MetodoPago = order.MetodoPagoSimulado;
         }
 
-        // 4. Calcular estado real automáticamente según el saldo del pedido (Requisito 2)
+        // 4. Calcular estado real automáticamente según el saldo del pedido
         invoice.Estado = CalcularEstadoSegunPedido(order, invoice.Estado);
 
-        // 5. Garantizar número de factura único predeterminado (DIAN)
-        var year = DateTime.UtcNow.Year;
-        var count = (await _context.Invoices.CountAsync()) + 1;
-        var candidate = $"FAC-{year}-{count:D4}";
+        // 5. Lectura de configuración DIAN desde IConfiguration (sección Facturacion) con respaldo
+        var resolucionDian = _configuration?["Facturacion:ResolucionDianNumero"] ?? "18764028920000";
+        var rangoDesde = _configuration?["Facturacion:RangoAutorizadoDesde"] ?? "FAC-2026-0001";
+        var rangoHasta = _configuration?["Facturacion:RangoAutorizadoHasta"] ?? "FAC-2026-9999";
+        var nitEmisor = _configuration?["Facturacion:NitEmisor"] ?? "9001234567";
 
-        while (await _context.Invoices.AnyAsync(i => i.NumeroFactura == candidate))
+        invoice.ResolucionDianNumero = string.IsNullOrWhiteSpace(invoice.ResolucionDianNumero) || invoice.ResolucionDianNumero == "18764028920000"
+            ? resolucionDian
+            : invoice.ResolucionDianNumero;
+
+        invoice.RangoAutorizadoDesde = string.IsNullOrWhiteSpace(invoice.RangoAutorizadoDesde) || invoice.RangoAutorizadoDesde == "FAC-2026-0001"
+            ? rangoDesde
+            : invoice.RangoAutorizadoDesde;
+
+        invoice.RangoAutorizadoHasta = string.IsNullOrWhiteSpace(invoice.RangoAutorizadoHasta) || invoice.RangoAutorizadoHasta == "FAC-2026-9999"
+            ? rangoHasta
+            : invoice.RangoAutorizadoHasta;
+
+        // Extraer límite superior del rango autorizado para validación
+        int maxAutorizado = ExtraerConsecutivoDeNumero(invoice.RangoAutorizadoHasta);
+
+        // 6. Cálculo obligatorio y exacto de Subtotal e IVA por cada ítem usando PorcentajeIva
+        decimal calcSubtotal = 0m;
+        decimal calcImpuestos = 0m;
+
+        if (order.OrderItems != null && order.OrderItems.Any())
         {
-            count++;
-            candidate = $"FAC-{year}-{count:D4}";
-        }
-        invoice.NumeroFactura = candidate;
-
-        // Auto-calcular montos (Subtotal e IVA discriminado por ítem)
-        if (invoice.Total == 0) invoice.Total = order.Total;
-
-        if (invoice.Subtotal == 0 || invoice.Impuestos == 0)
-        {
-            decimal calcSubtotal = 0;
-            decimal calcImpuestos = 0;
-
-            if (order.OrderItems != null && order.OrderItems.Any())
+            foreach (var item in order.OrderItems)
             {
-                foreach (var item in order.OrderItems)
-                {
-                    var rate = item.Product != null && item.Product.PorcentajeIva >= 0 ? item.Product.PorcentajeIva : 19.00m;
-                    var baseUnit = rate > 0 ? (item.PrecioUnitario / (1m + (rate / 100m))) : item.PrecioUnitario;
-                    var itemBaseTotal = baseUnit * item.Cantidad;
-                    var itemIvaTotal = item.Subtotal - itemBaseTotal;
+                var rate = item.Product != null && item.Product.PorcentajeIva >= 0 ? item.Product.PorcentajeIva : 19.00m;
+                var baseUnit = rate > 0 ? (item.PrecioUnitario / (1m + (rate / 100m))) : item.PrecioUnitario;
+                var itemBaseTotal = baseUnit * item.Cantidad;
+                var itemIvaTotal = (item.PrecioUnitario * item.Cantidad) - itemBaseTotal;
 
-                    calcSubtotal += itemBaseTotal;
-                    calcImpuestos += itemIvaTotal;
-                }
+                calcSubtotal += itemBaseTotal;
+                calcImpuestos += itemIvaTotal;
             }
-            else
-            {
-                calcSubtotal = Math.Round(invoice.Total / 1.19m, 2);
-                calcImpuestos = invoice.Total - calcSubtotal;
-            }
-
-            if (invoice.Subtotal == 0) invoice.Subtotal = Math.Round(calcSubtotal, 2);
-            if (invoice.Impuestos == 0) invoice.Impuestos = Math.Round(calcImpuestos, 2);
+        }
+        else
+        {
+            calcSubtotal = order.Total > 0 ? Math.Round(order.Total / 1.19m, 2) : 0m;
+            calcImpuestos = order.Total - calcSubtotal;
         }
 
-        if (string.IsNullOrWhiteSpace(invoice.ResolucionDianNumero))
-        {
-            invoice.ResolucionDianNumero = "18764028920000";
-        }
-        if (string.IsNullOrWhiteSpace(invoice.RangoAutorizadoDesde))
-        {
-            invoice.RangoAutorizadoDesde = "FAC-2026-0001";
-        }
-        if (string.IsNullOrWhiteSpace(invoice.RangoAutorizadoHasta))
-        {
-            invoice.RangoAutorizadoHasta = "FAC-2026-9999";
-        }
+        invoice.Subtotal = Math.Round(calcSubtotal, 2);
+        invoice.Impuestos = Math.Round(calcImpuestos, 2);
+        invoice.Total = order.Total;
 
         if (invoice.FechaEmision == default)
         {
             invoice.FechaEmision = DateTime.UtcNow;
-        }
-
-        // Generar CUFE determinístico DIAN
-        var rawCufe = $"{invoice.NumeroFactura}{invoice.FechaEmision:yyyyMMddHHmmss}{invoice.Total:F2}{invoice.Impuestos:F2}9001234567";
-        using (var sha = System.Security.Cryptography.SHA256.Create())
-        {
-            var hashBytes = sha.ComputeHash(System.Text.Encoding.UTF8.GetBytes(rawCufe));
-            invoice.CUFE = Convert.ToHexString(hashBytes).ToLower();
         }
 
         if (invoice.Estado == "pagada" && invoice.FechaPago == null)
@@ -169,17 +163,97 @@ public class InvoiceService : IInvoiceService
             invoice.FechaPago = DateTime.UtcNow;
         }
 
-        try
+        // 7. Generación de consecutivo único dentro de transacción con reintento si hay colisión
+        var year = DateTime.UtcNow.Year;
+        var prefix = $"FAC-{year}-";
+        const int maxIntentos = 5;
+
+        for (int intento = 1; intento <= maxIntentos; intento++)
         {
-            _context.Invoices.Add(invoice);
-            await _context.SaveChangesAsync();
-            return invoice;
+            var hasExternalTx = _context.Database.CurrentTransaction != null;
+            var transaction = hasExternalTx ? null : await _context.Database.BeginTransactionAsync();
+
+            try
+            {
+                // Consultar el mayor consecutivo del año actual
+                var facturasDelAnio = await _context.Invoices
+                    .Where(i => i.NumeroFactura.StartsWith(prefix))
+                    .Select(i => i.NumeroFactura)
+                    .ToListAsync();
+
+                int maxConsecutivoActual = 0;
+                foreach (var num in facturasDelAnio)
+                {
+                    int seq = ExtraerConsecutivoDeNumero(num);
+                    if (seq > maxConsecutivoActual)
+                    {
+                        maxConsecutivoActual = seq;
+                    }
+                }
+
+                int siguienteConsecutivo = maxConsecutivoActual + 1;
+
+                // Validar que el consecutivo no supere el rango autorizado
+                if (maxAutorizado > 0 && siguienteConsecutivo > maxAutorizado)
+                {
+                    throw new InvalidOperationException($"El consecutivo de facturación generado ({siguienteConsecutivo}) supera el límite autorizado por la DIAN en la resolución actual ({invoice.RangoAutorizadoHasta}). Solicite un nuevo rango a la DIAN.");
+                }
+
+                invoice.NumeroFactura = $"FAC-{year}-{siguienteConsecutivo:D4}";
+
+                // Generar CUFE determinístico DIAN usando NIT configurado
+                invoice.CUFE = GenerarCufe(invoice.NumeroFactura, invoice.FechaEmision, invoice.Total, invoice.Impuestos, nitEmisor);
+
+                _context.Invoices.Add(invoice);
+                await _context.SaveChangesAsync();
+
+                if (transaction != null)
+                {
+                    await transaction.CommitAsync();
+                }
+
+                return invoice;
+            }
+            catch (DbUpdateException ex)
+            {
+                if (transaction != null)
+                {
+                    await transaction.RollbackAsync();
+                }
+                _context.Entry(invoice).State = EntityState.Detached;
+
+                if (intento >= maxIntentos)
+                {
+                    throw new InvalidOperationException("No se pudo generar un número de factura único tras múltiples intentos debido a concurrencia. Intente nuevamente.", ex);
+                }
+
+                await Task.Delay(50 * intento);
+            }
+            finally
+            {
+                if (transaction != null)
+                {
+                    await transaction.DisposeAsync();
+                }
+            }
         }
-        catch (DbUpdateException ex)
-        {
-            var innerMsg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
-            throw new InvalidOperationException($"No se pudo crear la factura debido a una restricción de datos en la base de datos: {innerMsg}", ex);
-        }
+
+        throw new InvalidOperationException("Error inesperado al generar el consecutivo de la factura.");
+    }
+
+    public static string GenerarCufe(string numeroFactura, DateTime fechaEmision, decimal total, decimal impuestos, string nitEmisor)
+    {
+        var rawCufe = $"{numeroFactura}{fechaEmision:yyyyMMddHHmmss}{total:F2}{impuestos:F2}{nitEmisor}";
+        using var sha = SHA256.Create();
+        var hashBytes = sha.ComputeHash(Encoding.UTF8.GetBytes(rawCufe));
+        return Convert.ToHexString(hashBytes).ToLowerInvariant();
+    }
+
+    private static int ExtraerConsecutivoDeNumero(string? numero)
+    {
+        if (string.IsNullOrWhiteSpace(numero)) return 0;
+        var match = Regex.Match(numero, @"(\d+)$");
+        return match.Success && int.TryParse(match.Value, out int val) ? val : 0;
     }
 
     public async Task<Invoice?> UpdateAsync(Invoice invoice)
@@ -255,7 +329,8 @@ public class InvoiceService : IInvoiceService
     public async Task<List<Order>> GetOrdersAvailableForInvoicingAsync()
     {
         return await _context.Orders
-            .Where(o => o.Activo)
+            .Where(o => o.Activo && o.Estado != "cancelado")
+            .Where(o => !_context.Invoices.Any(i => i.OrderId == o.Id && i.Activo && i.Estado != "cancelada"))
             .Include(o => o.User)
             .OrderByDescending(o => o.FechaPedido)
             .ToListAsync();

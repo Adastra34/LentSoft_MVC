@@ -1,0 +1,37 @@
+@model LentSoft.Web.Models.ViewModels.DashboardVentasViewModel
+
+<h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem;" data-i18n="sales.general.title">Resumen Comercial</h1>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 2rem;">
+    <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--purple-600); background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+        <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.monthly">Ventas del Mes</p>
+        <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.VentasDelMes.ToString("C")</h3>
+    </div>
+
+    <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--info); background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+        <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.activeorders">Pedidos Activos</p>
+        <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.PedidosActivos</h3>
+    </div>
+
+    <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--success); background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+        <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.clients">Clientes Atendidos</p>
+        <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.ClientesAtendidos</h3>
+    </div>
+
+    <div class="card" style="padding: 1.25rem; border-left: 4px solid var(--warning); background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+        <p style="color: var(--gray-500); font-size: 0.85rem; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;" data-i18n="sales.general.averageticket">Ticket Promedio</p>
+        <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.TicketPromedio.ToString("C")</h3>
+    </div>
+</div>
+
+<div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2 style="color: var(--purple-800); font-size: 1.25rem; margin: 0;" data-i18n="sales.general.recentsales">Accesos Rápidos del Módulo</h2>
+        <a href="?section=ventas" style="background-color: var(--purple-600); color: white; padding: 0.4rem 0.9rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; text-decoration: none;">
+            Ver Todas las Ventas &rarr;
+        </a>
+    </div>
+    <p style="color: var(--gray-600); font-size: 0.9rem; line-height: 1.5; margin: 0;">
+        Bienvenido al módulo de ventas de LentSoft. Desde aquí puedes consultar indicadores comerciales en tiempo real, emitir pedidos con validación de stock y prescripción óptica, registrar abonos con recibos foliados y emitir facturas electrónicas avaladas con resolución DIAN y código CUFE.
+    </p>
+</div>

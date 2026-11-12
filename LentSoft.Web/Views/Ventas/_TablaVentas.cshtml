@@ -1,0 +1,95 @@
+@model LentSoft.Web.Models.ViewModels.DashboardVentasViewModel
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;" data-i18n="sales.management.title">Gestión de Ventas</h1>
+        <p style="color: var(--gray-500); font-size: 0.88rem; margin: 0.25rem 0 0 0;">Control de pedidos comerciales, pagos y trazabilidad óptica</p>
+    </div>
+    <button type="button" onclick="document.getElementById('modal-venta').style.display='flex'" 
+            style="background: linear-gradient(135deg, var(--purple-600), var(--purple-700)); color: white; border: none; padding: 0.65rem 1.35rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; box-shadow: 0 4px 6px rgba(109, 40, 217, 0.25); transition: all 0.2s ease;">
+        <span data-i18n="sales.btn.new">+ Registrar Nueva Venta</span>
+    </button>
+</div>
+
+<!-- Filtros Avanzados y Rápidos para ServerSide DataTables -->
+<div class="card" style="padding: 1.25rem; background: white; margin-bottom: 1.5rem; border-radius: 0.5rem; border-left: 4px solid var(--purple-600); box-shadow: var(--shadow-sm);">
+    <div style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
+        <div>
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--purple-900); display: block; margin-bottom: 0.25rem;">Filtro Rápido:</label>
+            <select id="dtFiltroRapido" class="form-input" style="padding: 0.45rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.85rem;" onchange="onFiltroRapidoChange(this.value)">
+                <option value="">-- Todos los Tiempos --</option>
+                <option value="hoy">Hoy</option>
+                <option value="semana">Esta Semana</option>
+                <option value="mes">Este Mes</option>
+                <option value="anio">Este Año</option>
+                <option value="personalizado">Rango Personalizado</option>
+            </select>
+        </div>
+
+        <div id="divDtFechaDesde" style="display: none;">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--purple-900); display: block; margin-bottom: 0.25rem;">Fecha Desde:</label>
+            <input type="date" id="dtFechaDesde" class="form-input" style="padding: 0.45rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.85rem;" />
+        </div>
+
+        <div id="divDtFechaHasta" style="display: none;">
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--purple-900); display: block; margin-bottom: 0.25rem;">Fecha Hasta:</label>
+            <input type="date" id="dtFechaHasta" class="form-input" style="padding: 0.45rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.85rem;" />
+        </div>
+
+        <div>
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--purple-900); display: block; margin-bottom: 0.25rem;">Estado Pedido:</label>
+            <select id="dtFiltroEstado" class="form-input" style="padding: 0.45rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.85rem;">
+                <option value="">-- Todos --</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="procesando">Procesando</option>
+                <option value="enviado">Enviado</option>
+                <option value="entregado">Entregado</option>
+                <option value="pagado">Pagado</option>
+                <option value="cancelado">Cancelado</option>
+            </select>
+        </div>
+
+        <div>
+            <label style="font-size: 0.8rem; font-weight: 700; color: var(--purple-900); display: block; margin-bottom: 0.25rem;">Estado Pago:</label>
+            <select id="dtFiltroEstadoPago" class="form-input" style="padding: 0.45rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); font-size: 0.85rem;">
+                <option value="">-- Todos --</option>
+                <option value="pagado">Pagado</option>
+                <option value="abonado">Abonado</option>
+                <option value="pendiente">Pendiente</option>
+            </select>
+        </div>
+
+        <div style="display: flex; gap: 0.5rem;">
+            <button type="button" onclick="aplicarFiltrosVentas()" style="background-color: var(--purple-600); color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; font-weight: 700; font-size: 0.85rem; cursor: pointer;">
+                🔍 Filtrar
+            </button>
+            <button type="button" onclick="limpiarFiltrosVentas()" style="background-color: var(--gray-100); color: var(--gray-700); border: 1px solid var(--gray-300); padding: 0.5rem 0.8rem; border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer;">
+                🔄 Limpiar
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla ServerSide DataTables -->
+<div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+    <div style="overflow-x: auto;">
+        <table id="tableVentasSales" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+            <thead>
+                <tr style="border-bottom: 2px solid var(--purple-200); color: var(--gray-600); background-color: var(--purple-50);">
+                    <th style="padding: 0.75rem;">Venta</th>
+                    <th style="padding: 0.75rem;">Cliente</th>
+                    <th style="padding: 0.75rem;">Fecha</th>
+                    <th style="padding: 0.75rem;">Total</th>
+                    <th style="padding: 0.75rem;">Abonado</th>
+                    <th style="padding: 0.75rem;">Saldo Pendiente</th>
+                    <th style="padding: 0.75rem;">Estado Pago</th>
+                    <th style="padding: 0.75rem;">Estado Orden</th>
+                    <th style="padding: 0.75rem; text-align: center;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Se llena vía AJAX ServerSide DataTables -->
+            </tbody>
+        </table>
+    </div>
+</div>

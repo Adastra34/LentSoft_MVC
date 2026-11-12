@@ -13,28 +13,38 @@ namespace LentSoft.Web.Controllers;
 public class VentasController : Controller
 {
     private readonly LentSoftDbContext _context;
+    private readonly IVentasService _ventasService;
     private readonly IInvoiceService _invoiceService;
     private readonly ISaleConfirmationTokenService _saleConfirmationTokenService;
     private readonly IPagoVentaService _pagoVentaService;
     private readonly IPdfReciboService _pdfReciboService;
     private readonly IPasarelaPagoService _pasarelaPagoService;
+    private readonly IEmailService _emailService;
+    private readonly ILogger<VentasController> _logger;
 
     public VentasController(
-        LentSoftDbContext context, 
-        IInvoiceService invoiceService, 
+        LentSoftDbContext context,
+        IVentasService ventasService,
+        IInvoiceService invoiceService,
         ISaleConfirmationTokenService saleConfirmationTokenService,
         IPagoVentaService pagoVentaService,
         IPdfReciboService pdfReciboService,
-        IPasarelaPagoService pasarelaPagoService)
+        IPasarelaPagoService pasarelaPagoService,
+        IEmailService emailService,
+        ILogger<VentasController> logger)
     {
         _context = context;
+        _ventasService = ventasService;
         _invoiceService = invoiceService;
         _saleConfirmationTokenService = saleConfirmationTokenService;
         _pagoVentaService = pagoVentaService;
         _pdfReciboService = pdfReciboService;
         _pasarelaPagoService = pasarelaPagoService;
+        _emailService = emailService;
+        _logger = logger;
     }
 
+    [HttpGet]
     public async Task<IActionResult> Index(
         string section = "general", 
         string subtab = "productos", 
@@ -48,58 +58,8 @@ public class VentasController : Controller
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var usuario = await _context.Users.FindAsync(userId);
 
-        var now = DateTime.UtcNow;
-        var inicioMes = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-
-        // ── Filtrado Backend por Fechas (Requisito 4) ──
-        DateTime? desde = fechaDesde;
-        DateTime? hasta = fechaHasta;
-
-        if (!string.IsNullOrWhiteSpace(filtroRapido))
-        {
-            switch (filtroRapido.ToLower())
-            {
-                case "hoy":
-                    desde = now.Date;
-                    hasta = now.Date.AddDays(1).AddTicks(-1);
-                    break;
-                case "semana":
-                    var diff = (int)now.DayOfWeek - (int)DayOfWeek.Monday;
-                    if (diff < 0) diff += 7;
-                    desde = now.Date.AddDays(-diff);
-                    hasta = now.Date.AddDays(1).AddTicks(-1);
-                    break;
-                case "mes":
-                    desde = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc);
-                    hasta = desde.Value.AddMonths(1).AddTicks(-1);
-                    break;
-                case "anio":
-                    desde = new DateTime(now.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-                    hasta = new DateTime(now.Year, 12, 31, 23, 59, 59, DateTimeKind.Utc);
-                    break;
-            }
-        }
-
-        var queryVentas = _context.Orders
-            .Include(o => o.User)
-            .Include(o => o.OrderItems).ThenInclude(oi => oi.Product)
-            .Include(o => o.Pagos)
-            .Include(o => o.Transacciones)
-            .Include(o => o.FormulaOptica)
-            .AsQueryable();
-
-        if (desde.HasValue)
-        {
-            queryVentas = queryVentas.Where(o => o.FechaPedido >= desde.Value);
-        }
-        if (hasta.HasValue)
-        {
-            queryVentas = queryVentas.Where(o => o.FechaPedido <= hasta.Value);
-        }
-
-        var ventas = await queryVentas
-            .OrderByDescending(o => o.FechaPedido)
-            .ToListAsync();
+        // Indicadores calculados mediante consultas agregadas desde VentasService
+        var indicadores = await _ventasService.ObtenerIndicadoresVentasAsync();
 
         var (facturasList, facturasTotalCount) = await _invoiceService.GetAllAsync(searchTerm, page, pageSize);
         var pedidosDisponibles = await _invoiceService.GetOrdersAvailableForInvoicingAsync();
@@ -107,7 +67,6 @@ public class VentasController : Controller
         var productos = await _context.Products
             .Where(p => p.Activo)
             .OrderBy(p => p.Nombre)
-            .Take(50)
             .ToListAsync();
 
         var clientes = await _context.Users
@@ -116,38 +75,24 @@ public class VentasController : Controller
             .ThenBy(u => u.Apellido)
             .ToListAsync();
 
-        var ventasDelMes = await _context.Orders
-            .Where(o => o.Activo && o.Estado != "cancelado" && o.FechaPedido >= inicioMes)
-            .SumAsync(o => (decimal?)o.Total) ?? 0;
-
-        var pedidosActivos = await _context.Orders
-            .Where(o => o.Activo && (o.Estado == "pendiente" || o.Estado == "procesando" || o.Estado == "enviado"))
-            .CountAsync();
-
-        var clientesAtendidos = await _context.Orders
-            .Where(o => o.Activo)
-            .Select(o => o.UserId)
-            .Distinct()
-            .CountAsync();
-
-        var totalVentasConteo = await _context.Orders
-            .Where(o => o.Activo && o.Estado != "cancelado")
-            .CountAsync();
-
-        var ticketPromedio = totalVentasConteo > 0 ? (ventasDelMes / totalVentasConteo) : 0;
-
         var pedidosVentas = await _context.SalesOrders
             .Where(o => o.Activo)
             .OrderByDescending(o => o.Fecha)
             .ToListAsync();
 
+        var historialMovimientos = await _context.InventoryMovements
+            .Include(m => m.Product)
+            .OrderByDescending(m => m.Fecha)
+            .Take(20)
+            .ToListAsync();
+
         var viewModel = new DashboardVentasViewModel
         {
-            VentasDelMes = ventasDelMes,
-            PedidosActivos = pedidosActivos,
-            ClientesAtendidos = clientesAtendidos,
-            TicketPromedio = ticketPromedio,
-            Ventas = ventas,
+            VentasDelMes = indicadores.VentasDelMes,
+            PedidosActivos = indicadores.PedidosActivos,
+            ClientesAtendidos = indicadores.ClientesAtendidos,
+            TicketPromedio = indicadores.TicketPromedio,
+            Ventas = new List<Order>(), // Index ya no carga ventas en memoria; DataTables serverSide se encarga
             FiltroFechaDesde = fechaDesde,
             FiltroFechaHasta = fechaHasta,
             FiltroRapido = filtroRapido,
@@ -159,7 +104,7 @@ public class VentasController : Controller
             PedidosDisponibles = pedidosDisponibles,
             Productos = productos,
             PedidosVentas = pedidosVentas,
-            HistorialMovimientos = await _context.InventoryMovements.Include(m => m.Product).OrderByDescending(m => m.Fecha).Take(20).ToListAsync(),
+            HistorialMovimientos = historialMovimientos,
             Clientes = clientes,
             UsuarioActual = usuario,
             ActiveSection = section,
@@ -169,54 +114,120 @@ public class VentasController : Controller
         return View("~/Views/Dashboard/Ventas.cshtml", viewModel);
     }
 
+    /// <summary>
+    /// Endpoint JSON serverSide para DataTables con paginación, filtros de fecha, estado y búsqueda
+    /// </summary>
+    [HttpGet]
+    public async Task<IActionResult> ListarVentas([FromQuery] VentasFilterRequest request)
+    {
+        try
+        {
+            var response = await _ventasService.ObtenerVentasDataTablesAsync(request);
+            return Json(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al procesar consulta serverSide de ventas para DataTables");
+            return Json(new DataTablesResponse<VentaDataTablesDto>
+            {
+                Draw = request.Draw,
+                RecordsTotal = 0,
+                RecordsFiltered = 0,
+                Data = new List<VentaDataTablesDto>()
+            });
+        }
+    }
+
+    /// <summary>
+    /// Registrar venta desde el módulo de Ventas con validación estricta de stock y transacción única
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RegistrarVenta(RegistrarVentaDto dto)
+    {
+        try
+        {
+            var responsable = User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "Ventas";
+            var order = await _ventasService.RegistrarVentaAsync(dto, responsable);
+
+            TempData["SuccessMessage"] = $"Venta #{order.Id} registrada exitosamente.";
+
+            // Envío opcional de correo de confirmación de venta si el cliente tiene correo corporativo o real
+            try
+            {
+                var cliente = await _context.Users.FindAsync(order.UserId);
+                if (cliente != null && !string.IsNullOrWhiteSpace(cliente.Email) && !cliente.Email.EndsWith("@cliente.com", StringComparison.OrdinalIgnoreCase))
+                {
+                    var token = _saleConfirmationTokenService.GenerateToken(order.Id);
+                    var scheme = Request.Scheme;
+                    var host = Request.Host;
+                    var confirmLink = $"{scheme}://{host}/Ventas/ConfirmarCompra?token={token}";
+                    await _emailService.SendSaleConfirmationEmailAsync(cliente.Email, order, confirmLink);
+                }
+            }
+            catch (Exception mailEx)
+            {
+                _logger.LogWarning(mailEx, "No se pudo enviar el correo de confirmación para el pedido #{OrderId}", order.Id);
+            }
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Parámetros inválidos al registrar venta");
+            TempData["ErrorMessage"] = ex.Message;
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Regla de negocio no satisfecha al registrar venta");
+            TempData["ErrorMessage"] = ex.Message;
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Entidad no encontrada al registrar venta");
+            TempData["ErrorMessage"] = ex.Message;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error inesperado al registrar la venta");
+            TempData["ErrorMessage"] = "Ocurrió un error al procesar la venta. Intente nuevamente.";
+        }
+
+        return RedirectToAction("Index", new { section = "ventas" });
+    }
+
+    /// <summary>
+    /// Cambiar estado del pedido respetando transiciones válidas y actualizando factura si se cancela
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> UpdateOrderStatus(int id, string estado)
     {
         try
         {
-            var order = await _context.Orders
-                .Include(o => o.Pagos)
-                .FirstOrDefaultAsync(o => o.Id == id);
-
-            if (order != null)
-            {
-                var estadoLower = estado?.ToLower();
-                var saldoPendiente = order.SaldoPendiente;
-
-                if (estadoLower == "pagado" && saldoPendiente > 0)
-                {
-                    TempData["ErrorMessage"] = $"No se puede marcar el pedido como 'Pagado' porque tiene un saldo pendiente de ${saldoPendiente:N0}. Registre el abono correspondiente.";
-                    return RedirectToAction("Index", new { section = "ventas" });
-                }
-
-                if (estadoLower == "cancelado" && order.Pagos != null && order.Pagos.Any())
-                {
-                    TempData["ErrorMessage"] = $"No se puede cancelar el pedido #ORD-{order.Id:D4} porque ya cuenta con abonos registrados (${order.Pagos.Sum(p => p.Monto):N0}). Por favor reverse o audite los abonos primero.";
-                    return RedirectToAction("Index", new { section = "ventas" });
-                }
-
-                order.Estado = estadoLower ?? order.Estado;
-                if (estadoLower == "pagado") order.EstadoPago = "pagado";
-                else if (estadoLower == "cancelado") order.EstadoPago = "cancelado";
-
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Estado del pedido actualizado correctamente.";
-            }
-            else
-            {
-                TempData["ErrorMessage"] = "Pedido no encontrado.";
-            }
+            await _ventasService.CambiarEstadoPedidoAsync(id, estado);
+            TempData["SuccessMessage"] = "Estado del pedido actualizado correctamente.";
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Transición de estado inválida para el pedido #{OrderId}: {Estado}", id, estado);
+            TempData["ErrorMessage"] = ex.Message;
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Pedido #{OrderId} no encontrado para actualizar estado", id);
+            TempData["ErrorMessage"] = ex.Message;
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al actualizar el estado del pedido: {ex.Message}";
+            _logger.LogError(ex, "Error inesperado al actualizar el estado del pedido #{OrderId}", id);
+            TempData["ErrorMessage"] = "Ocurrió un error al actualizar el estado del pedido. Intente nuevamente.";
         }
 
         return RedirectToAction("Index", new { section = "ventas" });
     }
 
-    // ── Endpoint Registrar Abono (Requisito 1) ──
+    /// <summary>
+    /// Registrar Abono con número de comprobante único y reintento ante colisión
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> RegistrarAbono(int ventaId, decimal monto, string metodoPago)
@@ -228,15 +239,33 @@ public class VentasController : Controller
 
             TempData["SuccessMessage"] = $"Abono de ${monto:N0} registrado correctamente. Comprobante N° {pago.NumeroComprobante}.";
         }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Monto inválido para abono en venta #{VentaId}", ventaId);
+            TempData["ErrorMessage"] = ex.Message;
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Validación de abono rechazada para venta #{VentaId}", ventaId);
+            TempData["ErrorMessage"] = ex.Message;
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Venta #{VentaId} no encontrada al abonar", ventaId);
+            TempData["ErrorMessage"] = ex.Message;
+        }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al registrar abono: {ex.Message}";
+            _logger.LogError(ex, "Error inesperado al registrar abono en venta #{VentaId}", ventaId);
+            TempData["ErrorMessage"] = "Ocurrió un error al registrar el abono. Intente nuevamente.";
         }
 
         return RedirectToAction("Index", new { section = "ventas" });
     }
 
-    // ── Endpoint Descargar Comprobante PDF (Requisito 1) ──
+    /// <summary>
+    /// Descargar comprobante PDF oficial de recibo de caja
+    /// </summary>
     [HttpGet]
     public async Task<IActionResult> DescargarComprobante(int pagoId)
     {
@@ -255,12 +284,15 @@ public class VentasController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al generar el comprobante PDF: {ex.Message}";
+            _logger.LogError(ex, "Error al generar el comprobante PDF para el pago #{PagoId}", pagoId);
+            TempData["ErrorMessage"] = "Error al generar el comprobante PDF del recibo de pago.";
             return RedirectToAction("Index", new { section = "ventas" });
         }
     }
 
-    // ── Endpoint Cobrar con Tarjeta de Crédito en Ventas (Requisito 3) ──
+    /// <summary>
+    /// Cobrar con tarjeta en Ventas validando existencia, saldo y guardando en transacción atómica
+    /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CobrarTarjeta(TarjetaPagoDTO dto)
@@ -268,6 +300,31 @@ public class VentasController : Controller
         try
         {
             dto.Responsable = User.FindFirstValue(ClaimTypes.Name) ?? User.Identity?.Name ?? "Vendedor";
+
+            // Validación previa en controlador antes de contactar pasarela
+            if (dto.VentaId.HasValue && dto.VentaId.Value > 0)
+            {
+                var venta = await _context.Orders.Include(o => o.Pagos).FirstOrDefaultAsync(o => o.Id == dto.VentaId.Value);
+                if (venta == null || !venta.Activo)
+                {
+                    TempData["ErrorMessage"] = "La venta especificada no existe o no se encuentra activa.";
+                    return RedirectToAction("Index", new { section = "ventas" });
+                }
+
+                if (string.Equals(venta.Estado, "cancelado", StringComparison.OrdinalIgnoreCase))
+                {
+                    TempData["ErrorMessage"] = "No es posible procesar pagos sobre una venta cancelada.";
+                    return RedirectToAction("Index", new { section = "ventas" });
+                }
+
+                var saldo = venta.SaldoPendiente;
+                if (dto.Monto > saldo)
+                {
+                    TempData["ErrorMessage"] = $"El monto a cobrar (${dto.Monto:N0}) supera el saldo pendiente (${saldo:N0}).";
+                    return RedirectToAction("Index", new { section = "ventas" });
+                }
+            }
+
             var resultado = await _pasarelaPagoService.ProcesarPagoTarjetaAsync(dto);
 
             if (resultado.Exitoso)
@@ -281,21 +338,21 @@ public class VentasController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error en procesamiento de cobro con tarjeta: {ex.Message}";
+            // NUNCA loguear número de tarjeta, CVV ni fecha de expiración
+            var ultimos4 = !string.IsNullOrWhiteSpace(dto.NumeroTarjeta) && dto.NumeroTarjeta.Length >= 4
+                ? dto.NumeroTarjeta[^4..]
+                : "desconocido";
+            _logger.LogError(ex, "Error inesperado al procesar cobro con tarjeta terminada en {UltimosDigitos}", ultimos4);
+            TempData["ErrorMessage"] = "Ocurrió un error al procesar el cobro con tarjeta. Intente nuevamente.";
         }
 
         return RedirectToAction("Index", new { section = "ventas" });
     }
 
-    // ── Endpoints Integración Fórmula Óptica - Ventas ──
     [HttpGet]
     public async Task<IActionResult> GetFormulasPorPaciente(int userId)
     {
-        var formulas = await _context.FormulasOpticas
-            .Where(f => f.UserId == userId && f.Activo)
-            .OrderByDescending(f => f.Fecha)
-            .ToListAsync();
-
+        var formulas = await _ventasService.ObtenerFormulasPorPacienteAsync(userId);
         var result = formulas.Select(f => new
         {
             id = f.Id,
@@ -313,47 +370,82 @@ public class VentasController : Controller
     {
         try
         {
-            var order = await _context.Orders.FirstOrDefaultAsync(o => o.Id == orderId);
-            if (order == null)
-            {
-                TempData["ErrorMessage"] = "Pedido no encontrado.";
-                return RedirectToAction("Index", new { section = "ventas" });
-            }
-
+            await _ventasService.VincularFormulaAsync(orderId, formulaOpticaId);
             if (formulaOpticaId.HasValue && formulaOpticaId.Value > 0)
             {
-                var formula = await _context.FormulasOpticas
-                    .FirstOrDefaultAsync(f => f.Id == formulaOpticaId.Value && f.Activo);
-
-                if (formula == null)
-                {
-                    TempData["ErrorMessage"] = "La fórmula óptica seleccionada no existe o está inactiva.";
-                    return RedirectToAction("Index", new { section = "ventas" });
-                }
-
-                if (formula.UserId != order.UserId)
-                {
-                    TempData["ErrorMessage"] = "La fórmula óptica no pertenece al paciente de este pedido.";
-                    return RedirectToAction("Index", new { section = "ventas" });
-                }
-
-                order.FormulaOpticaId = formulaOpticaId.Value;
-                TempData["SuccessMessage"] = $"Fórmula óptica #{formula.Id} vinculada correctamente al pedido #ORD-{order.Id:D4}.";
+                TempData["SuccessMessage"] = $"Fórmula óptica #{formulaOpticaId.Value} vinculada correctamente al pedido #ORD-{orderId:D4}.";
             }
             else
             {
-                order.FormulaOpticaId = null;
-                TempData["SuccessMessage"] = $"Fórmula óptica desvinculada del pedido #ORD-{order.Id:D4}.";
+                TempData["SuccessMessage"] = $"Fórmula óptica desvinculada del pedido #ORD-{orderId:D4}.";
             }
-
-            await _context.SaveChangesAsync();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Error de validación al vincular fórmula óptica al pedido #{OrderId}", orderId);
+            TempData["ErrorMessage"] = ex.Message;
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Pedido #{OrderId} no encontrado para vincular fórmula", orderId);
+            TempData["ErrorMessage"] = ex.Message;
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al vincular fórmula óptica: {ex.Message}";
+            _logger.LogError(ex, "Error inesperado al vincular fórmula óptica al pedido #{OrderId}", orderId);
+            TempData["ErrorMessage"] = "Ocurrió un error al vincular la fórmula óptica. Intente nuevamente.";
         }
 
         return RedirectToAction("Index", new { section = "ventas" });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetFormulaVigentePorCliente(int userId)
+    {
+        var formula = await _ventasService.ObtenerFormulaVigentePorClienteAsync(userId);
+        if (formula == null)
+        {
+            return Json(new { encontrado = false, message = "El cliente no tiene fórmulas ópticas registradas." });
+        }
+
+        bool esVigente = formula.Fecha.AddMonths(12).Date >= DateTime.UtcNow.Date;
+
+        return Json(new
+        {
+            encontrado = true,
+            esVigente = esVigente,
+            formula = new
+            {
+                id = formula.Id,
+                fecha = formula.Fecha.ToString("yyyy-MM-dd"),
+                fechaFormato = formula.Fecha.ToString("dd/MM/yyyy"),
+                esferaOD = formula.EsferaOD ?? "",
+                cilindroOD = formula.CilindroOD ?? "",
+                ejeOD = formula.EjeOD ?? "",
+                esferaOI = formula.EsferaOI ?? "",
+                cilindroOI = formula.CilindroOI ?? "",
+                ejeOI = formula.EjeOI ?? "",
+                tipoLente = formula.TipoLente ?? "",
+                distanciaPupilar = formula.DistanciaPupilar ?? "",
+                observaciones = formula.Observaciones ?? "",
+                estado = formula.Estado
+            }
+        });
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> ReporteProductosVendidos(DateTime? fechaInicio, DateTime? fechaFin)
+    {
+        try
+        {
+            var reporte = await _ventasService.ObtenerReporteProductosVendidosAsync(fechaInicio, fechaFin);
+            return Json(reporte);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al generar reporte de productos vendidos");
+            return StatusCode(500, new { error = "Ocurrió un error al generar el reporte de productos vendidos." });
+        }
     }
 
     [HttpGet]
@@ -392,46 +484,5 @@ public class VentasController : Controller
         viewModel.IsValid = true;
         viewModel.Order = order;
         return View("~/Views/Ventas/ConfirmarCompra.cshtml", viewModel);
-    }
-
-    /// <summary>
-    /// Requisito 3: Consulta de solo lectura de fórmula óptica vigente por cliente para el módulo de ventas
-    /// </summary>
-    [HttpGet]
-    public async Task<IActionResult> GetFormulaVigentePorCliente(int userId)
-    {
-        var formula = await _context.FormulasOpticas
-            .Where(f => f.UserId == userId && f.Activo)
-            .OrderByDescending(f => f.Fecha)
-            .FirstOrDefaultAsync();
-
-        if (formula == null)
-        {
-            return Json(new { encontrado = false, message = "El cliente no tiene fórmulas ópticas registradas." });
-        }
-
-        bool esVigente = formula.Fecha.AddMonths(12).Date >= DateTime.UtcNow.Date;
-
-        return Json(new
-        {
-            encontrado = true,
-            esVigente = esVigente,
-            formula = new
-            {
-                id = formula.Id,
-                fecha = formula.Fecha.ToString("yyyy-MM-dd"),
-                fechaFormato = formula.Fecha.ToString("dd/MM/yyyy"),
-                esferaOD = formula.EsferaOD ?? "",
-                cilindroOD = formula.CilindroOD ?? "",
-                ejeOD = formula.EjeOD ?? "",
-                esferaOI = formula.EsferaOI ?? "",
-                cilindroOI = formula.CilindroOI ?? "",
-                ejeOI = formula.EjeOI ?? "",
-                tipoLente = formula.TipoLente ?? "",
-                distanciaPupilar = formula.DistanciaPupilar ?? "",
-                observaciones = formula.Observaciones ?? "",
-                estado = formula.Estado
-            }
-        });
     }
 }

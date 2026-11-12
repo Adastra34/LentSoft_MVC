@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -9,8 +10,11 @@ namespace LentSoft.Web.Services;
 
 public class PdfInvoiceService : IPdfInvoiceService
 {
-    public PdfInvoiceService()
+    private readonly IConfiguration? _configuration;
+
+    public PdfInvoiceService(IConfiguration? configuration = null)
     {
+        _configuration = configuration;
         QuestPDF.Settings.License = LicenseType.Community;
     }
 
@@ -36,6 +40,17 @@ public class PdfInvoiceService : IPdfInvoiceService
 
     private void ComposeHeader(IContainer container, Invoice invoice)
     {
+        var nitEmisorDisplay = _configuration?["Facturacion:NitEmisorFormato"] ?? "900.123.456-7";
+        var resDian = !string.IsNullOrWhiteSpace(invoice.ResolucionDianNumero) && invoice.ResolucionDianNumero != "18764028920000"
+            ? invoice.ResolucionDianNumero
+            : (_configuration?["Facturacion:ResolucionDianNumero"] ?? invoice.ResolucionDianNumero ?? "18764028920000");
+        var rangoDesde = !string.IsNullOrWhiteSpace(invoice.RangoAutorizadoDesde) && invoice.RangoAutorizadoDesde != "FAC-2026-0001"
+            ? invoice.RangoAutorizadoDesde
+            : (_configuration?["Facturacion:RangoAutorizadoDesde"] ?? invoice.RangoAutorizadoDesde ?? "FAC-2026-0001");
+        var rangoHasta = !string.IsNullOrWhiteSpace(invoice.RangoAutorizadoHasta) && invoice.RangoAutorizadoHasta != "FAC-2026-9999"
+            ? invoice.RangoAutorizadoHasta
+            : (_configuration?["Facturacion:RangoAutorizadoHasta"] ?? invoice.RangoAutorizadoHasta ?? "FAC-2026-9999");
+
         container.Column(col =>
         {
             col.Item().Row(row =>
@@ -43,7 +58,7 @@ public class PdfInvoiceService : IPdfInvoiceService
                 row.RelativeItem().Column(column =>
                 {
                     column.Item().Text("LENTSOFT OPTOMETRÍA S.A.S.").FontSize(18).Bold().FontColor("#4C1D95");
-                    column.Item().Text("NIT: 900.123.456-7 | IVA Régimen Común").FontSize(9).Bold().FontColor("#374151");
+                    column.Item().Text($"NIT: {nitEmisorDisplay} | IVA Régimen Común").FontSize(9).Bold().FontColor("#374151");
                     column.Item().Text("Actividad Económica 4774 - Comercio al por menor de artículos ópticos").FontSize(8).FontColor("#6B7280");
                     column.Item().Text("Dirección: Calle Principal # 12-34, Bogotá D.C. - Colombia").FontSize(8).FontColor("#6B7280");
                     column.Item().Text("PBX: +57 (601) 555-0199 | Correo: facturacion@lentsoft.com").FontSize(8).FontColor("#6B7280");
@@ -78,9 +93,6 @@ public class PdfInvoiceService : IPdfInvoiceService
             });
 
             // Banner Resolución DIAN
-            var resDian = !string.IsNullOrWhiteSpace(invoice.ResolucionDianNumero) ? invoice.ResolucionDianNumero : "18764028920000";
-            var rangoDesde = !string.IsNullOrWhiteSpace(invoice.RangoAutorizadoDesde) ? invoice.RangoAutorizadoDesde : "FAC-2026-0001";
-            var rangoHasta = !string.IsNullOrWhiteSpace(invoice.RangoAutorizadoHasta) ? invoice.RangoAutorizadoHasta : "FAC-2026-9999";
             col.Item().PaddingTop(8).Background("#F3E8FF").Padding(4).AlignCenter().Text(x =>
             {
                 x.Span($"Autorización de Facturación DIAN Nº {resDian} ").Bold().FontSize(7.5f).FontColor("#4C1D95");
@@ -242,11 +254,12 @@ public class PdfInvoiceService : IPdfInvoiceService
 
     private string GenerateCufeHash(Invoice invoice)
     {
-        var rawData = $"{invoice.NumeroFactura}{invoice.FechaEmision:yyyyMMddHHmmss}{invoice.Total:F2}{invoice.Impuestos:F2}9001234567";
-        using var sha256 = SHA256.Create();
-        var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(rawData));
-        var sb = new StringBuilder();
-        foreach (var b in bytes) sb.Append(b.ToString("x2"));
-        return sb.ToString();
+        if (!string.IsNullOrWhiteSpace(invoice.CUFE))
+        {
+            return invoice.CUFE;
+        }
+
+        var nitEmisor = _configuration?["Facturacion:NitEmisor"] ?? "9001234567";
+        return InvoiceService.GenerarCufe(invoice.NumeroFactura, invoice.FechaEmision, invoice.Total, invoice.Impuestos, nitEmisor);
     }
 }
