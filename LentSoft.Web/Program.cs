@@ -128,6 +128,31 @@ builder.Services.AddAuthentication(options =>
         options.Cookie.HttpOnly = true;
         options.ExpireTimeSpan = TimeSpan.FromHours(24);
         options.SlidingExpiration = true;
+        options.Events = new CookieAuthenticationEvents
+        {
+            OnValidatePrincipal = async context =>
+            {
+                var userIdClaim = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!int.TryParse(userIdClaim, out var userId))
+                {
+                    return;
+                }
+
+                var db = context.HttpContext.RequestServices.GetRequiredService<LentSoftDbContext>();
+                var userState = await db.Users.AsNoTracking()
+                    .Where(u => u.Id == userId)
+                    .Select(u => new { u.Activo, u.Role })
+                    .FirstOrDefaultAsync();
+
+                var currentRoleClaim = context.Principal?.FindFirst(ClaimTypes.Role)?.Value;
+
+                if (userState == null || !userState.Activo || !string.Equals(userState.Role, currentRoleClaim, StringComparison.OrdinalIgnoreCase))
+                {
+                    context.RejectPrincipal();
+                    await context.HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+                }
+            }
+        };
     })
     .AddJwtBearer(JwtBearerDefaults.AuthenticationScheme, options =>
     {
