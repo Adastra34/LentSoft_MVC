@@ -123,7 +123,7 @@ builder.Services.AddAuthentication(options =>
     {
         options.LoginPath = "/Auth/Login";
         options.LogoutPath = "/Auth/Logout";
-        options.AccessDeniedPath = "/Auth/Login";
+        options.AccessDeniedPath = "/Auth/AccessDenied";
         options.Cookie.Name = "LentSoft.Auth";
         options.Cookie.HttpOnly = true;
         options.ExpireTimeSpan = TimeSpan.FromHours(24);
