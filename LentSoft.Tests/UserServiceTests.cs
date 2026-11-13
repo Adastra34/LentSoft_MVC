@@ -201,4 +201,183 @@ public class UserServiceTests : IDisposable
         Assert.NotNull(admin2Db);
         Assert.False(admin2Db.Activo);
     }
+
+    [Theory]
+    [InlineData("superadmin")]
+    [InlineData("invitado")]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task ChangeRoleAsync_RolInvalido_RetornaError(string invalidRole)
+    {
+        // Arrange
+        var user = new User
+        {
+            Nombre = "Carlos",
+            Apellido = "Gómez",
+            TipoDocumento = "CC",
+            NumeroDocumento = "11223344",
+            Email = "carlos.gomez@test.com",
+            PasswordHash = "hash",
+            Role = "usuario",
+            Activo = true,
+            FechaRegistro = DateTime.UtcNow
+        };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var (success, errorMessage) = await _userService.ChangeRoleAsync(user.Id, invalidRole, currentUserId: 1);
+
+        // Assert
+        Assert.False(success);
+        Assert.Equal("El rol especificado no es válido.", errorMessage);
+    }
+
+    [Fact]
+    public async Task ChangeRoleAsync_UsuarioInexistente_RetornaError()
+    {
+        // Act
+        var (success, errorMessage) = await _userService.ChangeRoleAsync(99999, "ventas", currentUserId: 1);
+
+        // Assert
+        Assert.False(success);
+        Assert.Equal("Usuario no encontrado.", errorMessage);
+    }
+
+    [Fact]
+    public async Task ChangeRoleAsync_CambioValido_UsuarioAVentas_ActualizaRol()
+    {
+        // Arrange
+        var user = new User
+        {
+            Nombre = "Laura",
+            Apellido = "Pérez",
+            TipoDocumento = "CC",
+            NumeroDocumento = "12345678",
+            Email = "laura.perez@test.com",
+            PasswordHash = "hash",
+            Role = "usuario",
+            Activo = true,
+            FechaRegistro = DateTime.UtcNow
+        };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var (success, errorMessage) = await _userService.ChangeRoleAsync(user.Id, "ventas", currentUserId: 1);
+
+        // Assert
+        Assert.True(success);
+        Assert.Null(errorMessage);
+
+        var updated = await _context.Users.FindAsync(user.Id);
+        Assert.NotNull(updated);
+        Assert.Equal("ventas", updated.Role);
+    }
+
+    [Fact]
+    public async Task ChangeRoleAsync_UnicoAdminActivo_NoPermiteDegradar()
+    {
+        // Arrange: El admin 1 es el único admin activo sembrado
+        var seededAdmin = await _context.Users.FindAsync(1);
+        Assert.NotNull(seededAdmin);
+        Assert.Equal("admin", seededAdmin.Role.ToLower());
+        Assert.True(seededAdmin.Activo);
+
+        // Act: Otro usuario intenta degradar al único admin activo a usuario
+        var (success, errorMessage) = await _userService.ChangeRoleAsync(1, "usuario", currentUserId: 999);
+
+        // Assert
+        Assert.False(success);
+        Assert.Equal("No se puede cambiar el rol del único administrador activo del sistema.", errorMessage);
+
+        var adminDb = await _context.Users.FindAsync(1);
+        Assert.NotNull(adminDb);
+        Assert.Equal("admin", adminDb.Role);
+    }
+
+    [Fact]
+    public async Task ChangeRoleAsync_HabiendoOtroAdminActivo_PermiteDegradarAdmin()
+    {
+        // Arrange: Creamos un segundo admin activo
+        var secondAdmin = new User
+        {
+            Nombre = "Segundo",
+            Apellido = "Admin",
+            TipoDocumento = "CC",
+            NumeroDocumento = "55667788",
+            Email = "segundo.admin@test.com",
+            PasswordHash = "hash",
+            Role = "admin",
+            Activo = true,
+            FechaRegistro = DateTime.UtcNow
+        };
+        _context.Users.Add(secondAdmin);
+        await _context.SaveChangesAsync();
+
+        // Act: El admin 1 degrada al admin 2 a ventas
+        var (success, errorMessage) = await _userService.ChangeRoleAsync(secondAdmin.Id, "ventas", currentUserId: 1);
+
+        // Assert
+        Assert.True(success);
+        Assert.Null(errorMessage);
+
+        var updated = await _context.Users.FindAsync(secondAdmin.Id);
+        Assert.NotNull(updated);
+        Assert.Equal("ventas", updated.Role);
+    }
+
+    [Fact]
+    public async Task ChangeRoleAsync_AdminNoPuedeDegradarseASiMismo_RetornaError()
+    {
+        // Arrange: El admin 1 intenta cambiarse a sí mismo de admin a optometra
+        var currentAdminId = 1;
+
+        // Act
+        var (success, errorMessage) = await _userService.ChangeRoleAsync(currentAdminId, "optometra", currentUserId: currentAdminId);
+
+        // Assert
+        Assert.False(success);
+        Assert.Equal("No puedes cambiar tu propio rol de administrador.", errorMessage);
+
+        var adminDb = await _context.Users.FindAsync(currentAdminId);
+        Assert.NotNull(adminDb);
+        Assert.Equal("admin", adminDb.Role);
+    }
+
+    [Fact]
+    public async Task ChangeRoleAsync_NormalizaRolAMinusculas()
+    {
+        // Arrange
+        var user = new User
+        {
+            Nombre = "Andrés",
+            Apellido = "Molina",
+            TipoDocumento = "CC",
+            NumeroDocumento = "98765432",
+            Email = "andres.molina@test.com",
+            PasswordHash = "hash",
+            Role = "usuario",
+            Activo = true,
+            FechaRegistro = DateTime.UtcNow
+        };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        // Act 1: Pasar "VENTAS"
+        var (success1, _) = await _userService.ChangeRoleAsync(user.Id, "VENTAS", currentUserId: 1);
+        Assert.True(success1);
+
+        var userDb1 = await _context.Users.FindAsync(user.Id);
+        Assert.NotNull(userDb1);
+        Assert.Equal("ventas", userDb1.Role);
+
+        // Act 2: Pasar "Admin"
+        var (success2, _) = await _userService.ChangeRoleAsync(user.Id, "Admin", currentUserId: 1);
+        Assert.True(success2);
+
+        var userDb2 = await _context.Users.FindAsync(user.Id);
+        Assert.NotNull(userDb2);
+        Assert.Equal("admin", userDb2.Role);
+    }
 }

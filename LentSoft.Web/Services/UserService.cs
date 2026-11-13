@@ -287,14 +287,14 @@ public class UserService : IUserService
     {
         if (string.IsNullOrWhiteSpace(newRole))
         {
-            return (false, "El rol es obligatorio.");
+            return (false, "El rol especificado no es válido.");
         }
 
         var normalizedRole = newRole.Trim().ToLowerInvariant();
         var validRoles = new[] { "usuario", "admin", "optometra", "ventas" };
         if (!validRoles.Contains(normalizedRole))
         {
-            return (false, "Rol no válido. Los roles permitidos son: usuario, admin, optometra, ventas.");
+            return (false, "El rol especificado no es válido.");
         }
 
         var user = await _context.Users.FindAsync(id);
@@ -306,7 +306,7 @@ public class UserService : IUserService
         // Un admin no puede quitarse a sí mismo el rol de admin
         if (id == currentUserId && currentUserId > 0 && string.Equals(user.Role, "admin", StringComparison.OrdinalIgnoreCase) && normalizedRole != "admin")
         {
-            return (false, "Un administrador no puede quitarse a sí mismo el rol de administrador.");
+            return (false, "No puedes cambiar tu propio rol de administrador.");
         }
 
         // Regla del último admin (flujo alternativo 3a): si el usuario es admin y el nuevo rol no es admin, y es el único admin ACTIVO restante
