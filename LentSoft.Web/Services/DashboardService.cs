@@ -207,7 +207,12 @@ public class DashboardService : IDashboardService
         var trabajadoresPage = Math.Max(1, filter.TrabajadoresPage);
         var trabajadoresPageSize = Math.Clamp(filter.TrabajadoresPageSize, 1, 100);
 
-        var clientesQuery = _context.Users.AsNoTracking().Where(u => u.Role == "usuario");
+        var rolFiltro = string.IsNullOrWhiteSpace(filter.ClientesRol) ? "usuario" : filter.ClientesRol.Trim().ToLower();
+        var clientesQuery = _context.Users.AsNoTracking().AsQueryable();
+        if (rolFiltro != "todos")
+        {
+            clientesQuery = clientesQuery.Where(u => u.Role.ToLower() == rolFiltro);
+        }
         if (!filter.IncludeInactive) clientesQuery = clientesQuery.Where(u => u.Activo);
 
         if (!string.IsNullOrWhiteSpace(filter.ClientesSearch))
@@ -641,6 +646,7 @@ public class DashboardService : IDashboardService
             Clientes = clientesList,
             TodosLosClientes = await _context.Users.AsNoTracking().Where(u => u.Role == "usuario" && u.Activo).OrderBy(u => u.Nombre).ToListAsync(),
             ClientesSearchTerm = filter.ClientesSearch,
+            ClientesRol = rolFiltro,
             ClientesPage = clientesPage,
             ClientesPageSize = clientesPageSize,
             ClientesTotalCount = clientesTotalCount,

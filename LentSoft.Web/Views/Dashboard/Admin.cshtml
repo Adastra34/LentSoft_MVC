@@ -423,10 +423,17 @@
                                 <span style="position: absolute; left: 0.75rem; color: var(--purple-600); font-size: 0.9rem; pointer-events: none; display: flex; align-items: center;"><icon name="search" class="icon-sm" /></span>
                                 <input type="text" name="searchTerm" value="@Model.ClientesSearchTerm" placeholder="Buscar cliente por nombre o correo..." class="form-input" style="width: 320px; padding: 0.45rem 0.75rem 0.45rem 2.25rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); font-size: 0.85rem;" />
                             </div>
+                            <select name="clientesRol" class="form-input" style="padding: 0.45rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white; color: var(--gray-900); font-size: 0.85rem;" onchange="this.form.submit()">
+                                <option value="usuario" selected="@(Model.ClientesRol == "usuario")">Rol: Usuario</option>
+                                <option value="admin" selected="@(Model.ClientesRol == "admin")">Rol: Administrador</option>
+                                <option value="optometra" selected="@(Model.ClientesRol == "optometra")">Rol: Optómetra</option>
+                                <option value="ventas" selected="@(Model.ClientesRol == "ventas")">Rol: Ventas</option>
+                                <option value="todos" selected="@(Model.ClientesRol == "todos")">Rol: Todos</option>
+                            </select>
                             <button type="submit" class="btn" style="background-color: var(--purple-600); color: white; border: none; padding: 0.45rem 0.9rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-700)';" onmouseout="this.style.backgroundColor='var(--purple-600)';">
                                 Buscar
                             </button>
-                            @if (!string.IsNullOrWhiteSpace(Model.ClientesSearchTerm))
+                            @if (!string.IsNullOrWhiteSpace(Model.ClientesSearchTerm) || Model.ClientesRol != "usuario")
                             {
                                 <a href="?section=usuarios&subtab=clientes" class="btn" style="padding: 0.45rem 0.85rem; font-size: 0.85rem; background: rgba(255,255,255,0.2); color: white; text-decoration: none; border-radius: 0.375rem; font-weight: 500;">
                                     Limpiar
@@ -472,7 +479,7 @@
                                             <td style="padding: 0.75rem 1rem; text-align: center;">
                                                 <div class="table-actions-wrapper" style="justify-content: center;">
                                                     <button type="button" class="btn-action-edit btn-edit-client" aria-label="Editar"
-                                                        data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = cli.Id, nombre = cli.Nombre, apellido = cli.Apellido, email = cli.Email, telefono = cli.Telefono ?? "", tipoDocumento = cli.TipoDocumento, numeroDocumento = cli.NumeroDocumento }))'>
+                                                        data-record='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { id = cli.Id, nombre = cli.Nombre, apellido = cli.Apellido, email = cli.Email, telefono = cli.Telefono ?? "", tipoDocumento = cli.TipoDocumento, numeroDocumento = cli.NumeroDocumento, rol = cli.Role }))'>
                                                         <icon name="pencil" class="icon-sm" /> <span>Editar</span>
                                                     </button>
                                                     @if (cli.Activo)
@@ -516,7 +523,7 @@
                             <div style="display: flex; gap: 0.35rem; align-items: center;">
                                 @if (Model.ClientesPage > 1)
                                 {
-                                    <a href="?section=usuarios&subtab=clientes&clientesPage=@(Model.ClientesPage - 1)&page=@(Model.ClientesPage - 1)&searchTerm=@Model.ClientesSearchTerm"
+                                    <a href="?section=usuarios&subtab=clientes&clientesPage=@(Model.ClientesPage - 1)&page=@(Model.ClientesPage - 1)&searchTerm=@Model.ClientesSearchTerm&clientesRol=@Model.ClientesRol"
                                        style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
                                         &laquo; Anterior
                                     </a>
@@ -538,7 +545,7 @@
                                     }
                                     else
                                     {
-                                        <a href="?section=usuarios&subtab=clientes&clientesPage=@p&page=@p&searchTerm=@Model.ClientesSearchTerm"
+                                        <a href="?section=usuarios&subtab=clientes&clientesPage=@p&page=@p&searchTerm=@Model.ClientesSearchTerm&clientesRol=@Model.ClientesRol"
                                            style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
                                             @p
                                         </a>
@@ -547,7 +554,7 @@
 
                                 @if (Model.ClientesPage < Model.ClientesTotalPages)
                                 {
-                                    <a href="?section=usuarios&subtab=clientes&clientesPage=@(Model.ClientesPage + 1)&page=@(Model.ClientesPage + 1)&searchTerm=@Model.ClientesSearchTerm"
+                                    <a href="?section=usuarios&subtab=clientes&clientesPage=@(Model.ClientesPage + 1)&page=@(Model.ClientesPage + 1)&searchTerm=@Model.ClientesSearchTerm&clientesRol=@Model.ClientesRol"
                                        style="padding: 0.35rem 0.75rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; color: var(--purple-700); font-weight: 600; text-decoration: none; font-size: 0.85rem; background: white;">
                                         Siguiente &raquo;
                                     </a>
@@ -1511,6 +1518,10 @@
             document.getElementById('edit-client-telefono').value = rec.telefono || '';
             document.getElementById('edit-client-tipo-doc').value = rec.tipoDocumento || 'CC';
             document.getElementById('edit-client-numero-doc').value = rec.numeroDocumento || '';
+            const roleUserId = document.getElementById('change-role-user-id');
+            if (roleUserId) roleUserId.value = rec.id;
+            const roleSelect = document.getElementById('edit-client-role');
+            if (roleSelect) roleSelect.value = (rec.rol || 'usuario').toLowerCase();
             document.getElementById('modal-editar-cliente').style.display = 'flex';
         }
 
@@ -1785,6 +1796,32 @@
                 <button type="submit" class="btn btn-primary" style="padding: 0.5rem 1.25rem;">Guardar Cambios</button>
             </div>
         </form>
+
+        <!-- Sección Cambiar Rol (RF-M07-03) -->
+        <div style="border-top: 1px solid var(--purple-100); padding: 1.25rem 1.5rem; background: var(--purple-50); border-bottom-left-radius: 0.75rem; border-bottom-right-radius: 0.75rem;">
+            <h3 style="margin: 0 0 0.4rem 0; font-size: 0.95rem; color: var(--purple-900); font-weight: 700; display: flex; align-items: center; gap: 0.4rem;">
+                <icon name="shield" class="icon-sm" /> <span>Cambiar Rol del Usuario (RF-M07-03)</span>
+            </h3>
+            <p style="margin: 0 0 0.75rem 0; font-size: 0.8rem; color: var(--gray-600);">
+                Modifica los permisos de acceso del usuario en el sistema.
+            </p>
+            <form asp-controller="User" asp-action="ChangeRole" method="post" style="display: flex; gap: 0.75rem; align-items: flex-end; flex-wrap: wrap;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" id="change-role-user-id" />
+                <div style="flex: 1; min-width: 200px;">
+                    <label class="form-label" style="font-weight: 600; color: var(--gray-700); font-size: 0.85rem;">Rol Asignado *</label>
+                    <select name="newRole" id="edit-client-role" class="form-input" required style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-300); background: white;">
+                        <option value="usuario">Usuario</option>
+                        <option value="admin">Administrador</option>
+                        <option value="optometra">Optómetra</option>
+                        <option value="ventas">Ventas</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn" style="background-color: var(--purple-700); color: white; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; font-weight: 600; font-size: 0.85rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;">
+                    <icon name="check-circle" class="icon-sm" /> <span>Cambiar Rol</span>
+                </button>
+            </form>
+        </div>
     </div>
 </div>
 

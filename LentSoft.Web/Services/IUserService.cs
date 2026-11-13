@@ -80,4 +80,15 @@ public interface IUserService
     /// <param name="currentUserId">Identificador del administrador que ejecuta la acción.</param>
     /// <returns>Tupla indicando éxito o el mensaje de error de negocio correspondiente.</returns>
     Task<(bool Success, string? ErrorMessage)> DeactivateAsync(int id, int currentUserId);
+
+    /// <summary>
+    /// Cambia el rol de un usuario en el sistema garantizando las reglas de negocio de seguridad (RF-M07-03):
+    /// roles válidos (usuario, admin, optometra, ventas), preservación del último administrador activo
+    /// y restricción para que un administrador no pueda auto-degradarse.
+    /// </summary>
+    /// <param name="id">Identificador del usuario a modificar.</param>
+    /// <param name="newRole">Nuevo rol a asignar.</param>
+    /// <param name="currentUserId">Identificador del administrador que ejecuta la acción.</param>
+    /// <returns>Tupla indicando si la operación fue exitosa o el mensaje de error de negocio.</returns>
+    Task<(bool Success, string? ErrorMessage)> ChangeRoleAsync(int id, string newRole, int currentUserId);
 }

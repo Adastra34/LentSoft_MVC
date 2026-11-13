@@ -168,6 +168,33 @@ public class UserController : Controller
         return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "clientes" });
     }
 
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> ChangeRole(int id, string newRole)
+    {
+        try
+        {
+            var currentUserId = int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var parsedId) ? parsedId : 0;
+            var (success, errorMessage) = await _userService.ChangeRoleAsync(id, newRole, currentUserId);
+
+            if (!success)
+            {
+                TempData["ErrorMessage"] = errorMessage;
+            }
+            else
+            {
+                TempData["SuccessMessage"] = "Rol de usuario actualizado exitosamente.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error al cambiar el rol del usuario con ID {Id}.", id);
+            TempData["ErrorMessage"] = "No se pudo completar la operación. Intenta de nuevo.";
+        }
+
+        return RedirectToAction("Admin", "Dashboard", new { section = "usuarios", subtab = "clientes" });
+    }
+
     // ── TRABAJADORES (EMPLEADOS) CRUD ──
 
     [HttpPost]

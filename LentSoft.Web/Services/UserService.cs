@@ -282,4 +282,50 @@ public class UserService : IUserService
 
         return (true, null);
     }
+
+    public async Task<(bool Success, string? ErrorMessage)> ChangeRoleAsync(int id, string newRole, int currentUserId)
+    {
+        if (string.IsNullOrWhiteSpace(newRole))
+        {
+            return (false, "El rol es obligatorio.");
+        }
+
+        var normalizedRole = newRole.Trim().ToLowerInvariant();
+        var validRoles = new[] { "usuario", "admin", "optometra", "ventas" };
+        if (!validRoles.Contains(normalizedRole))
+        {
+            return (false, "Rol no válido. Los roles permitidos son: usuario, admin, optometra, ventas.");
+        }
+
+        var user = await _context.Users.FindAsync(id);
+        if (user == null)
+        {
+            return (false, "Usuario no encontrado.");
+        }
+
+        // Un admin no puede quitarse a sí mismo el rol de admin
+        if (id == currentUserId && currentUserId > 0 && string.Equals(user.Role, "admin", StringComparison.OrdinalIgnoreCase) && normalizedRole != "admin")
+        {
+            return (false, "Un administrador no puede quitarse a sí mismo el rol de administrador.");
+        }
+
+        // Regla del último admin (flujo alternativo 3a): si el usuario es admin y el nuevo rol no es admin, y es el único admin ACTIVO restante
+        if (string.Equals(user.Role, "admin", StringComparison.OrdinalIgnoreCase) && normalizedRole != "admin")
+        {
+            if (user.Activo)
+            {
+                var activeAdminCount = await _context.Users.CountAsync(u => u.Role.ToLower() == "admin" && u.Activo);
+                if (activeAdminCount <= 1)
+                {
+                    return (false, "No se puede cambiar el rol del único administrador activo del sistema.");
+                }
+            }
+        }
+
+        user.Role = normalizedRole;
+        _context.Users.Update(user);
+        await _context.SaveChangesAsync();
+
+        return (true, null);
+    }
 }

@@ -8,6 +8,7 @@ public class DashboardAdminQueryFilter
     public int Page { get; set; } = 1;
     public int PageSize { get; set; } = 5;
     public string? ClientesSearch { get; set; }
+    public string ClientesRol { get; set; } = "usuario";
     public int ClientesPage { get; set; } = 1;
     public int ClientesPageSize { get; set; } = 5;
     public string? TrabajadoresSearch { get; set; }
