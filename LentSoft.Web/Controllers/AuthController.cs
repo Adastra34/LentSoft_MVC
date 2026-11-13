@@ -343,6 +343,29 @@ public class AuthController : Controller
         return RedirectToAction("Login");
     }
 
+    /// <summary>
+    /// RF-M01-03: Muestra la vista de acceso denegado cuando un usuario intenta acceder a un recurso sin los permisos necesarios.
+    /// Permite volver directamente al panel correspondiente a su rol mediante RedirectBasedOnRole.
+    /// </summary>
+    [HttpGet]
+    [AllowAnonymous]
+    public IActionResult AccessDenied(string? returnUrl = null, bool goToDashboard = false)
+    {
+        if (goToDashboard)
+        {
+            return RedirectBasedOnRole();
+        }
+
+        ViewBag.ReturnUrl = returnUrl;
+        return View();
+    }
+
+    [HttpGet]
+    public IActionResult ReturnToRoleDashboard()
+    {
+        return RedirectBasedOnRole();
+    }
+
     private IActionResult RedirectBasedOnRole(string? role = null)
     {
         role ??= User.FindFirstValue(ClaimTypes.Role);

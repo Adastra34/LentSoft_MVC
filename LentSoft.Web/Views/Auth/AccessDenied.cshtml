@@ -1,0 +1,50 @@
+@{
+    ViewData["Title"] = "Acceso Denegado";
+    var isAuthenticated = User.Identity?.IsAuthenticated ?? false;
+}
+
+<main style="min-height: calc(100vh - 140px); background: linear-gradient(135deg, var(--purple-50), var(--purple-100)); display: flex; align-items: center; justify-content: center; padding: 2.5rem 1rem;">
+    <div style="width: 100%; max-width: 500px; background: white; border-radius: 1.25rem; box-shadow: var(--shadow-xl); padding: 3rem 2.5rem; text-align: center;">
+
+        <!-- Icono de Seguridad / Alerta -->
+        <div style="width: 72px; height: 72px; border-radius: 50%; background-color: #FEE2E2; color: #DC2626; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1.5rem;">
+            <icon name="shield-alert" class="icon-lg" style="width: 36px; height: 36px;" />
+        </div>
+
+        <!-- Título -->
+        <h1 style="color: var(--purple-900); font-size: 1.5rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; font-family: var(--font-primary); margin-bottom: 0.75rem;">
+            Acceso Denegado
+        </h1>
+
+        <!-- Mensaje descriptivo -->
+        <p style="color: var(--gray-600); font-size: 0.95rem; line-height: 1.6; margin-bottom: 2rem;">
+            No cuentas con los permisos requeridos para acceder a esta sección del sistema. Si consideras que se trata de un error, comunícate con un administrador.
+        </p>
+
+        <!-- Botones de Acción -->
+        <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+            @if (isAuthenticated)
+            {
+                <a asp-controller="Auth" asp-action="AccessDenied" asp-route-goToDashboard="true" class="btn"
+                   style="width: 100%; background: linear-gradient(135deg, var(--purple-600), var(--purple-700)); color: white; border: none; border-radius: 9999px; padding: 0.85rem; font-size: 0.95rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; transition: opacity 0.2s;"
+                   onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                    <icon name="layout-dashboard" class="icon-sm" /> <span>Volver a mi panel</span>
+                </a>
+            }
+            else
+            {
+                <a asp-controller="Auth" asp-action="Login" class="btn"
+                   style="width: 100%; background: linear-gradient(135deg, var(--purple-600), var(--purple-700)); color: white; border: none; border-radius: 9999px; padding: 0.85rem; font-size: 0.95rem; font-weight: 700; text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem; transition: opacity 0.2s;"
+                   onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">
+                    <icon name="log-in" class="icon-sm" /> <span>Iniciar Sesión</span>
+                </a>
+            }
+
+            <a asp-controller="Home" asp-action="Index"
+               style="color: var(--purple-700); font-size: 0.875rem; font-weight: 600; text-decoration: none; padding: 0.5rem; display: inline-block;">
+                Ir a la página de inicio
+            </a>
+        </div>
+    </div>
+</main>
+

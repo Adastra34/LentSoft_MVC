@@ -82,6 +82,7 @@ public class DashboardAdminViewModel
     public int ClientesPage { get; set; } = 1;
     public int ClientesPageSize { get; set; } = 5;
     public int ClientesTotalCount { get; set; }
+    public string ClientesRol { get; set; } = "usuario";
     public int ClientesTotalPages => (int)Math.Ceiling((double)ClientesTotalCount / (ClientesPageSize > 0 ? ClientesPageSize : 5));
 
     public List<TrabajadorItemViewModel> Trabajadores { get; set; } = new();
