@@ -300,7 +300,7 @@
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.8rem; font-weight: 600; color: var(--gray-700);">Fecha del Examen</label>
-                                <input name="Fecha" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" value="@DateTime.Today.ToString("yyyy-MM-dd")" style="padding: 0.45rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                                <input name="Fecha" type="date" max="@DateTime.Today.ToString("yyyy-MM-dd")" value="@DateTime.Today.ToString("yyyy-MM-dd")" style="padding: 0.45rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
                             </div>
                         </div>
 
@@ -474,7 +474,7 @@
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.8rem; font-weight: 600; color: var(--gray-700);">Fecha del Examen</label>
-                                <input name="Fecha" id="edit-examen-fecha" type="date" min="@DateTime.Today.ToString("yyyy-MM-dd")" style="padding: 0.45rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                                <input name="Fecha" id="edit-examen-fecha" type="date" max="@DateTime.Today.ToString("yyyy-MM-dd")" style="padding: 0.45rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
                             </div>
                         </div>
 

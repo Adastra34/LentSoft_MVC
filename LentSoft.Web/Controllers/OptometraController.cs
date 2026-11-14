@@ -1,10 +1,12 @@
 using System.Globalization;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using LentSoft.Web.Data;
 using LentSoft.Web.Models.DTOs;
 using LentSoft.Web.Models.ViewModels;
@@ -19,18 +21,30 @@ public class OptometraController : Controller
     private readonly LentSoftDbContext _context;
     private readonly IPdfRecetaService _pdfRecetaService;
     private readonly IVentasService? _ventasService;
+    private readonly IPasswordResetTokenService? _tokenService;
+    private readonly IEmailService? _emailService;
+    private readonly ILogger<OptometraController>? _logger;
 
     public OptometraController(
         LentSoftDbContext context,
         IPdfRecetaService? pdfRecetaService = null,
-        IVentasService? ventasService = null)
+        IVentasService? ventasService = null,
+        IPasswordResetTokenService? tokenService = null,
+        IEmailService? emailService = null,
+        ILogger<OptometraController>? logger = null)
     {
         _context = context;
         _pdfRecetaService = pdfRecetaService ?? new PdfRecetaService();
         _ventasService = ventasService;
+        _tokenService = tokenService;
+        _emailService = emailService;
+        _logger = logger;
     }
 
-    public async Task<IActionResult> Index(string section = "dashboard", int? detalleId = null)
+    public async Task<IActionResult> Index(
+        string section = "dashboard", 
+        int? detalleId = null,
+        int? pacienteTimelineId = null)
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
         var usuario = await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == userId);
@@ -78,10 +92,10 @@ public class OptometraController : Controller
             .ToListAsync();
 
         var proximaCitaObj = citas
-            .Where(c => c.FechaHora >= now && !c.Estado.Equals("cancelada", StringComparison.OrdinalIgnoreCase) && !c.Estado.Equals("atendida", StringComparison.OrdinalIgnoreCase) && !c.Estado.Equals("completada", StringComparison.OrdinalIgnoreCase))
+            .Where(c => c.FechaHora >= now && !c.Estado.Equals("cancelada", StringComparison.OrdinalIgnoreCase) && !c.Estado.Equals("completada", StringComparison.OrdinalIgnoreCase))
             .OrderBy(c => c.FechaHora)
             .FirstOrDefault() ?? citas
-            .Where(c => !c.Estado.Equals("cancelada", StringComparison.OrdinalIgnoreCase) && !c.Estado.Equals("atendida", StringComparison.OrdinalIgnoreCase) && !c.Estado.Equals("completada", StringComparison.OrdinalIgnoreCase))
+            .Where(c => !c.Estado.Equals("cancelada", StringComparison.OrdinalIgnoreCase) && !c.Estado.Equals("completada", StringComparison.OrdinalIgnoreCase))
             .OrderByDescending(c => c.FechaHora)
             .FirstOrDefault();
 
@@ -134,6 +148,14 @@ public class OptometraController : Controller
             ActiveSection = section
         };
 
+        if (pacienteTimelineId.HasValue)
+        {
+            viewModel.PacienteTimelineId = pacienteTimelineId.Value;
+            viewModel.PacienteTimeline = pacientes.FirstOrDefault(p => p.Id == pacienteTimelineId.Value)
+                ?? await _context.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Id == pacienteTimelineId.Value);
+            viewModel.LineaDeTiempo = await ObtenerHistorialCompletoAsync(pacienteTimelineId.Value);
+        }
+
         ViewBag.DetalleId = detalleId;
         ViewBag.Optometras = await _context.Users
             .AsNoTracking()
@@ -169,7 +191,8 @@ public class OptometraController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al actualizar la cita: {ex.Message}";
+            _logger?.LogError(ex, "Error al actualizar la cita {Id}", id);
+            TempData["ErrorMessage"] = "Error al actualizar la cita.";
         }
 
         return RedirectToAction("Index", new { section = "citas" });
@@ -200,7 +223,8 @@ public class OptometraController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al crear el historial clínico: {ex.Message}";
+            _logger?.LogError(ex, "Error al crear el historial clínico");
+            TempData["ErrorMessage"] = "Error al crear el historial clínico.";
         }
 
         return RedirectToAction("Index", new { section = "historial" });
@@ -249,7 +273,8 @@ public class OptometraController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al actualizar el historial clínico: {ex.Message}";
+            _logger?.LogError(ex, "Error al actualizar el historial clínico {Id}", model.Id);
+            TempData["ErrorMessage"] = "Error al actualizar el historial clínico.";
         }
 
         return RedirectToAction("Index", new { section = "historial" });
@@ -276,7 +301,8 @@ public class OptometraController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al eliminar el historial clínico: {ex.Message}";
+            _logger?.LogError(ex, "Error al eliminar el historial clínico {Id}", id);
+            TempData["ErrorMessage"] = "Error al eliminar el historial clínico.";
         }
 
         return RedirectToAction("Index", new { section = "historial" });
@@ -301,9 +327,9 @@ public class OptometraController : Controller
             return RedirectToAction("Index", new { section = "examenes" });
         }
 
-        if (model.Fecha.Date < DateTime.Today)
+        if (model.Fecha.Date > DateTime.Today)
         {
-            TempData["ErrorMessage"] = "La fecha del examen no puede ser anterior a hoy.";
+            TempData["ErrorMessage"] = "La fecha del examen no puede ser una fecha futura.";
             return RedirectToAction("Index", new { section = "examenes" });
         }
 
@@ -343,7 +369,8 @@ public class OptometraController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al registrar el examen visual: {ex.Message}";
+            _logger?.LogError(ex, "Error al registrar el examen visual para el paciente {UserId}", model.UserId);
+            TempData["ErrorMessage"] = "Error al registrar el examen visual.";
         }
 
         return RedirectToAction("Index", new { section = "examenes" });
@@ -367,9 +394,9 @@ public class OptometraController : Controller
             return RedirectToAction("Index", new { section = "examenes" });
         }
 
-        if (model.Fecha.Date < DateTime.Today)
+        if (model.Fecha.Date > DateTime.Today)
         {
-            TempData["ErrorMessage"] = "La fecha del examen no puede ser anterior a hoy.";
+            TempData["ErrorMessage"] = "La fecha del examen no puede ser una fecha futura.";
             return RedirectToAction("Index", new { section = "examenes" });
         }
 
@@ -410,7 +437,8 @@ public class OptometraController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al actualizar el examen visual: {ex.Message}";
+            _logger?.LogError(ex, "Error al actualizar el examen visual {Id}", model.Id);
+            TempData["ErrorMessage"] = "Error al actualizar el examen visual.";
         }
 
         return RedirectToAction("Index", new { section = "examenes" });
@@ -437,7 +465,8 @@ public class OptometraController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al eliminar el examen visual: {ex.Message}";
+            _logger?.LogError(ex, "Error al eliminar el examen visual {Id}", id);
+            TempData["ErrorMessage"] = "Error al eliminar el examen visual.";
         }
 
         return RedirectToAction("Index", new { section = "examenes" });
@@ -468,7 +497,8 @@ public class OptometraController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al crear la fórmula óptica: {ex.Message}";
+            _logger?.LogError(ex, "Error al registrar la fórmula óptica para el paciente {UserId}", model.UserId);
+            TempData["ErrorMessage"] = "Error al crear la fórmula óptica.";
         }
 
         return RedirectToAction("Index", new { section = "formulas" });
@@ -500,6 +530,8 @@ public class OptometraController : Controller
                 existing.EsferaOI = model.EsferaOI;
                 existing.CilindroOI = model.CilindroOI;
                 existing.EjeOI = model.EjeOI;
+                existing.AdicionOD = model.AdicionOD;
+                existing.AdicionOI = model.AdicionOI;
                 existing.Observaciones = model.Observaciones;
                 existing.TipoLente = model.TipoLente;
                 existing.DistanciaPupilar = model.DistanciaPupilar;
@@ -514,7 +546,8 @@ public class OptometraController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al actualizar la fórmula óptica: {ex.Message}";
+            _logger?.LogError(ex, "Error al actualizar la fórmula óptica {Id}", model.Id);
+            TempData["ErrorMessage"] = "Error al actualizar la fórmula óptica.";
         }
 
         return RedirectToAction("Index", new { section = "formulas" });
@@ -541,7 +574,8 @@ public class OptometraController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al eliminar la fórmula óptica: {ex.Message}";
+            _logger?.LogError(ex, "Error al eliminar la fórmula óptica {Id}", id);
+            TempData["ErrorMessage"] = "Error al eliminar la fórmula óptica.";
         }
 
         return RedirectToAction("Index", new { section = "formulas" });
@@ -692,7 +726,8 @@ public class OptometraController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al generar el PDF de la receta: {ex.Message}";
+            _logger?.LogError(ex, "Error al generar el PDF de la receta para la fórmula {Id}", id);
+            TempData["ErrorMessage"] = "Error al generar el PDF de la receta.";
             return RedirectToAction("Index", new { section = "formulas" });
         }
     }
@@ -737,31 +772,34 @@ public class OptometraController : Controller
 
         try
         {
-            var existingEmail = await _context.Users.AnyAsync(u => u.Email == model.Email);
+            var normalizedEmail = model.Email.Trim().ToLower();
+            var normalizedDoc = model.NumeroDocumento.Trim();
+
+            var existingEmail = await _context.Users.AnyAsync(u => u.Email == normalizedEmail);
             if (existingEmail)
             {
                 TempData["ErrorMessage"] = "El correo ya está registrado.";
                 return RedirectToAction("Index", new { section = "pacientes" });
             }
 
-            var existingDoc = await _context.Users.AnyAsync(u => u.NumeroDocumento == model.NumeroDocumento);
+            var existingDoc = await _context.Users.AnyAsync(u => u.NumeroDocumento == normalizedDoc);
             if (existingDoc)
             {
                 TempData["ErrorMessage"] = "El número de documento ya está registrado.";
                 return RedirectToAction("Index", new { section = "pacientes" });
             }
 
-            var tempPassword = "user123";
+            var tempPassword = GenerarContrasenaAleatoriaSegura(16);
             var passwordHash = BCrypt.Net.BCrypt.HashPassword(tempPassword);
 
             var paciente = new User
             {
                 Nombre = model.Nombre.Trim(),
                 Apellido = model.Apellido.Trim(),
-                Email = model.Email.Trim().ToLower(),
+                Email = normalizedEmail,
                 Telefono = model.Telefono?.Trim(),
                 TipoDocumento = string.IsNullOrWhiteSpace(model.TipoDocumento) ? "CC" : model.TipoDocumento,
-                NumeroDocumento = model.NumeroDocumento.Trim(),
+                NumeroDocumento = normalizedDoc,
                 PasswordHash = passwordHash,
                 Role = "usuario",
                 FechaRegistro = DateTime.UtcNow,
@@ -776,11 +814,34 @@ public class OptometraController : Controller
 
             _context.Users.Add(paciente);
             await _context.SaveChangesAsync();
-            TempData["SuccessMessage"] = "Paciente creado exitosamente.";
+
+            if (_tokenService != null && _emailService != null)
+            {
+                try
+                {
+                    var token = _tokenService.GenerateToken(paciente.Id, paciente.Email, paciente.PasswordHash);
+                    var scheme = Request?.Scheme ?? "http";
+                    var host = Request?.Host.Value ?? "localhost";
+                    var resetLink = Url?.Action("ResetPassword", "Auth", new { token }, scheme)
+                        ?? $"{scheme}://{host}/Auth/ResetPassword?token={token}";
+                    await _emailService.SendPasswordResetEmailAsync(paciente.Email, resetLink);
+                    TempData["SuccessMessage"] = "Paciente creado exitosamente. Se envió un enlace a su correo para establecer su contraseña.";
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogWarning(ex, "Error al enviar correo de bienvenida para el paciente {Email}", paciente.Email);
+                    TempData["SuccessMessage"] = "Paciente creado exitosamente, pero no se pudo enviar el correo de definición de contraseña.";
+                }
+            }
+            else
+            {
+                TempData["SuccessMessage"] = "Paciente creado exitosamente.";
+            }
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al crear el paciente: {ex.Message}";
+            _logger?.LogError(ex, "Error al crear el paciente");
+            TempData["ErrorMessage"] = "Error al crear el paciente.";
         }
 
         return RedirectToAction("Index", new { section = "pacientes" });
@@ -799,15 +860,32 @@ public class OptometraController : Controller
 
         try
         {
+            var normalizedEmail = model.Email.Trim().ToLower();
+            var normalizedDoc = model.NumeroDocumento.Trim();
+
+            var existingEmail = await _context.Users.AnyAsync(u => u.Id != model.Id && u.Email == normalizedEmail);
+            if (existingEmail)
+            {
+                TempData["ErrorMessage"] = "El correo ya está registrado.";
+                return RedirectToAction("Index", new { section = "pacientes" });
+            }
+
+            var existingDoc = await _context.Users.AnyAsync(u => u.Id != model.Id && u.NumeroDocumento == normalizedDoc);
+            if (existingDoc)
+            {
+                TempData["ErrorMessage"] = "El número de documento ya está registrado.";
+                return RedirectToAction("Index", new { section = "pacientes" });
+            }
+
             var paciente = await _context.Users.FindAsync(model.Id);
             if (paciente != null && paciente.Role == "usuario")
             {
                 paciente.Nombre = model.Nombre.Trim();
                 paciente.Apellido = model.Apellido.Trim();
-                paciente.Email = model.Email.Trim().ToLower();
+                paciente.Email = normalizedEmail;
                 paciente.Telefono = model.Telefono?.Trim();
                 paciente.TipoDocumento = string.IsNullOrWhiteSpace(model.TipoDocumento) ? paciente.TipoDocumento : model.TipoDocumento;
-                paciente.NumeroDocumento = model.NumeroDocumento.Trim();
+                paciente.NumeroDocumento = normalizedDoc;
                 paciente.FechaNacimiento = model.FechaNacimiento.HasValue ? DateTime.SpecifyKind(model.FechaNacimiento.Value, DateTimeKind.Utc) : null;
                 paciente.Genero = model.Genero;
                 paciente.Direccion = model.Direccion;
@@ -825,7 +903,8 @@ public class OptometraController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al actualizar el paciente: {ex.Message}";
+            _logger?.LogError(ex, "Error al actualizar el paciente {Id}", model.Id);
+            TempData["ErrorMessage"] = "Error al actualizar el paciente.";
         }
 
         return RedirectToAction("Index", new { section = "pacientes" });
@@ -853,7 +932,8 @@ public class OptometraController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al desactivar el paciente: {ex.Message}";
+            _logger?.LogError(ex, "Error al desactivar el paciente {Id}", id);
+            TempData["ErrorMessage"] = "Error al desactivar el paciente.";
         }
 
         return RedirectToAction("Index", new { section = "pacientes" });
@@ -871,7 +951,18 @@ public class OptometraController : Controller
             return RedirectToAction("Index", new { section = "citas" });
         }
 
-        // 1. Validar horario laboral
+        // 1. Validar fecha futura
+        var esPasada = model.FechaHora.Kind == DateTimeKind.Utc
+            ? model.FechaHora <= DateTime.UtcNow
+            : model.FechaHora <= DateTime.Now;
+
+        if (esPasada)
+        {
+            TempData["ErrorMessage"] = "La fecha y hora de la cita debe ser futura.";
+            return RedirectToAction("Index", new { section = "citas" });
+        }
+
+        // 2. Validar horario laboral
         if (!Appointment.EsHorarioLaboral(model.FechaHora))
         {
             TempData["ErrorMessage"] = "Las citas solo pueden agendarse de lunes a sábado, entre 8:00 a.m. y 6:00 p.m.";
@@ -906,7 +997,8 @@ public class OptometraController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al programar la cita: {ex.Message}";
+            _logger?.LogError(ex, "Error al programar la cita");
+            TempData["ErrorMessage"] = "Error al programar la cita.";
         }
 
         return RedirectToAction("Index", new { section = "citas" });
@@ -960,7 +1052,8 @@ public class OptometraController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al actualizar la cita: {ex.Message}";
+            _logger?.LogError(ex, "Error al actualizar la cita {Id}", model.Id);
+            TempData["ErrorMessage"] = "Error al actualizar la cita.";
         }
 
         return RedirectToAction("Index", new { section = "citas" });
@@ -987,7 +1080,8 @@ public class OptometraController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al eliminar la cita: {ex.Message}";
+            _logger?.LogError(ex, "Error al eliminar la cita {Id}", id);
+            TempData["ErrorMessage"] = "Error al eliminar la cita.";
         }
 
         return RedirectToAction("Index", new { section = "citas" });
@@ -1030,7 +1124,8 @@ public class OptometraController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al actualizar el perfil: {ex.Message}";
+            _logger?.LogError(ex, "Error al actualizar el perfil profesional");
+            TempData["ErrorMessage"] = "Error al actualizar el perfil.";
         }
 
         return RedirectToAction("Index", new { section = "perfil" });
@@ -1060,8 +1155,9 @@ public class OptometraController : Controller
                         fechaInicio, fechaFin, optometraId)
                     .ToListAsync();
             }
-            catch
+            catch (Exception ex)
             {
+                _logger?.LogWarning(ex, "Error al ejecutar sp_ReporteCitasPorEstado, usando LINQ fallback");
                 resultados = await _context.Appointments
                     .Where(a => a.Activo
                              && a.OptometraId == optometraId
@@ -1094,6 +1190,11 @@ public class OptometraController : Controller
     [HttpGet]
     public async Task<IActionResult> HistorialCompleto(int pacienteId)
     {
+        return RedirectToAction("Index", new { section = "historial", pacienteTimelineId = pacienteId });
+    }
+
+    public async Task<List<HistorialCompletoDto>> ObtenerHistorialCompletoAsync(int pacienteId)
+    {
         var resultados = new List<HistorialCompletoDto>();
         if (_context.Database.IsSqlServer())
         {
@@ -1105,8 +1206,9 @@ public class OptometraController : Controller
                         pacienteId)
                     .ToListAsync();
             }
-            catch
+            catch (Exception ex)
             {
+                _logger?.LogWarning(ex, "Error al ejecutar sp_HistorialCompletoPaciente, usando LINQ fallback");
                 resultados = await ObtenerHistorialCompletoLinqAsync(pacienteId);
             }
         }
@@ -1115,9 +1217,21 @@ public class OptometraController : Controller
             resultados = await ObtenerHistorialCompletoLinqAsync(pacienteId);
         }
 
-        ViewBag.HistorialCompleto = resultados;
-        ViewBag.PacienteId = pacienteId;
-        return RedirectToAction("Index", new { section = "historial", detalleId = pacienteId });
+        return resultados.OrderByDescending(r => r.Fecha).ToList();
+    }
+
+    private static string GenerarContrasenaAleatoriaSegura(int longitud = 16)
+    {
+        const string chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()-_=+";
+        var bytes = new byte[longitud];
+        using var rng = RandomNumberGenerator.Create();
+        rng.GetBytes(bytes);
+        var result = new char[longitud];
+        for (int i = 0; i < longitud; i++)
+        {
+            result[i] = chars[bytes[i] % chars.Length];
+        }
+        return new string(result);
     }
 
     [HttpGet]

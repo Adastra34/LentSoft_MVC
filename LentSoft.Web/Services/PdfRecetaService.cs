@@ -101,6 +101,7 @@ public class PdfRecetaService : IPdfRecetaService
                     columns.RelativeColumn(1.5f); // Esfera
                     columns.RelativeColumn(1.5f); // Cilindro
                     columns.RelativeColumn(1.5f); // Eje
+                    columns.RelativeColumn(1.5f); // Adición
                 });
 
                 table.Header(header =>
@@ -109,6 +110,7 @@ public class PdfRecetaService : IPdfRecetaService
                     header.Cell().Background("#7C3AED").Border(1).BorderColor("#DDD6FE").Padding(7).AlignCenter().Text("Esfera (SPH)").Bold().FontColor(Colors.White);
                     header.Cell().Background("#7C3AED").Border(1).BorderColor("#DDD6FE").Padding(7).AlignCenter().Text("Cilindro (CYL)").Bold().FontColor(Colors.White);
                     header.Cell().Background("#7C3AED").Border(1).BorderColor("#DDD6FE").Padding(7).AlignCenter().Text("Eje (AXIS)").Bold().FontColor(Colors.White);
+                    header.Cell().Background("#7C3AED").Border(1).BorderColor("#DDD6FE").Padding(7).AlignCenter().Text("Adición (ADD)").Bold().FontColor(Colors.White);
                 });
 
                 // Ojo Derecho (OD)
@@ -116,12 +118,14 @@ public class PdfRecetaService : IPdfRecetaService
                 table.Cell().Border(1).BorderColor("#DDD6FE").Padding(7).AlignCenter().Text(formula.EsferaOD ?? "0.00");
                 table.Cell().Border(1).BorderColor("#DDD6FE").Padding(7).AlignCenter().Text(formula.CilindroOD ?? "0.00");
                 table.Cell().Border(1).BorderColor("#DDD6FE").Padding(7).AlignCenter().Text(formula.EjeOD ?? "0");
+                table.Cell().Border(1).BorderColor("#DDD6FE").Padding(7).AlignCenter().Text(string.IsNullOrWhiteSpace(formula.AdicionOD) ? "-" : formula.AdicionOD);
 
                 // Ojo Izquierdo (OI)
                 table.Cell().Border(1).BorderColor("#DDD6FE").Padding(7).Text("Ojo Izquierdo (OI)").Bold().FontColor("#374151");
                 table.Cell().Border(1).BorderColor("#DDD6FE").Padding(7).AlignCenter().Text(formula.EsferaOI ?? "0.00");
                 table.Cell().Border(1).BorderColor("#DDD6FE").Padding(7).AlignCenter().Text(formula.CilindroOI ?? "0.00");
                 table.Cell().Border(1).BorderColor("#DDD6FE").Padding(7).AlignCenter().Text(formula.EjeOI ?? "0");
+                table.Cell().Border(1).BorderColor("#DDD6FE").Padding(7).AlignCenter().Text(string.IsNullOrWhiteSpace(formula.AdicionOI) ? "-" : formula.AdicionOI);
             });
 
             // Distancia Pupilar y Estado

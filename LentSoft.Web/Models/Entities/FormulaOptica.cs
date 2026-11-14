@@ -38,6 +38,12 @@ public class FormulaOptica
     [StringLength(50)]
     public string EjeOI { get; set; } = string.Empty;
 
+    [StringLength(50)]
+    public string? AdicionOD { get; set; }
+
+    [StringLength(50)]
+    public string? AdicionOI { get; set; }
+
     [StringLength(1000)]
     public string? Observaciones { get; set; }
 

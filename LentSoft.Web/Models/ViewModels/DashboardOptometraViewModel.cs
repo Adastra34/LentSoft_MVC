@@ -35,6 +35,11 @@ public class DashboardOptometraViewModel
     // ── Perfil del optómetra ──
     public User? UsuarioActual { get; set; }
 
+    // ── Línea de Tiempo del Paciente ──
+    public List<HistorialCompletoDto> LineaDeTiempo { get; set; } = new();
+    public int? PacienteTimelineId { get; set; }
+    public User? PacienteTimeline { get; set; }
+
     // Navigation
     public string ActiveSection { get; set; } = "dashboard";
 }

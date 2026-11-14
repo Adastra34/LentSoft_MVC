@@ -1,17 +1,14 @@
 @model DashboardOptometraViewModel
 @{
     var proximasConsultas = Model.Citas
-        .Where(c => !c.Estado.Equals("Atendida", StringComparison.OrdinalIgnoreCase) 
-                 && !c.Estado.Equals("atendida", StringComparison.OrdinalIgnoreCase)
-                 && !c.Estado.Equals("Cancelada", StringComparison.OrdinalIgnoreCase)
-                 && !c.Estado.Equals("cancelada", StringComparison.OrdinalIgnoreCase)
+        .Where(c => !c.Estado.Equals("cancelada", StringComparison.OrdinalIgnoreCase)
                  && !c.Estado.Equals("completada", StringComparison.OrdinalIgnoreCase))
         .Take(5)
         .ToList();
     if (!proximasConsultas.Any())
     {
         proximasConsultas = Model.Citas
-            .Where(c => !c.Estado.Equals("Cancelada", StringComparison.OrdinalIgnoreCase) && !c.Estado.Equals("cancelada", StringComparison.OrdinalIgnoreCase))
+            .Where(c => !c.Estado.Equals("cancelada", StringComparison.OrdinalIgnoreCase))
             .Take(5)
             .ToList();
     }
