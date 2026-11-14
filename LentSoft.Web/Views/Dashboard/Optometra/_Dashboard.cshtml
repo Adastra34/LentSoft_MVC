@@ -1,0 +1,190 @@
+@model DashboardOptometraViewModel
+@{
+    var proximasConsultas = Model.Citas
+        .Where(c => !c.Estado.Equals("Atendida", StringComparison.OrdinalIgnoreCase) 
+                 && !c.Estado.Equals("atendida", StringComparison.OrdinalIgnoreCase)
+                 && !c.Estado.Equals("Cancelada", StringComparison.OrdinalIgnoreCase)
+                 && !c.Estado.Equals("cancelada", StringComparison.OrdinalIgnoreCase)
+                 && !c.Estado.Equals("completada", StringComparison.OrdinalIgnoreCase))
+        .Take(5)
+        .ToList();
+    if (!proximasConsultas.Any())
+    {
+        proximasConsultas = Model.Citas
+            .Where(c => !c.Estado.Equals("Cancelada", StringComparison.OrdinalIgnoreCase) && !c.Estado.Equals("cancelada", StringComparison.OrdinalIgnoreCase))
+            .Take(5)
+            .ToList();
+    }
+}
+
+            <h1 style="color: var(--purple-900); margin-bottom: 1.5rem; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Resumen de Optometría</h1>
+
+            <!-- TAREA 2: 6 TARJETAS DE ESTADÍSTICAS -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+                <!-- 1. Pacientes (Azul) -->
+                <div class="card" style="padding: 1.25rem; border-left: 4px solid #3b82f6; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Pacientes</span>
+                        <icon name="users" class="icon-lg" style="color: #3b82f6;" />
+                    </div>
+                    <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.TotalPacientes</h3>
+                </div>
+
+                <!-- 2. Citas hoy (Morado) -->
+                <div class="card" style="padding: 1.25rem; border-left: 4px solid #8b5cf6; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Citas hoy</span>
+                        <icon name="calendar-days" class="icon-lg" style="color: #8b5cf6;" />
+                    </div>
+                    <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.CitasHoy</h3>
+                </div>
+
+                <!-- 3. Pendientes (Amarillo) -->
+                <div class="card" style="padding: 1.25rem; border-left: 4px solid #f59e0b; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Pendientes</span>
+                        <icon name="hourglass" class="icon-lg" style="color: #f59e0b;" />
+                    </div>
+                    <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.CitasPendientes</h3>
+                </div>
+
+                <!-- 4. Exámenes (Verde) -->
+                <div class="card" style="padding: 1.25rem; border-left: 4px solid #10b981; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Exámenes</span>
+                        <icon name="eye" class="icon-lg" style="color: #10b981;" />
+                    </div>
+                    <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.TotalExamenes</h3>
+                </div>
+
+                <!-- 5. Fórmulas (Rosado) -->
+                <div class="card" style="padding: 1.25rem; border-left: 4px solid #ec4899; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Fórmulas</span>
+                        <icon name="glasses" class="icon-lg" style="color: #ec4899;" />
+                    </div>
+                    <h3 style="font-size: 1.75rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.TotalFormulas</h3>
+                </div>
+
+                <!-- 6. Próxima cita (Índigo) -->
+                <div class="card" style="padding: 1.25rem; border-left: 4px solid #6366f1; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <span style="color: var(--gray-500); font-size: 0.8rem; font-weight: 600; text-transform: uppercase;">Próxima cita</span>
+                        <icon name="calendar" class="icon-lg" style="color: #6366f1;" />
+                    </div>
+                    <h3 style="font-size: 1.5rem; font-weight: 700; color: var(--purple-900); margin: 0;">@Model.ProximaCitaFecha</h3>
+                </div>
+            </div>
+
+            <!-- TAREA 3 & TAREA 4: CALENDARIO MENSUAL + AGENDA DE HOY -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+                
+                <!-- TAREA 3: CALENDARIO MENSUAL INTERACTIVO -->
+                <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h2 id="calendarTitle" style="color: var(--purple-900); font-size: 1.1rem; margin: 0; font-family: var(--font-primary, sans-serif); font-weight: 700;">Calendario</h2>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button type="button" onclick="prevMonth()" style="background: var(--purple-100); border: none; border-radius: 0.375rem; padding: 0.3rem 0.6rem; color: var(--purple-800); cursor: pointer; font-weight: bold;">&lt;</button>
+                            <button type="button" onclick="nextMonth()" style="background: var(--purple-100); border: none; border-radius: 0.375rem; padding: 0.3rem 0.6rem; color: var(--purple-800); cursor: pointer; font-weight: bold;">&gt;</button>
+                        </div>
+                    </div>
+
+                    <!-- Days Header -->
+                    <div style="display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-weight: 600; font-size: 0.75rem; color: var(--gray-500); margin-bottom: 0.5rem;">
+                        <div>Dom</div><div>Lun</div><div>Mar</div><div>Mié</div><div>Jue</div><div>Vie</div><div>Sáb</div>
+                    </div>
+
+                    <!-- Calendar Grid -->
+                    <div id="calendarGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.25rem; text-align: center;">
+                        <!-- Generated via JS -->
+                    </div>
+                </div>
+
+                <!-- TAREA 4: PANEL AGENDA DE HOY -->
+                <div class="card" style="padding: 1.5rem; background: white; border-radius: 0.5rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--purple-100); padding-bottom: 0.75rem;">
+                        <h2 style="color: var(--purple-900); font-size: 1.1rem; margin: 0; font-family: var(--font-primary, sans-serif); font-weight: 700;">Agenda de hoy</h2>
+                        <span id="agendaDateBadge" style="font-size: 0.75rem; background-color: var(--purple-100); color: var(--purple-800); padding: 0.2rem 0.5rem; border-radius: 9999px; font-weight: 600;">Hoy</span>
+                    </div>
+
+                    <div id="agendaList" style="flex: 1; display: flex; flex-direction: column; gap: 0.75rem;">
+                        <!-- Generated via JS based on selected calendar date -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- TAREA 5: ACCESOS RÁPIDOS (5 BOTONES) -->
+            <div class="card" style="padding: 1.5rem; background: white; margin-bottom: 2rem; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                <h2 style="color: var(--purple-800); font-size: 1.1rem; margin-bottom: 1rem; font-family: var(--font-primary, sans-serif); font-weight: 700;">Accesos Rápidos</h2>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+                    <a href="?section=pacientes" class="btn" style="background-color: var(--purple-600); color: white; font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: 0.375rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500;">
+                        <icon name="user" class="icon-sm" /> <span>Registrar paciente</span>
+                    </a>
+                    <a href="?section=citas" class="btn" style="background-color: white; color: var(--purple-700); border: 1px solid var(--purple-300); font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: 0.375rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500;">
+                        <icon name="calendar" class="icon-sm" /> <span>Registrar cita</span>
+                    </a>
+                    <a href="?section=historial" class="btn" style="background-color: white; color: var(--purple-700); border: 1px solid var(--purple-300); font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: 0.375rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500;">
+                        <icon name="clipboard-list" class="icon-sm" /> <span>Consultar historial</span>
+                    </a>
+                    <a href="?section=examenes" class="btn" style="background-color: white; color: var(--purple-700); border: 1px solid var(--purple-300); font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: 0.375rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500;">
+                        <icon name="eye" class="icon-sm" /> <span>Registrar examen visual</span>
+                    </a>
+                    <a href="?section=formulas" class="btn" style="background-color: white; color: var(--purple-700); border: 1px solid var(--purple-300); font-size: 0.85rem; padding: 0.6rem 1rem; border-radius: 0.375rem; text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 500;">
+                        <icon name="glasses" class="icon-sm" /> <span>Crear fórmula óptica</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- TAREA 6: PRÓXIMAS CONSULTAS -->
+            <div style="margin-bottom: 1.5rem;">
+                <div class="table-toolbar-purple" style="justify-content: space-between;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <icon name="calendar-days" class="icon-md" />
+                        <h2 style="color: white; font-size: 1.05rem; margin: 0; font-weight: 700; letter-spacing: 0.01em;">Próximas consultas</h2>
+                    </div>
+                    <a href="?section=citas" class="btn" style="background: white; color: var(--purple-900); font-weight: 700; font-size: 0.8rem; padding: 0.35rem 0.8rem; border-radius: 0.375rem; text-decoration: none; transition: all 0.2s ease;">Ver todas →</a>
+                </div>
+                <div class="table-container-purple">
+                    <table class="custom-table-modern">
+                        <thead>
+                            <tr>
+                                <th>Cita</th>
+                                <th>Paciente</th>
+                                <th>Tipo</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!proximasConsultas.Any())
+                            {
+                                <tr>
+                                    <td colspan="5" style="padding: 1.75rem; text-align: center; color: var(--gray-500);">No hay próximas consultas registradas.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var c in proximasConsultas)
+                                {
+                                    <tr>
+                                        <td style="font-weight: 700; color: var(--purple-700);">#CIT-@c.Id</td>
+                                        <td style="font-weight: 600; color: var(--gray-800);">@(c.User?.Nombre ?? "Paciente")</td>
+                                        <td style="color: var(--gray-700);">@c.Servicio</td>
+                                        <td style="color: var(--gray-600);">@c.FechaHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td>
+                                            @{
+                                                var st = c.Estado?.ToLower() ?? "pendiente";
+                                                var badgeCls = st == "confirmada" ? "badge-success" : st == "pendiente" ? "badge-warning" : st == "completada" ? "badge-info" : "badge-danger";
+                                            }
+                                            <span class="badge-status-solid @badgeCls">
+                                                @c.Estado
+                                            </span>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>

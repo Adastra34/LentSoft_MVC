@@ -1,0 +1,387 @@
+    /* ==================== ESTILOS MODERNOS DE TABLAS (MÓDULO OPTÓMETRA) ==================== */
+    .table-toolbar-purple {
+        background: linear-gradient(135deg, var(--purple-900) 0%, var(--purple-800) 100%);
+        color: white;
+        padding: 0.85rem 1.25rem;
+        border-top-left-radius: 0.6rem;
+        border-top-right-radius: 0.6rem;
+        display: flex;
+        gap: 0.75rem;
+        align-items: center;
+        flex-wrap: wrap;
+    }
+    .table-search-box {
+        position: relative;
+        display: flex;
+        align-items: center;
+        flex: 1;
+        min-width: 260px;
+        max-width: 420px;
+    }
+    .table-search-box .search-icon {
+        position: absolute;
+        left: 0.75rem;
+        color: var(--purple-600);
+        font-size: 0.95rem;
+        pointer-events: none;
+    }
+    .table-search-box input.form-input {
+        width: 100%;
+        padding: 0.48rem 0.75rem 0.48rem 2.35rem;
+        border-radius: 0.4rem;
+        border: 1px solid var(--purple-300);
+        background: white;
+        color: var(--gray-900);
+        font-size: 0.875rem;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .table-search-box input.form-input:focus {
+        border-color: var(--purple-500);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+    }
+    .btn-filter-dropdown {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.48rem 0.9rem;
+        border: 1px solid var(--purple-300);
+        background: white;
+        color: var(--purple-900);
+        border-radius: 0.4rem;
+        font-weight: 600;
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .btn-filter-dropdown:hover {
+        background-color: var(--purple-50);
+    }
+    .filter-dropdown-menu {
+        display: none;
+        position: absolute;
+        top: calc(100% + 5px);
+        left: 0;
+        background: white;
+        border: 1px solid var(--purple-200);
+        border-radius: 0.5rem;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+        min-width: 170px;
+        padding: 0.4rem 0;
+    }
+    .filter-dropdown-menu a {
+        display: block;
+        padding: 0.45rem 1rem;
+        color: var(--gray-700);
+        text-decoration: none;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: background-color 0.15s ease, color 0.15s ease;
+    }
+    .filter-dropdown-menu a:hover {
+        background-color: var(--purple-50);
+        color: var(--purple-900);
+    }
+    .table-container-purple {
+        overflow-x: auto;
+        border: 1px solid var(--purple-200);
+        border-top: none;
+        border-bottom-left-radius: 0.6rem;
+        border-bottom-right-radius: 0.6rem;
+        background: white;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    }
+    .custom-table-modern {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+    }
+    .custom-table-modern thead tr {
+        border-bottom: 2px solid var(--purple-200);
+        color: var(--gray-700);
+        font-size: 0.85rem;
+        font-weight: 700;
+        background-color: #FAF9FE;
+    }
+    .custom-table-modern thead th {
+        padding: 0.85rem 1rem;
+        letter-spacing: 0.01em;
+    }
+    .custom-table-modern tbody tr {
+        border-bottom: 1px solid var(--purple-100);
+        transition: background-color 0.15s ease;
+    }
+    .custom-table-modern tbody tr:hover {
+        background-color: #f9f8fe;
+    }
+    .custom-table-modern tbody td {
+        padding: 0.85rem 1rem;
+        font-size: 0.875rem;
+        vertical-align: middle;
+    }
+    .badge-status-solid {
+        display: inline-block;
+        padding: 0.28rem 0.8rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: white;
+        text-align: center;
+        letter-spacing: 0.02em;
+        line-height: 1.2;
+    }
+    .badge-status-solid.badge-success { background-color: #10B981; }
+    .badge-status-solid.badge-warning { background-color: #F59E0B; }
+    .badge-status-solid.badge-info    { background-color: #3B82F6; }
+    .badge-status-solid.badge-danger  { background-color: #EF4444; }
+
+    .btn-action-icon {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.35rem 0.65rem;
+        border-radius: 9999px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1px solid transparent;
+        transition: all 0.15s ease;
+        text-decoration: none;
+        line-height: 1.2;
+    }
+    .btn-action-view {
+        background-color: #EDE9FE;
+        color: #5B21B6;
+        border-color: #DDD6FE;
+    }
+    .btn-action-view:hover {
+        background-color: #DDD6FE;
+        color: #4C1D95;
+    }
+    .btn-action-edit {
+        background-color: #DBEAFE;
+        color: #1E40AF;
+        border-color: #BFDBFE;
+    }
+    .btn-action-edit:hover {
+        background-color: #BFDBFE;
+        color: #1E3A8A;
+    }
+    .btn-action-delete {
+        background-color: #FEE2E2;
+        color: #991B1B;
+        border-color: #FECACA;
+    }
+    .btn-action-delete:hover {
+        background-color: #FCD34D;
+        color: #78350F;
+    }
+
+    /* Autocomplete de Pacientes en Examen Clínico */
+    .patient-opt-item {
+        padding: 0.55rem 0.85rem;
+        cursor: pointer;
+        border-bottom: 1px solid #ede9fe;
+        font-size: 0.85rem;
+        transition: background-color 0.15s ease, color 0.15s ease;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background-color: white;
+    }
+    .patient-opt-item:last-child {
+        border-bottom: none;
+    }
+    .patient-opt-item:hover {
+        background-color: #f5f3ff !important;
+        color: #4c1d95 !important;
+    }
+    /* ==================== REGLAS RESPONSIVE (MÓDULO OPTÓMETRA) ==================== */
+    @media screen and (max-width: 768px) {
+        /* Barra lateral (sidebar) apilada y flexible */
+        .optometra-layout-wrapper {
+            flex-direction: column !important;
+            min-height: auto !important;
+        }
+        .optometra-sidebar {
+            width: 100% !important;
+            padding: 1rem !important;
+            flex-shrink: 0 !important;
+        }
+        .optometra-sidebar nav {
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            gap: 0.35rem !important;
+        }
+        .optometra-sidebar .nav-item {
+            flex: 1 1 calc(50% - 0.35rem);
+            padding: 0.55rem 0.75rem !important;
+            font-size: 0.85rem !important;
+            justify-content: flex-start !important;
+        }
+        .optometra-main {
+            padding: 1rem !important;
+            width: 100% !important;
+            overflow-x: hidden !important;
+        }
+        .optometra-topbar {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.75rem !important;
+        }
+
+        /* Barras moradas de búsqueda y filtros apilables */
+        .table-toolbar-purple {
+            flex-direction: column !important;
+            align-items: stretch !important;
+            gap: 0.65rem !important;
+            padding: 0.85rem 1rem !important;
+        }
+        .table-search-box {
+            min-width: 100% !important;
+            max-width: 100% !important;
+            width: 100% !important;
+        }
+        .table-toolbar-purple > div:not(.table-search-box) {
+            display: flex !important;
+            flex-wrap: wrap !important;
+            gap: 0.5rem !important;
+            width: 100% !important;
+        }
+        .btn-filter-dropdown {
+            flex: 1 1 auto;
+            justify-content: center;
+        }
+
+        /* Tablas con scroll horizontal contenido sin romper el layout */
+        .table-container-purple {
+            overflow-x: auto !important;
+            -webkit-overflow-scrolling: touch !important;
+            width: 100% !important;
+            max-width: 100% !important;
+            display: block !important;
+        }
+        .custom-table-modern {
+            min-width: 650px !important;
+            width: 100% !important;
+        }
+        .custom-table-modern th,
+        .custom-table-modern td {
+            padding: 0.65rem 0.75rem !important;
+            white-space: nowrap;
+        }
+
+        /* Modales: ancho máximo 100% con padding razonable */
+        div[id^="modal-"] {
+            padding: 0.75rem !important;
+            align-items: flex-start !important;
+            overflow-y: auto !important;
+        }
+        div[id^="modal-"] > div {
+            width: 100% !important;
+            max-width: 100% !important;
+            margin: 1rem auto !important;
+            padding: 1.25rem 1rem !important;
+            max-height: 90vh !important;
+            border-radius: 0.5rem !important;
+        }
+
+        /* Formularios en grid apilados */
+        div[id^="modal-"] form div[style*="grid-template-columns"] {
+            grid-template-columns: 1fr !important;
+            gap: 0.75rem !important;
+        }
+
+        /* Botones de acción del pie de modales: solo se estiran los de .optometra-modal-actions */
+        .optometra-modal-actions {
+            flex-direction: column-reverse !important;
+            gap: 0.5rem !important;
+            width: 100% !important;
+        }
+        .optometra-modal-actions > button,
+        .optometra-modal-actions > a {
+            width: 100% !important;
+            justify-content: center !important;
+            text-align: center !important;
+        }
+    }
+
+    @media screen and (max-width: 480px) {
+        .optometra-sidebar {
+            padding: 0.75rem !important;
+        }
+        .optometra-sidebar .nav-item {
+            flex: 1 1 100% !important;
+        }
+        .optometra-main {
+            padding: 0.65rem !important;
+        }
+        div[id^="modal-"] {
+            padding: 0.35rem !important;
+        }
+        div[id^="modal-"] > div {
+            padding: 1rem 0.75rem !important;
+            max-height: 94vh !important;
+        }
+        div[style*="grid-template-columns: repeat(auto-fit, minmax(160px, 1fr))"] {
+            grid-template-columns: 1fr 1fr !important;
+            gap: 0.5rem !important;
+        }
+        .btn-action-icon {
+            padding: 0.3rem 0.5rem !important;
+            font-size: 0.75rem !important;
+        }
+    }
+
+    @media print {
+        /* Ocultar elementos de layout no necesarios en impresión */
+        nav, header, footer, .sidebar, #sidebar, .no-print, .table-toolbar-purple, .table-container-purple {
+            display: none !important;
+        }
+
+        body {
+            background: white !important;
+            color: #111827 !important;
+        }
+
+        body * {
+            visibility: hidden !important;
+        }
+
+        #modal-ver-formula,
+        #modal-ver-formula * {
+            visibility: visible !important;
+        }
+
+        #modal-ver-formula {
+            display: block !important;
+            position: absolute !important;
+            left: 0 !important;
+            top: 0 !important;
+            width: 100% !important;
+            height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: white !important;
+            box-shadow: none !important;
+            border: none !important;
+            z-index: 999999 !important;
+        }
+
+        #modal-ver-formula > div {
+            width: 100% !important;
+            max-width: 100% !important;
+            border: none !important;
+            box-shadow: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            background: white !important;
+        }
+
+        .no-print,
+        .no-print * {
+            display: none !important;
+            visibility: hidden !important;
+        }
+    }
