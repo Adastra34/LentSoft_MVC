@@ -1,0 +1,340 @@
+@model DashboardOptometraViewModel
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Pacientes</h1>
+                <button onclick="document.getElementById('modal-nuevo-paciente').style.display='flex'" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.6rem 1rem; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                    <icon name="users" class="icon-sm" /> <span>Nuevo Paciente</span>
+                </button>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <div class="table-toolbar-purple">
+                    <div class="table-search-box">
+                        <span class="search-icon"><icon name="search" class="icon-sm" /></span>
+                        <input type="text" id="searchPacientes" placeholder="Buscar paciente en el sistema..." class="form-input" onkeyup="filterTable('searchPacientes', 'tablePacientes')" oninput="filterTable('searchPacientes', 'tablePacientes')" />
+                    </div>
+                    <div style="position: relative;">
+                        <button type="button" onclick="toggleFilterMenu('pacientes')" class="btn-filter-dropdown" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <icon name="settings" class="icon-sm" /> <span>Filtro ▾</span>
+                        </button>
+                        <div id="filter-menu-pacientes" class="filter-dropdown-menu">
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchPacientes', 'tablePacientes', '')">Todos los estados</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchPacientes', 'tablePacientes', 'Activo')">Activos</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchPacientes', 'tablePacientes', 'Inactivo')">Inactivos</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-container-purple">
+                    <table id="tablePacientes" class="custom-table-modern">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre Completo</th>
+                                <th>Email</th>
+                                <th>Teléfono</th>
+                                <th style="text-align: center;">Estado</th>
+                                <th>Fecha Registro</th>
+                                <th style="text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.Pacientes.Any())
+                            {
+                                <tr>
+                                    <td colspan="7" style="padding: 1.75rem; text-align: center; color: var(--gray-500);">No hay pacientes registrados.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var p in Model.Pacientes)
+                                {
+                                    <tr>
+                                        <td style="color: var(--gray-500); font-weight: 600;">#PAC-@p.Id</td>
+                                        <td style="font-weight: 600; color: var(--purple-800);">@p.NombreCompleto</td>
+                                        <td style="color: var(--gray-700);">@p.Email</td>
+                                        <td style="color: var(--gray-600);">@(p.Telefono ?? "N/A")</td>
+                                        <td style="text-align: center;">
+                                            @{
+                                                var active = (p.EstadoPaciente ?? "Activo").Equals("Activo", StringComparison.OrdinalIgnoreCase);
+                                                var badgeClsP = active ? "badge-success" : "badge-danger";
+                                            }
+                                            <span class="badge-status-solid @badgeClsP">
+                                                @(p.EstadoPaciente ?? "Activo")
+                                            </span>
+                                        </td>
+                                        <td style="color: var(--gray-600);">@p.FechaRegistro.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                        <td style="text-align: right;">
+                                            <div style="display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                                                <button onclick="abrirModalVerPaciente(this)" 
+                                                        data-id="@p.Id"
+                                                        data-nombre="@p.Nombre"
+                                                        data-apellido="@p.Apellido"
+                                                        data-tipodocumento="@p.TipoDocumento"
+                                                        data-numerodocumento="@p.NumeroDocumento"
+                                                        data-email="@p.Email"
+                                                        data-telefono="@(p.Telefono ?? "")"
+                                                        data-fechanacimiento="@(p.FechaNacimiento?.ToString("yyyy-MM-dd") ?? "")"
+                                                        data-genero="@(p.Genero ?? "")"
+                                                        data-direccion="@(p.Direccion ?? "")"
+                                                        data-eps="@(p.EPS ?? "")"
+                                                        data-estadopaciente="@(p.EstadoPaciente ?? "Activo")"
+                                                        data-observaciones="@(p.ObservacionesPaciente ?? "")"
+                                                        class="btn-action-icon btn-action-view" title="Ver Detalle" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="eye" class="icon-sm" /> <span>Ver</span>
+                                                </button>
+                                                <button onclick="abrirModalEditarPaciente(this)" 
+                                                        data-id="@p.Id" 
+                                                        data-nombre="@p.Nombre" 
+                                                        data-apellido="@p.Apellido" 
+                                                        data-tipodocumento="@p.TipoDocumento"
+                                                        data-numerodocumento="@p.NumeroDocumento"
+                                                        data-email="@p.Email" 
+                                                        data-telefono="@(p.Telefono ?? "")" 
+                                                        data-fechanacimiento="@(p.FechaNacimiento?.ToString("yyyy-MM-dd") ?? "")"
+                                                        data-genero="@(p.Genero ?? "")"
+                                                        data-direccion="@(p.Direccion ?? "")"
+                                                        data-eps="@(p.EPS ?? "")"
+                                                        data-estadopaciente="@(p.EstadoPaciente ?? "Activo")"
+                                                        data-observaciones="@(p.ObservacionesPaciente ?? "")"
+                                                        class="btn-action-icon btn-action-edit" title="Editar" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="pencil" class="icon-sm" /> <span>Editar</span>
+                                                </button>
+                                                <form id="form-delete-paciente-@p.Id" asp-controller="Optometra" asp-action="DeletePaciente" method="post" style="display:inline; margin: 0;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@p.Id" />
+                                                    <button type="button" onclick="confirmDeactivatePaciente(@p.Id, '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(p.NombreCompleto))')" class="btn-action-icon btn-action-delete" title="Desactivar Paciente" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                        <icon name="trash-2" class="icon-sm" /> <span>Desactivar</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Modal para Ver Paciente (Solo Lectura) -->
+            <div id="modal-ver-paciente" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 600px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--purple-100); padding-bottom: 0.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Ficha Detallada del Paciente</h2>
+                        <button onclick="document.getElementById('modal-ver-paciente').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem;">
+                        <div>
+                            <p><strong>Tipo Documento:</strong> <span id="ver-paciente-tipodoc"></span></p>
+                            <p><strong>Número Documento:</strong> <span id="ver-paciente-numdoc"></span></p>
+                            <p><strong>Nombre completo:</strong> <span id="ver-paciente-nombre"></span></p>
+                            <p><strong>Fecha de nacimiento:</strong> <span id="ver-paciente-fechanac"></span></p>
+                            <p><strong>Género:</strong> <span id="ver-paciente-genero"></span></p>
+                        </div>
+                        <div>
+                            <p><strong>Correo electrónico:</strong> <span id="ver-paciente-email"></span></p>
+                            <p><strong>Teléfono:</strong> <span id="ver-paciente-telefono"></span></p>
+                            <p><strong>Dirección:</strong> <span id="ver-paciente-direccion"></span></p>
+                            <p><strong>EPS:</strong> <span id="ver-paciente-eps"></span></p>
+                            <p><strong>Estado:</strong> <span id="ver-paciente-estado" style="font-weight:600;"></span></p>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1rem; border-top: 1px solid var(--purple-100); padding-top: 1rem;">
+                        <p><strong>Observaciones:</strong></p>
+                        <p id="ver-paciente-observaciones" style="background-color: var(--purple-50); padding: 0.75rem; border-radius: 0.375rem; color: var(--gray-700); margin: 0; min-height: 60px; font-style: italic; white-space: pre-line;"></p>
+                    </div>
+
+                    <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button type="button" onclick="document.getElementById('modal-ver-paciente').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer; font-weight: 600;">Cerrar</button>
+                        <button type="button" id="btn-ver-editar-paciente" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Editar Paciente</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para Registrar Nuevo Paciente -->
+            <div id="modal-nuevo-paciente" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 550px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Registrar Nuevo Paciente</h2>
+                        <button onclick="document.getElementById('modal-nuevo-paciente').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <form asp-controller="Optometra" asp-action="CreatePaciente" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Tipo de Documento</label>
+                                <select name="tipoDocumento" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                    <option value="CC">CC</option>
+                                    <option value="CE">CE</option>
+                                    <option value="TI">TI</option>
+                                    <option value="Pasaporte">Pasaporte</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Número de Documento</label>
+                                <input name="numeroDocumento" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Nombres</label>
+                                <input name="nombre" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Apellidos</label>
+                                <input name="apellido" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha de Nacimiento</label>
+                                <input name="fechaNacimiento" type="date" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Género</label>
+                                <select name="genero" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Femenino">Femenino</option>
+                                    <option value="Masculino">Masculino</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Teléfono</label>
+                                <input name="telefono" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Correo Electrónico</label>
+                                <input name="email" type="email" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Dirección</label>
+                                <input name="direccion" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">EPS</label>
+                                <input name="eps" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" />
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Observaciones Clínicas del Paciente</label>
+                            <textarea name="observacionesPaciente" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
+                        </div>
+
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="button" onclick="document.getElementById('modal-nuevo-paciente').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
+                            <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Registrar Paciente</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal para Editar Paciente -->
+            <div id="modal-editar-paciente" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 550px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Editar Datos del Paciente</h2>
+                        <button onclick="document.getElementById('modal-editar-paciente').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <form asp-controller="Optometra" asp-action="EditPaciente" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+                        <input type="hidden" name="id" id="edit-paciente-id" />
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Tipo de Documento</label>
+                                <select name="tipoDocumento" id="edit-paciente-tipodoc" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                    <option value="CC">CC</option>
+                                    <option value="CE">CE</option>
+                                    <option value="TI">TI</option>
+                                    <option value="Pasaporte">Pasaporte</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Número de Documento</label>
+                                <input name="numeroDocumento" id="edit-paciente-numdoc" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Nombre</label>
+                                <input name="nombre" id="edit-paciente-nombre" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Apellido</label>
+                                <input name="apellido" id="edit-paciente-apellido" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha de Nacimiento</label>
+                                <input name="fechaNacimiento" id="edit-paciente-fechanac" type="date" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Género</label>
+                                <select name="genero" id="edit-paciente-genero" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;">
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Femenino">Femenino</option>
+                                    <option value="Masculino">Masculino</option>
+                                    <option value="Otro">Otro</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Teléfono</label>
+                                <input name="telefono" id="edit-paciente-telefono" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Email</label>
+                                <input name="email" id="edit-paciente-email" type="email" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Dirección</label>
+                                <input name="direccion" id="edit-paciente-direccion" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">EPS</label>
+                                <input name="eps" id="edit-paciente-eps" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" />
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Estado</label>
+                                <select name="estadoPaciente" id="edit-paciente-estado" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                    <option value="Activo">Activo</option>
+                                    <option value="Inactivo">Inactivo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Observaciones Clínicas del Paciente</label>
+                            <textarea name="observacionesPaciente" id="edit-paciente-observaciones" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
+                        </div>
+
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="button" onclick="document.getElementById('modal-editar-paciente').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
+                            <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>

@@ -1,0 +1,455 @@
+@model DashboardOptometraViewModel
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Historial Clínico</h1>
+                <button onclick="document.getElementById('modal-nuevo-historial').style.display='flex'" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.6rem 1rem; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                    <icon name="clipboard-list" class="icon-sm" /> <span>Nuevo Registro</span>
+                </button>
+            </div>
+
+            <!-- Vista de Detalle Clínico (Tarea 3) -->
+            @if (ViewBag.DetalleId != null)
+            {
+                var detId = (int)ViewBag.DetalleId;
+                var hcDetalle = Model.HistorialClinico.FirstOrDefault(h => h.Id == detId);
+                if (hcDetalle != null)
+                {
+                    var formulaCercana = Model.FormulasOpticas
+                        .Where(f => f.UserId == hcDetalle.UserId)
+                        .OrderByDescending(f => f.Fecha)
+                        .FirstOrDefault();
+                    
+                    <div class="card" style="padding: 1.5rem; background: var(--purple-50); border: 2px solid var(--purple-300); border-radius: 0.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-md);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1.5px solid var(--purple-200); padding-bottom: 0.5rem;">
+                            <h2 style="color: var(--purple-900); font-size: 1.2rem; margin: 0; font-family: var(--font-primary, sans-serif); font-weight: 700; display: flex; align-items: center; gap: 0.4rem;"><icon name="clipboard-list" class="icon-sm" /> <span>Ficha de Historia Clínica #HC-@hcDetalle.Id</span></h2>
+                            <a href="?section=historial" style="background-color: var(--purple-200); color: var(--purple-800); text-decoration: none; padding: 0.3rem 0.75rem; border-radius: 0.25rem; font-size: 0.85rem; font-weight: 600;">Cerrar Detalle</a>
+                        </div>
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem; margin-bottom: 1rem;">
+                            <div>
+                                <p><strong>Paciente:</strong> @hcDetalle.User?.NombreCompleto (@hcDetalle.User?.TipoDocumento: @hcDetalle.User?.NumeroDocumento)</p>
+                                <p><strong>Fecha Registro:</strong> @hcDetalle.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</p>
+                                <p><strong>Optómetra:</strong> @(hcDetalle.Optometra?.NombreCompleto ?? "N/A")</p>
+                                <p><strong>Estado del Registro:</strong> <span style="font-weight: 600;">@hcDetalle.Estado</span></p>
+                            </div>
+                            <div>
+                                <p><strong>Antecedentes Personales y Familiares:</strong></p>
+                                <div style="background: white; padding: 0.5rem; border-radius: 0.25rem; border: 1px solid var(--purple-200); font-style: italic; min-height: 50px; white-space: pre-line;">
+                                    @(hcDetalle.Antecedentes ?? "Sin antecedentes registrados.")
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem; margin-bottom: 1rem;">
+                            <div>
+                                <p><strong>Exámenes Realizados:</strong></p>
+                                <div style="background: white; padding: 0.5rem; border-radius: 0.25rem; border: 1px solid var(--purple-200); min-height: 50px; white-space: pre-line;">
+                                    @(hcDetalle.ExamenesRealizados ?? "No especificados.")
+                                </div>
+                            </div>
+                            <div>
+                                <p><strong>Observaciones Adicionales:</strong></p>
+                                <div style="background: white; padding: 0.5rem; border-radius: 0.25rem; border: 1px solid var(--purple-200); min-height: 50px; white-space: pre-line;">
+                                    @(hcDetalle.Observaciones ?? "Ninguna observación registrada.")
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; font-size: 0.9rem; margin-bottom: 1rem;">
+                            <div>
+                                <p><strong>Diagnóstico Principal:</strong></p>
+                                <div style="background: white; padding: 0.75rem; border-radius: 0.25rem; border: 1px solid var(--purple-200); font-weight: 600; color: var(--purple-950); white-space: pre-line;">
+                                    @hcDetalle.Diagnostico
+                                </div>
+                            </div>
+                            <div>
+                                <p><strong>Tratamiento y Plan de Manejo:</strong></p>
+                                <div style="background: white; padding: 0.75rem; border-radius: 0.25rem; border: 1px solid var(--purple-200); font-weight: 600; color: var(--purple-950); white-space: pre-line;">
+                                    @hcDetalle.Tratamiento
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (!string.IsNullOrEmpty(hcDetalle.EsferaOD) || !string.IsNullOrEmpty(hcDetalle.EsferaOI))
+                        {
+                            <div style="margin-top: 1rem; border-top: 1px solid var(--purple-200); padding-top: 0.75rem;">
+                                <h3 style="color: var(--purple-800); font-size: 0.95rem; margin-top: 0; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;"><icon name="glasses" class="icon-sm" /> <span>Refracción Registrada en Historial</span></h3>
+                                <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.85rem; background: white; border: 1px solid var(--purple-200); border-radius: 0.25rem;">
+                                    <thead>
+                                        <tr style="background-color: var(--purple-600); color: white;">
+                                            <th style="padding: 0.4rem; border: 1px solid var(--purple-300);">Ojo</th>
+                                            <th style="padding: 0.4rem; border: 1px solid var(--purple-300);">Esfera</th>
+                                            <th style="padding: 0.4rem; border: 1px solid var(--purple-300);">Cilindro</th>
+                                            <th style="padding: 0.4rem; border: 1px solid var(--purple-300);">Eje</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="padding: 0.4rem; border: 1px solid var(--purple-200); font-weight: 600;">OD</td>
+                                            <td style="padding: 0.4rem; border: 1px solid var(--purple-200);">@(hcDetalle.EsferaOD ?? "-")</td>
+                                            <td style="padding: 0.4rem; border: 1px solid var(--purple-200);">@(hcDetalle.CilindroOD ?? "-")</td>
+                                            <td style="padding: 0.4rem; border: 1px solid var(--purple-200);">@(hcDetalle.EjeOD ?? "-")</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 0.4rem; border: 1px solid var(--purple-200); font-weight: 600;">OI</td>
+                                            <td style="padding: 0.4rem; border: 1px solid var(--purple-200);">@(hcDetalle.EsferaOI ?? "-")</td>
+                                            <td style="padding: 0.4rem; border: 1px solid var(--purple-200);">@(hcDetalle.CilindroOI ?? "-")</td>
+                                            <td style="padding: 0.4rem; border: 1px solid var(--purple-200);">@(hcDetalle.EjeOI ?? "-")</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        }
+
+                        <!-- Enlace a Fórmula Óptica -->
+                        <div style="border-top: 1.5px dashed var(--purple-300); padding-top: 1rem; margin-top: 1rem;">
+                            <h3 style="color: var(--purple-800); font-size: 1rem; margin-top: 0; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem;"><icon name="glasses" class="icon-sm" /> <span>Fórmula Óptica Reciente del Paciente</span></h3>
+                            @if (formulaCercana != null)
+                            {
+                                <div style="display: flex; justify-content: space-between; align-items: center; background: white; padding: 0.75rem; border-radius: 0.375rem; border: 1px solid var(--purple-200);">
+                                    <div style="font-size: 0.9rem;">
+                                        <span><strong>Fórmula #FOR-@formulaCercana.Id</strong> del @formulaCercana.Fecha.ToLocalTime().ToString("dd/MM/yyyy") (Tipo: @formulaCercana.TipoLente)</span>
+                                    </div>
+                                    <a href="?section=formulas" style="background-color: var(--purple-600); color: white; text-decoration: none; padding: 0.4rem 0.8rem; border-radius: 0.25rem; font-size: 0.85rem; font-weight: 600;">Ir a Fórmulas</a>
+                                </div>
+                            }
+                            else
+                            {
+                                <p style="color: var(--gray-500); font-size: 0.85rem; margin: 0; font-style: italic;">No se encontró ninguna fórmula óptica cargada para este paciente en el sistema.</p>
+                            }
+                        </div>
+                    </div>
+                }
+
+                var pacienteTimeline = Model.Pacientes.FirstOrDefault(p => p.Id == detId)
+                    ?? Model.HistorialClinico.FirstOrDefault(h => h.UserId == detId)?.User;
+                if (pacienteTimeline != null && hcDetalle == null)
+                {
+                    var histList = Model.HistorialClinico.Where(h => h.UserId == pacienteTimeline.Id);
+                    var examList = Model.ExamenesVisuales.Where(e => e.UserId == pacienteTimeline.Id);
+                    var formList = Model.FormulasOpticas.Where(f => f.UserId == pacienteTimeline.Id);
+
+                    var timeline = new List<(DateTime Fecha, string Tipo, string Titulo, string Detalles)>();
+                    foreach (var h in histList)
+                    {
+                        timeline.Add((h.Fecha, "Historial Clínico", h.Diagnostico ?? "Diagnóstico general", h.Observaciones ?? h.Tratamiento ?? ""));
+                    }
+                    foreach (var e in examList)
+                    {
+                        timeline.Add((e.Fecha, "Examen Visual", e.TipoExamen ?? "Examen visual", e.Resultado ?? ""));
+                    }
+                    foreach (var f in formList)
+                    {
+                        timeline.Add((f.Fecha, "Fórmula Óptica", f.TipoLente ?? "Fórmula óptica", f.Observaciones ?? ""));
+                    }
+                    var timelineOrdenada = timeline.OrderByDescending(x => x.Fecha).ToList();
+
+                    <div class="card" style="padding: 1.5rem; background: var(--purple-50); border: 2px solid var(--purple-300); border-radius: 0.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-md);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1.5px solid var(--purple-200); padding-bottom: 0.5rem;">
+                            <div>
+                                <h2 style="color: var(--purple-900); font-size: 1.2rem; margin: 0; font-family: var(--font-primary, sans-serif); font-weight: 700; display: flex; align-items: center; gap: 0.4rem;"><icon name="clock" class="icon-sm" /> <span>Línea de Tiempo Completa</span></h2>
+                                <p style="color: var(--gray-600); font-size: 0.85rem; margin: 0.25rem 0 0 0;">Paciente: <strong>@pacienteTimeline.NombreCompleto</strong> (@pacienteTimeline.Email)</p>
+                            </div>
+                            <a href="?section=historial" style="background-color: var(--purple-200); color: var(--purple-800); text-decoration: none; padding: 0.3rem 0.75rem; border-radius: 0.25rem; font-size: 0.85rem; font-weight: 600;">Cerrar Línea de Tiempo</a>
+                        </div>
+                        
+                        @if (!timelineOrdenada.Any())
+                        {
+                            <p style="color: var(--gray-500); font-style: italic; text-align: center; padding: 1.5rem 0;">No se encontraron registros de historial, exámenes ni fórmulas para este paciente.</p>
+                        }
+                        else
+                        {
+                            <div style="display: flex; flex-direction: column; gap: 1rem; border-left: 3px solid var(--purple-300); margin-left: 0.75rem; padding-left: 1.25rem; padding-top: 0.5rem; padding-bottom: 0.5rem;">
+                                @foreach (var ev in timelineOrdenada)
+                                {
+                                    <div style="position: relative;">
+                                        <div style="position: absolute; left: -1.65rem; top: 0.25rem; width: 10px; height: 10px; border-radius: 50%; background-color: @(ev.Tipo == "Historial Clínico" ? "var(--purple-600)" : ev.Tipo == "Examen Visual" ? "#3b82f6" : "#10b981");"></div>
+                                        <div style="font-size: 0.75rem; color: var(--gray-500); font-weight: 600;">
+                                            @ev.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm") &bull;
+                                            <span style="color: @(ev.Tipo == "Historial Clínico" ? "var(--purple-700)" : ev.Tipo == "Examen Visual" ? "#2563eb" : "#059669"); font-weight: 600;">@ev.Tipo</span>
+                                        </div>
+                                        <div style="font-weight: 600; color: var(--purple-950); font-size: 0.95rem; margin-top: 0.15rem;">@ev.Titulo</div>
+                                        @if (!string.IsNullOrEmpty(ev.Detalles))
+                                        {
+                                            <div style="font-size: 0.85rem; color: var(--gray-600); margin-top: 0.25rem;">@ev.Detalles</div>
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            }
+
+            <div style="margin-bottom: 1.5rem;">
+                <div class="table-toolbar-purple">
+                    <div class="table-search-box">
+                        <span class="search-icon"><icon name="search" class="icon-sm" /></span>
+                        <input type="text" id="searchHistorias" placeholder="Buscar en historial clínico por paciente o diagnóstico..." class="form-input" onkeyup="filterTable('searchHistorias', 'tableHistorias')" oninput="filterTable('searchHistorias', 'tableHistorias')" />
+                    </div>
+                    <div style="position: relative;">
+                        <button type="button" onclick="toggleFilterMenu('historias')" class="btn-filter-dropdown" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <icon name="settings" class="icon-sm" /> <span>Filtro ▾</span>
+                        </button>
+                        <div id="filter-menu-historias" class="filter-dropdown-menu">
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorias', 'tableHistorias', '')">Todos los registros</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorias', 'tableHistorias', 'Activo')">Activos</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchHistorias', 'tableHistorias', 'Inactivo')">Inactivos</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-container-purple">
+                    <table id="tableHistorias" class="custom-table-modern">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Paciente</th>
+                                <th>Fecha</th>
+                                <th>Diagnóstico</th>
+                                <th style="text-align: center;">Estado</th>
+                                <th>Optómetra</th>
+                                <th style="text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.HistorialClinico.Any())
+                            {
+                                <tr>
+                                    <td colspan="7" style="padding: 1.75rem; text-align: center; color: var(--gray-500);">No hay registros de historial clínico.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var h in Model.HistorialClinico)
+                                {
+                                    <tr>
+                                        <td style="color: var(--gray-500); font-weight: 600;">#HC-@h.Id</td>
+                                        <td style="font-weight: 600; color: var(--purple-800);">@(h.User?.NombreCompleto ?? "N/A")</td>
+                                        <td style="color: var(--gray-600);">@h.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                        <td style="color: var(--gray-800); font-weight: 500;">@h.Diagnostico</td>
+                                        <td style="text-align: center;">
+                                            @{
+                                                var actHc = (h.Estado ?? "Activo").Equals("Activo", StringComparison.OrdinalIgnoreCase);
+                                                var badgeClsH = actHc ? "badge-success" : "badge-danger";
+                                            }
+                                            <span class="badge-status-solid @badgeClsH">
+                                                @(h.Estado ?? "Activo")
+                                            </span>
+                                        </td>
+                                        <td style="color: var(--gray-700);">@(h.Optometra?.NombreCompleto ?? "Optómetra")</td>
+                                        <td style="text-align: right;">
+                                            <div style="display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                                                <a href="?section=historial&detalleId=@h.Id" class="btn-action-icon btn-action-view" title="Ver Ficha Clínica" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="eye" class="icon-sm" /> <span>Ver</span>
+                                                </a>
+                                                <a href="@Url.Action("HistorialCompleto", "Optometra", new { pacienteId = h.UserId })" class="btn-action-icon" style="background-color: #F3E8FF; color: #6B21A8; border-color: #E9D5FF; display: inline-flex; align-items: center; gap: 0.3rem;" title="Línea de tiempo completa del paciente">
+                                                    <icon name="clock" class="icon-sm" /> <span>Línea de tiempo</span>
+                                                </a>
+                                                <button onclick="abrirModalEditarHistorial(this)" 
+                                                        data-id="@h.Id" 
+                                                        data-userid="@h.UserId" 
+                                                        data-fecha="@h.Fecha.ToString("yyyy-MM-dd")" 
+                                                        data-diagnostico="@h.Diagnostico" 
+                                                        data-tratamiento="@h.Tratamiento"
+                                                        data-antecedentes="@(h.Antecedentes ?? "")"
+                                                        data-examenes="@(h.ExamenesRealizados ?? "")"
+                                                        data-observaciones="@(h.Observaciones ?? "")"
+                                                        data-estado="@(h.Estado ?? "Activo")"
+                                                        data-esferaod="@(h.EsferaOD ?? "")"
+                                                        data-cilindrood="@(h.CilindroOD ?? "")"
+                                                        data-ejeod="@(h.EjeOD ?? "")"
+                                                        data-esferaoi="@(h.EsferaOI ?? "")"
+                                                        data-cilindrooi="@(h.CilindroOI ?? "")"
+                                                        data-ejeoi="@(h.EjeOI ?? "")"
+                                                        class="btn-action-icon btn-action-edit" title="Editar" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="pencil" class="icon-sm" /> <span>Editar</span>
+                                                </button>
+                                                <form id="form-delete-historial-@h.Id" asp-controller="Optometra" asp-action="DeleteHistorial" method="post" style="display:inline; margin: 0;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@h.Id" />
+                                                    <button type="button" onclick="confirmDeleteHistorial(@h.Id)" class="btn-action-icon btn-action-delete" title="Eliminar registro" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                        <icon name="trash-2" class="icon-sm" /> <span>Eliminar</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Modal para Nuevo Historial -->
+            <div id="modal-nuevo-historial" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 550px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Crear Registro de Historial</h2>
+                        <button onclick="document.getElementById('modal-nuevo-historial').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <form asp-controller="Optometra" asp-action="CreateHistorial" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
+                                <select name="UserId" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                    @foreach (var cli in Model.Pacientes)
+                                    {
+                                        <option value="@cli.Id">@cli.NombreCompleto</option>
+                                    }
+                                </select>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha de Consulta</label>
+                                <input name="Fecha" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Antecedentes Personales/Familiares</label>
+                            <textarea name="Antecedentes" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Exámenes Realizados</label>
+                            <textarea name="ExamenesRealizados" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Diagnóstico</label>
+                            <textarea name="Diagnostico" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2" required></textarea>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Tratamiento</label>
+                            <textarea name="Tratamiento" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2" required></textarea>
+                        </div>
+
+                        <!-- Refracción Clínica (Receta) -->
+                        <div style="border: 1px solid var(--purple-100); border-radius: 0.375rem; padding: 0.75rem; background-color: var(--purple-50);">
+                            <h3 style="margin-top:0; margin-bottom:0.5rem; font-size:0.875rem; color:var(--purple-800);">Refracción Clínica / Receta (Opcional)</h3>
+                            <div style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 0.5rem; align-items:center; text-align:center; font-size:0.75rem; font-weight:600;">
+                                <div>Ojo</div>
+                                <div>Esfera</div>
+                                <div>Cilindro</div>
+                                <div>Eje</div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 0.5rem; align-items:center; margin-top:0.25rem;">
+                                <div style="font-size:0.8rem; font-weight:600; text-align:center;">OD</div>
+                                <input name="EsferaOD" placeholder="-0.25" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                                <input name="CilindroOD" placeholder="-0.50" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                                <input name="EjeOD" placeholder="180" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                            </div>
+                            <div style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 0.5rem; align-items:center; margin-top:0.25rem;">
+                                <div style="font-size:0.8rem; font-weight:600; text-align:center;">OI</div>
+                                <input name="EsferaOI" placeholder="-0.25" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                                <input name="CilindroOI" placeholder="-0.50" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                                <input name="EjeOI" placeholder="175" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Observaciones Generales</label>
+                            <textarea name="Observaciones" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
+                        </div>
+
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="button" onclick="document.getElementById('modal-nuevo-historial').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
+                            <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal para Editar Historial -->
+            <div id="modal-editar-historial" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 550px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Editar Registro de Historial</h2>
+                        <button onclick="document.getElementById('modal-editar-historial').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <form asp-controller="Optometra" asp-action="EditHistorial" method="post" style="display:flex; flex-direction:column; gap:1rem;">
+                        <input type="hidden" name="Id" id="edit-historial-id" />
+                        
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
+                                <select name="UserId" id="edit-historial-userid" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                    @foreach (var cli in Model.Pacientes)
+                                    {
+                                        <option value="@cli.Id">@cli.NombreCompleto</option>
+                                    }
+                                </select>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha de Consulta</label>
+                                <input name="Fecha" id="edit-historial-fecha" type="date" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Antecedentes Personales/Familiares</label>
+                            <textarea name="Antecedentes" id="edit-historial-antecedentes" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Exámenes Realizados</label>
+                            <textarea name="ExamenesRealizados" id="edit-historial-examenes" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Diagnóstico</label>
+                            <textarea name="Diagnostico" id="edit-historial-diagnostico" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2" required></textarea>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Tratamiento</label>
+                            <textarea name="Tratamiento" id="edit-historial-tratamiento" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2" required></textarea>
+                        </div>
+
+                        <!-- Refracción Clínica (Receta) -->
+                        <div style="border: 1px solid var(--purple-100); border-radius: 0.375rem; padding: 0.75rem; background-color: var(--purple-50);">
+                            <h3 style="margin-top:0; margin-bottom:0.5rem; font-size:0.875rem; color:var(--purple-800);">Refracción Clínica / Receta (Opcional)</h3>
+                            <div style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 0.5rem; align-items:center; text-align:center; font-size:0.75rem; font-weight:600;">
+                                <div>Ojo</div>
+                                <div>Esfera</div>
+                                <div>Cilindro</div>
+                                <div>Eje</div>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 0.5rem; align-items:center; margin-top:0.25rem;">
+                                <div style="font-size:0.8rem; font-weight:600; text-align:center;">OD</div>
+                                <input name="EsferaOD" id="edit-historial-esferaod" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                                <input name="CilindroOD" id="edit-historial-cilindrood" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                                <input name="EjeOD" id="edit-historial-ejeod" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                            </div>
+                            <div style="display: grid; grid-template-columns: 40px 1fr 1fr 1fr; gap: 0.5rem; align-items:center; margin-top:0.25rem;">
+                                <div style="font-size:0.8rem; font-weight:600; text-align:center;">OI</div>
+                                <input name="EsferaOI" id="edit-historial-esferaoi" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                                <input name="CilindroOI" id="edit-historial-cilindrooi" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                                <input name="EjeOI" id="edit-historial-ejeoi" type="text" style="width:100%; box-sizing:border-box; padding:0.35rem; border:1px solid var(--purple-200); border-radius:0.25rem; text-align:center;" />
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Observaciones Generales</label>
+                                <textarea name="Observaciones" id="edit-historial-observaciones" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Estado</label>
+                                <select name="Estado" id="edit-historial-estado" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                    <option value="Activo">Activo</option>
+                                    <option value="Inactivo">Inactivo</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="button" onclick="document.getElementById('modal-editar-historial').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
+                            <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>

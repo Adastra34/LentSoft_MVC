@@ -1,0 +1,578 @@
+@model DashboardOptometraViewModel
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Fórmulas Ópticas</h1>
+                <button onclick="abrirModalNuevaFormula()" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.6rem 1rem; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                    <icon name="glasses" class="icon-sm" /> <span>Nueva Fórmula</span>
+                </button>
+            </div>
+
+            <div style="margin-bottom: 1.5rem;">
+                <div class="table-toolbar-purple">
+                    <div class="table-search-box">
+                        <span class="search-icon"><icon name="search" class="icon-sm" /></span>
+                        <input type="text" id="searchFormulas" placeholder="Buscar fórmula por paciente o tipo de lente..." class="form-input" onkeyup="filterTable('searchFormulas', 'tableFormulas')" oninput="filterTable('searchFormulas', 'tableFormulas')" />
+                    </div>
+                    <div style="position: relative;">
+                        <button type="button" onclick="toggleFilterMenu('formulas')" class="btn-filter-dropdown" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <icon name="settings" class="icon-sm" /> <span>Filtro ▾</span>
+                        </button>
+                        <div id="filter-menu-formulas" class="filter-dropdown-menu">
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchFormulas', 'tableFormulas', '')">Todos los estados</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchFormulas', 'tableFormulas', 'Vigente')">Vigentes</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchFormulas', 'tableFormulas', 'Vencida')">Vencidas</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-container-purple">
+                    <table id="tableFormulas" class="custom-table-modern">
+                        <thead>
+                            <tr>
+                                <th>Paciente</th>
+                                <th>Fecha</th>
+                                <th>Tipo Lente</th>
+                                <th>Esfera OD / OI</th>
+                                <th>Cilindro OD / OI</th>
+                                <th>Eje OD / OI</th>
+                                <th style="text-align: center;">Estado</th>
+                                <th style="text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.FormulasOpticas.Any())
+                            {
+                                <tr>
+                                    <td colspan="8" style="padding: 1.75rem; text-align: center; color: var(--gray-500);">No hay fórmulas ópticas registradas.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var f in Model.FormulasOpticas)
+                                {
+                                    <tr>
+                                        <td style="font-weight: 600; color: var(--purple-800);">@(f.User?.NombreCompleto ?? "N/A")</td>
+                                        <td style="color: var(--gray-600);">@f.Fecha.ToLocalTime().ToString("dd/MM/yyyy")</td>
+                                        <td style="font-weight: 500; color: var(--gray-700);">@f.TipoLente</td>
+                                        <td style="color: var(--gray-700);">OD: @f.EsferaOD / OI: @f.EsferaOI</td>
+                                        <td style="color: var(--gray-700);">OD: @f.CilindroOD / OI: @f.CilindroOI</td>
+                                        <td style="color: var(--gray-700);">OD: @f.EjeOD / OI: @f.EjeOI</td>
+                                        <td style="text-align: center;">
+                                            @{
+                                                var vig = f.Estado == "Vigente";
+                                                var badgeClsF = vig ? "badge-success" : "badge-danger";
+                                            }
+                                            <span class="badge-status-solid @badgeClsF">
+                                                @f.Estado
+                                            </span>
+                                        </td>
+                                        <td style="text-align: right;">
+                                            <div style="display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                                                @if (Model.PedidosPorFormula.TryGetValue(f.Id, out var pedExistente))
+                                                {
+                                                    <span class="badge-status-solid" style="background-color: var(--purple-100); color: var(--purple-700); border: 1px solid var(--purple-300); display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.6rem; font-size: 0.8rem; font-weight: 600; border-radius: 9999px;" title="Pedido de venta generado: #@pedExistente.NumeroPedido">
+                                                        <icon name="shopping-bag" class="icon-sm" /> <span>#@pedExistente.NumeroPedido</span>
+                                                    </span>
+                                                }
+                                                else if (f.Estado == "Vigente")
+                                                {
+                                                    <button type="button"
+                                                            id="btn-generar-pedido-@f.Id"
+                                                            onclick="abrirModalCrearPedidoFormula(this)"
+                                                            data-formulaid="@f.Id"
+                                                            data-paciente="@(f.User?.NombreCompleto ?? "N/A")"
+                                                            data-tipolente="@f.TipoLente"
+                                                            data-fecha="@f.Fecha.ToLocalTime().ToString("dd/MM/yyyy")"
+                                                            class="btn-action-icon"
+                                                            style="background: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); display: inline-flex; align-items: center; gap: 0.3rem;"
+                                                            title="Generar pedido">
+                                                        <icon name="shopping-bag" class="icon-sm" /> <span data-i18n="optometra.formula.generarpedido">Generar pedido</span>
+                                                    </button>
+                                                }
+                                                else
+                                                {
+                                                    <button type="button"
+                                                            disabled
+                                                            class="btn-action-icon"
+                                                            style="opacity: 0.45; cursor: not-allowed; display: inline-flex; align-items: center; gap: 0.3rem;"
+                                                            title="La fórmula está vencida; no se puede generar el pedido.">
+                                                        <icon name="shopping-bag" class="icon-sm" /> <span data-i18n="optometra.formula.generarpedido">Generar pedido</span>
+                                                    </button>
+                                                }
+                                                <button onclick="abrirModalVerFormula(this)"
+                                                        data-id="@f.Id"
+                                                        data-paciente="@(f.User?.NombreCompleto ?? "N/A")"
+                                                        data-documento="@(f.User?.TipoDocumento): @(f.User?.NumeroDocumento)"
+                                                        data-fecha="@f.Fecha.ToLocalTime().ToString("dd/MM/yyyy")"
+                                                        data-esferaod="@f.EsferaOD"
+                                                        data-cilindrood="@f.CilindroOD"
+                                                        data-ejeod="@f.EjeOD"
+                                                        data-esferaoi="@f.EsferaOI"
+                                                        data-cilindrooi="@f.CilindroOI"
+                                                        data-ejeoi="@f.EjeOI"
+                                                        data-observaciones="@(f.Observaciones ?? "Sin observaciones.")"
+                                                        data-tipolente="@f.TipoLente"
+                                                        data-distanciapupilar="@(f.DistanciaPupilar ?? "N/A")"
+                                                        data-estado="@f.Estado"
+                                                        data-optometra="@(f.Optometra?.NombreCompleto ?? "N/A")"
+                                                        data-registroopto="@(f.Optometra?.RegistroMedico ?? "N/A")"
+                                                        class="btn-action-icon btn-action-view" title="Ver e Imprimir Receta" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="eye" class="icon-sm" /> <span>Receta</span>
+                                                </button>
+                                                <button onclick="abrirModalEditarFormula(this)"
+                                                        data-id="@f.Id"
+                                                        data-userid="@f.UserId"
+                                                        data-paciente="@(f.User?.NombreCompleto ?? "")"
+                                                        data-documento="@(f.User?.NumeroDocumento ?? "")"
+                                                        data-fecha="@f.Fecha.ToString("yyyy-MM-dd")"
+                                                        data-esferaod="@f.EsferaOD"
+                                                        data-cilindrood="@f.CilindroOD"
+                                                        data-ejeod="@f.EjeOD"
+                                                        data-esferaoi="@f.EsferaOI"
+                                                        data-cilindrooi="@f.CilindroOI"
+                                                        data-ejeoi="@f.EjeOI"
+                                                        data-observaciones="@f.Observaciones"
+                                                        data-tipolente="@f.TipoLente"
+                                                        data-distanciapupilar="@f.DistanciaPupilar"
+                                                        class="btn-action-icon btn-action-edit" title="Editar" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="pencil" class="icon-sm" /> <span>Editar</span>
+                                                </button>
+                                                <form id="form-delete-formula-@f.Id" asp-controller="Optometra" asp-action="DeleteFormula" method="post" style="display:inline; margin: 0;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@f.Id" />
+                                                    <button type="button" onclick="confirmDeleteFormula(@f.Id)" class="btn-action-icon btn-action-delete" title="Eliminar fórmula" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                        <icon name="trash-2" class="icon-sm" /> <span>Eliminar</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Modal para Ver e Imprimir Receta de Fórmula Óptica -->
+            <div id="modal-ver-formula" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 600px; background: white; border-radius: 0.5rem; padding: 2rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 95vh; overflow-y: auto;" id="receta-imprimible">
+                    
+                    <!-- Formato de Receta Médica -->
+                    <div style="border: 2px solid var(--purple-600); padding: 1.5rem; border-radius: 0.375rem; background-color: white;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid var(--purple-600); padding-bottom: 0.75rem; margin-bottom: 1rem;">
+                            <div>
+                                <h2 style="color: var(--purple-900); margin: 0; font-size: 1.5rem; font-family: var(--font-primary, sans-serif); font-weight:700;">LentSoft Optometría</h2>
+                                <p style="margin:0; font-size:0.8rem; color:var(--gray-600);">Clínica de Especialidades Visuales</p>
+                            </div>
+                            <div style="text-align:right;">
+                                <h3 style="color: var(--purple-600); margin:0; font-size: 1rem; font-weight:700;">RECETA CLÍNICA</h3>
+                                <p style="margin:0; font-size:0.75rem; color:var(--gray-600);">Fórmula #FOR-<span id="ver-formula-id"></span></p>
+                            </div>
+                        </div>
+
+                        <!-- Información Paciente -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.85rem; margin-bottom: 1rem; background-color: var(--purple-50); padding: 0.75rem; border-radius:0.25rem;">
+                            <p style="margin:0;"><strong>Paciente:</strong> <span id="ver-formula-paciente"></span></p>
+                            <p style="margin:0;"><strong>Identificación:</strong> <span id="ver-formula-documento"></span></p>
+                            <p style="margin:0;"><strong>Fecha Emisión:</strong> <span id="ver-formula-fecha"></span></p>
+                            <p style="margin:0;"><strong>Tipo Lente:</strong> <span id="ver-formula-tipolente" style="font-weight:600; color:var(--purple-800);"></span></p>
+                        </div>
+
+                        <!-- Grilla de Corrección Visual -->
+                        <table style="width: 100%; border-collapse: collapse; text-align: center; font-size: 0.85rem; margin-bottom: 1.5rem;">
+                            <thead>
+                                <tr style="background-color: var(--purple-600); color: white; font-weight:600;">
+                                    <th style="padding: 0.5rem; border: 1px solid var(--purple-300);">Ojo</th>
+                                    <th style="padding: 0.5rem; border: 1px solid var(--purple-300);">Esfera (SPH)</th>
+                                    <th style="padding: 0.5rem; border: 1px solid var(--purple-300);">Cilindro (CYL)</th>
+                                    <th style="padding: 0.5rem; border: 1px solid var(--purple-300);">Eje (AXIS)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200); font-weight:600;">Ojo Derecho (OD)</td>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200);" id="ver-formula-esferaod"></td>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200);" id="ver-formula-cilindrood"></td>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200);" id="ver-formula-ejeod"></td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200); font-weight:600;">Ojo Izquierdo (OI)</td>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200);" id="ver-formula-esferaoi"></td>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200);" id="ver-formula-cilindrooi"></td>
+                                    <td style="padding: 0.5rem; border: 1px solid var(--purple-200);" id="ver-formula-ejeoi"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div style="font-size:0.85rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; align-items:center;">
+                            <span><strong>Distancia Pupilar (DP):</strong> <span id="ver-formula-distanciapupilar" style="font-weight:600;"></span> mm</span>
+                            <span><strong>Estado de Validez:</strong> <span id="ver-formula-validez" style="font-weight:600;"></span></span>
+                        </div>
+
+                        <!-- Observaciones / Indicaciones -->
+                        <div style="font-size: 0.85rem; border-top: 1px dashed var(--purple-300); padding-top: 0.75rem; margin-bottom: 2rem;">
+                            <p style="margin-top:0; font-weight:600;">Observaciones y Recomendaciones:</p>
+                            <p style="font-style: italic; color: var(--gray-700); margin:0;" id="ver-formula-observaciones"></p>
+                        </div>
+
+                        <!-- Firmas -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-end; font-size: 0.8rem; border-top: 1px solid var(--purple-200); padding-top: 2rem;">
+                            <div style="text-align: center; width: 45%;">
+                                <div style="border-bottom: 1px solid var(--gray-400); width: 100%; height: 35px; margin-bottom: 0.25rem;"></div>
+                                <span>Firma del Paciente</span>
+                            </div>
+                            <div style="text-align: center; width: 45%;">
+                                <p style="font-weight:600; margin:0;" id="ver-formula-optometra"></p>
+                                <p style="margin:0; font-size:0.75rem; color:var(--gray-600);">Optómetra Especialista</p>
+                                <p style="margin:0; font-size:0.75rem; color:var(--gray-600);">R.M. <span id="ver-formula-registroopto"></span></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción (Ocultar al Imprimir en CSS) -->
+                    <div class="optometra-modal-actions no-print" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button type="button" onclick="document.getElementById('modal-ver-formula').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer; font-weight:600;">Cerrar</button>
+                        <a id="btn-descargar-receta-pdf" href="#" style="flex: 1; text-align: center; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 0.4rem; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-100); color: var(--purple-800); cursor: pointer; font-weight:600;"><icon name="file-text" class="icon-sm" /> <span>Descargar PDF</span></a>
+                        <button type="button" onclick="imprimirReceta()" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight:600; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;"><icon name="printer" class="icon-sm" /> <span>Imprimir</span></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para Nueva Formula -->
+            <div id="modal-nueva-formula" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 550px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Crear Fórmula Óptica</h2>
+                        <button onclick="document.getElementById('modal-nueva-formula').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <form asp-controller="Optometra" asp-action="CreateFormula" method="post" id="form-nueva-formula" onsubmit="return validateNuevoFormulaForm(this)" style="display:flex; flex-direction:column; gap:1rem;">
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem; position: relative;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente *</label>
+                                <div style="position: relative;" id="wrapper-nuevo-formula-paciente">
+                                    <div style="position: relative; display: flex; align-items: center;">
+                                        <span style="position: absolute; left: 0.6rem; color: var(--purple-500); font-size: 0.85rem; pointer-events: none; display: flex; align-items: center;"><icon name="search" class="icon-sm" /></span>
+                                        <input type="text"
+                                               id="search-nuevo-formula-paciente"
+                                               placeholder="Buscar paciente por nombre..."
+                                               autocomplete="off"
+                                               style="width: 100%; padding: 0.5rem 2rem 0.5rem 2rem; border: 1.5px solid var(--purple-200); border-radius: 0.375rem; font-size: 0.85rem; background: white;"
+                                               onfocus="mostrarListaPacientes('nuevo-formula')"
+                                               oninput="filtrarPacientesModal('nuevo-formula')" />
+                                        <button type="button"
+                                                id="clear-nuevo-formula-paciente"
+                                                onclick="limpiarPacienteSeleccionado('nuevo-formula')"
+                                                style="display: none; position: absolute; right: 0.5rem; background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 0.9rem; padding: 0 0.25rem;"
+                                                title="Limpiar selección" aria-label="Limpiar selección"><icon name="x" class="icon-sm" /></button>
+                                    </div>
+                                    <input type="hidden" name="UserId" id="hidden-nuevo-formula-userid" />
+
+                                    <!-- Floating Dropdown Results -->
+                                    <div id="dropdown-nuevo-formula-pacientes"
+                                         style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: white; border: 1.5px solid var(--purple-300); border-radius: 0.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.18); max-height: 200px; overflow-y: auto; z-index: 1050;">
+                                        @foreach (var cli in Model.Pacientes)
+                                        {
+                                            <div class="patient-opt-item"
+                                                 data-id="@cli.Id"
+                                                 data-nombre="@cli.NombreCompleto"
+                                                 data-doc="@(cli.NumeroDocumento ?? "")"
+                                                 onclick="seleccionarPacienteModal('nuevo-formula', @cli.Id, '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(cli.NombreCompleto))', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(cli.NumeroDocumento ?? ""))')">
+                                                <div>
+                                                    <span style="font-weight: 600; color: var(--purple-950);">@cli.NombreCompleto</span>
+                                                    @if (!string.IsNullOrEmpty(cli.NumeroDocumento))
+                                                    {
+                                                        <span style="font-size: 0.75rem; color: var(--gray-500); margin-left: 0.5rem;">Doc: @cli.NumeroDocumento</span>
+                                                    }
+                                                </div>
+                                                <span style="font-size: 0.75rem; color: var(--purple-600); font-weight: 600;">Elegir</span>
+                                            </div>
+                                        }
+                                        <div id="no-patients-nuevo-formula" style="display: none; padding: 0.75rem; text-align: center; color: var(--gray-500); font-size: 0.8rem; font-style: italic;">
+                                            No se encontró ningún paciente con ese nombre.
+                                        </div>
+                                    </div>
+                                    <div id="badge-nuevo-formula-paciente" style="display: none; margin-top: 0.25rem; font-size: 0.75rem; color: #047857; font-weight: 600; align-items: center; gap: 0.25rem;">
+                                        <icon name="check" class="icon-sm" style="color: #047857;" /> <span>Seleccionado:</span> <span id="badge-name-nuevo-formula"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha de Emisión</label>
+                                <input name="Fecha" type="date" value="@DateTime.Today.ToString("yyyy-MM-dd")" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <!-- Notificación de precarga de refracción -->
+                        <div id="aviso-auto-refraccion" style="display:none; font-size: 0.75rem; color: var(--purple-700); background: var(--purple-50); border: 1px solid var(--purple-200); padding: 0.4rem 0.6rem; border-radius: 0.25rem; display: flex; align-items: center; gap: 0.4rem;">
+                            <icon name="sparkles" class="icon-sm" /> <span id="aviso-auto-refraccion-text">Datos de refracción precargados desde el último examen visual. Son totalmente editables.</span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Tipo de Lente</label>
+                                <select name="TipoLente" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                    <option value="Monofocal - Antirreflejo">Monofocal - Antirreflejo</option>
+                                    <option value="Monofocal - Filtro Azul">Monofocal - Filtro Azul</option>
+                                    <option value="Bifocal">Bifocal</option>
+                                    <option value="Progresivo">Progresivo</option>
+                                    <option value="Lente de Contacto Blando">Lente de Contacto Blando</option>
+                                    <option value="Lente de Contacto Rígido">Lente de Contacto Rígido</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Distancia Pupilar (DP) (mm)</label>
+                                <input name="DistanciaPupilar" placeholder="Ej: 63" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" />
+                            </div>
+                        </div>
+
+                        <h3 style="margin: 0; font-size: 0.95rem; color: var(--purple-800); border-bottom: 1px solid var(--purple-100); padding-bottom: 0.25rem;">Ojo Derecho (OD)</h3>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Esfera</label>
+                                <input name="EsferaOD" id="new-formula-esferaod" placeholder="Ej: -1.25" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Cilindro</label>
+                                <input name="CilindroOD" id="new-formula-cilindrood" placeholder="Ej: -0.50" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Eje</label>
+                                <input name="EjeOD" id="new-formula-ejeod" placeholder="Ej: 180" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <h3 style="margin: 0.5rem 0 0 0; font-size: 0.95rem; color: var(--purple-800); border-bottom: 1px solid var(--purple-100); padding-bottom: 0.25rem;">Ojo Izquierdo (OI)</h3>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Esfera</label>
+                                <input name="EsferaOI" id="new-formula-esferaoi" placeholder="Ej: -1.50" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Cilindro</label>
+                                <input name="CilindroOI" id="new-formula-cilindrooi" placeholder="Ej: -0.75" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Eje</label>
+                                <input name="EjeOI" id="new-formula-ejeoi" placeholder="Ej: 175" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Observaciones / Recomendaciones</label>
+                            <textarea name="Observaciones" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
+                        </div>
+
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="button" onclick="document.getElementById('modal-nueva-formula').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
+                            <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal para Editar Formula -->
+            <div id="modal-editar-formula" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 550px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Editar Fórmula Óptica</h2>
+                        <button onclick="document.getElementById('modal-editar-formula').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <form asp-controller="Optometra" asp-action="EditFormula" method="post" style="display:flex; flex-direction:column; gap:1rem;" onsubmit="return validateEditFormulaForm(this)">
+                        <input type="hidden" name="Id" id="edit-formula-id" />
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem; position: relative;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente *</label>
+                                <div style="position: relative;" id="wrapper-edit-formula-paciente">
+                                    <div style="position: relative; display: flex; align-items: center;">
+                                        <span style="position: absolute; left: 0.6rem; color: var(--purple-500); font-size: 0.85rem; pointer-events: none; display: flex; align-items: center;"><icon name="search" class="icon-sm" /></span>
+                                        <input type="text"
+                                               id="search-edit-formula-paciente"
+                                               placeholder="Buscar paciente por nombre..."
+                                               autocomplete="off"
+                                               style="width: 100%; padding: 0.5rem 2rem 0.5rem 2rem; border: 1.5px solid var(--purple-200); border-radius: 0.375rem; font-size: 0.85rem; background: white;"
+                                               onfocus="mostrarListaPacientes('edit-formula')"
+                                               oninput="filtrarPacientesModal('edit-formula')" />
+                                        <button type="button"
+                                                id="clear-edit-formula-paciente"
+                                                onclick="limpiarPacienteSeleccionado('edit-formula')"
+                                                style="display: none; position: absolute; right: 0.5rem; background: none; border: none; color: var(--gray-400); cursor: pointer; font-size: 0.9rem; padding: 0 0.25rem;"
+                                                title="Limpiar selección" aria-label="Limpiar selección"><icon name="x" class="icon-sm" /></button>
+                                    </div>
+                                    <input type="hidden" name="UserId" id="edit-formula-userid" />
+
+                                    <!-- Floating Dropdown Results -->
+                                    <div id="dropdown-edit-formula-pacientes"
+                                         style="display: none; position: absolute; top: calc(100% + 4px); left: 0; right: 0; background: white; border: 1.5px solid var(--purple-300); border-radius: 0.5rem; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.18); max-height: 200px; overflow-y: auto; z-index: 1050;">
+                                        @foreach (var cli in Model.Pacientes)
+                                        {
+                                            <div class="patient-opt-item"
+                                                 data-id="@cli.Id"
+                                                 data-nombre="@cli.NombreCompleto"
+                                                 data-doc="@(cli.NumeroDocumento ?? "")"
+                                                 onclick="seleccionarPacienteModal('edit-formula', @cli.Id, '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(cli.NombreCompleto))', '@Html.Raw(System.Web.HttpUtility.JavaScriptStringEncode(cli.NumeroDocumento ?? ""))')">
+                                                <div>
+                                                    <span style="font-weight: 600; color: var(--purple-950);">@cli.NombreCompleto</span>
+                                                    @if (!string.IsNullOrEmpty(cli.NumeroDocumento))
+                                                    {
+                                                        <span style="font-size: 0.75rem; color: var(--gray-500); margin-left: 0.5rem;">Doc: @cli.NumeroDocumento</span>
+                                                    }
+                                                </div>
+                                                <span style="font-size: 0.75rem; color: var(--purple-600); font-weight: 600;">Elegir</span>
+                                            </div>
+                                        }
+                                        <div id="no-patients-edit-formula" style="display: none; padding: 0.75rem; text-align: center; color: var(--gray-500); font-size: 0.8rem; font-style: italic;">
+                                            No se encontró ningún paciente con ese nombre.
+                                        </div>
+                                    </div>
+                                    <div id="badge-edit-formula-paciente" style="display: none; margin-top: 0.25rem; font-size: 0.75rem; color: #047857; font-weight: 600; align-items: center; gap: 0.25rem;">
+                                        <icon name="check" class="icon-sm" style="color: #047857;" /> <span>Seleccionado:</span> <span id="badge-name-edit-formula"></span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha de Emisión</label>
+                                <input name="Fecha" id="edit-formula-fecha" type="date" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Tipo de Lente</label>
+                                <select name="TipoLente" id="edit-formula-tipolente" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                    <option value="Monofocal - Antirreflejo">Monofocal - Antirreflejo</option>
+                                    <option value="Monofocal - Filtro Azul">Monofocal - Filtro Azul</option>
+                                    <option value="Bifocal">Bifocal</option>
+                                    <option value="Progresivo">Progresivo</option>
+                                    <option value="Lente de Contacto Blando">Lente de Contacto Blando</option>
+                                    <option value="Lente de Contacto Rígido">Lente de Contacto Rígido</option>
+                                </select>
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Distancia Pupilar (DP) (mm)</label>
+                                <input name="DistanciaPupilar" id="edit-formula-distanciapupilar" type="text" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" />
+                            </div>
+                        </div>
+
+                        <h3 style="margin: 0; font-size: 0.95rem; color: var(--purple-800); border-bottom: 1px solid var(--purple-100); padding-bottom: 0.25rem;">Ojo Derecho (OD)</h3>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Esfera</label>
+                                <input name="EsferaOD" id="edit-formula-esferaod" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Cilindro</label>
+                                <input name="CilindroOD" id="edit-formula-cilindrood" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Eje</label>
+                                <input name="EjeOD" id="edit-formula-ejeod" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <h3 style="margin: 0.5rem 0 0 0; font-size: 0.95rem; color: var(--purple-800); border-bottom: 1px solid var(--purple-100); padding-bottom: 0.25rem;">Ojo Izquierdo (OI)</h3>
+                        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;">
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Esfera</label>
+                                <input name="EsferaOI" id="edit-formula-esferaoi" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Cilindro</label>
+                                <input name="CilindroOI" id="edit-formula-cilindrooi" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                            <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                                <label style="font-size: 0.75rem; font-weight: 600; color: var(--gray-600);">Eje</label>
+                                <input name="EjeOI" id="edit-formula-ejeoi" type="text" style="width: 100%; box-sizing: border-box; min-width: 0; padding: 0.4rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                            </div>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Observaciones / Recomendaciones</label>
+                            <textarea name="Observaciones" id="edit-formula-observaciones" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
+                        </div>
+
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="button" onclick="document.getElementById('modal-editar-formula').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
+                            <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal para Generar Pedido de Venta desde Fórmula Óptica -->
+            <div id="modal-crear-pedido-formula" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 500px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); max-height: 90vh; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; border-bottom: 1px solid var(--purple-100); padding-bottom: 0.75rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem;" data-i18n="optometra.formula.modal.title">
+                            <icon name="shopping-bag" class="icon-md" style="color: var(--purple-600);" />
+                            <span>Generar Pedido de Venta</span>
+                        </h2>
+                        <button type="button" onclick="cerrarModalCrearPedidoFormula()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500); line-height: 1;">&times;</button>
+                    </div>
+
+                    <div id="pedido-formula-error" style="display: none; background-color: #FEE2E2; color: #991B1B; padding: 0.65rem 0.85rem; border-radius: 0.375rem; font-size: 0.85rem; border: 1px solid #FCA5A5; margin-bottom: 1rem; align-items: center; gap: 0.5rem;">
+                        <icon name="alert-circle" class="icon-sm" style="flex-shrink: 0;" />
+                        <span id="pedido-formula-error-msg"></span>
+                    </div>
+
+                    <form id="form-crear-pedido-formula" onsubmit="enviarCrearPedidoFormula(event)" style="display:flex; flex-direction:column; gap:1rem;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="formulaId" id="pedido-formula-id" />
+
+                        <!-- Datos de solo lectura de la fórmula -->
+                        <div style="background-color: var(--purple-50); border: 1px solid var(--purple-100); border-radius: 0.375rem; padding: 0.85rem; font-size: 0.85rem; display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                            <div>
+                                <span style="color: var(--gray-500); font-size: 0.75rem; font-weight: 600; text-transform: uppercase;" data-i18n="optometra.formula.modal.patient">Paciente</span>
+                                <div id="pedido-formula-paciente" style="font-weight: 600; color: var(--purple-950);"></div>
+                            </div>
+                            <div>
+                                <span style="color: var(--gray-500); font-size: 0.75rem; font-weight: 600; text-transform: uppercase;" data-i18n="optometra.formula.modal.date">Fecha</span>
+                                <div id="pedido-formula-fecha" style="font-weight: 600; color: var(--gray-700);"></div>
+                            </div>
+                            <div style="grid-column: span 2;">
+                                <span style="color: var(--gray-500); font-size: 0.75rem; font-weight: 600; text-transform: uppercase;" data-i18n="optometra.formula.modal.lens">Tipo de Lente</span>
+                                <div id="pedido-formula-tipolente" style="font-weight: 600; color: var(--purple-800);"></div>
+                            </div>
+                        </div>
+
+                        <!-- Selector de Producto -->
+                        <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);" data-i18n="optometra.formula.modal.product">Producto en Inventario *</label>
+                            <select name="productId" id="pedido-formula-productid" class="form-input" required style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--purple-200); border-radius: 0.375rem; font-size: 0.875rem; background: white;" onchange="actualizarMaxCantidadStock()">
+                                <option value="" data-i18n="optometra.formula.modal.selectproduct">-- Seleccionar producto en inventario --</option>
+                                @foreach (var prod in Model.ProductosDisponibles)
+                                {
+                                    <option value="@prod.Id" data-stock="@prod.Stock" data-precio="@prod.Precio">
+                                        @prod.Nombre - Stock: @prod.Stock - $@prod.Precio.ToString("N0")
+                                    </option>
+                                }
+                            </select>
+                            <small id="pedido-formula-stock-hint" style="color: var(--gray-500); font-size: 0.75rem;"></small>
+                        </div>
+
+                        <!-- Cantidad -->
+                        <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);" data-i18n="optometra.formula.modal.qty">Cantidad *</label>
+                            <input name="cantidad" id="pedido-formula-cantidad" type="number" min="1" max="10000" value="1" class="form-input" required style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--purple-200); border-radius: 0.375rem; font-size: 0.875rem;" />
+                        </div>
+
+                        <!-- Notas Opcionales -->
+                        <div style="display: flex; flex-direction: column; gap: 0.3rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);" data-i18n="optometra.formula.modal.notes">Notas / Observaciones (opcional)</label>
+                            <textarea name="notas" id="pedido-formula-notas" rows="2" maxlength="250" placeholder="Instrucciones para taller o laboratorio..." class="form-input" style="width: 100%; padding: 0.5rem; border: 1.5px solid var(--purple-200); border-radius: 0.375rem; font-size: 0.875rem;"></textarea>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="optometra-modal-actions" style="display: flex; gap: 0.75rem; margin-top: 0.5rem;">
+                            <button type="button" onclick="cerrarModalCrearPedidoFormula()" style="flex: 1; padding: 0.55rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer; font-weight: 600;" data-i18n="optometra.formula.modal.cancel">Cancelar</button>
+                            <button type="submit" id="btn-submit-pedido-formula" style="flex: 1; padding: 0.55rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;">
+                                <icon name="check" class="icon-sm" /> <span data-i18n="optometra.formula.modal.submit">Generar Pedido</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>

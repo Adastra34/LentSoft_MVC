@@ -1,0 +1,273 @@
+@model DashboardOptometraViewModel
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem; font-family: var(--font-primary, sans-serif);">Agenda de Citas</h1>
+                <button onclick="document.getElementById('modal-nueva-cita').style.display='flex'" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.6rem 1rem; border: none; border-radius: 0.375rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.5rem;">
+                    <icon name="calendar-days" class="icon-sm" /> <span>Nueva Cita</span>
+                </button>
+            </div>
+
+            <!-- Vista Resumen Calendario Próxima Semana -->
+            <div class="card" style="padding: 1.5rem; background: white; margin-bottom: 1.5rem; border-radius: 0.5rem; box-shadow: var(--shadow-sm);">
+                <h2 style="color: var(--purple-800); font-size: 1.1rem; margin-bottom: 1rem; font-family: var(--font-primary, sans-serif);">Citas Programadas por Día</h2>
+                <div style="display: flex; gap: 1rem; overflow-x: auto; padding-bottom: 0.5rem;">
+                    @for (int i = 0; i < 7; i++)
+                    {
+                        var dia = DateTime.UtcNow.Date.AddDays(i);
+                        var citasDia = Model.Citas.Where(c => c.FechaHora.Date == dia).ToList();
+                        <div style="min-width: 120px; padding: 0.75rem; border: 1px solid var(--purple-200); border-radius: 0.5rem; background-color: @(i == 0 ? "var(--purple-50)" : "white"); text-align: center;">
+                            <p style="font-size: 0.8rem; color: var(--gray-500); margin-bottom: 0.25rem; font-weight: 600;">@dia.ToString("ddd dd/MM")</p>
+                            <span style="font-size: 1.25rem; font-weight: 700; color: var(--purple-700);">@citasDia.Count</span>
+                            <p style="font-size: 0.75rem; color: var(--gray-600); margin: 0;">citas</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Tabs de Filtros de Estado -->
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem; overflow-x: auto; padding-bottom: 0.25rem;">
+                <button class="filter-tab active" onclick="filterCitasByEstado('Todos', this)" style="background-color: var(--purple-600); color: white; border: none; padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Todos</button>
+                <button class="filter-tab" onclick="filterCitasByEstado('pendiente', this)" style="background-color: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Pendientes</button>
+                <button class="filter-tab" onclick="filterCitasByEstado('confirmada', this)" style="background-color: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Confirmadas</button>
+                <button class="filter-tab" onclick="filterCitasByEstado('completada', this)" style="background-color: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Completadas</button>
+                <button class="filter-tab" onclick="filterCitasByEstado('cancelada', this)" style="background-color: var(--purple-50); color: var(--purple-700); border: 1px solid var(--purple-200); padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer;">Canceladas</button>
+            </div>
+
+            <!-- Tabla de Citas -->
+            <div style="margin-bottom: 1.5rem;">
+                <div class="table-toolbar-purple">
+                    <div class="table-search-box">
+                        <span class="search-icon"><icon name="search" class="icon-sm" /></span>
+                        <input type="text" id="searchCitasOpto" placeholder="Buscar por N° cita, paciente o servicio..." class="form-input" onkeyup="filterTable('searchCitasOpto', 'tableCitasOpto')" oninput="filterTable('searchCitasOpto', 'tableCitasOpto')" />
+                    </div>
+                    <div style="position: relative;">
+                        <button type="button" onclick="toggleFilterMenu('citasOpto')" class="btn-filter-dropdown" style="display: inline-flex; align-items: center; gap: 0.35rem;">
+                            <icon name="settings" class="icon-sm" /> <span>Filtro ▾</span>
+                        </button>
+                        <div id="filter-menu-citasOpto" class="filter-dropdown-menu">
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchCitasOpto', 'tableCitasOpto', '')">Todos los estados</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchCitasOpto', 'tableCitasOpto', 'Pendiente')">Pendientes</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchCitasOpto', 'tableCitasOpto', 'Confirmada')">Confirmadas</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchCitasOpto', 'tableCitasOpto', 'Completada')">Completadas</a>
+                            <a href="javascript:void(0)" onclick="filterTableByValue('searchCitasOpto', 'tableCitasOpto', 'Cancelada')">Canceladas</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="table-container-purple">
+                    <table id="tableCitasOpto" class="custom-table-modern">
+                        <thead>
+                            <tr>
+                                <th>N° Cita</th>
+                                <th>Paciente</th>
+                                <th>Servicio</th>
+                                <th>Fecha y Hora</th>
+                                <th style="text-align: center;">Estado</th>
+                                <th style="text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!Model.Citas.Any())
+                            {
+                                <tr>
+                                    <td colspan="6" style="padding: 1.75rem; text-align: center; color: var(--gray-500);">No hay citas registradas en la agenda.</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var c in Model.Citas)
+                                {
+                                    <tr class="cita-row" data-estado="@c.Estado?.ToLower()">
+                                        <td style="color: var(--purple-700); font-weight: 700;">#CIT-@c.Id</td>
+                                        <td style="font-weight: 600; color: var(--gray-800);">@(c.User?.NombreCompleto ?? "Paciente")</td>
+                                        <td style="color: var(--gray-700);">@c.Servicio</td>
+                                        <td style="color: var(--gray-600);">@c.FechaHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                        <td style="text-align: center;">
+                                            @{
+                                                var st = c.Estado?.ToLower() ?? "pendiente";
+                                                var badgeClsC = st == "confirmada" ? "badge-success" : st == "pendiente" ? "badge-warning" : st == "completada" ? "badge-info" : "badge-danger";
+                                            }
+                                            <span class="badge-status-solid @badgeClsC">
+                                                @c.Estado
+                                            </span>
+                                        </td>
+                                        <td style="text-align: right;">
+                                            <div style="display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
+                                                <button onclick="abrirModalVerCita(this)" 
+                                                        data-id="@c.Id"
+                                                        data-paciente="@(c.User?.NombreCompleto ?? "Paciente")"
+                                                        data-servicio="@c.Servicio"
+                                                        data-fechahorastr="@c.FechaHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm")"
+                                                        data-notas="@(c.Notas ?? "")"
+                                                        data-estado="@c.Estado"
+                                                        class="btn-action-icon btn-action-view" title="Ver Detalle" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="eye" class="icon-sm" /> <span>Ver</span>
+                                                </button>
+                                                <button onclick="abrirModalEditarCita(this)" 
+                                                        data-id="@c.Id" 
+                                                        data-userid="@c.UserId"
+                                                        data-servicio="@c.Servicio"
+                                                        data-fechahora="@c.FechaHora.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")"
+                                                        data-notas="@(c.Notas ?? "")"
+                                                        data-estado="@c.Estado"
+                                                        class="btn-action-icon btn-action-edit" title="Editar" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                    <icon name="pencil" class="icon-sm" /> <span>Editar</span>
+                                                </button>
+                                                <form id="form-delete-appointment-@c.Id" asp-controller="Optometra" asp-action="DeleteAppointment" method="post" style="display:inline; margin: 0;">
+                                                    @Html.AntiForgeryToken()
+                                                    <input type="hidden" name="id" value="@c.Id" />
+                                                    <button type="button" onclick="confirmDeleteAppointment(@c.Id)" class="btn-action-icon btn-action-delete" title="Eliminar cita" style="display: inline-flex; align-items: center; gap: 0.3rem;">
+                                                        <icon name="trash-2" class="icon-sm" /> <span>Eliminar</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Botón Ver Resumen del Período → ReporteCitas -->
+            <div style="margin-top: 1.25rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;">
+                <form id="form-reporte-citas" asp-controller="Optometra" asp-action="ReporteCitas" method="get" onsubmit="mostrarResumenPeriodo(event)" style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                    <label style="font-size: 0.85rem; color: var(--purple-700); font-weight: 600;">Desde</label>
+                    <input type="date" id="rep-desde" name="desde" style="padding: 0.35rem 0.6rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; font-size: 0.85rem;" />
+                    <label style="font-size: 0.85rem; color: var(--purple-700); font-weight: 600;">Hasta</label>
+                    <input type="date" id="rep-hasta" name="hasta" style="padding: 0.35rem 0.6rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; font-size: 0.85rem;" />
+                    <button type="submit" class="btn" style="background-color: var(--purple-600); color: white; padding: 0.4rem 1rem; border: none; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem;"><icon name="bar-chart-3" class="icon-sm" /> <span>Ver resumen del período</span></button>
+                    <button type="button" onclick="limpiarResumenPeriodo()" id="btn-limpiar-rep" style="display: none; background-color: var(--purple-100); color: var(--purple-800); padding: 0.4rem 0.75rem; border: none; border-radius: 0.375rem; font-size: 0.85rem; cursor: pointer;">Limpiar</button>
+                </form>
+            </div>
+            <div id="card-resumen-reporte" class="card" style="display: none; margin-top: 1rem; padding: 1.25rem; background: var(--purple-50); border: 1px solid var(--purple-200); border-radius: 0.5rem;">
+                <h3 id="titulo-resumen-reporte" style="color: var(--purple-800); font-size: 1rem; margin-bottom: 0.75rem; margin-top: 0;">Resumen de citas del período</h3>
+                <div id="items-resumen-reporte" style="display: flex; gap: 1rem; flex-wrap: wrap;"></div>
+            </div>
+
+            <!-- Modal para Ver Cita (Solo Lectura) -->
+            <div id="modal-ver-cita" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 500px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--purple-100); padding-bottom: 0.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Detalle de la Cita <span id="ver-cita-id"></span></h2>
+                        <button onclick="document.getElementById('modal-ver-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem; font-size: 0.95rem;">
+                        <p><strong>Paciente:</strong> <span id="ver-cita-paciente"></span></p>
+                        <p><strong>Servicio:</strong> <span id="ver-cita-servicio"></span></p>
+                        <p><strong>Fecha y Hora:</strong> <span id="ver-cita-fechahora"></span></p>
+                        <p><strong>Estado:</strong> <span id="ver-cita-estado" style="font-weight: 600; text-transform: capitalize;"></span></p>
+                        
+                        <div style="margin-top: 0.5rem; border-top: 1px solid var(--purple-100); padding-top: 0.5rem;">
+                            <p><strong>Notas de la Consulta:</strong></p>
+                            <p id="ver-cita-notas" style="background-color: var(--purple-50); padding: 0.75rem; border-radius: 0.375rem; color: var(--gray-700); margin: 0; font-style: italic; white-space: pre-line;"></p>
+                        </div>
+                    </div>
+
+                    <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1.5rem;">
+                        <button type="button" onclick="document.getElementById('modal-ver-cita').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer; font-weight: 600;">Cerrar</button>
+                        <button type="button" id="btn-ver-editar-cita" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Editar Cita</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal para Nueva Cita -->
+            <div id="modal-nueva-cita" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 500px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Programar Nueva Cita</h2>
+                        <button onclick="document.getElementById('modal-nueva-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <form asp-controller="Optometra" asp-action="CreateAppointment" method="post" onsubmit="return validateCitaForm(this);" style="display:flex; flex-direction:column; gap:1rem;">
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Seleccionar Paciente</label>
+                            <select name="UserId" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                @foreach (var cli in Model.Pacientes)
+                                {
+                                    <option value="@cli.Id">@cli.NombreCompleto (@cli.Email)</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Servicio</label>
+                            <select name="Servicio" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                <partial name="_ServiciosCitaOptions" model='(string?)"Examen visual completo"' />
+                            </select>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha y Hora</label>
+                            <input name="FechaHora" type="datetime-local" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Notas Adicionales</label>
+                            <textarea name="Notas" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
+                        </div>
+
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="button" onclick="document.getElementById('modal-nueva-cita').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
+                            <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Crear Cita</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Modal para Editar Cita -->
+            <div id="modal-editar-cita" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center; z-index: 1000; padding: 1rem;">
+                <div style="width: 100%; max-width: 500px; background: white; border-radius: 0.5rem; padding: 1.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                        <h2 style="color: var(--purple-900); margin: 0; font-size: 1.25rem;">Editar Cita</h2>
+                        <button onclick="document.getElementById('modal-editar-cita').style.display='none'" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--gray-500);">&times;</button>
+                    </div>
+
+                    <form asp-controller="Optometra" asp-action="EditAppointment" method="post" onsubmit="return validateCitaForm(this);" style="display:flex; flex-direction:column; gap:1rem;">
+                        <input type="hidden" name="id" id="edit-cita-id" />
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Seleccionar Paciente</label>
+                            <select name="UserId" id="edit-cita-userid" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                @foreach (var cli in Model.Pacientes)
+                                {
+                                    <option value="@cli.Id">@cli.NombreCompleto (@cli.Email)</option>
+                                }
+                            </select>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Servicio</label>
+                            <select name="Servicio" id="edit-cita-servicio" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                <partial name="_ServiciosCitaOptions" model='(string?)null' />
+                            </select>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha y Hora</label>
+                            <input name="FechaHora" id="edit-cita-fechahora" type="datetime-local" min="@DateTime.Now.ToString("yyyy-MM-ddTHH:mm")" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required />
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Estado</label>
+                            <select name="Estado" id="edit-cita-estado" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
+                                <option value="pendiente">Pendiente</option>
+                                <option value="confirmada">Confirmada</option>
+                                <option value="completada">Completada</option>
+                                <option value="cancelada">Cancelada</option>
+                            </select>
+                        </div>
+
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Notas Adicionales</label>
+                            <textarea name="Notas" id="edit-cita-notas" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" rows="2"></textarea>
+                        </div>
+
+                        <div class="optometra-modal-actions" style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button type="button" onclick="document.getElementById('modal-editar-cita').style.display='none'" style="flex: 1; padding: 0.5rem 1rem; border: 1px solid var(--purple-300); border-radius: 0.375rem; background: white; color: var(--purple-700); cursor: pointer;">Cancelar</button>
+                            <button type="submit" style="flex: 1; padding: 0.5rem 1rem; border: none; border-radius: 0.375rem; background: var(--purple-600); color: white; cursor: pointer; font-weight: 600;">Guardar Cambios</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
