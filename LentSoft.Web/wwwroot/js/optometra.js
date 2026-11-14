@@ -624,9 +624,13 @@
         document.getElementById('ver-formula-esferaod').textContent = btn.getAttribute('data-esferaod');
         document.getElementById('ver-formula-cilindrood').textContent = btn.getAttribute('data-cilindrood');
         document.getElementById('ver-formula-ejeod').textContent = btn.getAttribute('data-ejeod');
+        const verAddOD = document.getElementById('ver-formula-adicionod');
+        if (verAddOD) verAddOD.textContent = btn.getAttribute('data-adicionod') || '-';
         document.getElementById('ver-formula-esferaoi').textContent = btn.getAttribute('data-esferaoi');
         document.getElementById('ver-formula-cilindrooi').textContent = btn.getAttribute('data-cilindrooi');
         document.getElementById('ver-formula-ejeoi').textContent = btn.getAttribute('data-ejeoi');
+        const verAddOI = document.getElementById('ver-formula-adicionoi');
+        if (verAddOI) verAddOI.textContent = btn.getAttribute('data-adicionoi') || '-';
         document.getElementById('ver-formula-distanciapupilar').textContent = btn.getAttribute('data-distanciapupilar');
         document.getElementById('ver-formula-validez').textContent = btn.getAttribute('data-estado');
         document.getElementById('ver-formula-observaciones').textContent = btn.getAttribute('data-observaciones');
@@ -673,9 +677,13 @@
         document.getElementById('edit-formula-esferaod').value = btn.getAttribute('data-esferaod');
         document.getElementById('edit-formula-cilindrood').value = btn.getAttribute('data-cilindrood');
         document.getElementById('edit-formula-ejeod').value = btn.getAttribute('data-ejeod');
+        const editAddOD = document.getElementById('edit-formula-adicionod');
+        if (editAddOD) editAddOD.value = btn.getAttribute('data-adicionod') || '';
         document.getElementById('edit-formula-esferaoi').value = btn.getAttribute('data-esferaoi');
         document.getElementById('edit-formula-cilindrooi').value = btn.getAttribute('data-cilindrooi');
         document.getElementById('edit-formula-ejeoi').value = btn.getAttribute('data-ejeoi');
+        const editAddOI = document.getElementById('edit-formula-adicionoi');
+        if (editAddOI) editAddOI.value = btn.getAttribute('data-adicionoi') || '';
         document.getElementById('edit-formula-observaciones').value = btn.getAttribute('data-observaciones');
         document.getElementById('edit-formula-tipolente').value = btn.getAttribute('data-tipolente');
         document.getElementById('edit-formula-distanciapupilar').value = btn.getAttribute('data-distanciapupilar');

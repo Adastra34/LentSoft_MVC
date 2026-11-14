@@ -120,65 +120,49 @@
                         </div>
                     </div>
                 }
+            }
 
-                var pacienteTimeline = Model.Pacientes.FirstOrDefault(p => p.Id == detId)
-                    ?? Model.HistorialClinico.FirstOrDefault(h => h.UserId == detId)?.User;
-                if (pacienteTimeline != null && hcDetalle == null)
-                {
-                    var histList = Model.HistorialClinico.Where(h => h.UserId == pacienteTimeline.Id);
-                    var examList = Model.ExamenesVisuales.Where(e => e.UserId == pacienteTimeline.Id);
-                    var formList = Model.FormulasOpticas.Where(f => f.UserId == pacienteTimeline.Id);
-
-                    var timeline = new List<(DateTime Fecha, string Tipo, string Titulo, string Detalles)>();
-                    foreach (var h in histList)
-                    {
-                        timeline.Add((h.Fecha, "Historial Clínico", h.Diagnostico ?? "Diagnóstico general", h.Observaciones ?? h.Tratamiento ?? ""));
-                    }
-                    foreach (var e in examList)
-                    {
-                        timeline.Add((e.Fecha, "Examen Visual", e.TipoExamen ?? "Examen visual", e.Resultado ?? ""));
-                    }
-                    foreach (var f in formList)
-                    {
-                        timeline.Add((f.Fecha, "Fórmula Óptica", f.TipoLente ?? "Fórmula óptica", f.Observaciones ?? ""));
-                    }
-                    var timelineOrdenada = timeline.OrderByDescending(x => x.Fecha).ToList();
-
-                    <div class="card" style="padding: 1.5rem; background: var(--purple-50); border: 2px solid var(--purple-300); border-radius: 0.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-md);">
-                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1.5px solid var(--purple-200); padding-bottom: 0.5rem;">
-                            <div>
-                                <h2 style="color: var(--purple-900); font-size: 1.2rem; margin: 0; font-family: var(--font-primary, sans-serif); font-weight: 700; display: flex; align-items: center; gap: 0.4rem;"><icon name="clock" class="icon-sm" /> <span>Línea de Tiempo Completa</span></h2>
-                                <p style="color: var(--gray-600); font-size: 0.85rem; margin: 0.25rem 0 0 0;">Paciente: <strong>@pacienteTimeline.NombreCompleto</strong> (@pacienteTimeline.Email)</p>
-                            </div>
-                            <a href="?section=historial" style="background-color: var(--purple-200); color: var(--purple-800); text-decoration: none; padding: 0.3rem 0.75rem; border-radius: 0.25rem; font-size: 0.85rem; font-weight: 600;">Cerrar Línea de Tiempo</a>
+            <!-- Línea de Tiempo Completa del Paciente (HistorialCompleto) -->
+            @if (Model.PacienteTimelineId != null && Model.PacienteTimeline != null)
+            {
+                <div class="card" style="padding: 1.5rem; background: var(--purple-50); border: 2px solid var(--purple-300); border-radius: 0.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-md);">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1.5px solid var(--purple-200); padding-bottom: 0.5rem;">
+                        <div>
+                            <h2 style="color: var(--purple-900); font-size: 1.2rem; margin: 0; font-family: var(--font-primary, sans-serif); font-weight: 700; display: flex; align-items: center; gap: 0.4rem;"><icon name="clock" class="icon-sm" /> <span>Línea de Tiempo Completa</span></h2>
+                            <p style="color: var(--gray-600); font-size: 0.85rem; margin: 0.25rem 0 0 0;">Paciente: <strong>@Model.PacienteTimeline.NombreCompleto</strong> (@Model.PacienteTimeline.Email)</p>
                         </div>
-                        
-                        @if (!timelineOrdenada.Any())
-                        {
-                            <p style="color: var(--gray-500); font-style: italic; text-align: center; padding: 1.5rem 0;">No se encontraron registros de historial, exámenes ni fórmulas para este paciente.</p>
-                        }
-                        else
-                        {
-                            <div style="display: flex; flex-direction: column; gap: 1rem; border-left: 3px solid var(--purple-300); margin-left: 0.75rem; padding-left: 1.25rem; padding-top: 0.5rem; padding-bottom: 0.5rem;">
-                                @foreach (var ev in timelineOrdenada)
-                                {
-                                    <div style="position: relative;">
-                                        <div style="position: absolute; left: -1.65rem; top: 0.25rem; width: 10px; height: 10px; border-radius: 50%; background-color: @(ev.Tipo == "Historial Clínico" ? "var(--purple-600)" : ev.Tipo == "Examen Visual" ? "#3b82f6" : "#10b981");"></div>
-                                        <div style="font-size: 0.75rem; color: var(--gray-500); font-weight: 600;">
-                                            @ev.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm") &bull;
-                                            <span style="color: @(ev.Tipo == "Historial Clínico" ? "var(--purple-700)" : ev.Tipo == "Examen Visual" ? "#2563eb" : "#059669"); font-weight: 600;">@ev.Tipo</span>
-                                        </div>
-                                        <div style="font-weight: 600; color: var(--purple-950); font-size: 0.95rem; margin-top: 0.15rem;">@ev.Titulo</div>
-                                        @if (!string.IsNullOrEmpty(ev.Detalles))
-                                        {
-                                            <div style="font-size: 0.85rem; color: var(--gray-600); margin-top: 0.25rem;">@ev.Detalles</div>
-                                        }
-                                    </div>
-                                }
-                            </div>
-                        }
+                        <a href="?section=historial" style="background-color: var(--purple-200); color: var(--purple-800); text-decoration: none; padding: 0.3rem 0.75rem; border-radius: 0.25rem; font-size: 0.85rem; font-weight: 600;">Cerrar Línea de Tiempo</a>
                     </div>
-                }
+                    
+                    @if (!Model.LineaDeTiempo.Any())
+                    {
+                        <p style="color: var(--gray-500); font-style: italic; text-align: center; padding: 1.5rem 0;">No se encontraron registros de historial, exámenes ni fórmulas para este paciente.</p>
+                    }
+                    else
+                    {
+                        <div style="display: flex; flex-direction: column; gap: 1rem; border-left: 3px solid var(--purple-300); margin-left: 0.75rem; padding-left: 1.25rem; padding-top: 0.5rem; padding-bottom: 0.5rem;">
+                            @foreach (var ev in Model.LineaDeTiempo)
+                            {
+                                var badgeColor = ev.TipoRegistro == "Historial" ? "var(--purple-600)" : ev.TipoRegistro == "Examen" ? "#3b82f6" : "#10b981";
+                                var badgeLabel = ev.TipoRegistro == "Historial" ? "Historial Clínico" : ev.TipoRegistro == "Examen" ? "Examen Visual" : "Fórmula Óptica";
+                                var badgeCls = ev.TipoRegistro == "Historial" ? "var(--purple-700)" : ev.TipoRegistro == "Examen" ? "#2563eb" : "#059669";
+
+                                <div style="position: relative;">
+                                    <div style="position: absolute; left: -1.65rem; top: 0.25rem; width: 10px; height: 10px; border-radius: 50%; background-color: @badgeColor;"></div>
+                                    <div style="font-size: 0.75rem; color: var(--gray-500); font-weight: 600;">
+                                        @ev.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm") &bull;
+                                        <span style="color: @badgeCls; font-weight: 600;">@badgeLabel</span>
+                                    </div>
+                                    <div style="font-weight: 600; color: var(--purple-950); font-size: 0.95rem; margin-top: 0.15rem;">@ev.Descripcion</div>
+                                    @if (!string.IsNullOrEmpty(ev.Detalles))
+                                    {
+                                        <div style="font-size: 0.85rem; color: var(--gray-600); margin-top: 0.25rem;">@ev.Detalles</div>
+                                    }
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
             }
 
             <div style="margin-bottom: 1.5rem;">
