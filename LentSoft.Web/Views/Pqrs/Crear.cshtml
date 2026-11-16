@@ -1,0 +1,72 @@
+@model LentSoft.Web.Models.Entities.Pqrs
+@{
+    ViewData["Title"] = "Radicar PQRS - LentSoft";
+}
+
+<div style="background-color: var(--purple-50); min-height: 85vh; padding: 2.5rem 1rem;">
+    <div style="max-width: 720px; margin: 0 auto;">
+        
+        <div style="margin-bottom: 1.5rem;">
+            <a asp-action="Index" style="color: var(--purple-700); text-decoration: none; font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem; margin-bottom: 1rem;">
+                <icon name="arrow-left" class="icon-sm" /> Volver a mis PQRS
+            </a>
+            <h1 style="color: var(--purple-900); font-size: 1.75rem; font-weight: 700; margin: 0;">
+                Radicar Nueva PQRS
+            </h1>
+            <p style="color: var(--purple-700); margin: 0.35rem 0 0 0; font-size: 0.95rem;">
+                Complete el formulario con el detalle de su solicitud. Le daremos trámite a la mayor brevedad.
+            </p>
+        </div>
+
+        <div style="background: white; border-radius: 0.75rem; border: 1px solid var(--purple-100); box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 2rem;">
+            <form asp-action="Crear" method="post">
+                @Html.AntiForgeryToken()
+
+                <div asp-validation-summary="ModelOnly" style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-size: 0.9rem;"></div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label asp-for="Tipo" style="display: block; font-weight: 600; color: var(--purple-900); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                        Tipo de Solicitud *
+                    </label>
+                    <select asp-for="Tipo" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--purple-200); border-radius: 0.5rem; font-size: 0.95rem; color: #1e293b; background-color: white; outline: none; transition: border-color 0.2s;" required>
+                        <option value="">-- Seleccione un tipo --</option>
+                        <option value="Petición">Petición</option>
+                        <option value="Queja">Queja</option>
+                        <option value="Reclamo">Reclamo</option>
+                        <option value="Solicitud">Solicitud</option>
+                    </select>
+                    <span asp-validation-for="Tipo" style="color: #b91c1c; font-size: 0.8rem; margin-top: 0.25rem; display: block;"></span>
+                </div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label asp-for="Asunto" style="display: block; font-weight: 600; color: var(--purple-900); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                        Asunto *
+                    </label>
+                    <input asp-for="Asunto" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--purple-200); border-radius: 0.5rem; font-size: 0.95rem; color: #1e293b; outline: none; box-sizing: border-box;" placeholder="Resumen conciso del motivo de su solicitud" maxlength="200" required />
+                    <span asp-validation-for="Asunto" style="color: #b91c1c; font-size: 0.8rem; margin-top: 0.25rem; display: block;"></span>
+                </div>
+
+                <div style="margin-bottom: 1.75rem;">
+                    <label asp-for="Mensaje" style="display: block; font-weight: 600; color: var(--purple-900); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                        Descripción Detallada *
+                    </label>
+                    <textarea asp-for="Mensaje" rows="6" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--purple-200); border-radius: 0.5rem; font-size: 0.95rem; color: #1e293b; outline: none; box-sizing: border-box; resize: vertical;" placeholder="Describa ampliamente los hechos o detalles de su petición, queja o reclamo..." maxlength="2000" required></textarea>
+                    <span asp-validation-for="Mensaje" style="color: #b91c1c; font-size: 0.8rem; margin-top: 0.25rem; display: block;"></span>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; align-items: center; border-top: 1px solid var(--purple-100); padding-top: 1.5rem;">
+                    <a asp-action="Index" style="padding: 0.65rem 1.25rem; border: 1px solid var(--purple-300); color: var(--purple-800); border-radius: 0.5rem; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+                        Cancelar
+                    </a>
+                    <button type="submit" style="background-color: var(--purple-700); color: white; border: none; padding: 0.65rem 1.5rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <icon name="send" /> Enviar Radicado
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

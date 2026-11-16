@@ -1,0 +1,104 @@
+@model LentSoft.Web.Models.Entities.Pqrs
+@{
+    ViewData["Title"] = $"Responder PQRS - {Model.CodigoRadicado}";
+}
+
+<div style="background-color: var(--purple-50); min-height: 85vh; padding: 2.5rem 1rem;">
+    <div style="max-width: 800px; margin: 0 auto;">
+        
+        <div style="margin-bottom: 1.5rem;">
+            <a asp-action="AdminIndex" style="color: var(--purple-700); text-decoration: none; font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem; margin-bottom: 1rem;">
+                <icon name="arrow-left" class="icon-sm" /> Volver al panel de PQRS
+            </a>
+            <h1 style="color: var(--purple-900); font-size: 1.75rem; font-weight: 700; margin: 0;">
+                Responder Radicado: @Model.CodigoRadicado
+            </h1>
+            <p style="color: var(--purple-700); margin: 0.35rem 0 0 0; font-size: 0.95rem;">
+                Redacte la respuesta administrativa y determine el nuevo estado de la solicitud.
+            </p>
+        </div>
+
+        <!-- Resumen del Radicado -->
+        <div style="background: white; border-radius: 0.75rem; border: 1px solid var(--purple-100); box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 1.75rem; margin-bottom: 1.5rem;">
+            <h3 style="color: var(--purple-900); font-size: 1.1rem; font-weight: 700; margin: 0 0 1rem 0; border-bottom: 1px solid var(--purple-100); padding-bottom: 0.5rem;">
+                Detalles del Solicitante y Caso
+            </h3>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+                <div>
+                    <span style="display: block; font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Usuario</span>
+                    <span style="font-weight: 600; color: #1e293b; font-size: 0.95rem;">@(Model.User?.Nombre ?? $"Usuario #{Model.UserId}")</span>
+                </div>
+                <div>
+                    <span style="display: block; font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Tipo</span>
+                    <span style="font-weight: 600; color: var(--purple-800); font-size: 0.95rem;">@Model.Tipo</span>
+                </div>
+                <div>
+                    <span style="display: block; font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Fecha Radicación</span>
+                    <span style="font-weight: 600; color: #1e293b; font-size: 0.95rem;">@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
+                <div>
+                    <span style="display: block; font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Estado Actual</span>
+                    <span style="font-weight: 600; color: #1e293b; font-size: 0.95rem;">@Model.Estado</span>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 1rem;">
+                <span style="display: block; font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">Asunto</span>
+                <p style="margin: 0; font-weight: 600; color: #1e293b; font-size: 0.95rem;">@Model.Asunto</p>
+            </div>
+
+            <div>
+                <span style="display: block; font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">Mensaje del Usuario</span>
+                <div style="background-color: #f8fafc; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e2e8f0; color: #334155; line-height: 1.5; white-space: pre-wrap; font-size: 0.9rem;">
+                    @Model.Mensaje
+                </div>
+            </div>
+        </div>
+
+        <!-- Formulario de Respuesta -->
+        <div style="background: white; border-radius: 0.75rem; border: 1px solid var(--purple-100); box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 2rem;">
+            <h3 style="color: var(--purple-900); font-size: 1.15rem; font-weight: 700; margin: 0 0 1.25rem 0; border-bottom: 1px solid var(--purple-100); padding-bottom: 0.5rem;">
+                Respuesta del Administrador
+            </h3>
+
+            <form asp-action="Responder" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="id" value="@Model.Id" />
+
+                <div asp-validation-summary="All" style="background-color: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-size: 0.9rem;"></div>
+
+                <div style="margin-bottom: 1.5rem;">
+                    <label for="nuevoEstado" style="display: block; font-weight: 600; color: var(--purple-900); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                        Nuevo Estado *
+                    </label>
+                    <select id="nuevoEstado" name="nuevoEstado" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--purple-200); border-radius: 0.5rem; font-size: 0.95rem; color: #1e293b; background-color: white; outline: none;" required>
+                        <option value="Resuelto" selected="@(Model.Estado == "Resuelto")">Resuelto (Cerrar caso)</option>
+                        <option value="En Proceso" selected="@(Model.Estado == "En Proceso")">En Proceso (En trámite o investigación)</option>
+                        <option value="Pendiente" selected="@(Model.Estado == "Pendiente")">Pendiente (Sin resolver)</option>
+                    </select>
+                </div>
+
+                <div style="margin-bottom: 1.75rem;">
+                    <label for="respuestaAdmin" style="display: block; font-weight: 600; color: var(--purple-900); margin-bottom: 0.5rem; font-size: 0.9rem;">
+                        Texto de Respuesta Oficial *
+                    </label>
+                    <textarea id="respuestaAdmin" name="respuestaAdmin" rows="6" style="width: 100%; padding: 0.65rem 0.85rem; border: 1px solid var(--purple-200); border-radius: 0.5rem; font-size: 0.95rem; color: #1e293b; outline: none; box-sizing: border-box; resize: vertical;" placeholder="Escriba aquí la respuesta formal y detallada para el usuario..." maxlength="2000" required>@Model.RespuestaAdmin</textarea>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; align-items: center; border-top: 1px solid var(--purple-100); padding-top: 1.5rem;">
+                    <a asp-action="AdminIndex" style="padding: 0.65rem 1.25rem; border: 1px solid var(--purple-300); color: var(--purple-800); border-radius: 0.5rem; text-decoration: none; font-weight: 600; font-size: 0.9rem;">
+                        Cancelar
+                    </a>
+                    <button type="submit" style="background-color: var(--purple-700); color: white; border: none; padding: 0.65rem 1.5rem; border-radius: 0.5rem; font-weight: 600; font-size: 0.9rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <icon name="check" /> Guardar Respuesta y Actualizar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,150 @@
+@model List<LentSoft.Web.Models.Entities.Pqrs>
+@{
+    ViewData["Title"] = "Gestión de PQRS - Administración";
+    var filtroActual = ViewBag.FiltroEstado as string;
+    var totalPendientes = Model?.Count(p => p.Estado == "Pendiente") ?? 0;
+    var totalEnProceso = Model?.Count(p => p.Estado == "En Proceso") ?? 0;
+    var totalResueltos = Model?.Count(p => p.Estado == "Resuelto") ?? 0;
+}
+
+<div style="background-color: var(--purple-50); min-height: 85vh; padding: 2.5rem 1rem;">
+    <div style="max-width: 1200px; margin: 0 auto;">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <h1 style="color: var(--purple-900); font-size: 1.75rem; font-weight: 700; margin: 0;">
+                    Panel Administrativo de PQRS
+                </h1>
+                <p style="color: var(--purple-700); margin: 0.35rem 0 0 0; font-size: 0.95rem;">
+                    Gestión y resolución de peticiones, quejas, reclamos y solicitudes
+                </p>
+            </div>
+            <div>
+                <a asp-action="Index" style="background-color: white; border: 1px solid var(--purple-300); color: var(--purple-800); padding: 0.6rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+                    <icon name="user" class="icon-sm" /> Vista de Cliente
+                </a>
+            </div>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div style="background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; padding: 0.85rem 1.25rem; border-radius: 0.5rem; margin-bottom: 1.5rem; font-weight: 600; display: flex; align-items: center; gap: 0.5rem;">
+                <icon name="check-circle" class="icon-sm" /> <span>@TempData["SuccessMessage"]</span>
+            </div>
+        }
+
+        <!-- Filtros Rápidos -->
+        <div style="display: flex; gap: 0.75rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center;">
+            <span style="font-weight: 600; color: var(--purple-900); font-size: 0.9rem; margin-right: 0.5rem;">Filtrar por Estado:</span>
+            <a asp-action="AdminIndex" asp-route-estado="" style="padding: 0.45rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; font-size: 0.85rem; @(string.IsNullOrEmpty(filtroActual) ? "background-color: var(--purple-800); color: white;" : "background-color: white; color: var(--purple-800); border: 1px solid var(--purple-200);")">
+                Todos (@(Model?.Count ?? 0))
+            </a>
+            <a asp-action="AdminIndex" asp-route-estado="Pendiente" style="padding: 0.45rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; font-size: 0.85rem; @(filtroActual == "Pendiente" ? "background-color: #b45309; color: white;" : "background-color: white; color: #b45309; border: 1px solid #fde68a;")">
+                Pendientes
+            </a>
+            <a asp-action="AdminIndex" asp-route-estado="En Proceso" style="padding: 0.45rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; font-size: 0.85rem; @(filtroActual == "En Proceso" ? "background-color: #4338ca; color: white;" : "background-color: white; color: #4338ca; border: 1px solid #c7d2fe;")">
+                En Proceso
+            </a>
+            <a asp-action="AdminIndex" asp-route-estado="Resuelto" style="padding: 0.45rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; font-size: 0.85rem; @(filtroActual == "Resuelto" ? "background-color: #15803d; color: white;" : "background-color: white; color: #15803d; border: 1px solid #bbf7d0;")">
+                Resueltos
+            </a>
+        </div>
+
+        <div style="background: white; border-radius: 0.75rem; border: 1px solid var(--purple-100); box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden;">
+            @if (Model == null || !Model.Any())
+            {
+                <div style="padding: 3rem 1.5rem; text-align: center; color: var(--purple-800);">
+                    <div style="margin-bottom: 1rem; color: var(--purple-400);">
+                        <icon name="check-circle" style="width: 48px; height: 48px;" />
+                    </div>
+                    <h3 style="margin: 0 0 0.5rem 0; font-size: 1.2rem; font-weight: 600;">No hay radicados en este estado</h3>
+                    <p style="color: var(--purple-600); margin: 0; font-size: 0.95rem;">
+                        Actualmente no hay solicitudes registradas que coincidan con el filtro seleccionado.
+                    </p>
+                </div>
+            }
+            else
+            {
+                <div style="overflow-x: auto;">
+                    <table style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.9rem;">
+                        <thead>
+                            <tr style="background-color: var(--purple-100); color: var(--purple-900); border-bottom: 1px solid var(--purple-200);">
+                                <th style="padding: 1rem; font-weight: 700;">Radicado</th>
+                                <th style="padding: 1rem; font-weight: 700;">Usuario</th>
+                                <th style="padding: 1rem; font-weight: 700;">Tipo</th>
+                                <th style="padding: 1rem; font-weight: 700;">Asunto</th>
+                                <th style="padding: 1rem; font-weight: 700;">Fecha</th>
+                                <th style="padding: 1rem; font-weight: 700;">Estado</th>
+                                <th style="padding: 1rem; font-weight: 700; text-align: center;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                var estadoLower = (item.Estado ?? "").ToLowerInvariant();
+                                var bgEstado = estadoLower switch {
+                                    "resuelto" => "#dcfce7",
+                                    "en proceso" => "#e0e7ff",
+                                    _ => "#fef3c7"
+                                };
+                                var colorEstado = estadoLower switch {
+                                    "resuelto" => "#15803d",
+                                    "en proceso" => "#4338ca",
+                                    _ => "#b45309"
+                                };
+                                var borderEstado = estadoLower switch {
+                                    "resuelto" => "#bbf7d0",
+                                    "en proceso" => "#c7d2fe",
+                                    _ => "#fde68a"
+                                };
+
+                                <tr style="border-bottom: 1px solid var(--purple-50);">
+                                    <td style="padding: 1rem; font-weight: 700; color: var(--purple-800);">
+                                        @item.CodigoRadicado
+                                    </td>
+                                    <td style="padding: 1rem; color: #1e293b;">
+                                        @if (item.User != null)
+                                        {
+                                            <div style="font-weight: 600;">@item.User.Nombre</div>
+                                            <div style="font-size: 0.8rem; color: #64748b;">@item.User.Email</div>
+                                        }
+                                        else
+                                        {
+                                            <span style="color: #64748b;">Usuario ID: @item.UserId</span>
+                                        }
+                                    </td>
+                                    <td style="padding: 1rem; color: var(--purple-900);">
+                                        <span style="background-color: var(--purple-100); color: var(--purple-800); padding: 0.2rem 0.6rem; border-radius: 0.35rem; font-size: 0.8rem; font-weight: 600;">
+                                            @item.Tipo
+                                        </span>
+                                    </td>
+                                    <td style="padding: 1rem; color: #1e293b; max-width: 220px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="@item.Asunto">
+                                        @item.Asunto
+                                    </td>
+                                    <td style="padding: 1rem; color: #64748b; white-space: nowrap;">
+                                        @item.FechaCreacion.ToString("dd/MM/yyyy HH:mm")
+                                    </td>
+                                    <td style="padding: 1rem; white-space: nowrap;">
+                                        <span style="background-color: @bgEstado; color: @colorEstado; border: 1px solid @borderEstado; padding: 0.25rem 0.65rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 700;">
+                                            @item.Estado
+                                        </span>
+                                    </td>
+                                    <td style="padding: 1rem; text-align: center; white-space: nowrap;">
+                                        <div style="display: inline-flex; gap: 0.5rem;">
+                                            <a asp-action="Detalle" asp-route-id="@item.Id" style="color: var(--purple-700); text-decoration: none; font-weight: 600; padding: 0.35rem 0.65rem; border-radius: 0.35rem; border: 1px solid var(--purple-200); background-color: var(--purple-50); font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.25rem;">
+                                                <icon name="eye" class="icon-sm" /> Ver
+                                            </a>
+                                            <a asp-action="Responder" asp-route-id="@item.Id" style="background-color: var(--purple-700); color: white; text-decoration: none; font-weight: 600; padding: 0.35rem 0.75rem; border-radius: 0.35rem; font-size: 0.85rem; display: inline-flex; align-items: center; gap: 0.25rem;">
+                                                <icon name="edit" class="icon-sm" /> Responder
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
