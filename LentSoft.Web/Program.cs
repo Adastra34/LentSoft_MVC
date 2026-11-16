@@ -100,6 +100,7 @@ builder.Services.AddScoped<IPagoVentaService, PagoVentaService>();
 builder.Services.AddScoped<IPdfReciboService, PdfReciboService>();
 builder.Services.AddScoped<IPasarelaPagoService, PasarelaPagoService>();
 builder.Services.AddScoped<IVentasService, VentasService>();
+builder.Services.AddScoped<IPqrsService, PqrsService>();
 builder.Services.AddSingleton<IPasswordResetTokenService, PasswordResetTokenService>();
 builder.Services.AddSingleton<ISaleConfirmationTokenService, SaleConfirmationTokenService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
@@ -267,6 +268,7 @@ if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("AutoMig
             try { db.Database.ExecuteSqlRaw("CREATE INDEX IF NOT EXISTS IX_SupplierOrders_SupplierId_Estado ON SupplierOrders (SupplierId, Estado);"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE SalesOrders ADD COLUMN ProductId INTEGER NULL;"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE SalesOrders ADD COLUMN FormulaOpticaId INTEGER NULL;"); } catch { }
+            try { db.Database.ExecuteSqlRaw("CREATE TABLE IF NOT EXISTS Pqrs (Id INTEGER PRIMARY KEY AUTOINCREMENT, Tipo TEXT NOT NULL, Asunto TEXT NOT NULL, Mensaje TEXT NOT NULL, Estado TEXT NOT NULL, FechaCreacion TEXT NOT NULL, RespuestaAdmin TEXT NULL, FechaRespuesta TEXT NULL, UserId INTEGER NOT NULL, Radicado TEXT NULL);"); } catch { }
         }
         else
         {

@@ -30,6 +30,7 @@ public class LentSoftDbContext : DbContext
     public DbSet<SupplierOrder> SupplierOrders => Set<SupplierOrder>();
     public DbSet<PagoVenta> PagosVentas => Set<PagoVenta>();
     public DbSet<TransaccionPago> TransaccionesPagos => Set<TransaccionPago>();
+    public DbSet<Pqrs> Pqrs => Set<Pqrs>();
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
