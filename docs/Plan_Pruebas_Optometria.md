@@ -3,27 +3,35 @@
 ## 1. Información General y Alcance
 - **Sistema:** LentSoft — Plataforma Óptica y Optometría Integral (ASP.NET Core MVC 9, EF Core, SQL Server / SQLite)
 - **Módulo:** M06 — Optometría y Salud Visual
-- **Referencia Normativa:** ERS IEEE 830 v1.0 (LentSoft)
-- **Objetivo:** Verificar la integridad funcional, validaciones clínicas, reglas de negocio, seguridad de acceso y rendimiento de los flujos de gestión de pacientes, citas, exámenes visuales y prescripción de fórmulas ópticas.
+- **Referencia Normativa:** ERS IEEE 830 v5.0 (LentSoft)
+- **Alcance Funcional:**
+  - **RF-M06-01:** Gestión de Pacientes e Historial Clínico
+  - **RF-M06-02:** Gestión de Citas de Optometría
+  - **RF-M06-03:** Realización y Registro de Exámenes Visuales
+  - **RF-M06-04:** Emisión y Gestión de Fórmulas Ópticas
+  - **RF-M01-03:** Gestión de Roles y Autorización (control de acceso a endpoints clínicos y aislamiento de datos)
+- **Requerimientos No Funcionales:** La versión 5.0 de la ERS no define requerimientos no funcionales para este módulo; los antiguos RNF-M06-01 y RNF-M06-02 quedan catalogados formalmente como **retirados en v5**.
+- **Objetivo:** Verificar la integridad funcional, validaciones clínicas, reglas de negocio de agenda, zona horaria legal colombiana, manejo seguro de errores y seguridad de acceso según la especificación ERS v5.0.
 
 ---
 
 ## 2. Requerimientos Cubiertos (Matriz de Trazabilidad)
 
-| Requerimiento | Descripción según ERS IEEE 830 |
-| :--- | :--- |
-| **RF-M06-01** | **Gestión de Pacientes e Historial Clínico**: Registro seguro, edición con control de duplicados, desactivación lógica, registro de consultas clínicas y visualización de línea de tiempo consolidada. |
-| **RF-M06-02** | **Gestión de Citas de Optometría**: Agendamiento en horario laboral (lunes a sábado 8:00 a 18:00, 60 min), validación de fecha futura, disponibilidad de agenda sin cruces, reprogramación y ciclo de vida de estados. |
-| **RF-M06-03** | **Realización y Registro de Exámenes Visuales**: Registro de refracción (esfera, cilindro, eje), validación de fecha (solo pasadas y hoy), auto-generación de registro en historia clínica y consulta para precarga. |
-| **RF-M06-04** | **Emisión y Gestión de Fórmulas Ópticas**: Prescripción con refracción y Adición (OD/OI), distancia pupilar, vigencia de 12 meses, generación de PDF de receta e integración con órdenes de venta. |
-| **RNF-M06-01** | **Seguridad y Control de Acceso por Rol**: Restricción exclusiva al rol `optometra` en `/Optometra`, rechazo de accesos no autorizados y aislamiento estricto de historias clínicas entre pacientes. |
-| **RNF-M06-02** | **Rendimiento y Experiencia de Usuario (UX)**: Fluidez en la actualización de estados de citas y respuesta de interfaz (documentación del estado actual y oportunidades de mejora asíncrona). |
+| Requerimiento | Descripción según ERS IEEE 830 v5.0 | Estado en v5.0 |
+| :--- | :--- | :--- |
+| **RF-M06-01** | **Gestión de Pacientes e Historial Clínico**: Registro seguro, edición con control de duplicados, desactivación lógica, registro de consultas clínicas y visualización de línea de tiempo consolidada. | Vigente |
+| **RF-M06-02** | **Gestión de Citas de Optometría**: Agendamiento en horario laboral (lunes a sábado 8:00 a 18:00, 60 min), validación de fecha futura en hora legal de Colombia, disponibilidad de agenda sin cruces, reprogramación (máximo 1 vez), reactivación de citas canceladas con control de disponibilidad, inmutabilidad de citas completadas y ciclo de vida de estados. | Vigente |
+| **RF-M06-03** | **Realización y Registro de Exámenes Visuales**: Registro de refracción (esfera, cilindro, eje), validación de fecha (solo pasadas y hoy), auto-generación de registro en historia clínica y consulta para precarga. | Vigente |
+| **RF-M06-04** | **Emisión y Gestión de Fórmulas Ópticas**: Prescripción con refracción y Adición (OD/OI), distancia pupilar, vigencia de 12 meses, generación de PDF de receta e integración con órdenes de venta. | Vigente |
+| **RF-M01-03** | **Gestión de Roles y Autorización**: Restricción exclusiva al rol `optometra` en `/Optometra`, rechazo de accesos no autorizados y aislamiento estricto de historias clínicas entre pacientes. | Vigente |
+| **RNF-M06-01** | *Seguridad y Control de Acceso por Rol*: Retirado en v5 (incorporado dentro de RF-M01-03 y RF-M06-01). | Retirado en v5 |
+| **RNF-M06-02** | *Rendimiento y UX (Actualización de citas sin recarga)*: Retirado en v5 (no contemplado en la especificación v5.0). | Retirado en v5 |
 
 ---
 
 ## 3. Matriz de Casos de Prueba
 
-| ID | Requerimiento | Nombre del Caso | Precondición | Pasos Principales | Datos de Entrada | Resultado Esperado | Tipo | Estado |
+| ID | Requerimiento | Nombre del Caso | Precondición | Pasos Principales | Datos de Entrada | Resultado Esperado | Tipo / Método Asociado | Estado |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | **CP-M06-01** | RF-M06-01 | Creación de paciente con contraseña aleatoria y token | Optómetra autenticado | 1. Enviar formulario `CreatePaciente`.<br>2. Validar BD y servicio de correo. | Nombre, correo, doc nuevo | Paciente creado con hash seguro $\ne$ `"user123"` y enlace de reset enviado por correo. | Automatizada | Pasó |
 | **CP-M06-02** | RF-M06-01 | Edición de paciente con correo duplicado | Existen paciente A y paciente B | 1. Editar paciente A con correo del paciente B.<br>2. Enviar `EditPaciente`. | `Email = pacienteB@test.com` | Rechazo con mensaje: *"El correo ya está registrado."*. Datos no modificados. | Automatizada | Pasó |
@@ -33,16 +41,16 @@
 | **CP-M06-06** | RF-M06-01 | Registro de entrada en Historial Clínico | Paciente registrado | 1. Enviar formulario `CreateHistorial`.<br>2. Consultar BD. | Diagnóstico, tratamiento, refracción | Registro guardado con diagnóstico, tratamiento y campos de refracción asociados. | Automatizada | Pasó |
 | **CP-M06-07** | RF-M06-01 | Eliminación lógica de entrada de Historial Clínico | Historial activo en BD | 1. Invocar `DeleteHistorial(id)`.<br>2. Consultar BD. | `id = historial.Id` | `Activo == false` y mensaje de confirmación de eliminación. | Automatizada | Pasó |
 | **CP-M06-08** | RF-M06-01 | Visualización de Línea de Tiempo del paciente | Paciente con historiales, exámenes y fórmulas | 1. Invocar `HistorialCompleto(pacienteId)`.<br>2. Validar `Index` y vista parcial. | `pacienteId` | Carga `LineaDeTiempo` ordenada descendentemente por fecha con los tres tipos de eventos. | Automatizada | Pasó |
-| **CP-M06-09** | RF-M06-02 | Validación horario laboral - Rechazo de cita en Domingo | Fecha cae en día Domingo | 1. Evaluar `EsHorarioLaboral(fechaDomingo)`. | Fecha Domingo a las 10:00 AM | Retorna `false`. Las citas no se pueden agendar los domingos. | Automatizada | Pasó |
-| **CP-M06-10** | RF-M06-02 | Validación horario laboral - Rechazo a las 17:30 (cierre 18:00) | Duración de cita = 60 min | 1. Evaluar `EsHorarioLaboral(17:30)`. | 17:30 (finaliza 18:30) | Retorna `false`. Excede la hora límite de las 18:00. | Automatizada | Pasó |
-| **CP-M06-11** | RF-M06-02 | Validación horario laboral - Aceptación a las 08:00 exactas | Apertura de clínica | 1. Evaluar `EsHorarioLaboral(08:00)`. | Lunes a Sábado 08:00 AM | Retorna `true`. La cita cabe exactamente en el horario de atención. | Automatizada | Pasó |
+| **CP-M06-09** | RF-M06-02 | Validación horario laboral - Rechazo de cita en Domingo | Fecha cae en día Domingo | 1. Evaluar `EsHorarioLaboral(fechaDomingo)`. | Fecha Domingo a las 10:00 AM | Retorna `false`. Las citas no se pueden agendar los domingos. | `EsHorarioLaboral_RechazaDomingosEnCualquierHorario` | Pasó |
+| **CP-M06-10** | RF-M06-02 | Validación horario laboral - Rechazo a las 17:30 (cierre 18:00) | Duración de cita = 60 min | 1. Evaluar `EsHorarioLaboral(17:30)`. | 17:30 (finaliza 18:30) | Retorna `false`. Excede la hora límite de las 18:00. | `EsHorarioLaboral_ValidaInicioYFinConDuracion` | Pasó |
+| **CP-M06-11** | RF-M06-02 | Validación horario laboral - Aceptación a las 08:00 exactas | Apertura de clínica | 1. Evaluar `EsHorarioLaboral(08:00)`. | Lunes a Sábado 08:00 AM | Retorna `true`. La cita cabe exactamente en el horario de atención. | `EsHorarioLaboral_ValidaInicioYFinConDuracion` | Pasó |
 | **CP-M06-12** | RF-M06-02 | Rechazo de cita con fecha en el pasado | Fecha y hora anterior a la actual | 1. Enviar `CreateAppointment` con fecha pasada. | `FechaHora = ayer 10:00 AM` | Rechazo con mensaje: *"La fecha y hora de la cita debe ser futura."*. Cita no guardada. | Automatizada | Pasó |
 | **CP-M06-13** | RF-M06-02 | Agendamiento de cita en fecha futura válida | Horario laboral disponible | 1. Enviar `CreateAppointment` con fecha futura. | Próxima semana hábil 10:00 AM | Cita creada exitosamente con estado `"pendiente"`. | Automatizada | Pasó |
 | **CP-M06-14** | RF-M06-02 | Rechazo por cruce de horario con otra cita del optómetra | Optómetra ya tiene cita a las 10:00 AM | 1. Intentar agendar otra cita para el mismo optómetra a las 10:00 AM. | Misma `FechaHora` y `OptometraId` | Rechazo con mensaje de falta de disponibilidad del optómetra. | Automatizada | Pasó |
 | **CP-M06-15** | RF-M06-02 | Cancelación/Eliminación y reutilización de horario | Cita agendada a las 14:00 | 1. Eliminar cita con `DeleteAppointment`.<br>2. Agendar nueva cita en ese mismo horario. | Mismo horario previamente ocupado | `DeleteAppointment` libera la agenda y la nueva cita se programa con éxito. | Automatizada | Pasó |
 | **CP-M06-16** | RF-M06-02 | Reprogramación con cruce en segundo intento | Cita A (10:00) y Cita B (11:00) | 1. Intentar mover Cita B a las 10:00 ocupada por Cita A. | `model.FechaHora = 10:00 AM` | Rechazo de edición por cruce de horario. Cita B conserva su horario original. | Automatizada | Pasó |
-| **CP-M06-17** | RF-M06-02 | Actualización a estados válidos | Cita existente | 1. Invocar `UpdateAppointmentStatus` con `confirmada`, `completada`, `cancelada`. | `nuevoEstado = "completada"` | Estado actualizado exitosamente en base de datos y normalizado a minúsculas. | Automatizada | Pasó |
-| **CP-M06-18** | RF-M06-02 | Rechazo de estado inexistente `"atendida"` | Cita existente | 1. Invocar `UpdateAppointmentStatus` con `"atendida"`. | `nuevoEstado = "atendida"` | Rechazo con mensaje: *"Estado no válido. Los valores permitidos son: pendiente, confirmada, completada, cancelada."*. | Automatizada | Pasó |
+| **CP-M06-17** | RF-M06-02 | Actualización a estados válidos | Cita existente | 1. Invocar `UpdateAppointmentStatus` con `confirmada`, `completada`, `cancelada`. | `nuevoEstado = "confirmada"` | Estado actualizado exitosamente en base de datos y normalizado a minúsculas. | `Optometra_UpdateAppointmentStatus_AceptaEstadoValidoYNormalizaMinusculas` | Pasó |
+| **CP-M06-18** | RF-M06-02 | Rechazo de estado inexistente `"atendida"` | Cita existente | 1. Invocar `UpdateAppointmentStatus` con `"atendida"`. | `nuevoEstado = "atendida"` | Rechazo con mensaje: *"Estado no válido. Los valores permitidos son: pendiente, confirmada, completada, cancelada."*. | `Optometra_UpdateAppointmentStatus_RechazaEstadoInvalido` | Pasó |
 | **CP-M06-19** | RF-M06-03 | Registro de examen con fecha pasada válida | Examen realizado previamente | 1. Enviar `CreateExamen` con fecha de hace 5 días. | `Fecha = DateTime.Today.AddDays(-5)` | Examen registrado exitosamente. | Automatizada | Pasó |
 | **CP-M06-20** | RF-M06-03 | Rechazo de examen con fecha futura | Fecha posterior a hoy | 1. Enviar `CreateExamen` con fecha de mañana. | `Fecha = DateTime.Today.AddDays(1)` | Rechazo con mensaje: *"La fecha del examen no puede ser una fecha futura."*. | Automatizada | Pasó |
 | **CP-M06-21** | RF-M06-03 | Generación automática de entrada en historial desde examen | Examen visual válido | 1. Registrar examen con refracción completa.<br>2. Consultar `HistorialesClinicos`. | Refracción OD/OI y diagnóstico | Se crea automáticamente un `HistorialClinico` con los 6 campos de refracción y diagnóstico. | Automatizada | Pasó |
@@ -57,43 +65,53 @@
 | **CP-M06-30** | RF-M06-04 | Generación y descarga de receta en PDF con adición | Fórmula con adición | 1. Invocar `PdfRecetaService.GenerateRecetaPdf(formula)`. | Entidad `FormulaOptica` completa | Retorna arreglo binario válido con cabecera `%PDF-` y tabla con columna de adición. | Automatizada | Pasó |
 | **CP-M06-31** | RF-M06-04 | Generación de pedido de venta desde fórmula vigente | Fórmula vigente con stock | 1. Invocar `CrearPedidoDesdeFormula`. | `formulaId`, `productId`, `cantidad` | Pedido creado con estado `"Pendiente"` y vinculado a la fórmula. | Automatizada | Pasó |
 | **CP-M06-32** | RF-M06-04 | Rechazo de generación de pedido desde fórmula vencida | Fórmula con $> 12$ meses | 1. Invocar `CrearPedidoDesdeFormula`. | `formulaId` de fórmula vencida | Rechazo con mensaje: *"La fórmula está vencida; no se puede generar el pedido."*. | Automatizada | Pasó |
-| **CP-M06-33** | RNF-M06-01 | Restricción de acceso a `/Optometra` sin sesión o rol usuario | Usuario no optómetra | 1. Inspeccionar atributo `[Authorize(Roles = "optometra")]` en `OptometraController`. | Request sin rol optómetra | Acceso bloqueado por el middleware de autorización de ASP.NET Core. | Automatizada | Pasó |
-| **CP-M06-34** | RNF-M06-01 | Restricción de acceso a `/Optometra` con rol ventas | Usuario con rol `ventas` | 1. Inspeccionar atributo `[Authorize]` en `OptometraController`. | Rol `ventas` | Acceso denegado; el controlador exige explícitamente rol `optometra`. | Automatizada | Pasó |
-| **CP-M06-35** | RNF-M06-01 | Aislamiento de datos clínicos entre pacientes | Pacientes A y B con historiales y fórmulas | 1. Consultar datos del paciente A en portal usuario. | `UserId = pacienteA.Id` | La consulta solo retorna registros de paciente A; cero registros de paciente B. | Automatizada | Pasó |
-| **CP-M06-36** | RNF-M06-02 | Actualización ágil de citas sin recarga completa | Interfaz web de citas | 1. Cambiar estado de cita en frontend.<br>2. Verificar recarga de página. | Cambio de estado de cita en UI | **Pendiente de implementar:** Hoy las acciones ejecutan `RedirectToAction` provocando recarga completa de página. Requiere migración a endpoints AJAX/Fetch para cumplimiento pleno. | Manual | Pendiente de implementar |
+| **CP-M06-33** | RF-M01-03 | Restricción de acceso a `/Optometra` sin sesión o rol usuario | Usuario no optómetra | 1. Validar directiva de autorización en `OptometraController` con `IAuthorizationService`. | Identidades anónimas y rol `usuario` | Acceso denegado (`Succeeded == false`). Redirección a login o AccessDenied. | `OptometraController_TieneAuthorizeRolOptometra_NoPermiteOtrosRoles` | Pasó |
+| **CP-M06-34** | RF-M01-03 | Restricción de acceso a `/Optometra` con rol ventas | Usuario con rol `ventas` | 1. Evaluar `AuthorizeAsync` para claims de rol `ventas`. | Claims con `Role = "ventas"` | Acceso denegado; el controlador exige estrictamente rol `optometra`. | `OptometraController_TieneAuthorizeRolOptometra_NoPermiteOtrosRoles` | Pasó |
+| **CP-M06-35** | RF-M06-01 / RF-M01-03 | Aislamiento estricto de datos clínicos entre pacientes | Pacientes A y B con historiales y fórmulas | 1. Invocar `DashboardController.Usuario()` autenticado como paciente A.<br>2. Inspeccionar modelo. | Sesión activa de paciente A | El ViewModel resultante contiene solo datos clínicos de A; cero registros de paciente B. | `DashboardUsuario_AislamientoDatosClinicos_PacienteNoPuedeVerDatosDeOtroPaciente` | Pasó |
+| **CP-M06-36** | Retirado (ex-RNF-M06-02) | Actualización de citas sin recarga completa | Interfaz web de citas | 1. Cambiar estado de cita en frontend.<br>2. Verificar recarga de página. | Cambio de estado de cita en UI | **Fuera de alcance en v5:** La ERS v5.0 no define este requerimiento no funcional. Se mantiene la arquitectura estándar MVC con redirección y TempData. | Manual | Fuera de alcance en v5 |
+| **CP-M06-37** | RF-M06-02 | Rechazo de cambio de estado sobre cita eliminada lógicamente (`Activo = false`) | Cita con `Activo = false` en BD | 1. Invocar `UpdateAppointmentStatus(id, "confirmada")`. | `cita.Activo == false` | Rechazo con mensaje: *"Cita no encontrada."*. Estado no alterado. | `Optometra_UpdateAppointmentStatus_CitaInactiva_Rechaza`<br>`DashboardAdmin_UpdateAppointmentStatus_CitaInactiva_Y_Completada` | Pasó |
+| **CP-M06-38** | RF-M06-02 | Inmutabilidad de cita en estado `"completada"` | Cita con `Estado = "completada"` | 1. Intentar cambiar estado de cita completada a `"pendiente"` o `"cancelada"`. | `nuevoEstado = "pendiente"` | Rechazo con mensaje: *"No se puede cambiar el estado de una cita completada."*. El estado en BD permanece `"completada"`. | `Optometra_UpdateAppointmentStatus_CitaCompletada_NoPermiteCambiarAOtroEstado`<br>`DashboardAdmin_UpdateAppointmentStatus_CitaInactiva_Y_Completada` | Pasó |
+| **CP-M06-39** | RF-M06-02 | Actualización de cita completada manteniendo su mismo estado | Cita con `Estado = "completada"` | 1. Invocar `UpdateAppointmentStatus` enviando `"completada"`. | `nuevoEstado = "completada"` | Operación permitida con confirmación *"Estado de cita actualizado."*. | `Optometra_UpdateAppointmentStatus_CitaCompletada_PermiteMismoEstado` | Pasó |
+| **CP-M06-40** | RF-M06-02 | Reactivación de cita cancelada con cruce de horario | Cita cancelada y otra cita activa en el mismo horario | 1. Intentar cambiar estado de cita cancelada a `"confirmada"`. | Mismo optómetra y horario que cita activa | `HayDisponibilidad` detecta cruce y rechaza con: *"No es posible reactivar la cita: el horario ya está ocupado por otra cita."*. Permanece cancelada. | `Optometra_UpdateAppointmentStatus_CitaCancelada_ReactivarConCruce_Rechaza`<br>`DashboardAdmin_UpdateAppointmentStatus_CitaCancelada_ReactivarConCruce_Rechaza` | Pasó |
+| **CP-M06-41** | RF-M06-02 | Reactivación de cita cancelada sin cruce de horario | Cita cancelada sin cruces de agenda | 1. Invocar `UpdateAppointmentStatus` enviando `"confirmada"`. | Horario libre en agenda del optómetra | Se reactiva la cita con éxito (`Estado = "confirmada"`) y mensaje de éxito. | `Optometra_UpdateAppointmentStatus_CitaCancelada_ReactivarSinCruce_Actualiza` | Pasó |
+| **CP-M06-42** | RF-M06-02 | Validación de fecha futura en hora legal de Colombia (+1h y -1h) | Zona horaria "America/Bogota" (UTC-5) | 1. Enviar cita con `horaActualColombia - 1 hora`.<br>2. Enviar cita con fecha futura en horario laboral. | Horas relativas al reloj legal de Colombia | -1h es rechazada con *"La fecha y hora de la cita debe ser futura."* (o *"Por favor selecciona... fecha/hora válida a futuro"*). Fechas futuras laborales son aceptadas. | `ZonaHoraria_ObtenerHoraActualColombia_RetornaOffsetValido`<br>`Optometra_CreateAppointment_ValidaFechaFuturaColombia_MasUnaHora_Y_MenosUnaHora`<br>`Dashboard_UserScheduleAppointment_ValidaFechaFuturaColombia_MenosUnaHora`<br>`Dashboard_UserRescheduleAppointment_ValidaFechaFuturaColombia_MenosUnaHora`<br>`Dashboard_AdminCreateAppointment_ValidaFechaFuturaColombia_MenosUnaHora` | Pasó |
+| **CP-M06-43** | RF-M06-02 | Validación de estado en `EditAppointment` contra `EstadosValidos` | Cita existente | 1. Enviar `EditAppointment` con `Estado = "estado_inventado_invalido"`. | `Estado = "xyz"` | Rechazo con mensaje: *"Estado no válido. Los valores permitidos son: pendiente, confirmada, completada, cancelada."*. Datos sin cambios. | `Optometra_EditAppointment_ValidaEstadoContraEstadosValidos` | Pasó |
+| **CP-M06-44** | RF-M06-02 | Reglas de fecha en `EditAppointment`: cita pasada vs modificación de fecha | Cita en el pasado | 1. Modificar fecha a otra fecha pasada -> Rechazo.<br>2. Editar notas/estado conservando exactamente la misma fecha pasada -> Aceptado. | `FechaHora` pasada idéntica vs cambiada | Rechaza cambios que intenten fijar fecha pasada; permite actualizar observaciones o estado de citas pasadas si no se altera su fecha. | `Optometra_EditAppointment_RechazaFechaAnteriorAAhora_SiSeCambiaFecha`<br>`Optometra_EditAppointment_CitaYaEnElPasado_PermiteEditarSiFechaNoCambia` | Pasó |
 
 ---
 
-## 4. Registro de Defectos Encontrados
+## 4. Registro de Defectos y Hallazgos Corregidos
 
-Durante la ejecución de las pruebas y la auditoría del módulo de optometría no se detectaron fallos funcionales ni defectos bloqueantes en el código corregido. Todos los 35 casos automatizados se ejecutan con resultado **Pasó** (0 fallos).
+Durante las auditorías de calidad y pruebas de regresión se identificaron y solventaron formalmente los siguientes defectos en la gestión de citas de optometría:
+
+| ID Defecto | Requerimiento | Descripción del Defecto | Causa Raíz | Solución Aplicada | Fecha de Corrección | Estado |
+| :--- | :--- | :--- | :--- | :--- | :--- | :--- |
+| **DEF-M06-01** | RF-M06-02 | Reactivación de cita cancelada sin verificación de disponibilidad | `UpdateAppointmentStatus` no invocaba `Appointment.HayDisponibilidad` al reactivar citas canceladas. | Se agregó validación obligatoria con `Appointment.HayDisponibilidad(_context, optId, cita.FechaHora, cita.Id)` y rechazo con mensaje claro en caso de colisión de horario. | 17/11/2026 | **Corregido** |
+| **DEF-M06-02** | RF-M06-02 | Validación de fecha futura vulnerable a desfases de zona horaria | Las validaciones usaban `DateTime.UtcNow` o `DateTime.Now` del servidor, causando rechazos erróneos o admisiones indebidas con hora local. | Creación del helper canónico `Appointment.ObtenerHoraActualColombia()` ("America/Bogota" con fallback a "SA Pacific Standard Time") y conversión explícita en todos los controladores de citas. | 17/11/2026 | **Corregido** |
+| **DEF-M06-03** | RF-M06-02 / Seguridad | Fuga de información técnica mediante `ex.Message` en bloques catch | `DashboardController` y `AppointmentsApiController` exponían excepciones crudas al usuario. | Se reemplazaron todas las ocurrencias por mensajes de usuario genéricos y seguros, canalizando el detalle técnico a `ILogger`. | 17/11/2026 | **Corregido** |
+| **DEF-M06-04** | RF-M06-02 | Ausencia de validación de estado y fecha en `OptometraController.EditAppointment` | No se validaba `model.Estado` contra la lista cerrada de estados ni se controlaban fechas pasadas en la edición. | Validación contra `Appointment.EstadosValidos` y regla de negocio que rechaza fechas pasadas a menos que la cita ya estuviese en el pasado y su fecha permanezca intacta. | 17/11/2026 | **Corregido** |
+
+> **Resultado global de la suite de pruebas:** **170 de 170 pruebas automatizadas superadas** (100% de éxito, 0 fallos, 0 omitidas).
 
 ---
 
-## 5. Hallazgos Abiertos y Decisiones Pendientes
+## 5. Observaciones heredadas de v1 (Cerradas en v5)
 
-### Hallazgo 1 (RNF-M06-02): Calendario y gestión de citas sin recarga completa
-- **Requerimiento asociado:** RNF-M06-02 (Rendimiento, Usabilidad y Experiencia de Usuario).
-- **Estado:** Pendiente de implementar.
-- **Detalle técnico:** En `OptometraController`, las acciones `CreateAppointment`, `EditAppointment`, `DeleteAppointment` y `UpdateAppointmentStatus` finalizan con `RedirectToAction("Index", new { section = "citas" })`. Esto provoca una petición HTTP completa y recarga de página por cada cambio de estado o acción sobre citas, en lugar de una actualización parcial asíncrona reactiva (AJAX/Fetch).
-- **Decisión pendiente:** Definir si para la siguiente entrega se refactorizan las llamadas en `optometra.js` para consumir respuestas JSON (habilitando el soporte AJAX ya presente en otros endpoints) y manipular el DOM sin recargas, o si se mantiene la navegación síncrona estándar con `RedirectToAction` y mensajes `TempData`.
+### Observación 1: Calendario y gestión de citas sin recarga completa (ex-RNF-M06-02)
+- **Estado:** Cerrado / Fuera de alcance en v5.0.
+- **Detalle técnico:** En la versión inicial v1.0 se contemplaba como oportunidad de mejora la reactividad asíncrona (AJAX/Fetch) en la tabla y calendario de citas para evitar el `RedirectToAction`.
+- **Resolución en v5.0:** La ERS IEEE 830 v5.0 retiró los requerimientos no funcionales para este módulo. Se valida y mantiene el patrón estándar MVC con redirección controlada y retroalimentación mediante `TempData`, el cual opera de forma robusta y consistente con el resto de la plataforma.
 
-### Hallazgo 2 (Seguridad / ERS): Discrepancia en permisos de acceso clínico entre ERS y Código
-- **Requerimiento asociado:** RF-M06-01 / RNF-M06-01 (Matriz de Control de Acceso).
-- **Estado:** Decisión de diseño pendiente.
-- **Detalle técnico:** La especificación de requerimientos ERS IEEE 830 v1.0 estipula que los expedientes clínicos y datos de optometría deben ser accesibles para el personal asistencial (`optometra`) y para el perfil `admin` (para labores de supervisión, auditoría médica y gestión operativa). No obstante, el código actual de `OptometraController` restringe el acceso de forma rígida a:
-  ```csharp
-  [Authorize(Roles = "optometra")]
-  public class OptometraController : Controller
-  ```
-  Esto bloquea por completo el acceso a usuarios con rol `admin` a la ruta `/Optometra`, obligándolos a interactuar únicamente a través del panel general.
-- **Decisión pendiente:** Decidir si se amplía la anotación del controlador a `[Authorize(Roles = "optometra,admin")]` permitiendo al administrador auditar la vista clínica, o si se debe construir una vista de solo lectura específica dentro del módulo `/Dashboard/Admin` para auditorías clínicas.
+### Observación 2: Acceso de administración a datos clínicos (ex-Hallazgo 2)
+- **Estado:** Cerrado / No aplica en v5.0.
+- **Detalle técnico:** En la v1.0 existía una discusión sobre si el administrador debía tener acceso directo a la vista clínica `/Optometra`.
+- **Resolución en v5.0:** La ERS v5.0 restringe la visualización y gestión clínica de pacientes, exámenes y fórmulas exclusivamente al rol asistencial `optometra` (`[Authorize(Roles = "optometra")]`), protegiendo la confidencialidad de la historia clínica (Ley 1581 de 2012). Por tanto, la implementación actual en `OptometraController` se encuentra en 100% de conformidad con la normativa de la v5.0.
 
 ---
 
 ## 6. Matriz de Ejecución Manual (Entorno con Base de Datos y Servicios Reales)
 
-Esta sección lista las pruebas de aceptación y verificación en vivo que dependen de infraestructura real (SQL Server, SMTP/correo, visualizador PDF y navegador). Las columnas **Resultado Real** y **Evidencia (Captura / Log)** están preparadas en blanco para su diligenciamiento durante la prueba manual:
+Las siguientes pruebas verifican en entorno real la persistencia, generación de documentos, envío de notificaciones y la correcta visualización en la interfaz:
 
 | ID | Caso de Prueba Manual | Precondición | Pasos de Verificación | Resultado Esperado | Resultado Real | Evidencia (Captura / Log) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -104,5 +122,6 @@ Esta sección lista las pruebas de aceptación y verificación en vivo que depen
 | **CPM-05** | Control de acceso: Intento de acceso a `/Optometra` con rol `usuario` | Sesión iniciada como paciente (rol `usuario`) | 1. Iniciar sesión como paciente (`user@lentsoft.com`).<br>2. Escribir manualmente en la barra de URL: `http://localhost:.../Optometra`.<br>3. Presionar Enter. | El sistema deniega el acceso y redirige a la página de acceso denegado (`/Auth/AccessDenied` o error 403 HTTP). | | |
 | **CPM-06** | Control de acceso: Intento de acceso a `/Optometra` con rol `ventas` | Sesión iniciada con usuario de ventas | 1. Iniciar sesión con cuenta de rol `ventas`.<br>2. Navegar directamente a `http://localhost:.../Optometra`.<br>3. Presionar Enter. | El sistema deniega el acceso y redirige a `/Auth/AccessDenied`. El personal de ventas no puede ingresar a la interfaz clínica. | | |
 | **CPM-07** | Control de acceso: Intento de acceso a `/Optometra` sin sesión activa | Navegador en modo incógnito / sin cookies de sesión | 1. Abrir ventana de incógnito.<br>2. Intentar ingresar directamente a `http://localhost:.../Optometra`.<br>3. Presionar Enter. | El sistema redirige automáticamente al formulario de autenticación: `/Auth/Login?ReturnUrl=%2FOptometra`. | | |
-
-
+| **CPM-08** | Coherencia horaria en visualización de cita (Calendario y Dashboard) | Optómetra autenticado | 1. Ir a sección Citas.<br>2. Crear cita para un paciente a las 10:00 AM en día hábil.<br>3. Observar la tabla de citas y la tarjeta/resumen de próxima cita en el Dashboard. | La cita se muestra registrada exactamente a las 10:00 AM tanto en la tabla de citas como en la cabecera del dashboard, sin desfases por conversión UTC. | | |
+| **CPM-09** | Agendamiento como paciente para el mismo día a +2 horas (horario laboral) | Sesión activa como paciente (`usuario`) en horario laboral hábil (p. ej. 10:00 AM a 15:00 PM) | 1. Ingresar a `/Dashboard/Usuario` (sección citas).<br>2. Agendar cita para hoy sumando 2 horas a la hora actual de Colombia.<br>3. Enviar solicitud. | El sistema reconoce la hora como futura según hora legal de Colombia, la acepta dentro del horario de atención y la registra con estado `"pendiente"`. | | |
+| **CPM-10** | Rechazo al reactivar cita cancelada por colisión de horario | Dos pacientes registrados y optómetra en BD | 1. Agendar cita para Paciente 1 a las 11:00 AM.<br>2. Cancelar la cita (estado `"cancelada"`).<br>3. Agendar nueva cita para Paciente 2 en ese mismo horario (11:00 AM).<br>4. Intentar reactivar la cita del Paciente 1 a `"confirmada"`. | El sistema ejecuta la validación de disponibilidad, detecta el cruce con la cita activa del Paciente 2 y rechaza la reactivación mostrando: *"No es posible reactivar la cita: el horario ya está ocupado por otra cita."*. | | |

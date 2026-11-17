@@ -157,7 +157,11 @@ public class DashboardController : Controller
     {
         var userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
 
-        if (string.IsNullOrWhiteSpace(Servicio) || FechaHora <= DateTime.UtcNow)
+        var fechaHoraCol = FechaHora.Kind == DateTimeKind.Utc
+            ? TimeZoneInfo.ConvertTimeFromUtc(FechaHora, Appointment.ObtenerZonaHorariaColombia())
+            : FechaHora;
+
+        if (string.IsNullOrWhiteSpace(Servicio) || fechaHoraCol <= Appointment.ObtenerHoraActualColombia())
         {
             TempData["ErrorMessage"] = "Por favor selecciona un servicio y una fecha/hora válida a futuro.";
             return RedirectToAction("Usuario", new { section = "citas" });
@@ -208,7 +212,8 @@ public class DashboardController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al agendar la cita: {ex.Message}";
+            _logger.LogError(ex, "Error al agendar la cita para el usuario {UserId}", userId);
+            TempData["ErrorMessage"] = "Ocurrió un error al agendar la cita. Por favor intenta nuevamente.";
         }
 
         return RedirectToAction("Usuario", new { section = "citas" });
@@ -244,7 +249,8 @@ public class DashboardController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al cancelar la cita: {ex.Message}";
+            _logger.LogError(ex, "Error al cancelar la cita {Id} para el usuario {UserId}", id, userId);
+            TempData["ErrorMessage"] = "Ocurrió un error al cancelar la cita.";
         }
 
         return RedirectToAction("Usuario", new { section = "citas" });
@@ -280,7 +286,11 @@ public class DashboardController : Controller
                 return RedirectToAction("Usuario", new { section = "citas" });
             }
 
-            if (NuevaFechaHora <= DateTime.UtcNow)
+            var nuevaFechaCol = NuevaFechaHora.Kind == DateTimeKind.Utc
+                ? TimeZoneInfo.ConvertTimeFromUtc(NuevaFechaHora, Appointment.ObtenerZonaHorariaColombia())
+                : NuevaFechaHora;
+
+            if (nuevaFechaCol <= Appointment.ObtenerHoraActualColombia())
             {
                 TempData["ErrorMessage"] = "La nueva fecha y hora debe ser a futuro.";
                 return RedirectToAction("Usuario", new { section = "citas" });
@@ -333,7 +343,8 @@ public class DashboardController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al reprogramar la cita: {ex.Message}";
+            _logger.LogError(ex, "Error al reprogramar la cita {Id} para el usuario {UserId}", id, userId);
+            TempData["ErrorMessage"] = "Ocurrió un error al reprogramar la cita.";
         }
 
         return RedirectToAction("Usuario", new { section = "citas" });
@@ -361,7 +372,8 @@ public class DashboardController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al actualizar el perfil: {ex.Message}";
+            _logger.LogError(ex, "Error al actualizar el perfil del usuario");
+            TempData["ErrorMessage"] = "Ocurrió un error al actualizar el perfil.";
         }
 
         return RedirectToAction("Usuario", new { section = "perfil" });
@@ -396,7 +408,8 @@ public class DashboardController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al cambiar la contraseña: {ex.Message}";
+            _logger.LogError(ex, "Error al cambiar la contraseña del usuario");
+            TempData["ErrorMessage"] = "Ocurrió un error al cambiar la contraseña.";
         }
 
         return RedirectToAction("Usuario", new { section = "configuracion" });
@@ -408,7 +421,11 @@ public class DashboardController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateAppointment(int UserId, string Servicio, DateTime FechaHora, string? Notas, int? OptometraId)
     {
-        if (FechaHora <= DateTime.UtcNow)
+        var fechaHoraCol = FechaHora.Kind == DateTimeKind.Utc
+            ? TimeZoneInfo.ConvertTimeFromUtc(FechaHora, Appointment.ObtenerZonaHorariaColombia())
+            : FechaHora;
+
+        if (fechaHoraCol <= Appointment.ObtenerHoraActualColombia())
         {
             TempData["ErrorMessage"] = "La fecha y hora de la cita debe ser futura.";
             return RedirectToAction("Admin", new { section = "citas" });
@@ -452,7 +469,8 @@ public class DashboardController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al crear la cita: {ex.Message}";
+            _logger.LogError(ex, "Error al crear la cita para el usuario {UserId}", UserId);
+            TempData["ErrorMessage"] = "Ocurrió un error al crear la cita.";
         }
 
         return RedirectToAction("Admin", new { section = "citas" });
@@ -483,20 +501,43 @@ public class DashboardController : Controller
             }
 
             var cita = await _context.Appointments.FindAsync(id);
-            if (cita != null)
-            {
-                cita.Estado = targetEstado.ToLower();
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Estado de cita actualizado.";
-            }
-            else
+            if (cita == null || !cita.Activo)
             {
                 TempData["ErrorMessage"] = "Cita no encontrada.";
+                return RedirectToAction("Admin", new { section = "citas" });
             }
+
+            var nuevoEstadoNormalizado = targetEstado.Trim().ToLower();
+
+            // (b) No permitir cambiar el estado de una cita completada a otro
+            if (cita.Estado.Equals("completada", StringComparison.OrdinalIgnoreCase) && nuevoEstadoNormalizado != "completada")
+            {
+                TempData["ErrorMessage"] = "No se puede cambiar el estado de una cita completada.";
+                return RedirectToAction("Admin", new { section = "citas" });
+            }
+
+            // (c) Si el nuevo estado no es cancelada y la cita estaba cancelada, validar disponibilidad
+            if (cita.Estado.Equals("cancelada", StringComparison.OrdinalIgnoreCase) && nuevoEstadoNormalizado != "cancelada")
+            {
+                if (cita.OptometraId.HasValue)
+                {
+                    var disponible = await Appointment.HayDisponibilidad(_context, cita.OptometraId.Value, cita.FechaHora, cita.Id);
+                    if (!disponible)
+                    {
+                        TempData["ErrorMessage"] = "No es posible reactivar la cita: el horario ya está ocupado por otra cita.";
+                        return RedirectToAction("Admin", new { section = "citas" });
+                    }
+                }
+            }
+
+            cita.Estado = nuevoEstadoNormalizado;
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Estado de cita actualizado.";
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al actualizar la cita: {ex.Message}";
+            _logger.LogError(ex, "Error al actualizar la cita {Id}", id);
+            TempData["ErrorMessage"] = "Error al actualizar la cita.";
         }
 
         return RedirectToAction("Admin", new { section = "citas" });
@@ -534,10 +575,11 @@ public class DashboardController : Controller
         }
         catch (Exception ex)
         {
-            TempData["ErrorMessage"] = $"Error al desactivar la cita: {ex.Message}";
+            _logger.LogError(ex, "Error al desactivar la cita {Id}", id);
+            TempData["ErrorMessage"] = "Ocurrió un error al desactivar la cita.";
             if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
             {
-                return Json(new { success = false, message = ex.Message });
+                return Json(new { success = false, message = "Ocurrió un error al desactivar la cita." });
             }
         }
 
@@ -614,14 +656,16 @@ public class DashboardController : Controller
         catch (KeyNotFoundException ex)
         {
             _logger.LogWarning(ex, "Producto no encontrado al crear pedido de venta #{NumeroPedido}", model.NumeroPedido);
-            if (isAjax) return Json(new { success = false, message = ex.Message });
-            TempData["ErrorMessage"] = ex.Message;
+            var safeMsg = "El producto solicitado no fue encontrado.";
+            if (isAjax) return Json(new { success = false, message = safeMsg });
+            TempData["ErrorMessage"] = safeMsg;
         }
         catch (InvalidOperationException ex)
         {
             _logger.LogWarning(ex, "Operación inválida al procesar pedido de venta #{NumeroPedido}", model.NumeroPedido);
-            if (isAjax) return Json(new { success = false, message = ex.Message });
-            TempData["ErrorMessage"] = ex.Message;
+            var safeMsg = "Operación no válida al procesar el pedido de venta.";
+            if (isAjax) return Json(new { success = false, message = safeMsg });
+            TempData["ErrorMessage"] = safeMsg;
         }
         catch (Exception ex)
         {

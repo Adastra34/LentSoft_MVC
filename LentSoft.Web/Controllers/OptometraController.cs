@@ -178,16 +178,36 @@ public class OptometraController : Controller
             }
 
             var cita = await _context.Appointments.FindAsync(id);
-            if (cita != null)
-            {
-                cita.Estado = estado.ToLower();
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Estado de cita actualizado.";
-            }
-            else
+            if (cita == null || !cita.Activo)
             {
                 TempData["ErrorMessage"] = "Cita no encontrada.";
+                return RedirectToAction("Index", new { section = "citas" });
             }
+
+            var nuevoEstado = estado.Trim().ToLower();
+
+            // (b) No permitir cambiar el estado de una cita completada a otro
+            if (cita.Estado.Equals("completada", StringComparison.OrdinalIgnoreCase) && nuevoEstado != "completada")
+            {
+                TempData["ErrorMessage"] = "No se puede cambiar el estado de una cita completada.";
+                return RedirectToAction("Index", new { section = "citas" });
+            }
+
+            // (c) Si el nuevo estado no es cancelada y la cita estaba cancelada, validar disponibilidad
+            if (cita.Estado.Equals("cancelada", StringComparison.OrdinalIgnoreCase) && nuevoEstado != "cancelada")
+            {
+                var optId = cita.OptometraId ?? int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+                var disponible = await Appointment.HayDisponibilidad(_context, optId, cita.FechaHora, cita.Id);
+                if (!disponible)
+                {
+                    TempData["ErrorMessage"] = "No es posible reactivar la cita: el horario ya está ocupado por otra cita.";
+                    return RedirectToAction("Index", new { section = "citas" });
+                }
+            }
+
+            cita.Estado = nuevoEstado;
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Estado de cita actualizado.";
         }
         catch (Exception ex)
         {
@@ -951,12 +971,12 @@ public class OptometraController : Controller
             return RedirectToAction("Index", new { section = "citas" });
         }
 
-        // 1. Validar fecha futura
-        var esPasada = model.FechaHora.Kind == DateTimeKind.Utc
-            ? model.FechaHora <= DateTime.UtcNow
-            : model.FechaHora <= DateTime.Now;
+        // 1. Validar fecha futura según hora Colombia
+        var fechaHoraCol = model.FechaHora.Kind == DateTimeKind.Utc
+            ? TimeZoneInfo.ConvertTimeFromUtc(model.FechaHora, Appointment.ObtenerZonaHorariaColombia())
+            : model.FechaHora;
 
-        if (esPasada)
+        if (fechaHoraCol <= Appointment.ObtenerHoraActualColombia())
         {
             TempData["ErrorMessage"] = "La fecha y hora de la cita debe ser futura.";
             return RedirectToAction("Index", new { section = "citas" });
@@ -1015,6 +1035,13 @@ public class OptometraController : Controller
             return RedirectToAction("Index", new { section = "citas" });
         }
 
+        // Validación de Estado contra Appointment.EstadosValidos
+        if (string.IsNullOrWhiteSpace(model.Estado) || !Appointment.EstadosValidos.Contains(model.Estado, StringComparer.OrdinalIgnoreCase))
+        {
+            TempData["ErrorMessage"] = "Estado no válido. Los valores permitidos son: pendiente, confirmada, completada, cancelada.";
+            return RedirectToAction("Index", new { section = "citas" });
+        }
+
         // 1. Validar horario laboral
         if (!Appointment.EsHorarioLaboral(model.FechaHora))
         {
@@ -1025,30 +1052,50 @@ public class OptometraController : Controller
         try
         {
             var appointment = await _context.Appointments.FindAsync(model.Id);
-            if (appointment != null)
-            {
-                // 2. Validar disponibilidad del optómetra
-                var optId = appointment.OptometraId ?? int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
-                if (!await Appointment.HayDisponibilidad(_context, optId, model.FechaHora, appointment.Id))
-                {
-                    TempData["ErrorMessage"] = "El optómetra ya tiene una cita agendada en ese horario. Por favor elige otro horario.";
-                    return RedirectToAction("Index", new { section = "citas" });
-                }
-
-                appointment.UserId = model.UserId;
-                appointment.Servicio = model.Servicio.Trim();
-                appointment.FechaHora = DateTime.SpecifyKind(model.FechaHora, DateTimeKind.Utc);
-                appointment.Notas = model.Notas?.Trim();
-                appointment.Estado = model.Estado;
-                appointment.OptometraId = optId;
-
-                await _context.SaveChangesAsync();
-                TempData["SuccessMessage"] = "Cita actualizada exitosamente.";
-            }
-            else
+            if (appointment == null || !appointment.Activo)
             {
                 TempData["ErrorMessage"] = "No se encontró la cita a editar.";
+                return RedirectToAction("Index", new { section = "citas" });
             }
+
+            // Validar fecha futura salvo que la cita ya esté en el pasado y no se cambie su fecha
+            var ahoraColombia = Appointment.ObtenerHoraActualColombia();
+            var existingFechaCol = appointment.FechaHora.Kind == DateTimeKind.Utc
+                ? TimeZoneInfo.ConvertTimeFromUtc(appointment.FechaHora, Appointment.ObtenerZonaHorariaColombia())
+                : appointment.FechaHora;
+            var modelFechaCol = model.FechaHora.Kind == DateTimeKind.Utc
+                ? TimeZoneInfo.ConvertTimeFromUtc(model.FechaHora, Appointment.ObtenerZonaHorariaColombia())
+                : model.FechaHora;
+
+            bool modelEsPasada = modelFechaCol <= ahoraColombia;
+            if (modelEsPasada)
+            {
+                bool yaEstabaEnElPasado = existingFechaCol <= ahoraColombia;
+                bool fechaNoCambio = existingFechaCol == modelFechaCol;
+                if (!(yaEstabaEnElPasado && fechaNoCambio))
+                {
+                    TempData["ErrorMessage"] = "La fecha y hora de la cita debe ser futura.";
+                    return RedirectToAction("Index", new { section = "citas" });
+                }
+            }
+
+            // 2. Validar disponibilidad del optómetra
+            var optId = appointment.OptometraId ?? int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+            if (!await Appointment.HayDisponibilidad(_context, optId, model.FechaHora, appointment.Id))
+            {
+                TempData["ErrorMessage"] = "El optómetra ya tiene una cita agendada en ese horario. Por favor elige otro horario.";
+                return RedirectToAction("Index", new { section = "citas" });
+            }
+
+            appointment.UserId = model.UserId;
+            appointment.Servicio = model.Servicio.Trim();
+            appointment.FechaHora = DateTime.SpecifyKind(model.FechaHora, DateTimeKind.Utc);
+            appointment.Notas = model.Notas?.Trim();
+            appointment.Estado = model.Estado.Trim().ToLower();
+            appointment.OptometraId = optId;
+
+            await _context.SaveChangesAsync();
+            TempData["SuccessMessage"] = "Cita actualizada exitosamente.";
         }
         catch (Exception ex)
         {

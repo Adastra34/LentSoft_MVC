@@ -15,10 +15,12 @@ namespace LentSoft.Web.Controllers.Api;
 public class AppointmentsApiController : ControllerBase
 {
     private readonly LentSoftDbContext _context;
+    private readonly ILogger<AppointmentsApiController>? _logger;
 
-    public AppointmentsApiController(LentSoftDbContext context)
+    public AppointmentsApiController(LentSoftDbContext context, ILogger<AppointmentsApiController>? logger = null)
     {
         _context = context;
+        _logger = logger;
     }
 
     private int GetCurrentUserId()
@@ -183,12 +185,13 @@ public class AppointmentsApiController : ControllerBase
         }
         catch (DbUpdateException dbEx)
         {
-            var msg = dbEx.InnerException?.Message ?? dbEx.Message;
-            return BadRequest(new { message = msg });
+            _logger?.LogError(dbEx, "Error de base de datos al agendar la cita para el usuario {UserId}", userId);
+            return BadRequest(new { message = "Error de base de datos al agendar la cita." });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = $"Error al agendar la cita: {ex.Message}" });
+            _logger?.LogError(ex, "Error inesperado al agendar la cita para el usuario {UserId}", userId);
+            return StatusCode(500, new { message = "Error interno del servidor al agendar la cita." });
         }
     }
 
@@ -218,7 +221,8 @@ public class AppointmentsApiController : ControllerBase
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = $"Error al cancelar la cita: {ex.Message}" });
+            _logger?.LogError(ex, "Error al cancelar la cita {Id} para el usuario {UserId}", id, userId);
+            return StatusCode(500, new { message = "Error interno del servidor al cancelar la cita." });
         }
     }
 
@@ -330,12 +334,13 @@ public class AppointmentsApiController : ControllerBase
         }
         catch (DbUpdateException dbEx)
         {
-            var msg = dbEx.InnerException?.Message ?? dbEx.Message;
-            return BadRequest(new { message = msg });
+            _logger?.LogError(dbEx, "Error de base de datos al reprogramar la cita {Id} para el usuario {UserId}", id, userId);
+            return BadRequest(new { message = "Error de base de datos al reprogramar la cita." });
         }
         catch (Exception ex)
         {
-            return StatusCode(500, new { message = $"Error al reprogramar la cita: {ex.Message}" });
+            _logger?.LogError(ex, "Error inesperado al reprogramar la cita {Id} para el usuario {UserId}", id, userId);
+            return StatusCode(500, new { message = "Error interno del servidor al reprogramar la cita." });
         }
     }
 }
