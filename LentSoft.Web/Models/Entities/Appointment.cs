@@ -44,6 +44,40 @@ public class Appointment : IValidatableObject
     // --- Estados válidos ---
     public static readonly string[] EstadosValidos = new[] { "pendiente", "confirmada", "completada", "cancelada" };
 
+    // --- Zona Horaria Colombia ---
+    public static TimeZoneInfo ObtenerZonaHorariaColombia()
+    {
+        try
+        {
+            return TimeZoneInfo.FindSystemTimeZoneById("America/Bogota");
+        }
+        catch (Exception)
+        {
+            try
+            {
+                return TimeZoneInfo.FindSystemTimeZoneById("SA Pacific Standard Time");
+            }
+            catch (Exception)
+            {
+                return TimeZoneInfo.CreateCustomTimeZone("ColombiaFallback", TimeSpan.FromHours(-5), "Colombia Time", "Colombia Time");
+            }
+        }
+    }
+
+    public static DateTime ObtenerHoraActualColombia()
+    {
+        return TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, ObtenerZonaHorariaColombia());
+    }
+
+    public static bool EsFechaFuturaColombia(DateTime fechaHora)
+    {
+        var ahoraColombia = ObtenerHoraActualColombia();
+        var fechaComparar = fechaHora.Kind == DateTimeKind.Utc
+            ? TimeZoneInfo.ConvertTimeFromUtc(fechaHora, ObtenerZonaHorariaColombia())
+            : fechaHora;
+        return fechaComparar > ahoraColombia;
+    }
+
     // --- Horario Laboral Config & Validations ---
     public static readonly DayOfWeek[] DiasLaborales = new[]
     {
