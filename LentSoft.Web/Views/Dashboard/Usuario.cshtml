@@ -30,6 +30,9 @@
             <a href="?section=configuracion" class="nav-item @(Model.ActiveSection == "configuracion" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "configuracion" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "configuracion" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;">
                 <icon name="settings" /> <span data-i18n="user.nav.settings">Configuración</span>
             </a>
+            <a asp-controller="Pqrs" asp-action="Index" class="nav-item" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: var(--purple-200); background-color: transparent; font-weight: 500; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-800)'" onmouseout="this.style.backgroundColor='transparent'">
+                <icon name="file-text" /> <span>Mis PQRS</span>
+            </a>
         </nav>
     </aside>
 

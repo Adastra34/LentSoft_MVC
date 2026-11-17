@@ -15,7 +15,10 @@
                     Peticiones, Quejas, Reclamos y Solicitudes radicadas en la plataforma
                 </p>
             </div>
-            <div>
+            <div style="display: flex; gap: 0.75rem; align-items: center; flex-wrap: wrap;">
+                <a asp-controller="Dashboard" asp-action="Usuario" style="background-color: white; border: 1px solid var(--purple-300); color: var(--purple-800); padding: 0.65rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.35rem;">
+                    <icon name="user" class="icon-sm" /> Volver a Mi Cuenta
+                </a>
                 <a asp-action="Crear" class="btn" style="background-color: var(--purple-700); color: white; padding: 0.65rem 1.25rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
                     <icon name="file-text" /> Radicar Nueva PQRS
                 </a>
