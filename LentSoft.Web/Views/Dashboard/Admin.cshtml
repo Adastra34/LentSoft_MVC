@@ -32,6 +32,9 @@
             <a href="?section=facturas" class="nav-item @(Model.ActiveSection == "facturas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "facturas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "facturas" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
                 <icon name="receipt" class="icon-sm" /> <span data-i18n="admin.nav.invoices">Facturas</span>
             </a>
+            <a asp-controller="Pqrs" asp-action="AdminIndex" class="nav-item" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: var(--purple-200); background-color: transparent; font-weight: 500; text-decoration: none; transition: background-color 0.2s;" onmouseover="this.style.backgroundColor='var(--purple-800)'" onmouseout="this.style.backgroundColor='transparent'">
+                <icon name="file-text" class="icon-sm" /> <span>Gestión PQRS</span>
+            </a>
         </nav>
     </aside>
 

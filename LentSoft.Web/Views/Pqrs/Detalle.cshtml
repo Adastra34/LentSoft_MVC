@@ -1,0 +1,112 @@
+@model LentSoft.Web.Models.Entities.Pqrs
+@{
+    ViewData["Title"] = $"Detalle Radicado {Model.CodigoRadicado} - LentSoft";
+    var esAdmin = User.IsInRole("admin");
+    var estadoLower = (Model.Estado ?? "").ToLowerInvariant();
+    var bgEstado = estadoLower switch {
+        "resuelto" => "#dcfce7",
+        "en proceso" => "#e0e7ff",
+        _ => "#fef3c7"
+    };
+    var colorEstado = estadoLower switch {
+        "resuelto" => "#15803d",
+        "en proceso" => "#4338ca",
+        _ => "#b45309"
+    };
+    var borderEstado = estadoLower switch {
+        "resuelto" => "#bbf7d0",
+        "en proceso" => "#c7d2fe",
+        _ => "#fde68a"
+    };
+}
+
+<div style="background-color: var(--purple-50); min-height: 85vh; padding: 2.5rem 1rem;">
+    <div style="max-width: 800px; margin: 0 auto;">
+        
+        <div style="margin-bottom: 1.5rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+            <div>
+                <a href="@(esAdmin ? Url.Action("AdminIndex") : Url.Action("Index"))" style="color: var(--purple-700); text-decoration: none; font-size: 0.9rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.35rem; margin-bottom: 0.5rem;">
+                    <icon name="arrow-left" class="icon-sm" /> Volver al listado
+                </a>
+                <h1 style="color: var(--purple-900); font-size: 1.75rem; font-weight: 700; margin: 0;">
+                    Radicado: @Model.CodigoRadicado
+                </h1>
+            </div>
+            <div>
+                <span style="background-color: @bgEstado; color: @colorEstado; border: 1px solid @borderEstado; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.85rem; font-weight: 700;">
+                    @Model.Estado
+                </span>
+            </div>
+        </div>
+
+        <div style="background: white; border-radius: 0.75rem; border: 1px solid var(--purple-100); box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 2rem; margin-bottom: 1.5rem;">
+            <h3 style="color: var(--purple-900); font-size: 1.15rem; font-weight: 700; margin: 0 0 1rem 0; border-bottom: 1px solid var(--purple-100); padding-bottom: 0.5rem;">
+                Información de la Solicitud
+            </h3>
+
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.25rem; margin-bottom: 1.5rem;">
+                <div>
+                    <span style="display: block; font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Tipo</span>
+                    <span style="font-weight: 600; color: var(--purple-800); font-size: 0.95rem;">@Model.Tipo</span>
+                </div>
+                <div>
+                    <span style="display: block; font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Fecha de Creación</span>
+                    <span style="font-weight: 600; color: #1e293b; font-size: 0.95rem;">@Model.FechaCreacion.ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
+                @if (esAdmin && Model.User != null)
+                {
+                    <div>
+                        <span style="display: block; font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase;">Usuario</span>
+                        <span style="font-weight: 600; color: #1e293b; font-size: 0.95rem;">@Model.User.Nombre (@Model.User.Email)</span>
+                    </div>
+                }
+            </div>
+
+            <div style="margin-bottom: 1.25rem;">
+                <span style="display: block; font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">Asunto</span>
+                <p style="margin: 0; font-weight: 600; color: #1e293b; font-size: 1rem; background-color: var(--purple-50); padding: 0.75rem 1rem; border-radius: 0.5rem; border: 1px solid var(--purple-100);">
+                    @Model.Asunto
+                </p>
+            </div>
+
+            <div>
+                <span style="display: block; font-size: 0.8rem; color: #64748b; font-weight: 600; text-transform: uppercase; margin-bottom: 0.25rem;">Mensaje / Descripción</span>
+                <div style="background-color: #f8fafc; padding: 1rem; border-radius: 0.5rem; border: 1px solid #e2e8f0; color: #334155; line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem;">
+                    @Model.Mensaje
+                </div>
+            </div>
+        </div>
+
+        <div style="background: white; border-radius: 0.75rem; border: 1px solid var(--purple-100); box-shadow: 0 1px 3px rgba(0,0,0,0.05); padding: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--purple-100); padding-bottom: 0.5rem;">
+                <h3 style="color: var(--purple-900); font-size: 1.15rem; font-weight: 700; margin: 0;">
+                    Respuesta Administrativa
+                </h3>
+                @if (esAdmin)
+                {
+                    <a asp-action="Responder" asp-route-id="@Model.Id" style="background-color: var(--purple-700); color: white; padding: 0.45rem 1rem; border-radius: 0.35rem; font-size: 0.85rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 0.35rem;">
+                        <icon name="edit" class="icon-sm" /> @(string.IsNullOrWhiteSpace(Model.RespuestaAdmin) ? "Responder" : "Modificar Respuesta")
+                    </a>
+                }
+            </div>
+
+            @if (!string.IsNullOrWhiteSpace(Model.RespuestaAdmin))
+            {
+                <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; padding: 1.25rem; border-radius: 0.5rem; margin-bottom: 1rem;">
+                    <div style="font-size: 0.8rem; color: #15803d; font-weight: 600; margin-bottom: 0.5rem;">
+                        Fecha de Respuesta: @(Model.FechaRespuesta?.ToString("dd/MM/yyyy HH:mm") ?? "No registrada")
+                    </div>
+                    <div style="color: #166534; line-height: 1.6; white-space: pre-wrap; font-size: 0.95rem;">
+                        @Model.RespuestaAdmin
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div style="background-color: #f8fafc; border: 1px dashed #cbd5e1; padding: 1.5rem; border-radius: 0.5rem; text-align: center; color: #64748b;">
+                    <p style="margin: 0; font-size: 0.95rem;">Esta solicitud aún no cuenta con una respuesta oficial del equipo administrativo.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>
