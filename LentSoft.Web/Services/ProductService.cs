@@ -103,6 +103,13 @@ public class ProductService : IProductService
 
     public async Task<Product> CreateAsync(Product product)
     {
+        if (product.StockBodega < 0 || product.StockLocal < 0)
+        {
+            throw new InvalidOperationException("El stock no puede ser negativo.");
+        }
+
+        product.RecalcularStockTotal();
+
         if (product.Stock > _inventorySettings.MaxStock)
         {
             throw new InvalidOperationException($"El stock no puede superar las {_inventorySettings.MaxStock} unidades.");
@@ -152,6 +159,7 @@ public class ProductService : IProductService
                 Responsable = responsable,
                 Motivo = InventoryConstants.MovementMotives.Compra,
                 StockResultante = product.Stock,
+                Ubicacion = InventoryConstants.Ubicaciones.Bodega,
                 Nota = "Alta de nuevo producto en el catálogo",
                 Referencia = product.Sku
             };
@@ -178,6 +186,13 @@ public class ProductService : IProductService
         var product = await _context.Products.FindAsync(id);
         if (product == null) return null;
 
+        if (updated.StockBodega < 0 || updated.StockLocal < 0)
+        {
+            throw new InvalidOperationException("El stock no puede ser negativo.");
+        }
+
+        updated.RecalcularStockTotal();
+
         if (updated.Stock > _inventorySettings.MaxStock)
         {
             throw new InvalidOperationException($"El stock no puede superar las {_inventorySettings.MaxStock} unidades.");
@@ -199,6 +214,8 @@ public class ProductService : IProductService
         }
 
         int stockDelta = updated.Stock - product.Stock;
+        int deltaBodega = updated.StockBodega - product.StockBodega;
+        int deltaLocal = updated.StockLocal - product.StockLocal;
 
         product.Nombre = updated.Nombre;
         product.Descripcion = updated.Descripcion;
@@ -209,6 +226,8 @@ public class ProductService : IProductService
         product.CostoCompra = updated.CostoCompra;
         product.StockMinimo = updated.StockMinimo > 0 ? updated.StockMinimo : _inventorySettings.DefaultStockMinimo;
         product.Ubicacion = updated.Ubicacion;
+        product.StockBodega = updated.StockBodega;
+        product.StockLocal = updated.StockLocal;
         product.Stock = updated.Stock;
         product.ImagenUrl = updated.ImagenUrl;
         product.Activo = updated.Stock == 0 ? false : updated.Activo;
@@ -239,7 +258,10 @@ public class ProductService : IProductService
                 Responsable = responsable,
                 Motivo = stockDelta != 0 ? InventoryConstants.MovementMotives.AjustePorConteo : InventoryConstants.MovementMotives.Otro,
                 StockResultante = product.Stock,
-                Nota = stockDelta != 0 ? $"Ajuste en edición: delta {stockDelta:+0;-0;0}" : "Edición de datos del producto",
+                Ubicacion = deltaBodega != 0 && deltaLocal == 0 ? InventoryConstants.Ubicaciones.Bodega : (deltaLocal != 0 && deltaBodega == 0 ? InventoryConstants.Ubicaciones.Local : InventoryConstants.Ubicaciones.Bodega),
+                Nota = (deltaBodega != 0 || deltaLocal != 0)
+                    ? $"Ajuste en edición: Bodega {deltaBodega:+0;-0;0}, Local {deltaLocal:+0;-0;0}"
+                    : (stockDelta != 0 ? $"Ajuste en edición: delta {stockDelta:+0;-0;0}" : "Edición de datos del producto"),
                 Referencia = product.Sku
             };
             _context.InventoryMovements.Add(movement);

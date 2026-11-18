@@ -1,4 +1,4 @@
-﻿@model DashboardAdminViewModel
+@model DashboardAdminViewModel
 @inject Microsoft.Extensions.Options.IOptions<LentSoft.Web.Services.InventorySettings> InventoryOptions
 
 <!-- ==================== MODALES DEL MÓDULO DE INVENTARIO ==================== -->
@@ -72,9 +72,20 @@
 
             <div class="inv-form-row">
                 <div class="inv-form-group">
-                    <label class="inv-form-label">Stock * (Máx. @InventoryOptions.Value.MaxStock)</label>
-                    <input name="Stock" type="number" min="0" max="@InventoryOptions.Value.MaxStock" value="@InventoryOptions.Value.LowStockThreshold" required class="inv-form-input" />
+                    <label class="inv-form-label">Stock Bodega *</label>
+                    <input id="crearProductStockBodega" name="StockBodega" type="number" min="0" max="@InventoryOptions.Value.MaxStock" value="@InventoryOptions.Value.LowStockThreshold" required class="inv-form-input" oninput="recalcularStockTotalCrear()" />
                 </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Stock Local *</label>
+                    <input id="crearProductStockLocal" name="StockLocal" type="number" min="0" max="@InventoryOptions.Value.MaxStock" value="0" required class="inv-form-input" oninput="recalcularStockTotalCrear()" />
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Stock Total (Solo lectura)</label>
+                    <input id="crearProductStockTotal" name="Stock" type="number" min="0" max="@InventoryOptions.Value.MaxStock" value="@InventoryOptions.Value.LowStockThreshold" readonly class="inv-form-input" style="background-color: var(--gray-100); font-weight: 700;" />
+                </div>
+            </div>
+
+            <div class="inv-form-row">
                 <div class="inv-form-group">
                     <label class="inv-form-label">Stock Mínimo (Alerta) *</label>
                     <input name="StockMinimo" type="number" min="0" value="@InventoryOptions.Value.LowStockThreshold" required class="inv-form-input" />
@@ -196,9 +207,20 @@
 
             <div class="inv-form-row">
                 <div class="inv-form-group">
-                    <label class="inv-form-label">Stock * (Máx. @InventoryOptions.Value.MaxStock)</label>
-                    <input id="editProductStock" name="Stock" type="number" min="0" max="@InventoryOptions.Value.MaxStock" required class="inv-form-input" />
+                    <label class="inv-form-label">Stock Bodega *</label>
+                    <input id="editProductStockBodega" name="StockBodega" type="number" min="0" max="@InventoryOptions.Value.MaxStock" required class="inv-form-input" oninput="recalcularStockTotalEditar()" />
                 </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Stock Local *</label>
+                    <input id="editProductStockLocal" name="StockLocal" type="number" min="0" max="@InventoryOptions.Value.MaxStock" required class="inv-form-input" oninput="recalcularStockTotalEditar()" />
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Stock Total (Solo lectura)</label>
+                    <input id="editProductStock" name="Stock" type="number" min="0" max="@InventoryOptions.Value.MaxStock" readonly class="inv-form-input" style="background-color: var(--gray-100); font-weight: 700;" />
+                </div>
+            </div>
+
+            <div class="inv-form-row">
                 <div class="inv-form-group">
                     <label class="inv-form-label">Stock Mínimo (Alerta) *</label>
                     <input id="editProductStockMinimo" name="StockMinimo" type="number" min="0" value="@InventoryOptions.Value.LowStockThreshold" required class="inv-form-input" />
@@ -857,6 +879,13 @@
                     </select>
                 </div>
                 <div class="inv-form-group">
+                    <label class="inv-form-label">Ubicación *</label>
+                    <select id="manualMovUbicacion" name="Ubicacion" class="inv-form-input" required>
+                        <option value="Bodega" selected>Bodega</option>
+                        <option value="Local">Local</option>
+                    </select>
+                </div>
+                <div class="inv-form-group">
                     <label class="inv-form-label">Cantidad *</label>
                     <input name="Cantidad" type="number" min="1" value="1" class="inv-form-input" required />
                 </div>
@@ -946,6 +975,7 @@
                             <tr>
                                 <th style="width: 130px; text-align: center;">Fecha/Hora</th>
                                 <th style="text-align: center; width: 100px;">Tipo</th>
+                                <th style="text-align: center; width: 90px;">Ubicación</th>
                                 <th style="text-align: center; width: 80px;">Cant.</th>
                                 <th style="text-align: center; width: 110px;">Saldo (Stock)</th>
                                 <th style="text-align: center; width: 120px;">Motivo</th>
@@ -1066,6 +1096,20 @@
             });
         }
     });
+
+    function recalcularStockTotalCrear() {
+        const b = parseInt(document.getElementById('crearProductStockBodega')?.value) || 0;
+        const l = parseInt(document.getElementById('crearProductStockLocal')?.value) || 0;
+        const totalEl = document.getElementById('crearProductStockTotal');
+        if (totalEl) totalEl.value = b + l;
+    }
+
+    function recalcularStockTotalEditar() {
+        const b = parseInt(document.getElementById('editProductStockBodega')?.value) || 0;
+        const l = parseInt(document.getElementById('editProductStockLocal')?.value) || 0;
+        const totalEl = document.getElementById('editProductStock');
+        if (totalEl) totalEl.value = b + l;
+    }
 
     // Indicador de carga en envio de formularios modales
     document.addEventListener('DOMContentLoaded', function () {

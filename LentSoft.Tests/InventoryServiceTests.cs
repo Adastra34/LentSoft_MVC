@@ -688,4 +688,163 @@ public class InventoryServiceTests : IDisposable
 
         Assert.Contains("fue modificado por otro usuario", ex.Message);
     }
+
+    [Fact]
+    public async Task StockSeparacion_EntradaYSalida_MantieneTotalIgualABodegaMasLocal()
+    {
+        // Arrange
+        var product = new Product
+        {
+            Nombre = "Gafas Polarizadas Bodega Local",
+            Precio = 120000m,
+            StockBodega = 20,
+            StockLocal = 10,
+            Stock = 30,
+            Activo = true
+        };
+        _context.Products.Add(product);
+        await _context.SaveChangesAsync();
+
+        // 1. Entrada a Bodega (por defecto)
+        await _inventoryService.AumentarStockAsync(product.Id, 5, InventoryConstants.MovementTypes.Entrada);
+        var p1 = await _context.Products.FindAsync(product.Id);
+        Assert.NotNull(p1);
+        Assert.Equal(25, p1.StockBodega);
+        Assert.Equal(10, p1.StockLocal);
+        Assert.Equal(35, p1.Stock);
+        Assert.Equal(p1.StockBodega + p1.StockLocal, p1.Stock);
+
+        // 2. Entrada a Local explícita
+        await _inventoryService.AumentarStockAsync(product.Id, 5, InventoryConstants.MovementTypes.Entrada, ubicacion: InventoryConstants.Ubicaciones.Local);
+        var p2 = await _context.Products.FindAsync(product.Id);
+        Assert.NotNull(p2);
+        Assert.Equal(25, p2.StockBodega);
+        Assert.Equal(15, p2.StockLocal);
+        Assert.Equal(40, p2.Stock);
+        Assert.Equal(p2.StockBodega + p2.StockLocal, p2.Stock);
+
+        // 3. Salida por venta automática (descuenta primero de Local y luego de Bodega)
+        // Pedimos 20 unidades: 15 de Local y 5 de Bodega
+        await _inventoryService.DisminuirStockAsync(product.Id, 20, InventoryConstants.MovementTypes.Salida);
+        var p3 = await _context.Products.FindAsync(product.Id);
+        Assert.NotNull(p3);
+        Assert.Equal(20, p3.StockBodega);
+        Assert.Equal(0, p3.StockLocal);
+        Assert.Equal(20, p3.Stock);
+        Assert.Equal(p3.StockBodega + p3.StockLocal, p3.Stock);
+
+        // 4. ProcesarPedidoVentaAsync descuenta también respetando la regla
+        var salesOrder = new SalesOrder
+        {
+            NumeroPedido = "VTA-TEST-001",
+            ClienteNombre = "Juan Perez",
+            Cantidad = 5,
+            PrecioUnitario = 120000m,
+            ProductId = product.Id
+        };
+        await _inventoryService.ProcesarPedidoVentaAsync(salesOrder);
+        var p4 = await _context.Products.FindAsync(product.Id);
+        Assert.NotNull(p4);
+        Assert.Equal(15, p4.StockBodega);
+        Assert.Equal(0, p4.StockLocal);
+        Assert.Equal(15, p4.Stock);
+        Assert.Equal(p4.StockBodega + p4.StockLocal, p4.Stock);
+    }
+
+    [Fact]
+    public async Task StockSeparacion_SalidaConUbicacionExplicita_RechazaSiSaldoInsuficiente()
+    {
+        // Arrange
+        var product = new Product
+        {
+            Nombre = "Lentes Saldo Insuficiente Test",
+            Precio = 90000m,
+            StockBodega = 50,
+            StockLocal = 5,
+            Stock = 55,
+            Activo = true
+        };
+        _context.Products.Add(product);
+        await _context.SaveChangesAsync();
+
+        // Intentar retirar 10 de Local teniendo solo 5 debe fallar aunque haya 50 en Bodega
+        var exLocal = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _inventoryService.DisminuirStockAsync(product.Id, 10, InventoryConstants.MovementTypes.Salida, ubicacion: InventoryConstants.Ubicaciones.Local));
+        Assert.Contains("Stock insuficiente en Local", exLocal.Message);
+
+        // Intentar retirar 60 de Bodega teniendo solo 50 debe fallar
+        var exBodega = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _inventoryService.DisminuirStockAsync(product.Id, 60, InventoryConstants.MovementTypes.Salida, ubicacion: InventoryConstants.Ubicaciones.Bodega));
+        Assert.Contains("Stock insuficiente en Bodega", exBodega.Message);
+
+        // Los stocks deben permanecer intactos
+        var dbProduct = await _context.Products.FindAsync(product.Id);
+        Assert.NotNull(dbProduct);
+        Assert.Equal(50, dbProduct.StockBodega);
+        Assert.Equal(5, dbProduct.StockLocal);
+        Assert.Equal(55, dbProduct.Stock);
+    }
+
+    [Fact]
+    public async Task StockSeparacion_MaxStockYSaldosNegativos_ValidacionesEstrictas()
+    {
+        // 1. Validar que la suma no supere MaxStock en AumentarStockAsync
+        var product = new Product
+        {
+            Nombre = "Lentes Max Stock Limite",
+            Precio = 50000m,
+            StockBodega = 80,
+            StockLocal = 0,
+            Stock = 80,
+            Activo = true
+        };
+        _context.Products.Add(product);
+        await _context.SaveChangesAsync();
+
+        var exMax = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            _inventoryService.AumentarStockAsync(product.Id, 10, InventoryConstants.MovementTypes.Entrada, ubicacion: InventoryConstants.Ubicaciones.Bodega));
+        Assert.Contains("no puede superar las 85 unidades", exMax.Message);
+
+        // 2. ProductService: no permite negativos ni suma superior a MaxStock
+        var productService = new ProductService(_context);
+        var prodInvalidoNegativo = new Product
+        {
+            Nombre = "Producto Negativo",
+            Precio = 10000m,
+            StockBodega = -1,
+            StockLocal = 5
+        };
+        await Assert.ThrowsAsync<InvalidOperationException>(() => productService.CreateAsync(prodInvalidoNegativo));
+
+        var prodInvalidoExceso = new Product
+        {
+            Nombre = "Producto Exceso",
+            Precio = 10000m,
+            StockBodega = 50,
+            StockLocal = 40 // Suma 90 > 85
+        };
+        await Assert.ThrowsAsync<InvalidOperationException>(() => productService.CreateAsync(prodInvalidoExceso));
+
+        // 3. Edición en ProductService mantiene Stock = Bodega + Local
+        var nuevoProd = new Product
+        {
+            Nombre = "Producto Edicion Valida",
+            Precio = 20000m,
+            StockBodega = 10,
+            StockLocal = 5
+        };
+        await productService.CreateAsync(nuevoProd);
+        Assert.Equal(15, nuevoProd.Stock);
+
+        nuevoProd.StockBodega = 20;
+        nuevoProd.StockLocal = 10;
+        await productService.UpdateAsync(nuevoProd.Id, nuevoProd);
+
+        var prodActualizado = await _context.Products.FindAsync(nuevoProd.Id);
+        Assert.NotNull(prodActualizado);
+        Assert.Equal(20, prodActualizado.StockBodega);
+        Assert.Equal(10, prodActualizado.StockLocal);
+        Assert.Equal(30, prodActualizado.Stock);
+        Assert.Equal(prodActualizado.StockBodega + prodActualizado.StockLocal, prodActualizado.Stock);
+    }
 }

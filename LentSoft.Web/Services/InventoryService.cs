@@ -26,7 +26,7 @@ public class InventoryService : IInventoryService
     public int MaxStock => _settings.MaxStock;
     public int LowStockThreshold => _settings.LowStockThreshold;
 
-    public async Task<Product> AumentarStockAsync(int productId, int cantidad, string motivo, string? responsable = null, string? nota = null, string? referencia = null)
+    public async Task<Product> AumentarStockAsync(int productId, int cantidad, string motivo, string? responsable = null, string? nota = null, string? referencia = null, string? ubicacion = null)
     {
         if (cantidad <= 0)
         {
@@ -44,7 +44,23 @@ public class InventoryService : IInventoryService
             throw new InvalidOperationException($"El stock no puede superar las {MaxStock} unidades. Stock actual de {product.Nombre}: {product.Stock}, intentó agregar: {cantidad}.");
         }
 
-        product.Stock += cantidad;
+        var ubicacionFinal = string.IsNullOrWhiteSpace(ubicacion) 
+            ? InventoryConstants.Ubicaciones.Bodega 
+            : ubicacion.Trim();
+
+        if (string.Equals(ubicacionFinal, InventoryConstants.Ubicaciones.Local, StringComparison.OrdinalIgnoreCase))
+        {
+            product.StockLocal += cantidad;
+            ubicacionFinal = InventoryConstants.Ubicaciones.Local;
+        }
+        else
+        {
+            product.StockBodega += cantidad;
+            ubicacionFinal = InventoryConstants.Ubicaciones.Bodega;
+        }
+
+        product.RecalcularStockTotal();
+
         if (product.Stock > 0 && !product.Activo)
         {
             product.Activo = true;
@@ -65,6 +81,7 @@ public class InventoryService : IInventoryService
             Responsable = ResolveResponsable(responsable),
             Motivo = motivoStr,
             StockResultante = product.Stock,
+            Ubicacion = ubicacionFinal,
             Nota = nota,
             Referencia = referencia ?? product.Sku
         };
@@ -81,7 +98,7 @@ public class InventoryService : IInventoryService
         }
     }
 
-    public async Task<Product> DisminuirStockAsync(int productId, int cantidad, string motivo, string? responsable = null, string? nota = null, string? referencia = null)
+    public async Task<Product> DisminuirStockAsync(int productId, int cantidad, string motivo, string? responsable = null, string? nota = null, string? referencia = null, string? ubicacion = null)
     {
         if (cantidad <= 0)
         {
@@ -94,12 +111,58 @@ public class InventoryService : IInventoryService
             throw new KeyNotFoundException($"El producto seleccionado con ID {productId} no existe.");
         }
 
-        if (product.Stock < cantidad)
+        string ubicacionFinal;
+
+        if (!string.IsNullOrWhiteSpace(ubicacion))
         {
-            throw new InvalidOperationException($"Stock insuficiente. Stock actual de {product.Nombre}: {product.Stock}, intentó retirar: {cantidad}.");
+            var uNorm = ubicacion.Trim();
+            if (string.Equals(uNorm, InventoryConstants.Ubicaciones.Local, StringComparison.OrdinalIgnoreCase))
+            {
+                if (product.StockLocal < cantidad)
+                {
+                    throw new InvalidOperationException($"Stock insuficiente en Local. Stock actual de {product.Nombre} en Local: {product.StockLocal}, intentó retirar: {cantidad}.");
+                }
+                product.StockLocal -= cantidad;
+                ubicacionFinal = InventoryConstants.Ubicaciones.Local;
+            }
+            else if (string.Equals(uNorm, InventoryConstants.Ubicaciones.Bodega, StringComparison.OrdinalIgnoreCase))
+            {
+                if (product.StockBodega < cantidad)
+                {
+                    throw new InvalidOperationException($"Stock insuficiente en Bodega. Stock actual de {product.Nombre} en Bodega: {product.StockBodega}, intentó retirar: {cantidad}.");
+                }
+                product.StockBodega -= cantidad;
+                ubicacionFinal = InventoryConstants.Ubicaciones.Bodega;
+            }
+            else
+            {
+                throw new ArgumentException($"Ubicación no válida: {ubicacion}. Debe ser '{InventoryConstants.Ubicaciones.Bodega}' o '{InventoryConstants.Ubicaciones.Local}'.", nameof(ubicacion));
+            }
+        }
+        else
+        {
+            if (product.Stock < cantidad)
+            {
+                throw new InvalidOperationException($"Stock insuficiente. Stock actual de {product.Nombre}: {product.Stock}, intentó retirar: {cantidad}.");
+            }
+
+            // Descontar primero de Local y el resto de Bodega
+            if (product.StockLocal >= cantidad)
+            {
+                product.StockLocal -= cantidad;
+                ubicacionFinal = InventoryConstants.Ubicaciones.Local;
+            }
+            else
+            {
+                var restante = cantidad - product.StockLocal;
+                product.StockLocal = 0;
+                product.StockBodega -= restante;
+                ubicacionFinal = InventoryConstants.Ubicaciones.Local; // o bodega si local era 0
+            }
         }
 
-        product.Stock -= cantidad;
+        product.RecalcularStockTotal();
+
         if (product.Stock > MaxStock)
         {
             product.Stock = MaxStock;
@@ -125,6 +188,7 @@ public class InventoryService : IInventoryService
             Responsable = ResolveResponsable(responsable),
             Motivo = motivoStr,
             StockResultante = product.Stock,
+            Ubicacion = ubicacionFinal,
             Nota = nota,
             Referencia = referencia ?? product.Sku
         };
@@ -174,7 +238,9 @@ public class InventoryService : IInventoryService
             throw new InvalidOperationException($"El stock no puede superar las {MaxStock} unidades. Stock actual de {product.Nombre}: {product.Stock}, intentó agregar: {cantidadPendiente}.");
         }
 
-        product.Stock += cantidadPendiente;
+        product.StockBodega += cantidadPendiente;
+        product.RecalcularStockTotal();
+
         if (product.Stock > 0 && !product.Activo)
         {
             product.Activo = true;
@@ -193,6 +259,7 @@ public class InventoryService : IInventoryService
             Responsable = ResolveResponsable(responsable),
             Motivo = InventoryConstants.MovementMotives.Compra,
             StockResultante = product.Stock,
+            Ubicacion = InventoryConstants.Ubicaciones.Bodega,
             Nota = $"Recepción total de pedido a proveedor #{order.NumeroPedido}",
             Referencia = order.NumeroPedido
         };
@@ -277,8 +344,22 @@ public class InventoryService : IInventoryService
             if (order.Fecha == default) order.Fecha = DateTime.UtcNow;
             order.Activo = true;
 
-            // Descontar stock
-            product.Stock -= order.Cantidad;
+            // Descontar stock: primero de Local y luego de Bodega
+            string movUbicacion;
+            if (product.StockLocal >= order.Cantidad)
+            {
+                product.StockLocal -= order.Cantidad;
+                movUbicacion = InventoryConstants.Ubicaciones.Local;
+            }
+            else
+            {
+                var restante = order.Cantidad - product.StockLocal;
+                product.StockLocal = 0;
+                product.StockBodega -= restante;
+                movUbicacion = InventoryConstants.Ubicaciones.Local;
+            }
+            product.RecalcularStockTotal();
+
             if (product.Stock == 0)
             {
                 product.Activo = false;
@@ -296,6 +377,7 @@ public class InventoryService : IInventoryService
                 Responsable = ResolveResponsable(responsable),
                 Motivo = InventoryConstants.MovementMotives.Venta,
                 StockResultante = product.Stock,
+                Ubicacion = movUbicacion,
                 Nota = $"Pedido de venta a {order.ClienteNombre}",
                 Referencia = order.NumeroPedido
             };
@@ -366,7 +448,9 @@ public class InventoryService : IInventoryService
             throw new InvalidOperationException($"El stock no puede superar las {MaxStock} unidades. Stock actual de {product.Nombre}: {product.Stock}, intentó agregar: {cantidadRecibida}.");
         }
 
-        product.Stock += cantidadRecibida;
+        product.StockBodega += cantidadRecibida;
+        product.RecalcularStockTotal();
+
         if (product.Stock > 0 && !product.Activo)
         {
             product.Activo = true;
@@ -387,6 +471,7 @@ public class InventoryService : IInventoryService
             Responsable = ResolveResponsable(responsable),
             Motivo = InventoryConstants.MovementMotives.Compra,
             StockResultante = product.Stock,
+            Ubicacion = InventoryConstants.Ubicaciones.Bodega,
             Nota = $"Recepción parcial ({order.CantidadRecibida}/{order.Cantidad}) de pedido #{order.NumeroPedido}",
             Referencia = order.NumeroPedido
         };

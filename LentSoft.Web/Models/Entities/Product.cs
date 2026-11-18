@@ -43,6 +43,12 @@ public class Product : IValidatableObject
     [StringLength(100)]
     public string? Ubicacion { get; set; }
 
+    [Range(0, int.MaxValue, ErrorMessage = "El stock en bodega no puede ser negativo")]
+    public int StockBodega { get; set; } = 0;
+
+    [Range(0, int.MaxValue, ErrorMessage = "El stock en local no puede ser negativo")]
+    public int StockLocal { get; set; } = 0;
+
     [Required]
     [Range(0, int.MaxValue, ErrorMessage = "El stock no puede ser negativo")]
     public int Stock { get; set; }
@@ -121,6 +127,14 @@ public class Product : IValidatableObject
         return PrecioDescuento.HasValue && PrecioDescuento.Value < Precio
             ? PrecioDescuento.Value
             : Precio;
+    }
+
+    /// <summary>
+    /// Recalcular stock total a partir de bodega y local
+    /// </summary>
+    public void RecalcularStockTotal()
+    {
+        Stock = StockBodega + StockLocal;
     }
 
     /// <summary>

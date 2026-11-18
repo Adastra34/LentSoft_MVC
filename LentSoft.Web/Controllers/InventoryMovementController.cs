@@ -43,6 +43,16 @@ public class InventoryMovementController : Controller
 
         var isSalida = string.Equals(movement.Tipo?.Trim(), InventoryConstants.MovementTypes.Salida, StringComparison.OrdinalIgnoreCase);
 
+        var ubicacion = !string.IsNullOrWhiteSpace(movement.Ubicacion) ? movement.Ubicacion.Trim() : InventoryConstants.Ubicaciones.Bodega;
+        if (!string.Equals(ubicacion, InventoryConstants.Ubicaciones.Bodega, StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(ubicacion, InventoryConstants.Ubicaciones.Local, StringComparison.OrdinalIgnoreCase))
+        {
+            var msg = "La ubicación debe ser 'Bodega' o 'Local'.";
+            if (isAjax) return Json(new { success = false, message = msg });
+            TempData["ErrorMessage"] = msg;
+            return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "historial" });
+        }
+
         if (isSalida && (string.IsNullOrWhiteSpace(movement.Motivo) || movement.Motivo.Trim() == "Otro"))
         {
             var msg = "El motivo es obligatorio para salidas de inventario (Venta, Merma, Daño, Devolución, Garantía, etc.).";
@@ -66,7 +76,8 @@ public class InventoryMovementController : Controller
                     motivo,
                     responsable,
                     movement.Nota,
-                    movement.Referencia);
+                    movement.Referencia,
+                    ubicacion);
 
                 if (product.Stock == 0)
                 {
@@ -85,7 +96,8 @@ public class InventoryMovementController : Controller
                     motivo,
                     responsable,
                     movement.Nota,
-                    movement.Referencia);
+                    movement.Referencia,
+                    ubicacion);
             }
 
             var tipoStr = isSalida ? InventoryConstants.MovementTypes.Salida : InventoryConstants.MovementTypes.Entrada;
@@ -151,6 +163,7 @@ public class InventoryMovementController : Controller
                 m.Motivo,
                 m.Cantidad,
                 m.StockResultante,
+                m.Ubicacion,
                 Responsable = m.Responsable ?? "Admin",
                 m.Referencia,
                 m.Nota
@@ -229,6 +242,7 @@ public class InventoryMovementController : Controller
             Tipo = m.Tipo,
             Cantidad = m.Cantidad,
             StockResultante = m.StockResultante,
+            Ubicacion = m.Ubicacion,
             Motivo = m.Motivo,
             Responsable = m.Responsable ?? "Admin",
             Referencia = m.Referencia ?? "",
