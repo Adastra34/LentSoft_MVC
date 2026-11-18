@@ -369,7 +369,21 @@ public class ProductService : IProductService
     public async Task<List<Product>> GetGafasAsync()
     {
         return await _context.Products
-            .Where(p => p.Activo && (p.Categoria == "lentes-sol" || p.Categoria == "monturas" || p.Categoria == "lentes-graduados"))
+            .Where(p => p.Activo
+                && p.Categoria != null
+                && p.Categoria.ToLower() != "lentes-contacto"
+                && !p.Categoria.ToLower().Contains("contacto")
+                && p.Categoria.ToLower() != "accesorios"
+                && !p.Categoria.ToLower().Contains("accesorio")
+                && (
+                    p.Categoria.ToLower() == "monturas"
+                    || p.Categoria.ToLower() == "lentes-sol"
+                    || p.Categoria.ToLower() == "lentes-graduados"
+                    || p.Categoria.ToLower().Contains("montura")
+                    || p.Categoria.ToLower().Contains("graduado")
+                    || p.Categoria.ToLower().Contains("gafa")
+                    || (p.Categoria.ToLower().Contains("sol") && !p.Categoria.ToLower().Contains("solucion"))
+                ))
             .OrderBy(p => p.Nombre)
             .ToListAsync();
     }
