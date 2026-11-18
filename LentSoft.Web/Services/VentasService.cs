@@ -624,7 +624,25 @@ public class VentasService : IVentasService
                     var prod = await _context.Products.FindAsync(item.ProductId);
                     if (prod != null)
                     {
-                        prod.Stock -= item.Cantidad;
+                        string movUbicacion;
+                        if (prod.StockLocal >= item.Cantidad)
+                        {
+                            prod.StockLocal -= item.Cantidad;
+                            movUbicacion = InventoryConstants.Ubicaciones.Local;
+                        }
+                        else
+                        {
+                            var restante = item.Cantidad - prod.StockLocal;
+                            prod.StockLocal = 0;
+                            prod.StockBodega -= restante;
+                            movUbicacion = InventoryConstants.Ubicaciones.Local;
+                        }
+                        prod.RecalcularStockTotal();
+
+                        if (prod.Stock == 0)
+                        {
+                            prod.Activo = false;
+                        }
 
                         var movimiento = new InventoryMovement
                         {
@@ -635,6 +653,7 @@ public class VentasService : IVentasService
                             Nota = "Venta registrada desde módulo de ventas",
                             Referencia = $"ORD-{order.Id:D4}",
                             StockResultante = prod.Stock,
+                            Ubicacion = movUbicacion,
                             Responsable = responsable ?? "Ventas",
                             Fecha = DateTime.UtcNow
                         };

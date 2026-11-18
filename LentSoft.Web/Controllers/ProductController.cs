@@ -135,6 +135,13 @@ public class ProductController : Controller
             return RedirectToAction("Admin", "Dashboard");
         }
 
+        if (!Request.Form.ContainsKey("StockBodega") && !Request.Form.ContainsKey("StockLocal"))
+        {
+            product.StockBodega = product.Stock;
+            product.StockLocal = 0;
+        }
+        product.RecalcularStockTotal();
+
         if (product.Stock == 0)
         {
             product.Activo = false;
@@ -267,6 +274,13 @@ public class ProductController : Controller
             TempData["ErrorMessage"] = firstError;
             return RedirectToAction("Admin", "Dashboard", new { section = "inventario", subtab = "productos" });
         }
+
+        if (!Request.Form.ContainsKey("StockBodega") && !Request.Form.ContainsKey("StockLocal"))
+        {
+            product.StockBodega = product.Stock;
+            product.StockLocal = 0;
+        }
+        product.RecalcularStockTotal();
 
         if (product.Stock == 0)
         {

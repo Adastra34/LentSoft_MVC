@@ -138,6 +138,7 @@
                             <th style="width: 135px; text-align: center;">Fecha / Hora</th>
                             <th>Producto</th>
                             <th style="text-align: center; width: 130px;">Tipo</th>
+                            <th style="text-align: center; width: 100px;">Ubicación</th>
                             <th style="text-align: center; width: 90px;">Cantidad</th>
                             <th style="text-align: center; width: 110px;">Stock Result.</th>
                             <th style="text-align: center; width: 130px;">Motivo</th>
@@ -219,6 +220,11 @@
                                     <span class="inv-chip @chipClass" data-no-i18n style="gap: 0.3rem;">
                                         @Html.Raw(iconSvg)
                                         @mov.Tipo
+                                    </span>
+                                </td>
+                                <td data-label="Ubicación" style="text-align: center;">
+                                    <span class="inv-chip inv-chip-purple" style="font-size: 0.75rem;">
+                                        @(string.IsNullOrEmpty(mov.Ubicacion) ? "Bodega" : mov.Ubicacion)
                                     </span>
                                 </td>
                                 <td data-label="Cantidad" style="text-align: center; font-weight: 700; font-size: 0.95rem;">
@@ -433,7 +439,7 @@
             if (tbody) {
                 tbody.innerHTML = '';
                 if (!data.movimientos || data.movimientos.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; color: var(--gray-500); padding: 1.5rem;">No se registran movimientos para este producto.</td></tr>';
+                    tbody.innerHTML = '<tr><td colspan="8" style="text-align: center; color: var(--gray-500); padding: 1.5rem;">No se registran movimientos para este producto.</td></tr>';
                 } else {
                     data.movimientos.forEach(m => {
                         const tr = document.createElement('tr');
@@ -449,6 +455,7 @@
                         tr.innerHTML = `
                             <td style="font-size: 0.85rem; color: var(--gray-600);">${m.fecha}</td>
                             <td><span class="inv-chip ${chipClass}" data-no-i18n>${m.tipo}</span></td>
+                            <td style="text-align: center;"><span class="inv-chip inv-chip-purple" style="font-size: 0.75rem;">${m.ubicacion || 'Bodega'}</span></td>
                             <td style="font-weight: 600; color: ${cantColor}; text-align: center;">${cantSign}${m.cantidad}</td>
                             <td style="font-weight: 700; color: var(--purple-900); text-align: center;">${m.stockResultante} unid.</td>
                             <td><span class="inv-chip inv-chip-gray">${m.motivo || 'Otro'}</span></td>

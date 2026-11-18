@@ -36,6 +36,9 @@ public class InventoryMovement
 
     public int StockResultante { get; set; }
 
+    [StringLength(20)]
+    public string Ubicacion { get; set; } = "Bodega";
+
     [StringLength(100)]
     public string? Referencia { get; set; }
 }

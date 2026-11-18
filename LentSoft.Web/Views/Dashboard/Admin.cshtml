@@ -1475,7 +1475,7 @@
             }
         }
 
-        function openEditProductModal(id, nombre, descripcion, precio, precioDescuento, categoria, marca, stock, activo, imagenUrl, sku, costoCompra, stockMinimo, ubicacion, supplierId) {
+        function openEditProductModal(id, nombre, descripcion, precio, precioDescuento, categoria, marca, stock, activo, imagenUrl, sku, costoCompra, stockMinimo, ubicacion, supplierId, stockBodega, stockLocal) {
             document.getElementById('editProductId').value = id;
             document.getElementById('editProductNombre').value = nombre || '';
             document.getElementById('editProductDescripcion').value = descripcion || '';
@@ -1483,7 +1483,13 @@
             document.getElementById('editProductPrecioDescuento').value = precioDescuento || '';
             document.getElementById('editProductCategoria').value = categoria || 'lentes-sol';
             document.getElementById('editProductMarca').value = marca || '';
-            document.getElementById('editProductStock').value = stock || 0;
+            
+            const bVal = (stockBodega !== undefined && stockBodega !== null) ? stockBodega : (stock || 0);
+            const lVal = (stockLocal !== undefined && stockLocal !== null) ? stockLocal : 0;
+            if (document.getElementById('editProductStockBodega')) document.getElementById('editProductStockBodega').value = bVal;
+            if (document.getElementById('editProductStockLocal')) document.getElementById('editProductStockLocal').value = lVal;
+            if (document.getElementById('editProductStock')) document.getElementById('editProductStock').value = (bVal + lVal);
+            
             document.getElementById('editProductActivo').checked = (activo === true || activo === 'true');
             document.getElementById('editProductExistingImagenUrl').value = imagenUrl || '';
 
@@ -1576,7 +1582,8 @@
                         rec.precioDescuento, rec.categoria, rec.marca,
                         rec.stock, rec.activo, rec.imagenUrl,
                         rec.sku, rec.costoCompra, rec.stockMinimo,
-                        rec.ubicacion, rec.supplierId
+                        rec.ubicacion, rec.supplierId,
+                        rec.stockBodega, rec.stockLocal
                     );
                 } else if (btn.classList.contains('btn-edit-supplier')) {
                     if (typeof openEditSupplierModal === 'function') {

@@ -32,4 +32,10 @@ public static class InventoryConstants
         public const string Recibido = "recibido";
         public const string Cancelado = "cancelado";
     }
+
+    public static class Ubicaciones
+    {
+        public const string Bodega = "Bodega";
+        public const string Local = "Local";
+    }
 }

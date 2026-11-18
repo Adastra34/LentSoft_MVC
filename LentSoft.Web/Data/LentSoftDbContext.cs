@@ -34,11 +34,22 @@ public class LentSoftDbContext : DbContext
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        if (Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true)
+        foreach (var entry in ChangeTracker.Entries<Product>())
         {
-            foreach (var entry in ChangeTracker.Entries<Product>())
+            if (entry.State == EntityState.Added)
             {
-                if (entry.State == EntityState.Modified)
+                if (entry.Entity.StockBodega == 0 && entry.Entity.StockLocal == 0 && entry.Entity.Stock > 0)
+                {
+                    entry.Entity.StockBodega = entry.Entity.Stock;
+                }
+                else
+                {
+                    entry.Entity.RecalcularStockTotal();
+                }
+            }
+            else if (entry.State == EntityState.Modified)
+            {
+                if (Database.ProviderName?.Contains("Sqlite", StringComparison.OrdinalIgnoreCase) == true)
                 {
                     var newVersion = new byte[8];
                     Random.Shared.NextBytes(newVersion);
@@ -78,6 +89,7 @@ public class LentSoftDbContext : DbContext
             entity.Property(e => e.Nota).HasMaxLength(300);
             entity.Property(e => e.Referencia).HasMaxLength(100);
             entity.Property(e => e.StockResultante).HasDefaultValue(0);
+            entity.Property(e => e.Ubicacion).HasMaxLength(20).HasDefaultValue("Bodega");
 
             entity.HasOne(e => e.Product)
                   .WithMany()
@@ -483,6 +495,8 @@ public class LentSoftDbContext : DbContext
                 PorcentajeIva = 19.00m,
                 Categoria = "lentes-sol",
                 Marca = "Ray-Ban",
+                StockBodega = 50,
+                StockLocal = 0,
                 Stock = 50,
                 ImagenUrl = "https://images.unsplash.com/photo-1572635196237-14b3f281503f",
                 Activo = true,
@@ -511,6 +525,8 @@ public class LentSoftDbContext : DbContext
                 PorcentajeIva = 19.00m,
                 Categoria = "lentes-contacto",
                 Marca = "Acuvue",
+                StockBodega = 100,
+                StockLocal = 0,
                 Stock = 100,
                 Activo = true,
                 Rating = 4.7m,
@@ -531,6 +547,8 @@ public class LentSoftDbContext : DbContext
                 PorcentajeIva = 19.00m,
                 Categoria = "monturas",
                 Marca = "Oakley",
+                StockBodega = 30,
+                StockLocal = 0,
                 Stock = 30,
                 Activo = true,
                 Rating = 4.8m,
@@ -557,6 +575,8 @@ public class LentSoftDbContext : DbContext
                 PorcentajeIva = 19.00m,
                 Categoria = "lentes-graduados",
                 Marca = "LentSoft",
+                StockBodega = 40,
+                StockLocal = 0,
                 Stock = 40,
                 Activo = true,
                 Rating = 4.6m,
@@ -584,6 +604,8 @@ public class LentSoftDbContext : DbContext
                 PorcentajeIva = 19.00m,
                 Categoria = "accesorios",
                 Marca = "LentSoft",
+                StockBodega = 200,
+                StockLocal = 0,
                 Stock = 200,
                 Activo = true,
                 Rating = 4.5m,
@@ -604,6 +626,8 @@ public class LentSoftDbContext : DbContext
                 PorcentajeIva = 5.00m,
                 Categoria = "accesorios",
                 Marca = "Opti-Free",
+                StockBodega = 150,
+                StockLocal = 0,
                 Stock = 150,
                 Activo = true,
                 Rating = 4.9m,
@@ -738,9 +762,9 @@ public class LentSoftDbContext : DbContext
 
         // Seed Inventory Movements
         modelBuilder.Entity<InventoryMovement>().HasData(
-            new InventoryMovement { Id = 1, ProductId = 1, NombreProducto = "Lentes Ray-Ban Aviator", Tipo = "Entrada", Cantidad = 20, Fecha = new DateTime(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc), Responsable = "Administrador" },
-            new InventoryMovement { Id = 2, ProductId = 2, NombreProducto = "Lentes de Contacto Acuvue", Tipo = "Salida", Cantidad = 5, Fecha = new DateTime(2026, 5, 2, 14, 0, 0, DateTimeKind.Utc), Responsable = "Administrador" },
-            new InventoryMovement { Id = 3, ProductId = 3, NombreProducto = "Montura Oakley Sport", Tipo = "Entrada", Cantidad = 10, Fecha = new DateTime(2026, 5, 3, 11, 30, 0, DateTimeKind.Utc), Responsable = "Administrador" }
+            new InventoryMovement { Id = 1, ProductId = 1, NombreProducto = "Lentes Ray-Ban Aviator", Tipo = "Entrada", Cantidad = 20, Fecha = new DateTime(2026, 5, 1, 10, 0, 0, DateTimeKind.Utc), Responsable = "Administrador", Ubicacion = "Bodega" },
+            new InventoryMovement { Id = 2, ProductId = 2, NombreProducto = "Lentes de Contacto Acuvue", Tipo = "Salida", Cantidad = 5, Fecha = new DateTime(2026, 5, 2, 14, 0, 0, DateTimeKind.Utc), Responsable = "Administrador", Ubicacion = "Bodega" },
+            new InventoryMovement { Id = 3, ProductId = 3, NombreProducto = "Montura Oakley Sport", Tipo = "Entrada", Cantidad = 10, Fecha = new DateTime(2026, 5, 3, 11, 30, 0, DateTimeKind.Utc), Responsable = "Administrador", Ubicacion = "Bodega" }
         );
 
         // Seed Supplier Orders
