@@ -20,7 +20,7 @@ public partial class App : MauiWinUIApplication
 		{
 			try
 			{
-				var logPath = @"C:\Users\APRENDIZ\.gemini\antigravity-ide\scratch\LentSoft_MVC\crash_log.txt";
+				var logPath = System.IO.Path.Combine(System.Environment.GetFolderPath(System.Environment.SpecialFolder.LocalApplicationData), "crash_log.txt");
 				System.IO.File.WriteAllText(logPath, $"Exception: {e.Exception}\nMessage: {e.Message}\nStackTrace: {e.Exception?.StackTrace}");
 			}
 			catch { }

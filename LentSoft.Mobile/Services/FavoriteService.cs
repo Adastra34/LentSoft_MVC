@@ -39,4 +39,10 @@ public class FavoriteService : IFavoriteService
 
         FavoritesChanged?.Invoke(this, EventArgs.Empty);
     }
+
+    public void Clear()
+    {
+        _favorites.Clear();
+        FavoritesChanged?.Invoke(this, EventArgs.Empty);
+    }
 }

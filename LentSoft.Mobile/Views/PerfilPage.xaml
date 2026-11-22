@@ -430,13 +430,70 @@
                                      Aspect="AspectFit"/>
                     </Grid>
 
-                    <!-- Optical Prescription Details Card -->
-                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}" StrokeThickness="1" Stroke="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}" StrokeShape="RoundRectangle 14" Padding="14">
+                    <!-- 1. ESTADO DE CARGA -->
+                    <VerticalStackLayout Spacing="12"
+                                         Padding="24"
+                                         HorizontalOptions="Center"
+                                         IsVisible="{Binding IsLoadingFormula}">
+                        <ActivityIndicator IsRunning="True"
+                                           Color="{StaticResource Purple}"
+                                           WidthRequest="40"
+                                           HeightRequest="40"/>
+                        <Label Text="Consultando tu fórmula médica..."
+                               FontSize="13"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"
+                               HorizontalOptions="Center"/>
+                        <Label Text="Conectando de forma segura con el servidor"
+                               FontSize="11"
+                               TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"
+                               HorizontalOptions="Center"/>
+                    </VerticalStackLayout>
+
+                    <!-- 2. ESTADO CON FÓRMULA MÉDICA REGISTRADA -->
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
+                            StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}"
+                            StrokeShape="RoundRectangle 14"
+                            Padding="14"
+                            IsVisible="{Binding HasFormula}">
                         <VerticalStackLayout Spacing="10">
-                            <!-- Header info -->
+                            <!-- Aviso Offline si aplica -->
+                            <Border BackgroundColor="#FEF3C7"
+                                    StrokeThickness="0"
+                                    StrokeShape="RoundRectangle 6"
+                                    Padding="8,4"
+                                    IsVisible="{Binding IsFormulaFromCache}">
+                                <Label Text="Modo sin conexión · Mostrando última fórmula sincronizada"
+                                       FontSize="10"
+                                       FontAttributes="Bold"
+                                       TextColor="#92400E"
+                                       HorizontalOptions="Center"/>
+                            </Border>
+
+                            <!-- Header info con Badge de Vigencia -->
                             <Grid ColumnDefinitions="*,Auto">
-                                <Label Grid.Column="0" Text="Paciente: Usuario LentSoft" FontSize="12" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
-                                <Label Grid.Column="1" Text="Control: 15/06/2026" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"/>
+                                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                    <Label Text="{Binding NombreCompleto, StringFormat='Paciente: {0}'}"
+                                           FontSize="13"
+                                           FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
+                                    <Label Text="{Binding Formula.DisplayFechaEmision, StringFormat='Fecha de emisión: {0}'}"
+                                           FontSize="11"
+                                           TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"/>
+                                </VerticalStackLayout>
+
+                                <Border Grid.Column="1"
+                                        BackgroundColor="{Binding Formula.BadgeBackgroundColor}"
+                                        StrokeThickness="0"
+                                        StrokeShape="RoundRectangle 8"
+                                        Padding="8,3"
+                                        VerticalOptions="Start">
+                                    <Label Text="{Binding Formula.VigenciaBadgeText}"
+                                           FontSize="10"
+                                           FontAttributes="Bold"
+                                           TextColor="{Binding Formula.BadgeTextColor}"/>
+                                </Border>
                             </Grid>
 
                             <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"/>
@@ -451,28 +508,128 @@
                                 <Label Grid.Row="0" Grid.Column="4" Text="DP" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}" HorizontalOptions="Center"/>
 
                                 <!-- OD (Right Eye) -->
-                                <Label Grid.Row="1" Grid.Column="0" Text="OD (Derecho)" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
-                                <Label Grid.Row="1" Grid.Column="1" Text="-1.50" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" HorizontalOptions="Center"/>
-                                <Label Grid.Row="1" Grid.Column="2" Text="-0.50" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" HorizontalOptions="Center"/>
-                                <Label Grid.Row="1" Grid.Column="3" Text="180°" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" HorizontalOptions="Center"/>
-                                <Label Grid.Row="1" Grid.Column="4" Text="32 mm" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" HorizontalOptions="Center"/>
+                                <Label Grid.Row="1" Grid.Column="0" Text="OD (Der.)" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
+                                <Label Grid.Row="1" Grid.Column="1" Text="{Binding Formula.DisplayEsferaOD}" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" HorizontalOptions="Center"/>
+                                <Label Grid.Row="1" Grid.Column="2" Text="{Binding Formula.DisplayCilindroOD}" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" HorizontalOptions="Center"/>
+                                <Label Grid.Row="1" Grid.Column="3" Text="{Binding Formula.DisplayEjeOD}" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" HorizontalOptions="Center"/>
+                                <Label Grid.Row="1" Grid.Column="4" Text="{Binding Formula.DisplayDistanciaPupilar}" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" HorizontalOptions="Center"/>
 
                                 <!-- OI (Left Eye) -->
-                                <Label Grid.Row="2" Grid.Column="0" Text="OI (Izquierdo)" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
-                                <Label Grid.Row="2" Grid.Column="1" Text="-1.75" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" HorizontalOptions="Center"/>
-                                <Label Grid.Row="2" Grid.Column="2" Text="-0.25" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" HorizontalOptions="Center"/>
-                                <Label Grid.Row="2" Grid.Column="3" Text="175°" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" HorizontalOptions="Center"/>
-                                <Label Grid.Row="2" Grid.Column="4" Text="32 mm" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" HorizontalOptions="Center"/>
+                                <Label Grid.Row="2" Grid.Column="0" Text="OI (Izq.)" FontSize="11" FontAttributes="Bold" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
+                                <Label Grid.Row="2" Grid.Column="1" Text="{Binding Formula.DisplayEsferaOI}" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" HorizontalOptions="Center"/>
+                                <Label Grid.Row="2" Grid.Column="2" Text="{Binding Formula.DisplayCilindroOI}" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" HorizontalOptions="Center"/>
+                                <Label Grid.Row="2" Grid.Column="3" Text="{Binding Formula.DisplayEjeOI}" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" HorizontalOptions="Center"/>
+                                <Label Grid.Row="2" Grid.Column="4" Text="{Binding Formula.DisplayDistanciaPupilar}" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}" HorizontalOptions="Center"/>
+                            </Grid>
+
+                            <!-- Adición y Agudeza Visual si aplica -->
+                            <Grid ColumnDefinitions="*,*" RowSpacing="4" ColumnSpacing="8" IsVisible="{Binding Formula.TieneAdicion}">
+                                <Label Grid.Column="0"
+                                       Text="{Binding Formula.DisplayAdicionOD, StringFormat='Adición OD: {0}'}"
+                                       FontSize="11"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
+                                <Label Grid.Column="1"
+                                       Text="{Binding Formula.DisplayAdicionOI, StringFormat='Adición OI: {0}'}"
+                                       FontSize="11"
+                                       TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
                             </Grid>
 
                             <BoxView HeightRequest="1" Color="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"/>
 
-                            <Label Text="Especialista: Dr. Ana Gómez (Reg. 45892)" FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"/>
-                            <Label Text="Observaciones: Filtro azul recomendado para uso de pantallas." FontSize="11" TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"/>
+                            <!-- Doctor, Vigencia y Observaciones -->
+                            <Label Text="{Binding Formula.DoctorDisplay}"
+                                   FontSize="11"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Purple}, Dark=#A78BFA}"/>
+
+                            <Label Text="{Binding Formula.DisplayFechaVencimiento, StringFormat='Vencimiento: {0}'}"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"/>
+
+                            <Label Text="{Binding Formula.TipoLenteDisplay, StringFormat='Tipo de lente: {0}'}"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"/>
+
+                            <Label Text="{Binding Formula.Observaciones, StringFormat='Observaciones: {0}'}"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"
+                                   IsVisible="{Binding Formula.TieneObservaciones}"
+                                   LineBreakMode="WordWrap"/>
                         </VerticalStackLayout>
                     </Border>
 
-                    <Button Text="Cerrar" Command="{Binding CloseFormulaCommand}" BackgroundColor="{StaticResource Purple}" TextColor="White" FontAttributes="Bold" CornerRadius="12" HeightRequest="44"/>
+                    <!-- 3. ESTADO SIN FÓRMULA REGISTRADA -->
+                    <Border BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
+                            StrokeThickness="1"
+                            Stroke="{AppThemeBinding Light={StaticResource Line}, Dark={StaticResource DarkLineColor}}"
+                            StrokeShape="RoundRectangle 14"
+                            Padding="20"
+                            IsVisible="{Binding NoFormula}">
+                        <VerticalStackLayout Spacing="12" HorizontalOptions="Center">
+                            <Image Source="icon_glasses_purple.svg"
+                                   WidthRequest="48"
+                                   HeightRequest="48"
+                                   HorizontalOptions="Center"/>
+                            <Label Text="No tienes una fórmula médica registrada"
+                                   FontSize="15"
+                                   FontAttributes="Bold"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"
+                                   HorizontalOptions="Center"
+                                   HorizontalTextAlignment="Center"/>
+                            <Label Text="Agenda tu cita de optometría con nuestros especialistas para obtener tu prescripción personalizada."
+                                   FontSize="12"
+                                   TextColor="{AppThemeBinding Light={StaticResource Muted}, Dark={StaticResource DarkMutedText}}"
+                                   HorizontalOptions="Center"
+                                   HorizontalTextAlignment="Center"/>
+                            <Button Text="Agendar Cita Médica"
+                                    Command="{Binding GoToAgendarCitaFromFormulaCommand}"
+                                    BackgroundColor="{StaticResource Purple}"
+                                    TextColor="White"
+                                    FontAttributes="Bold"
+                                    CornerRadius="12"
+                                    HeightRequest="44"
+                                    Margin="0,8,0,0"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <!-- 4. ESTADO DE ERROR DE CONEXIÓN O SERVIDOR -->
+                    <Border BackgroundColor="{AppThemeBinding Light=#FFF1F2, Dark=#3F1219}"
+                            StrokeThickness="1"
+                            Stroke="#FDA4AF"
+                            StrokeShape="RoundRectangle 14"
+                            Padding="16"
+                            IsVisible="{Binding HasFormulaError}">
+                        <VerticalStackLayout Spacing="10" HorizontalOptions="Center">
+                            <Label Text="No fue posible cargar tu fórmula"
+                                   FontSize="14"
+                                   FontAttributes="Bold"
+                                   TextColor="#BE123C"
+                                   HorizontalOptions="Center"
+                                   HorizontalTextAlignment="Center"/>
+                            <Label Text="{Binding FormulaErrorMessage}"
+                                   FontSize="11"
+                                   TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"
+                                   HorizontalOptions="Center"
+                                   HorizontalTextAlignment="Center"
+                                   LineBreakMode="WordWrap"/>
+                            <Button Text="Reintentar"
+                                    Command="{Binding RetryLoadFormulaCommand}"
+                                    BackgroundColor="{StaticResource Purple}"
+                                    TextColor="White"
+                                    FontAttributes="Bold"
+                                    CornerRadius="12"
+                                    HeightRequest="40"
+                                    Margin="0,4,0,0"/>
+                        </VerticalStackLayout>
+                    </Border>
+
+                    <Button Text="Cerrar"
+                            Command="{Binding CloseFormulaCommand}"
+                            BackgroundColor="{AppThemeBinding Light={StaticResource Lavender}, Dark={StaticResource DarkInnerBoxBg}}"
+                            TextColor="{AppThemeBinding Light={StaticResource Ink}, Dark=White}"
+                            FontAttributes="Bold"
+                            CornerRadius="12"
+                            HeightRequest="42"/>
                 </VerticalStackLayout>
             </Border>
         </Grid>

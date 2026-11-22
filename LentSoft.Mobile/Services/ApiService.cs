@@ -1,3 +1,4 @@
+using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
 using LentSoft.Mobile.Models;
@@ -19,7 +20,7 @@ public class ApiService : IApiService
     {
         try
         {
-            var response = await _httpClient.PostAsJsonAsync("api/auth/login", new
+            var response = await _httpClient.PostAsJsonAsync(ApiEndpoints.Login, new
             {
                 email = email.Trim(),
                 password
@@ -69,7 +70,7 @@ public class ApiService : IApiService
     {
         try
         {
-            var response = await _httpClient.PostAsJsonAsync("api/auth/register", new
+            var response = await _httpClient.PostAsJsonAsync(ApiEndpoints.Register, new
             {
                 nombre = nombre.Trim(),
                 apellido = apellido.Trim(),
@@ -117,7 +118,7 @@ public class ApiService : IApiService
     {
         try
         {
-            var response = await _httpClient.PostAsJsonAsync("api/auth/forgot-password", new { email = email.Trim() });
+            var response = await _httpClient.PostAsJsonAsync(ApiEndpoints.ForgotPassword, new { email = email.Trim() });
             return response.IsSuccessStatusCode;
         }
         catch
@@ -130,7 +131,7 @@ public class ApiService : IApiService
     {
         try
         {
-            var url = "api/products";
+            var url = ApiEndpoints.Products;
             var queryParams = new List<string>();
             if (!string.IsNullOrWhiteSpace(categoria) && !categoria.Equals("todos", StringComparison.OrdinalIgnoreCase))
             {
@@ -159,7 +160,7 @@ public class ApiService : IApiService
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<ProductDto>($"api/products/{id}");
+            return await _httpClient.GetFromJsonAsync<ProductDto>($"{ApiEndpoints.Products}/{id}");
         }
         catch
         {
@@ -171,7 +172,7 @@ public class ApiService : IApiService
     {
         try
         {
-            var invoices = await _httpClient.GetFromJsonAsync<List<InvoiceDto>>("api/invoices");
+            var invoices = await _httpClient.GetFromJsonAsync<List<InvoiceDto>>(ApiEndpoints.Invoices);
             return invoices ?? new List<InvoiceDto>();
         }
         catch
@@ -184,7 +185,7 @@ public class ApiService : IApiService
     {
         try
         {
-            var response = await _httpClient.GetFromJsonAsync<AppointmentsResponseDto>("api/appointments");
+            var response = await _httpClient.GetFromJsonAsync<AppointmentsResponseDto>(ApiEndpoints.Appointments);
             return response ?? new AppointmentsResponseDto();
         }
         catch
@@ -195,103 +196,82 @@ public class ApiService : IApiService
 
     public async Task<AppointmentDto?> CreateAppointmentAsync(string servicio, DateTime fechaHora, string? notas)
     {
-        try
+        var response = await _httpClient.PostAsJsonAsync(ApiEndpoints.Appointments, new
         {
-            var response = await _httpClient.PostAsJsonAsync("api/appointments", new
-            {
-                servicio = servicio.Trim(),
-                fechaHora,
-                notas = notas?.Trim()
-            });
+            servicio = servicio.Trim(),
+            fechaHora,
+            notas = notas?.Trim()
+        });
 
-            if (!response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            string errorMsg = "Error al agendar la cita.";
+            try
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                string errorMsg = "Error al agendar la cita.";
-                try
-                {
-                    using var doc = JsonDocument.Parse(errorContent);
-                    if (doc.RootElement.TryGetProperty("message", out var msgProp))
-                        errorMsg = msgProp.GetString() ?? errorMsg;
-                }
-                catch { }
-
-                throw new InvalidOperationException(errorMsg);
+                using var doc = JsonDocument.Parse(errorContent);
+                if (doc.RootElement.TryGetProperty("message", out var msgProp))
+                    errorMsg = msgProp.GetString() ?? errorMsg;
             }
+            catch { }
 
-            return await response.Content.ReadFromJsonAsync<AppointmentDto>();
+            throw new InvalidOperationException(errorMsg);
         }
-        catch (Exception)
-        {
-            throw;
-        }
+
+        return await response.Content.ReadFromJsonAsync<AppointmentDto>();
     }
 
     public async Task<bool> CancelAppointmentAsync(int id)
     {
-        try
+        var response = await _httpClient.PutAsync($"{ApiEndpoints.Appointments}/{id}/cancel", null);
+        if (!response.IsSuccessStatusCode)
         {
-            var response = await _httpClient.PutAsync($"api/appointments/{id}/cancel", null);
-            if (!response.IsSuccessStatusCode)
+            var errorContent = await response.Content.ReadAsStringAsync();
+            string errorMsg = "Error al cancelar la cita.";
+            try
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                string errorMsg = "Error al cancelar la cita.";
-                try
-                {
-                    using var doc = JsonDocument.Parse(errorContent);
-                    if (doc.RootElement.TryGetProperty("message", out var msgProp))
-                        errorMsg = msgProp.GetString() ?? errorMsg;
-                }
-                catch { }
-
-                throw new InvalidOperationException(errorMsg);
+                using var doc = JsonDocument.Parse(errorContent);
+                if (doc.RootElement.TryGetProperty("message", out var msgProp))
+                    errorMsg = msgProp.GetString() ?? errorMsg;
             }
+            catch { }
 
-            return true;
+            throw new InvalidOperationException(errorMsg);
         }
-        catch (Exception)
-        {
-            throw;
-        }
+
+        return true;
     }
 
     public async Task<AppointmentDto?> RescheduleAppointmentAsync(int id, DateTime nuevaFechaHora)
     {
-        try
+        var response = await _httpClient.PutAsJsonAsync($"{ApiEndpoints.Appointments}/{id}/reschedule", new
         {
-            var response = await _httpClient.PutAsJsonAsync($"api/appointments/{id}/reschedule", new
-            {
-                nuevaFechaHora
-            });
+            nuevaFechaHora
+        });
 
-            if (!response.IsSuccessStatusCode)
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync();
+            string errorMsg = "Error al reprogramar la cita.";
+            try
             {
-                var errorContent = await response.Content.ReadAsStringAsync();
-                string errorMsg = "Error al reprogramar la cita.";
-                try
-                {
-                    using var doc = JsonDocument.Parse(errorContent);
-                    if (doc.RootElement.TryGetProperty("message", out var msgProp))
-                        errorMsg = msgProp.GetString() ?? errorMsg;
-                }
-                catch { }
-
-                throw new InvalidOperationException(errorMsg);
+                using var doc = JsonDocument.Parse(errorContent);
+                if (doc.RootElement.TryGetProperty("message", out var msgProp))
+                    errorMsg = msgProp.GetString() ?? errorMsg;
             }
+            catch { }
 
-            return await response.Content.ReadFromJsonAsync<AppointmentDto>();
+            throw new InvalidOperationException(errorMsg);
         }
-        catch (Exception)
-        {
-            throw;
-        }
+
+        return await response.Content.ReadFromJsonAsync<AppointmentDto>();
     }
 
     public async Task<UserDto?> GetProfileAsync()
     {
         try
         {
-            return await _httpClient.GetFromJsonAsync<UserDto>("api/users/me");
+            return await _httpClient.GetFromJsonAsync<UserDto>(ApiEndpoints.Profile);
         }
         catch
         {
@@ -303,7 +283,7 @@ public class ApiService : IApiService
     {
         try
         {
-            var response = await _httpClient.PutAsJsonAsync("api/users/me", new
+            var response = await _httpClient.PutAsJsonAsync(ApiEndpoints.Profile, new
             {
                 nombre = nombre.Trim(),
                 apellido = apellido?.Trim(),
@@ -328,6 +308,37 @@ public class ApiService : IApiService
         }
     }
 
+    public async Task<FormulaOpticaDto> GetFormulaAsync(CancellationToken ct = default)
+    {
+        var response = await _httpClient.GetAsync(ApiEndpoints.Formula, ct);
+
+        if (response.StatusCode == HttpStatusCode.Unauthorized)
+        {
+            throw new UnauthorizedAccessException("Sesión expirada o no autorizada. Por favor inicia sesión nuevamente.");
+        }
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorContent = await response.Content.ReadAsStringAsync(ct);
+            string errorMsg = "No fue posible consultar tu fórmula médica en este momento.";
+            try
+            {
+                using var doc = JsonDocument.Parse(errorContent);
+                if (doc.RootElement.TryGetProperty("message", out var msgProp))
+                {
+                    var parsed = msgProp.GetString();
+                    if (!string.IsNullOrWhiteSpace(parsed)) errorMsg = parsed;
+                }
+            }
+            catch { }
+
+            throw new InvalidOperationException(errorMsg);
+        }
+
+        var formula = await response.Content.ReadFromJsonAsync<FormulaOpticaDto>(cancellationToken: ct);
+        return formula ?? new FormulaOpticaDto { HasFormula = false, Message = "No se recibió información de prescripción." };
+    }
+
     public async Task<string> AskChatBotAsync(string mensaje, List<ChatMessageDto>? history = null)
     {
         if (string.IsNullOrWhiteSpace(mensaje)) return "Por favor escribe una consulta.";
@@ -341,11 +352,16 @@ public class ApiService : IApiService
                 .Select(m => new { role = m.IsUser ? "user" : "assistant", content = m.Message })
                 .ToList() ?? new();
 
-            var response = await _httpClient.PostAsJsonAsync("Chat/Ask", new
+            var response = await _httpClient.PostAsJsonAsync(ApiEndpoints.Chat, new
             {
                 mensaje = userText,
                 historial = apiHistory
             });
+
+            if (response.StatusCode == HttpStatusCode.TooManyRequests)
+            {
+                return "Has alcanzado el límite de consultas del asistente inteligente. Por favor espera un momento antes de volver a consultar.";
+            }
 
             if (response.IsSuccessStatusCode)
             {
@@ -356,63 +372,16 @@ public class ApiService : IApiService
                     if (!string.IsNullOrWhiteSpace(txt)) return txt;
                 }
             }
+
+            return "En este momento el servicio del asistente no pudo procesar tu respuesta. Por favor intenta más tarde.";
         }
-        catch { }
-
-        // Comprehensive Smart Assistant Engine for Mobile
-        string lower = userText.ToLower(new System.Globalization.CultureInfo("es-CO"));
-
-        if (lower.Contains("producto") || lower.Contains("catalogo") || lower.Contains("ofrecen") || lower.Contains("tienen") || lower.Contains("venden") || lower.Contains("poseen"))
+        catch (HttpRequestException)
         {
-            return "En LentSoft contamos con un catálogo completo de salud visual:\n\n" +
-                   "• Monturas Graduadas: Diseños Classic, Oakley Sport y gafas de sol elegantes.\n" +
-                   "• Lentes de Contacto: Marcas reconocidas como Acuvue (diarios y de uso mensual).\n" +
-                   "• Accesorios y Limpieza: Estuches Premium y líquido limpiador para el cuidado de tus lentes.\n\n" +
-                   "¿Deseas detalles o precios sobre alguna categoría en especial?";
+            return "No se pudo conectar con el asistente de salud visual. Verifica tu conexión a internet.";
         }
-
-        if (lower.Contains("precio") || lower.Contains("cuanto cuesta") || lower.Contains("valor") || lower.Contains("costo"))
+        catch (Exception)
         {
-            return "Nuestros precios varían según el producto y categoría:\n\n" +
-                   "• Estuche Premium: $99.000 COP\n" +
-                   "• Líquido Limpiador: $120.000 COP\n" +
-                   "• Lentes de Contacto Acuvue: $399.000 COP\n" +
-                   "• Lentes Graduados Classic: $1.200.000 COP\n" +
-                   "• Montura Oakley Sport: $1.800.000 COP\n" +
-                   "• Lentes Ray-Ban Aviator: $2.500.000 COP\n\n" +
-                   "¡Todos incluyen envío gratis y opción de pago simulado en la app!";
+            return "Ocurrió un error al consultar el asistente virtual. Por favor intenta de nuevo.";
         }
-
-        if (lower.Contains("cita") || lower.Contains("optometra") || lower.Contains("examen") || lower.Contains("agendar") || lower.Contains("doctor"))
-        {
-            return "Puedes agendar tu cita de valoración visual con nuestros optómetras directamente en la pestaña 'Citas'. Podrás seleccionar la fecha, hora y especialista de tu preferencia.";
-        }
-
-        if (lower.Contains("envio") || lower.Contains("entrega") || lower.Contains("domicilio") || lower.Contains("despacho"))
-        {
-            return "¡El envío es 100% GRATIS a nivel nacional! Tu pedido llegará directamente a tu domicilio en un plazo estimado de 3 a 5 días hábiles.";
-        }
-
-        if (lower.Contains("garantia") || lower.Contains("devolucion") || lower.Contains("calidad"))
-        {
-            return "Todas nuestras monturas y lentes cuentan con 12 meses de garantía contra defectos de fabricación. Además, nuestros materiales están avalados por profesionales de la salud visual.";
-        }
-
-        if (lower.Contains("contacto") || lower.Contains("acuvue"))
-        {
-            return "Ofrecemos lentes de contacto de marcas líderes como Acuvue. Disponibles para corrección de miopía, astigmatismo y uso diario con máxima hidratación.";
-        }
-
-        if (lower.Contains("sol") || lower.Contains("ray ban") || lower.Contains("ray-ban") || lower.Contains("aviator") || lower.Contains("gafas"))
-        {
-            return "En la categoría 'Sol' encontrarás modelos emblemáticos como los Ray-Ban Aviator y monturas deportivas con 100% de protección UV400.";
-        }
-
-        if (lower.Contains("hola") || lower.Contains("buenas") || lower.Contains("saludos"))
-        {
-            return "¡Hola! Qué gusto saludarte. Soy Morgana, tu asesora de óptica en LentSoft. ¿En qué te puedo asesorar hoy? (Productos, Citas, Envíos o Garantías)";
-        }
-
-        return $"Entiendo tu consulta sobre \"{userText}\". Puedo orientarte sobre nuestro catálogo de monturas, lentes de contacto, agendamiento de citas médicas o estado de envíos. ¿Sobre qué área te gustaría saber más?";
     }
 }

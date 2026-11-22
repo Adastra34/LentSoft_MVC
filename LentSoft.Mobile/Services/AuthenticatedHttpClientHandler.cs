@@ -6,10 +6,12 @@ namespace LentSoft.Mobile.Services;
 public class AuthenticatedHttpClientHandler : DelegatingHandler
 {
     private readonly IAuthStorageService _storageService;
+    private readonly IServiceProvider _serviceProvider;
 
-    public AuthenticatedHttpClientHandler(IAuthStorageService storageService)
+    public AuthenticatedHttpClientHandler(IAuthStorageService storageService, IServiceProvider serviceProvider)
     {
         _storageService = storageService;
+        _serviceProvider = serviceProvider;
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -42,14 +44,26 @@ public class AuthenticatedHttpClientHandler : DelegatingHandler
 
         if (response.StatusCode == HttpStatusCode.Unauthorized)
         {
-            await _storageService.ClearAsync();
-            MainThread.BeginInvokeOnMainThread(async () =>
+            // Disparar cierre de sesión centralizado
+            _ = Task.Run(async () =>
             {
                 try
                 {
-                    if (Shell.Current != null)
+                    var sessionService = _serviceProvider.GetService<ISessionService>();
+                    if (sessionService != null)
                     {
-                        await Shell.Current.GoToAsync("//login");
+                        await sessionService.EndSessionAsync();
+                    }
+                    else
+                    {
+                        await _storageService.ClearAsync();
+                        await MainThread.InvokeOnMainThreadAsync(async () =>
+                        {
+                            if (Shell.Current != null)
+                            {
+                                await Shell.Current.GoToAsync("//login");
+                            }
+                        });
                     }
                 }
                 catch { }

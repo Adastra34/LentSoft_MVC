@@ -1,3 +1,5 @@
+using System.Net.Mail;
+using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LentSoft.Mobile.Services;
@@ -61,6 +63,28 @@ public partial class RegisterViewModel : ObservableObject
             return;
         }
 
+        // Validación de formato de correo
+        if (!IsValidEmail(Email.Trim()))
+        {
+            ErrorMessage = "Por favor ingresa un correo electrónico válido.";
+            return;
+        }
+
+        // Validación de teléfono (mínimo 7 dígitos, numérico)
+        var cleanPhone = Regex.Replace(Telefono.Trim(), @"[^\d]", "");
+        if (cleanPhone.Length < 7 || cleanPhone.Length > 15)
+        {
+            ErrorMessage = "El número de teléfono debe contener entre 7 y 15 dígitos numéricos.";
+            return;
+        }
+
+        // Validación de longitud mínima de contraseña
+        if (Password.Length < 6)
+        {
+            ErrorMessage = "La contraseña debe tener al menos 6 caracteres.";
+            return;
+        }
+
         if (Password != ConfirmPassword)
         {
             ErrorMessage = "Las contraseñas no coinciden.";
@@ -73,12 +97,12 @@ public partial class RegisterViewModel : ObservableObject
             ErrorMessage = null;
 
             var result = await _apiService.RegisterAsync(
-                Nombre,
-                Apellido,
-                TipoDocumento,
-                NumeroDocumento,
-                Email,
-                Telefono,
+                Nombre.Trim(),
+                Apellido.Trim(),
+                TipoDocumento.Trim(),
+                NumeroDocumento.Trim(),
+                Email.Trim(),
+                cleanPhone,
                 Password);
 
             if (!string.IsNullOrWhiteSpace(result.Token))
@@ -97,6 +121,19 @@ public partial class RegisterViewModel : ObservableObject
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    private static bool IsValidEmail(string email)
+    {
+        try
+        {
+            var addr = new MailAddress(email);
+            return addr.Address == email;
+        }
+        catch
+        {
+            return false;
         }
     }
 

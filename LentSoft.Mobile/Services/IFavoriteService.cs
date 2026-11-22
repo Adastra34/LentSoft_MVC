@@ -9,4 +9,5 @@ public interface IFavoriteService
 
     bool IsFavorite(int productId);
     void ToggleFavorite(ProductDto product);
+    void Clear();
 }

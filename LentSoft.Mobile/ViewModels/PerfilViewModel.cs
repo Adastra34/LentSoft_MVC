@@ -13,6 +13,7 @@ public partial class PerfilViewModel : ObservableObject
     private readonly IFavoriteService _favService;
     private readonly IOrderHistoryService _orderService;
     private readonly ILocalizationService _locService;
+    private readonly ISessionService _sessionService;
 
     [ObservableProperty]
     private UserDto? _user;
@@ -37,6 +38,30 @@ public partial class PerfilViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _isFormulaModalVisible;
+
+    // ── Fórmula Óptica Properties ──
+    [ObservableProperty]
+    private FormulaOpticaDto? _formula;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(NoFormula))]
+    private bool _hasFormula;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(NoFormula))]
+    private bool _isLoadingFormula;
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(NoFormula))]
+    private bool _hasFormulaError;
+
+    [ObservableProperty]
+    private string? _formulaErrorMessage;
+
+    [ObservableProperty]
+    private bool _isFormulaFromCache;
+
+    public bool NoFormula => !HasFormula && !IsLoadingFormula && !HasFormulaError;
 
     [ObservableProperty]
     private string _currentLanguageDisplay = "ES";
@@ -63,13 +88,15 @@ public partial class PerfilViewModel : ObservableObject
         IAuthStorageService storageService,
         IFavoriteService favService,
         IOrderHistoryService orderService,
-        ILocalizationService locService)
+        ILocalizationService locService,
+        ISessionService sessionService)
     {
         _apiService = apiService;
         _storageService = storageService;
         _favService = favService;
         _orderService = orderService;
         _locService = locService;
+        _sessionService = sessionService;
 
         _favService.FavoritesChanged += OnFavoritesChanged;
         _locService.LanguageChanged += OnLanguageChanged;
@@ -190,7 +217,7 @@ public partial class PerfilViewModel : ObservableObject
                 break;
 
             case "Fórmula óptica":
-                IsFormulaModalVisible = true;
+                await OpenFormulaModalAsync();
                 break;
 
             case "Seguridad":
@@ -215,6 +242,82 @@ public partial class PerfilViewModel : ObservableObject
                 ToggleTheme();
                 break;
         }
+    }
+
+    [RelayCommand]
+    public async Task OpenFormulaModalAsync()
+    {
+        if (IsLoadingFormula) return; // Guard contra doble tap
+
+        IsFormulaModalVisible = true;
+        await LoadFormulaAsync();
+    }
+
+    [RelayCommand]
+    public async Task RetryLoadFormulaAsync()
+    {
+        await LoadFormulaAsync();
+    }
+
+    private async Task LoadFormulaAsync()
+    {
+        try
+        {
+            IsLoadingFormula = true;
+            HasFormulaError = false;
+            FormulaErrorMessage = null;
+            IsFormulaFromCache = false;
+
+            var dto = await _apiService.GetFormulaAsync();
+            if (dto.HasFormula)
+            {
+                Formula = dto;
+                HasFormula = true;
+                await _storageService.SaveFormulaAsync(dto);
+            }
+            else
+            {
+                Formula = null;
+                HasFormula = false;
+            }
+        }
+        catch (UnauthorizedAccessException)
+        {
+            HasFormulaError = true;
+            FormulaErrorMessage = "Sesión expirada. Por favor vuelve a iniciar sesión.";
+            await _sessionService.EndSessionAsync();
+        }
+        catch (Exception ex)
+        {
+            // Intento de recuperación desde caché offline
+            var cached = await _storageService.GetCachedFormulaAsync();
+            if (cached != null && cached.HasFormula)
+            {
+                Formula = cached;
+                HasFormula = true;
+                IsFormulaFromCache = true;
+                HasFormulaError = false;
+            }
+            else
+            {
+                HasFormula = false;
+                HasFormulaError = true;
+                FormulaErrorMessage = !string.IsNullOrWhiteSpace(ex.Message)
+                    ? ex.Message
+                    : "No fue posible conectar con el servidor para consultar tu prescripción médica.";
+            }
+        }
+        finally
+        {
+            IsLoadingFormula = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task GoToAgendarCitaFromFormulaAsync()
+    {
+        IsFormulaModalVisible = false;
+        await Shell.Current.GoToAsync("//main/citas");
     }
 
     [RelayCommand]
@@ -279,8 +382,7 @@ public partial class PerfilViewModel : ObservableObject
 
         if (confirm)
         {
-            await _storageService.ClearAsync();
-            await Shell.Current.GoToAsync("//login");
+            await _sessionService.EndSessionAsync();
         }
     }
 }

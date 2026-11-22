@@ -9,10 +9,10 @@ public partial class LoginViewModel : ObservableObject
     private readonly IApiService _apiService;
 
     [ObservableProperty]
-    private string _email = "user@lentsoft.com";
+    private string _email = string.Empty;
 
     [ObservableProperty]
-    private string _password = "user123";
+    private string _password = string.Empty;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsNotBusy))]
