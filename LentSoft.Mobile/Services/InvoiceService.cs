@@ -16,22 +16,7 @@ public class InvoiceService : IInvoiceService
     public InvoiceService()
     {
         _instance = this;
-
-        // Initial sample invoice for demonstration
-        _invoices.Add(new InvoiceDto
-        {
-            Id = 1,
-            NumeroFactura = "FAC-2026-8819",
-            Subtotal = 588235m,
-            Impuestos = 111765m,
-            Total = 700000m,
-            Estado = "Pagada",
-            EstadoRaw = "pagada",
-            FechaEmision = DateTime.Now.AddDays(-2),
-            FechaPago = DateTime.Now.AddDays(-2),
-            MetodoPago = "Tarjeta Visa **** 4532",
-            ItemsSummary = "1x Lentes Ray-Ban Aviator"
-        });
+        // Las facturas inician vacías y se cargan desde el API o al emitir una compra
     }
 
     public void AddInvoice(InvoiceDto invoice)
@@ -53,6 +38,12 @@ public class InvoiceService : IInvoiceService
             }
         }
 
+        InvoicesChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    public void Clear()
+    {
+        _invoices.Clear();
         InvoicesChanged?.Invoke(this, EventArgs.Empty);
     }
 }

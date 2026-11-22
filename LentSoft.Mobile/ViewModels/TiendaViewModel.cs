@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LentSoft.Mobile.Models;
@@ -42,19 +43,19 @@ public partial class TiendaViewModel : ObservableObject
     private bool _isCheckoutStepVisible = false;
 
     [ObservableProperty]
-    private string _cardNumber = "4532 8901 2345 6789";
+    private string _cardNumber = string.Empty;
 
     [ObservableProperty]
-    private string _cardHolderName = "Juan Pérez";
+    private string _cardHolderName = string.Empty;
 
     [ObservableProperty]
-    private string _cardExpiry = "12/28";
+    private string _cardExpiry = string.Empty;
 
     [ObservableProperty]
-    private string _cardCvv = "888";
+    private string _cardCvv = string.Empty;
 
     [ObservableProperty]
-    private string _shippingAddress = "Calle 45 # 12-34, Bogotá";
+    private string _shippingAddress = string.Empty;
 
     [ObservableProperty]
     private int _cartItemCount;
@@ -279,7 +280,6 @@ public partial class TiendaViewModel : ObservableObject
         }
         catch
         {
-            // Handle error gracefully
         }
         finally
         {
@@ -329,7 +329,6 @@ public partial class TiendaViewModel : ObservableObject
         bool isFav = _favService.IsFavorite(target.Id);
         SelectedProductFavHeart = isFav ? "icon_heart_filled.svg" : "icon_heart.svg";
 
-        // Trigger CollectionView update
         int index = Products.IndexOf(target);
         if (index >= 0)
         {
@@ -465,7 +464,40 @@ public partial class TiendaViewModel : ObservableObject
 
         if (string.IsNullOrWhiteSpace(CardHolderName))
         {
-            await Shell.Current.DisplayAlert("Campo Requerido", "Por favor ingresa el nombre en la tarjeta.", "OK");
+            await Shell.Current.DisplayAlert("Campo Requerido", "Por favor ingresa el nombre que figura en la tarjeta.", "OK");
+            return;
+        }
+
+        // Validación algoritmo de Luhn y formato de tarjeta
+        var cleanCardNum = Regex.Replace(CardNumber ?? string.Empty, @"[^\d]", "");
+        if (cleanCardNum.Length < 13 || cleanCardNum.Length > 19 || !IsValidLuhn(cleanCardNum))
+        {
+            await Shell.Current.DisplayAlert("Tarjeta Inválida", "El número de tarjeta ingresado no es válido (verificación Luhn fallida).", "OK");
+            return;
+        }
+
+        // Validación de fecha de expiración (MM/YY)
+        var expiryMatch = Regex.Match(CardExpiry ?? string.Empty, @"^(0[1-9]|1[0-2])\/(\d{2})$");
+        if (!expiryMatch.Success)
+        {
+            await Shell.Current.DisplayAlert("Fecha Inválida", "La fecha de expiración debe tener el formato MM/AA (ejemplo: 08/28).", "OK");
+            return;
+        }
+
+        int expMonth = int.Parse(expiryMatch.Groups[1].Value);
+        int expYear = 2000 + int.Parse(expiryMatch.Groups[2].Value);
+        var now = DateTime.UtcNow;
+        if (expYear < now.Year || (expYear == now.Year && expMonth < now.Month))
+        {
+            await Shell.Current.DisplayAlert("Tarjeta Expirada", "La fecha de vencimiento de la tarjeta ya caducó.", "OK");
+            return;
+        }
+
+        // Validación de CVV (3 o 4 dígitos)
+        var cleanCvv = Regex.Replace(CardCvv ?? string.Empty, @"[^\d]", "");
+        if (cleanCvv.Length < 3 || cleanCvv.Length > 4)
+        {
+            await Shell.Current.DisplayAlert("CVV Inválido", "El código de seguridad CVV debe tener 3 o 4 dígitos.", "OK");
             return;
         }
 
@@ -475,8 +507,9 @@ public partial class TiendaViewModel : ObservableObject
         decimal subtotalAmount = Math.Round(totalAmount / 1.19m, 2);
         decimal ivaAmount = totalAmount - subtotalAmount;
         string itemsSummary = string.Join(", ", cartSnapshot.Select(i => $"{i.Cantidad}x {i.Product.DisplayNombre}"));
+        string maskedCard = cleanCardNum.Length >= 4 ? $"Tarjeta **** {cleanCardNum[^4..]}" : "Tarjeta de crédito";
 
-        // Record order in order history
+        // Registrar orden en historial local de usuario
         _orderService.AddOrder(new OrderRecordDto
         {
             OrderNumber = $"ORD-2026-{randomId}",
@@ -486,7 +519,7 @@ public partial class TiendaViewModel : ObservableObject
             Items = cartSnapshot
         });
 
-        // Generate official electronic invoice
+        // Registrar factura en el servicio
         InvoiceService.Instance.AddInvoice(new InvoiceDto
         {
             Id = randomId,
@@ -498,7 +531,7 @@ public partial class TiendaViewModel : ObservableObject
             EstadoRaw = "pagada",
             FechaEmision = DateTime.Now,
             FechaPago = DateTime.Now,
-            MetodoPago = $"Tarjeta ({CardHolderName})",
+            MetodoPago = maskedCard,
             ItemsSummary = itemsSummary
         });
 
@@ -506,5 +539,30 @@ public partial class TiendaViewModel : ObservableObject
         CloseCartModal();
 
         ShowGreenToast(_locService.GetString("PaymentSuccess"));
+    }
+
+    private static bool IsValidLuhn(string number)
+    {
+        if (string.IsNullOrWhiteSpace(number)) return false;
+
+        int sum = 0;
+        bool alternate = false;
+
+        for (int i = number.Length - 1; i >= 0; i--)
+        {
+            if (!char.IsDigit(number[i])) return false;
+
+            int n = number[i] - '0';
+            if (alternate)
+            {
+                n *= 2;
+                if (n > 9) n -= 9;
+            }
+
+            sum += n;
+            alternate = !alternate;
+        }
+
+        return sum % 10 == 0;
     }
 }

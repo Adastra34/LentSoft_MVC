@@ -9,4 +9,5 @@ public interface IInvoiceService
 
     void AddInvoice(InvoiceDto invoice);
     void SyncInvoices(IEnumerable<InvoiceDto> apiInvoices);
+    void Clear();
 }

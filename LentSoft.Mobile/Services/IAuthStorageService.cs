@@ -10,4 +10,6 @@ public interface IAuthStorageService
     Task SaveUserAsync(UserDto user);
     Task ClearAsync();
     Task<bool> HasValidTokenAsync();
+    Task SaveFormulaAsync(FormulaOpticaDto formula);
+    Task<FormulaOpticaDto?> GetCachedFormulaAsync();
 }

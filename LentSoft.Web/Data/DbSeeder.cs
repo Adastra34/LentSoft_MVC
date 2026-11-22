@@ -377,5 +377,35 @@ public static class DbSeeder
             context.FormulasOpticas.AddRange(formulas);
             context.SaveChanges();
         }
+
+        // 7. Siembra de fórmula óptica para usuario de prueba móvil (user@lentsoft.com)
+        var testUser = context.Users.FirstOrDefault(u => u.Email == "user@lentsoft.com");
+        var testOptometra = context.Users.FirstOrDefault(u => u.Email == "optometra@lentsoft.com");
+        if (testUser != null && testOptometra != null)
+        {
+            var tieneFormulaActiva = context.FormulasOpticas.Any(f => f.UserId == testUser.Id && f.Activo);
+            if (!tieneFormulaActiva)
+            {
+                context.FormulasOpticas.Add(new FormulaOptica
+                {
+                    UserId = testUser.Id,
+                    OptometraId = testOptometra.Id,
+                    Fecha = DateTime.UtcNow.AddDays(-20),
+                    EsferaOD = "-1.50",
+                    CilindroOD = "-0.50",
+                    EjeOD = "180",
+                    AdicionOD = "+1.00",
+                    EsferaOI = "-1.75",
+                    CilindroOI = "-0.25",
+                    EjeOI = "175",
+                    AdicionOI = "+1.00",
+                    TipoLente = "Progresivo",
+                    DistanciaPupilar = "62",
+                    Observaciones = "Uso permanente.",
+                    Activo = true
+                });
+                context.SaveChanges();
+            }
+        }
     }
 }

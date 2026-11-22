@@ -1,8 +1,13 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
-		<!-- Configurado para despliegue en Android y Windows Machine -->
-		<TargetFrameworks>net9.0-android;net9.0-windows10.0.19041.0</TargetFrameworks>
+		<!-- Configurado para despliegue en Windows Machine (descomentar net9.0-android para emulador Android) -->
+		<TargetFrameworks>net9.0-windows10.0.19041.0</TargetFrameworks>
+		<!-- <TargetFrameworks>$(TargetFrameworks);net9.0-android</TargetFrameworks> -->
+		<MauiVersion Condition="'$(MauiVersion)' == ''">9.0.40</MauiVersion>
+		<CheckEolTargetFramework>false</CheckEolTargetFramework>
+		<CheckEolWorkloads>false</CheckEolWorkloads>
+		<RollForward>LatestMajor</RollForward>
 		<!-- Uncomment to also build the tizen app. You will need to install tizen by following this: https://github.com/Samsung/Tizen.NET -->
 		<!-- <TargetFrameworks>$(TargetFrameworks);net9.0-tizen</TargetFrameworks> -->
 

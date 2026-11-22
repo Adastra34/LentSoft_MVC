@@ -8,4 +8,5 @@ public interface IOrderHistoryService
     event EventHandler? OrdersChanged;
 
     void AddOrder(OrderRecordDto order);
+    void Clear();
 }

@@ -42,9 +42,30 @@ public class InvoiceDto
     public string? ItemsSummary { get; set; }
 
     public bool IsPagada => EstadoRaw.Equals("pagada", StringComparison.OrdinalIgnoreCase);
+    public bool IsParcial => EstadoRaw.Equals("parcial", StringComparison.OrdinalIgnoreCase);
+    public bool IsCancelada => EstadoRaw.Equals("cancelada", StringComparison.OrdinalIgnoreCase) || EstadoRaw.Equals("anulada", StringComparison.OrdinalIgnoreCase);
 
-    public string BadgeBackgroundColor => IsPagada ? "#DCFCE7" : "#FEF3C7";
-    public string BadgeTextColor => IsPagada ? "#2FBF71" : "#D97706";
+    public string BadgeBackgroundColor
+    {
+        get
+        {
+            if (IsPagada) return "#DCFCE7";
+            if (IsParcial) return "#DBEAFE";
+            if (IsCancelada) return "#FEE2E2";
+            return "#FEF3C7"; // Pendiente
+        }
+    }
+
+    public string BadgeTextColor
+    {
+        get
+        {
+            if (IsPagada) return "#03543F";
+            if (IsParcial) return "#1E40AF";
+            if (IsCancelada) return "#DC2626";
+            return "#D97706"; // Pendiente
+        }
+    }
 
     public string DisplayTotal
     {
@@ -58,5 +79,5 @@ public class InvoiceDto
         }
     }
 
-    public string DisplayFecha => FechaEmision.ToLocalTime().ToString("dd MMM yyyy", new CultureInfo("es-CO"));
+    public string DisplayFechaEmision => FechaEmision.ToString("dd/MM/yyyy HH:mm", new CultureInfo("es-CO"));
 }

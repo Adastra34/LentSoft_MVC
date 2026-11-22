@@ -68,7 +68,14 @@ public class LocalizationService : ILocalizationService
             ["NoProductsFound"] = "No se encontraron productos",
             ["TryAnotherCategory"] = "Prueba con otra categoría o búsqueda.",
             ["EmptyCartText"] = "Tu carrito está vacío",
-            ["EmptyCartSubtext"] = "Explora la tienda y añade tus productos preferidos."
+            ["EmptyCartSubtext"] = "Explora la tienda y añade tus productos preferidos.",
+            ["PrescriptionLoading"] = "Consultando tu fórmula médica...",
+            ["NoPrescriptionTitle"] = "No tienes una fórmula médica registrada",
+            ["NoPrescriptionSubtitle"] = "Agenda tu cita de optometría con nuestros especialistas para obtener tu prescripción personalizada.",
+            ["ScheduleAppointment"] = "Agendar cita",
+            ["Retry"] = "Reintentar",
+            ["Close"] = "Cerrar",
+            ["PrescriptionOfflineNotice"] = "Modo sin conexión - Mostrando última fórmula sincronizada."
         },
         ["EN"] = new(StringComparer.OrdinalIgnoreCase)
         {
@@ -103,11 +110,11 @@ public class LocalizationService : ILocalizationService
             ["Products"] = "Products",
             ["Shipping"] = "Shipping",
             ["Free"] = "Free",
-            ["AddedToCart"] = "Item added to cart",
-            ["PaymentSuccess"] = "Payment confirmed successfully!",
-            ["AppointmentsTitle"] = "Schedule Medical Appointment",
+            ["AddedToCart"] = "Product added to cart",
+            ["PaymentSuccess"] = "Payment successful!",
+            ["AppointmentsTitle"] = "Schedule Eye Appointment",
             ["SelectService"] = "Select a service",
-            ["ConfirmAppointment"] = "Confirm and Schedule Appointment",
+            ["ConfirmAppointment"] = "Confirm & Schedule Appointment",
             ["MyProfile"] = "My Profile",
             ["MyFavorites"] = "My Favorites",
             ["MyOrders"] = "My Orders",
@@ -120,77 +127,69 @@ public class LocalizationService : ILocalizationService
             ["Logout"] = "Log out",
             ["NoProductsFound"] = "No products found",
             ["TryAnotherCategory"] = "Try another category or search query.",
-            ["EmptyCartText"] = "Your shopping cart is empty",
-            ["EmptyCartSubtext"] = "Browse the store and add your favorite products."
+            ["EmptyCartText"] = "Your cart is empty",
+            ["EmptyCartSubtext"] = "Browse the store and add your favorite items.",
+            ["PrescriptionLoading"] = "Loading your medical prescription...",
+            ["NoPrescriptionTitle"] = "No medical prescription found",
+            ["NoPrescriptionSubtitle"] = "Schedule an appointment with our eye specialists to obtain your prescription.",
+            ["ScheduleAppointment"] = "Schedule appointment",
+            ["Retry"] = "Retry",
+            ["Close"] = "Close",
+            ["PrescriptionOfflineNotice"] = "Offline mode - Showing last synchronized prescription."
         }
     };
 
-    public void SetLanguage(string langCode)
-    {
-        if (string.IsNullOrWhiteSpace(langCode)) return;
-        var upper = langCode.Trim().ToUpper();
-
-        if (upper == "ES" || upper == "EN")
-        {
-            _currentLanguage = upper;
-            LanguageChanged?.Invoke(this, EventArgs.Empty);
-        }
-    }
-
     public string GetString(string key)
     {
+        if (string.IsNullOrWhiteSpace(key)) return string.Empty;
+
         if (_dictionary.TryGetValue(_currentLanguage, out var langDict) &&
             langDict.TryGetValue(key, out var value))
         {
             return value;
         }
 
+        if (_dictionary.TryGetValue("ES", out var fallbackDict) &&
+            fallbackDict.TryGetValue(key, out var fallbackValue))
+        {
+            return fallbackValue;
+        }
+
         return key;
+    }
+
+    public void SetLanguage(string lang)
+    {
+        if (string.IsNullOrWhiteSpace(lang)) return;
+
+        string normalized = lang.Trim().ToUpperInvariant();
+        if (normalized != "ES" && normalized != "EN") normalized = "ES";
+
+        if (_currentLanguage != normalized)
+        {
+            _currentLanguage = normalized;
+            LanguageChanged?.Invoke(this, EventArgs.Empty);
+        }
     }
 
     public string TranslateProductTitle(string originalTitle)
     {
-        if (string.IsNullOrWhiteSpace(originalTitle)) return string.Empty;
-        if (_currentLanguage != "EN") return originalTitle;
+        if (string.IsNullOrWhiteSpace(originalTitle) || _currentLanguage == "ES")
+            return originalTitle;
 
-        var productTranslations = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Lentes Graduados Classic"] = "Classic Prescription Lenses",
-            ["Lentes Ray Ban Aviator"] = "Ray-Ban Aviator Sunglasses",
-            ["Lentes Ray-Ban Aviator"] = "Ray-Ban Aviator Sunglasses",
-            ["Líquido Limpiador"] = "Lens Cleaning Solution",
-            ["Montura Oakley Sport"] = "Oakley Sport Frame",
-            ["Gafas de Sol Elegantes"] = "Elegant Sunglasses",
-            ["Lentes de Contacto Diarios"] = "Daily Contact Lenses",
-            ["Lentes de Contacto Acuvue"] = "Acuvue Contact Lenses",
-            ["Estuche Premium"] = "Premium Case",
-            ["Estuche de Lujo"] = "Luxury Case",
-            ["Paño Microfibra"] = "Microfiber Cloth",
-            ["Cordón Ajustable"] = "Adjustable Strap"
-        };
+        if (originalTitle.Contains("Estuche", StringComparison.OrdinalIgnoreCase))
+            return "Premium Eyewear Case";
+        if (originalTitle.Contains("Líquido", StringComparison.OrdinalIgnoreCase) || originalTitle.Contains("Limpiador", StringComparison.OrdinalIgnoreCase))
+            return "Lens Cleaning Solution 120ml";
+        if (originalTitle.Contains("Acuvue", StringComparison.OrdinalIgnoreCase))
+            return "Acuvue Contact Lenses (Pack x6)";
+        if (originalTitle.Contains("Graduados", StringComparison.OrdinalIgnoreCase))
+            return "Classic Prescription Glasses";
+        if (originalTitle.Contains("Oakley", StringComparison.OrdinalIgnoreCase))
+            return "Oakley Sport Eyewear Frame";
+        if (originalTitle.Contains("Aviator", StringComparison.OrdinalIgnoreCase))
+            return "Ray-Ban Aviator Sunglasses";
 
-        if (productTranslations.TryGetValue(originalTitle.Trim(), out var exactMatch))
-        {
-            return exactMatch;
-        }
-
-        string result = originalTitle.Trim();
-
-        if (result.StartsWith("Lentes de Contacto ", StringComparison.OrdinalIgnoreCase))
-            return result.Substring(19) + " Contact Lenses";
-
-        if (result.StartsWith("Lentes de ", StringComparison.OrdinalIgnoreCase))
-            return "Lenses for " + result.Substring(10);
-
-        if (result.StartsWith("Montura ", StringComparison.OrdinalIgnoreCase))
-            return result.Substring(8) + " Frame";
-
-        if (result.StartsWith("Gafas de Sol ", StringComparison.OrdinalIgnoreCase))
-            return result.Substring(13) + " Sunglasses";
-
-        if (result.StartsWith("Gafas de ", StringComparison.OrdinalIgnoreCase))
-            return result.Substring(9) + " Glasses";
-
-        return result;
+        return originalTitle;
     }
 }

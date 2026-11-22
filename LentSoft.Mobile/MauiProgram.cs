@@ -36,6 +36,7 @@ public static class MauiProgram
         builder.Services.AddSingleton<IFavoriteService, FavoriteService>();
         builder.Services.AddSingleton<IOrderHistoryService, OrderHistoryService>();
         builder.Services.AddSingleton<IInvoiceService, InvoiceService>();
+        builder.Services.AddSingleton<ISessionService, SessionService>();
         builder.Services.AddTransient<AuthenticatedHttpClientHandler>();
 
         string baseUrl;

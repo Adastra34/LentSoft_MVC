@@ -33,8 +33,24 @@ public class AppointmentDto
     public string BadgeBackgroundColor => IsCancelada ? "#FEE2E2" : (IsAsistio ? "#DCFCE7" : "#FEF3C7");
     public string BadgeTextColor => IsCancelada ? "#DC2626" : (IsAsistio ? "#2FBF71" : "#D97706");
 
-    public string DisplayFechaHora => FechaHora.ToLocalTime().ToString("dddd, dd MMMM yyyy - hh:mm tt", new CultureInfo("es-CO"));
-    public string DisplayFechaCorta => FechaHora.ToLocalTime().ToString("dd MMM yyyy, hh:mm tt", new CultureInfo("es-CO"));
+    // FechaHora ya se almacena en hora local de Bogotá. Formatear directamente para evitar desfase por .ToLocalTime()
+    public string DisplayFechaHora
+    {
+        get
+        {
+            var dt = FechaHora.Kind == DateTimeKind.Utc ? FechaHora.ToLocalTime() : FechaHora;
+            return dt.ToString("dddd, dd MMMM yyyy - hh:mm tt", new CultureInfo("es-CO"));
+        }
+    }
+
+    public string DisplayFechaCorta
+    {
+        get
+        {
+            var dt = FechaHora.Kind == DateTimeKind.Utc ? FechaHora.ToLocalTime() : FechaHora;
+            return dt.ToString("dd MMM yyyy, hh:mm tt", new CultureInfo("es-CO"));
+        }
+    }
 }
 
 public class AppointmentsResponseDto
