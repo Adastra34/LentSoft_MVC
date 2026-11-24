@@ -2,7 +2,7 @@
 
 ## Descripción
 
-LentSoft es una plataforma de comercio electrónico especializada en productos ópticos. Originalmente desarrollada con arquitecturas mixtas (React y Vanilla JS), ha sido migrada a una arquitectura unificada y robusta utilizando **ASP.NET Core MVC 9.0**.
+LentSoft es una plataforma de comercio electrónico especializada en productos ópticos. Desarrollada utilizando **ASP.NET Core MVC 9.0**.
 
 ## Tecnologías Utilizadas
 
