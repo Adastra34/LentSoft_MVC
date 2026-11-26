@@ -1,0 +1,194 @@
+/* ==========================================================================
+   LentSoft — Ajustes responsive globales (responsive.css)
+   Corrige el desbordamiento horizontal en celular (navbar sin colapsar,
+   sidebar de 260px fija en Admin/Usuario, grids de 2-3 columnas inline).
+   Se carga DESPUÉS de styles.css. Usa !important porque la mayoría de los
+   estilos de las vistas están inline.
+   ========================================================================== */
+
+/* ── Red de seguridad: nunca permitir scroll horizontal de la página ── */
+body {
+  overflow-x: hidden;            /* fallback */
+  overflow-x: clip;              /* no rompe position: sticky del navbar */
+  max-width: 100%;
+}
+img, video, canvas { max-width: 100%; height: auto; }
+
+/* Mejora de toque: sin retardo de 300 ms ni resaltado gris */
+a, button, input, select, textarea, label, [onclick] {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Un hijo flex con flex:1 NO se encoge por debajo de su contenido (min-width:auto).
+   Esto evita que tablas anchas empujen el <main> fuera de la pantalla. */
+.dash-main { min-width: 0; }
+
+/* ── Botón hamburguesa (oculto en escritorio) ── */
+.lm-nav-toggle {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-left: auto;
+  border: 2px solid var(--purple-200, #E9D5FF);
+  border-radius: 0.75rem;
+  background: white;
+  color: var(--purple-700, #9333EA);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.lm-nav-toggle:active { background: var(--purple-50, #FAF5FF); }
+
+/* ══════════ NAVBAR: colapsa en tablet y celular ══════════ */
+@media (max-width: 1024px) {
+  #lm-navbar .container { flex-wrap: wrap; gap: 0.5rem !important; }
+  .lm-nav-toggle { display: inline-flex; }
+
+  /* Cerrado: solo logo + hamburguesa */
+  #lm-navbar .lm-nav-links,
+  #lm-navbar .lm-nav-search,
+  #lm-navbar .lm-nav-right { display: none !important; }
+
+  /* Abierto: todo apilado a ancho completo */
+  #lm-navbar.lm-open { max-height: 100vh; max-height: 100dvh; overflow-y: auto; }
+  #lm-navbar.lm-open .lm-nav-links {
+    display: flex !important;
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 0 !important;
+    flex: 1 1 100%;
+    width: 100%;
+    order: 3;
+  }
+  #lm-navbar.lm-open .lm-nav-links a {
+    display: block;
+    width: 100%;
+    padding: 0.7rem 0.25rem;
+    font-size: 1rem !important;
+    border-bottom: 1px solid var(--gray-100, #F3F4F6);
+  }
+  #lm-navbar.lm-open .lm-nav-search {
+    display: block !important;
+    flex: 1 1 100% !important;
+    max-width: 100% !important;
+    width: 100%;
+    order: 4;
+  }
+  #lm-navbar.lm-open .lm-nav-right {
+    display: flex !important;
+    flex: 1 1 100%;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1rem !important;
+    width: 100%;
+    padding-bottom: 0.5rem;
+    order: 5;
+  }
+}
+
+/* ══════════ DASHBOARDS (Admin y Usuario): sidebar apilado ══════════
+   Mismo patrón que ya usan optometra.css y ventas.css. */
+@media (max-width: 768px) {
+  .dash-layout { flex-direction: column !important; min-height: auto !important; }
+  .dash-sidebar { width: 100% !important; padding: 1rem !important; flex-shrink: 0 !important; }
+  .dash-sidebar-nav { flex-direction: row !important; flex-wrap: wrap !important; gap: 0.35rem !important; }
+  .dash-sidebar-nav > a { flex: 1 1 calc(50% - 0.35rem); padding: 0.6rem 0.75rem !important; font-size: 0.85rem !important; }
+  .dash-main { padding: 1rem !important; width: 100% !important; }
+
+  /* Tablas de dashboards y sitio general: desplazamiento horizontal táctil sin desbordar la pantalla */
+  .dash-main table,
+  #app table {
+    display: block !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Modales: asegurar que no se desborden de la pantalla en dispositivos móviles */
+  #app [style*="position: fixed"] > [style*="width: 500px"],
+  #app [style*="position: fixed"] > [style*="width: 550px"],
+  #app [style*="position: fixed"] > [style*="width: 600px"],
+  #app [style*="position: fixed"] > [style*="width: 650px"],
+  #app [style*="position: fixed"] > [style*="width: 700px"],
+  #app [style*="position: fixed"] > [style*="width: 800px"],
+  .modal-content,
+  .modal-dialog {
+    max-width: 95vw !important;
+    width: auto !important;
+    box-sizing: border-box !important;
+  }
+}
+@media (max-width: 360px) {
+  .dash-sidebar-nav > a { flex: 1 1 100%; }
+}
+
+/* ══════════ GRIDS / ANCHOS FIJOS INLINE → Adaptable / 1 columna en celular ══════════ */
+@media (max-width: 1024px) {
+  /* En tablets: cuadrícula de productos en Tienda pasa a columnas fluidas en vez de 4 rígidas */
+  #app [style*="grid-template-columns: repeat(4, 1fr)"] {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Grids de 2 columnas / asimétricos / productos → 1 columna apilada */
+  #app [style*="grid-template-columns: 1fr 1fr"],
+  #app [style*="grid-template-columns: 1fr 2fr"],
+  #app [style*="grid-template-columns: 2fr 1fr"],
+  #app [style*="grid-template-columns: 1fr 1.2fr"],
+  #app [style*="grid-template-columns: 1.1fr 1fr"],
+  #app [style*="grid-template-columns: 1.3fr 0.7fr"],
+  #app [style*="grid-template-columns: 1.1fr 0.9fr"],
+  #app [style*="grid-template-columns: repeat(3, 1fr)"],
+  #app [style*="grid-template-columns: repeat(4, 1fr)"],
+  #app [style*="grid-template-columns:1fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Reducir espaciados excesivos al apilar en móvil */
+  #app [style*="grid-template-columns: 1fr 1.2fr"],
+  #app [style*="grid-template-columns: 1.1fr 1fr"],
+  #app [style*="grid-template-columns: 1.3fr 0.7fr"],
+  #app [style*="grid-template-columns: 1.1fr 0.9fr"] {
+    gap: 1.5rem !important;
+  }
+
+  /* Catálogo y Vista de Marcos (MuestraMontura): columna izquierda sticky se desactiva en móvil */
+  #app [style*="grid-template-columns: 1fr 1.2fr"] > div[style*="position: sticky"] {
+    position: static !important;
+    top: auto !important;
+  }
+
+  /* Tienda: formulario de filtros secundarios */
+  #app form[action*="Tienda"] {
+    flex-wrap: wrap !important;
+    width: 100% !important;
+  }
+  #app form[action*="Tienda"] select {
+    flex: 1 1 calc(50% - 0.5rem) !important;
+    min-width: 120px !important;
+  }
+
+  /* Buscadores con ancho fijo (Admin: 320px / 340px, min-width: 260px) */
+  #app input[style*="width: 320px"],
+  #app input[style*="width: 340px"] { width: 100% !important; max-width: 100% !important; }
+  #app [style*="min-width: 260px"] { min-width: 0 !important; max-width: 100% !important; }
+
+  /* Título del hero de la página de inicio */
+  #app h1[style*="font-size: 2rem"] { font-size: 1.6rem !important; }
+
+  /* Barras de herramientas con flex: que envuelvan en vez de desbordar */
+  #app [style*="justify-content: space-between"] { flex-wrap: wrap; gap: 0.75rem; }
+}
+
+@media (max-width: 480px) {
+  /* En pantallas móviles estrechas (<= 480px), asegurar 1 columna en Tienda y galería */
+  #app [style*="grid-template-columns: repeat(4, 1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+  .gallery-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
