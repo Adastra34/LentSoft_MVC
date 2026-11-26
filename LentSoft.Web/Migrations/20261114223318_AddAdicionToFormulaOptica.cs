@@ -13,14 +13,14 @@ namespace LentSoft.Web.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "AdicionOD",
                 table: "FormulasOpticas",
-                type: "TEXT",
+                type: "nvarchar(50)",
                 maxLength: 50,
                 nullable: true);
 
             migrationBuilder.AddColumn<string>(
                 name: "AdicionOI",
                 table: "FormulasOpticas",
-                type: "TEXT",
+                type: "nvarchar(50)",
                 maxLength: 50,
                 nullable: true);
         }

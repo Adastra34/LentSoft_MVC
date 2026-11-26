@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -13,7 +13,7 @@ namespace LentSoft.Web.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "Direccion",
                 table: "Suppliers",
-                type: "TEXT",
+                type: "nvarchar(200)",
                 maxLength: 200,
                 nullable: true);
 
