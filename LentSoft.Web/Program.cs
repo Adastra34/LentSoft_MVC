@@ -11,6 +11,7 @@ using LentSoft.Web.Data;
 using LentSoft.Web.Services;
 using System.IO.Compression;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.HttpOverrides;
 
 // ── Culture Configuration (Pesos Colombianos - COP) ──
 var cultureInfo = new System.Globalization.CultureInfo("es-CO");
@@ -22,6 +23,7 @@ System.Globalization.CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
 System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseWindowsService();
 
 // ── JWT Secret Key Validations (Fail-Fast) ──
 var jwtPasswordKey = builder.Configuration["PasswordResetJwt:SecretKey"];
@@ -223,13 +225,37 @@ builder.Services.Configure<GzipCompressionProviderOptions>(options =>
 var app = builder.Build();
 
 // ── Middleware Pipeline ──
+// 1. Forwarded Headers (Cloudflare Tunnel / Reverse Proxy) - PRIMER middleware
+var forwardedHeadersOptions = new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+};
+forwardedHeadersOptions.KnownNetworks.Clear();
+forwardedHeadersOptions.KnownProxies.Clear();
+app.UseForwardedHeaders(forwardedHeadersOptions);
+
+// 2. BaseUrl configuration (App:BaseUrl = https://lentsoft.dpdns.org en Production)
+var configuredBaseUrl = app.Configuration["App:BaseUrl"];
+if (!string.IsNullOrWhiteSpace(configuredBaseUrl) && Uri.TryCreate(configuredBaseUrl, UriKind.Absolute, out var baseUri))
+{
+    app.Use((context, next) =>
+    {
+        context.Request.Scheme = baseUri.Scheme;
+        context.Request.Host = new HostString(baseUri.Authority);
+        return next();
+    });
+}
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+}
 app.UseResponseCompression();
 var contentTypeProvider = new Microsoft.AspNetCore.StaticFiles.FileExtensionContentTypeProvider();
 contentTypeProvider.Mappings[".wasm"] = "application/wasm";

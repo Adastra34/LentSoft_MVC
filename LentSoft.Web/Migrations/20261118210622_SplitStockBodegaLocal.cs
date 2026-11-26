@@ -27,7 +27,7 @@ namespace LentSoft.Web.Migrations
             migrationBuilder.AddColumn<string>(
                 name: "Ubicacion",
                 table: "InventoryMovements",
-                type: "TEXT",
+                type: "nvarchar(20)",
                 maxLength: 20,
                 nullable: false,
                 defaultValue: "Bodega");
