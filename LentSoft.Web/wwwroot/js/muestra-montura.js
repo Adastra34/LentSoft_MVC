@@ -3,6 +3,8 @@ const getLang = () => (typeof getCurrentLang === 'function' ? getCurrentLang() :
 
 let currentSelectedId = (typeof window !== 'undefined' && window.MONTURA_DATA && window.MONTURA_DATA.defaultId) ? window.MONTURA_DATA.defaultId : 0;
 let cameraStream = null;
+let isStarting = false;
+let currentBtnState = 'idle';
 
 function getProducts() {
     if (typeof window !== 'undefined' && window.MONTURA_DATA && Array.isArray(window.MONTURA_DATA.products)) {
@@ -11,14 +13,33 @@ function getProducts() {
     return [];
 }
 
+// Helper para liberar los tracks de la cámara de forma segura
+function releaseStream() {
+    if (cameraStream) {
+        try {
+            cameraStream.getTracks().forEach(t => t.stop());
+        } catch (e) {
+            console.warn("Error deteniendo tracks:", e);
+        }
+        cameraStream = null;
+    }
+    const video = document.getElementById('webcamVideo');
+    if (video) {
+        video.srcObject = null;
+    }
+}
+
 // Helper para gestionar el estado del botón de cámara sin duplicar HTML/íconos
 function setStartBtn(state) {
     const startBtn = document.getElementById('startCameraBtn');
     if (!startBtn) return;
+    if (state) {
+        currentBtnState = state;
+    }
     const lang = getLang();
     const isEn = lang === 'en';
 
-    switch (state) {
+    switch (currentBtnState) {
         case 'loading':
             startBtn.disabled = true;
             startBtn.style.opacity = '0.7';
@@ -41,15 +62,25 @@ function setStartBtn(state) {
     }
 }
 
-// Espera a que el módulo faceTracking esté disponible globalmente
-function ensureFaceTracking() {
+// Espera a que el módulo faceTracking esté disponible globalmente con timeout
+function ensureFaceTracking(timeoutMs = 8000) {
     if (typeof window !== 'undefined' && window.faceTracking) {
         return Promise.resolve(window.faceTracking);
     }
-    return new Promise(resolve => {
-        window.addEventListener('faceTrackingModuleLoaded', () => {
-            resolve(window.faceTracking);
-        }, { once: true });
+    let listener = null;
+    let timer = null;
+    const eventPromise = new Promise(resolve => {
+        listener = () => resolve(window.faceTracking);
+        window.addEventListener('faceTrackingModuleLoaded', listener, { once: true });
+    });
+    const timeoutPromise = new Promise((_, reject) => {
+        timer = setTimeout(() => reject(new Error('FACE_TRACKING_TIMEOUT')), timeoutMs);
+    });
+    return Promise.race([eventPromise, timeoutPromise]).finally(() => {
+        if (timer) clearTimeout(timer);
+        if (listener) {
+            window.removeEventListener('faceTrackingModuleLoaded', listener);
+        }
     });
 }
 
@@ -176,7 +207,9 @@ function selectProduct(id) {
         arNotice.style.display = hasOverlay ? 'none' : 'flex';
     }
 
-    setStartBtn(hasOverlay ? 'idle' : 'unavailable');
+    if (!isStarting) {
+        setStartBtn(hasOverlay ? 'idle' : 'unavailable');
+    }
 
     // Botón Agregar al Carrito
     const cartBtn = document.getElementById('selectedAddToCartBtn');
@@ -209,6 +242,7 @@ window.addEventListener('languageChanged', () => {
     if (currentSelectedId) {
         selectProduct(currentSelectedId);
     }
+    setStartBtn();
 });
 
 // Agregar selección al carrito
@@ -222,8 +256,13 @@ function addSelectedToCart() {
 
 // Inicio de cámara con captura segura de errores y lazy loading de MediaPipe
 async function startCamera() {
+    if (isStarting) return;
+    isStarting = true;
     const lang = getLang();
+
     try {
+        setStartBtn('loading');
+
         const placeholder = document.getElementById('cameraPlaceholder');
         const video = document.getElementById('webcamVideo');
         const errorContainer = document.getElementById('cameraError');
@@ -233,7 +272,20 @@ async function startCamera() {
         if (errorContainer) errorContainer.style.display = 'none';
 
         // 1. Validaciones previas de compatibilidad (HTTPS, getUserMedia, WebAssembly)
-        const trackingModule = await ensureFaceTracking();
+        let trackingModule;
+        try {
+            trackingModule = await ensureFaceTracking(8000);
+        } catch (faceErr) {
+            console.error("Error al cargar módulo de reconocimiento facial:", faceErr);
+            showCameraError(
+                lang === 'en'
+                    ? 'Could not load the facial recognition module. Reload the page with Ctrl+F5 and try again.'
+                    : 'No se pudo cargar el módulo de reconocimiento facial. Recarga la página con Ctrl+F5 e intenta de nuevo.',
+                lang === 'en' ? 'Facial Recognition Error' : 'Error en Reconocimiento Facial'
+            );
+            return;
+        }
+
         if (trackingModule && trackingModule.validarCompatibilidad) {
             const check = trackingModule.validarCompatibilidad();
             if (!check.compatible) {
@@ -263,7 +315,8 @@ async function startCamera() {
             return;
         }
 
-        setStartBtn('loading');
+        // 3. Adquirir cámara (liberar cualquier stream anterior antes de reasignar)
+        releaseStream();
 
         try {
             cameraStream = await navigator.mediaDevices.getUserMedia({
@@ -282,11 +335,16 @@ async function startCamera() {
             if (placeholder) placeholder.style.display = 'none';
             if (controls) controls.style.display = 'block';
 
-            // 3. Lazy load del modelo MediaPipe (local primero, fallback CDN)
+            // 4. Lazy load del modelo MediaPipe (local primero, fallback CDN) con timeout de 20s
             try {
-                const tracking = await ensureFaceTracking();
+                const tracking = await ensureFaceTracking(8000);
                 if (!tracking.isReady()) {
-                    await tracking.init();
+                    await Promise.race([
+                        tracking.init(),
+                        new Promise((_, reject) =>
+                            setTimeout(() => reject(new Error('TRACKING_INIT_TIMEOUT')), 20000)
+                        )
+                    ]);
                 }
 
                 tracking.cambiarMontura(product.imagenOverlayUrl, {
@@ -299,6 +357,7 @@ async function startCamera() {
                 if (canvas) canvas.style.display = 'block';
             } catch (trackErr) {
                 console.error("Error al inicializar detector facial:", trackErr);
+                releaseStream();
                 stopCamera();
                 showCameraError(
                     lang === 'en'
@@ -309,6 +368,7 @@ async function startCamera() {
             }
         } catch (mediaErr) {
             console.error("Error al acceder a la cámara:", mediaErr);
+            releaseStream();
             setStartBtn('idle');
 
             if (mediaErr.name === 'NotAllowedError' || mediaErr.name === 'PermissionDeniedError') {
@@ -341,11 +401,14 @@ async function startCamera() {
         }
     } catch (unexpectedErr) {
         console.error("Error no controlado en startCamera:", unexpectedErr);
+        releaseStream();
         setStartBtn('idle');
         showCameraError(
             (lang === 'en' ? 'Unexpected camera error: ' : 'Ocurrió un error inesperado al iniciar la cámara: ') + (unexpectedErr.message || unexpectedErr),
             lang === 'en' ? 'Unexpected Error' : 'Error Inesperado'
         );
+    } finally {
+        isStarting = false;
     }
 }
 
@@ -364,13 +427,9 @@ function stopCamera() {
         canvas.style.display = 'none';
     }
 
-    if (cameraStream) {
-        cameraStream.getTracks().forEach(track => track.stop());
-        cameraStream = null;
-    }
+    releaseStream();
 
     if (video) {
-        video.srcObject = null;
         video.style.display = 'none';
     }
     if (placeholder) placeholder.style.display = 'flex';
@@ -412,5 +471,6 @@ window.showCameraError = showCameraError;
 window.retryCamera = retryCamera;
 window.addSelectedToCart = addSelectedToCart;
 window.ensureFaceTracking = ensureFaceTracking;
+window.releaseStream = releaseStream;
 window.setStartBtn = setStartBtn;
 window.getLang = getLang;
