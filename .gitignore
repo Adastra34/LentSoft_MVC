@@ -17,6 +17,9 @@ LentSoft.Web/obj/
 *.mdf
 *.ldf
 
+# Uploads
+uploads/
+
 # Local config & Secrets
 appsettings.Development.json
 appsettings.Production.json
