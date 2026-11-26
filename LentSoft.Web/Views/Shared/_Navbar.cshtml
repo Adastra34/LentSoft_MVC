@@ -1,25 +1,30 @@
-<nav style="background: white; padding: 0.75rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 1000;">
+<nav id="lm-navbar" style="background: white; padding: 0.75rem 0; box-shadow: 0 2px 8px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 1000;">
     <div class="container" style="display: flex; align-items: center; justify-content: space-between; gap: 1.5rem;">
         <!-- Logo -->
         <a asp-controller="Home" asp-action="Index" style="font-size: 1.6rem; font-weight: 800; color: var(--purple-700); letter-spacing: -0.5px; flex-shrink: 0;">
              LentSoft
         </a>
 
+        <!-- Botón menú (solo móvil/tablet) -->
+        <button type="button" id="lm-nav-toggle" class="lm-nav-toggle" aria-label="Abrir menú" aria-expanded="false" aria-controls="lm-navbar">
+            <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+
         <!-- Nav Links -->
-        <div style="display: flex; align-items: center; gap: 1.75rem; flex-shrink: 0;">
+        <div class="lm-nav-links" style="display: flex; align-items: center; gap: 1.75rem; flex-shrink: 0;">
             <a asp-controller="Home" asp-action="Index" style="color: var(--gray-700); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;" data-i18n="nav.home">Inicio</a>
             <a asp-controller="Product" asp-action="Tienda" style="color: var(--gray-700); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;" data-i18n="nav.shop">Tienda</a>
             <a asp-controller="Home" asp-action="About" style="color: var(--gray-700); font-weight: 500; font-size: 0.95rem; transition: color 0.2s;" data-i18n="nav.about">Nosotros</a>
         </div>
 
         <!-- Search Bar -->
-        <div style="flex: 1; max-width: 380px; position: relative;">
+        <div class="lm-nav-search" style="flex: 1; max-width: 380px; position: relative;">
             <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--gray-400); font-size: 1rem; display: inline-flex; align-items: center;"><icon name="search" /></span>
             <input type="text" placeholder="Buscar gafas, lentes..." data-i18n-placeholder="nav.search" style="width: 100%; padding: 0.55rem 0.75rem 0.55rem 2.25rem; border: 2px solid var(--gray-200); border-radius: 9999px; font-size: 0.9rem; background: var(--gray-50); outline: none; transition: border-color 0.2s;" onfocus="this.style.borderColor='var(--purple-400)'" onblur="this.style.borderColor='var(--gray-200)'" />
         </div>
 
         <!-- Right Section -->
-        <div style="display: flex; align-items: center; gap: 1rem; flex-shrink: 0;">
+        <div class="lm-nav-right" style="display: flex; align-items: center; gap: 1rem; flex-shrink: 0;">
 
             <!-- Language Switcher -->
             <div id="language-switcher" style="position: relative;">

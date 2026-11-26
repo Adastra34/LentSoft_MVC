@@ -3,15 +3,15 @@
     ViewData["Title"] = "Mi Cuenta - Dashboard Usuario";
 }
 
-<div style="display: flex; min-height: 85vh; background-color: var(--purple-50);">
+<div class="dash-layout" style="display: flex; min-height: 85vh; background-color: var(--purple-50);">
     <!-- Sidebar Navigation (Estilo idéntico a Admin/Optometra/Ventas) -->
-    <aside style="width: 260px; background-color: var(--purple-900); color: white; padding: 1.5rem 1rem; flex-shrink: 0;">
+    <aside class="dash-sidebar" style="width: 260px; background-color: var(--purple-900); color: white; padding: 1.5rem 1rem; flex-shrink: 0;">
         <div style="padding: 0 0.5rem 1.5rem 0.5rem; border-bottom: 1px solid var(--purple-700); margin-bottom: 1.5rem;">
             <h2 style="color: white; font-size: 1.25rem; margin: 0;" data-i18n="user.portal">Mi Cuenta</h2>
             <p style="color: var(--purple-200); font-size: 0.85rem; margin: 0.25rem 0 0 0;"><span data-i18n="nav.greeting">Hola,</span> @Model.Usuario.Nombre</p>
         </div>
 
-        <nav style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <nav class="dash-sidebar-nav" style="display: flex; flex-direction: column; gap: 0.5rem;">
             <a href="?section=perfil" class="nav-item @(Model.ActiveSection == "perfil" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "perfil" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "perfil" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;">
                 <icon name="user" /> <span data-i18n="user.nav.profile">Mi Perfil</span>
             </a>
@@ -37,7 +37,7 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main style="flex: 1; padding: 2rem; overflow-y: auto;">
+    <main class="dash-main" style="flex: 1; padding: 2rem; overflow-y: auto;">
         <!-- Notificaciones de feedback -->
         @if (TempData["SuccessMessage"] != null)
         {

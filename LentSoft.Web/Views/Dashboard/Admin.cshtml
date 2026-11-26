@@ -5,15 +5,15 @@
     ViewData["Title"] = "Panel de Administración";
 }
 
-<div style="display: flex; min-height: 100vh; background-color: var(--purple-50);">
+<div class="dash-layout" style="display: flex; min-height: 100vh; background-color: var(--purple-50);">
     <!-- Sidebar Sidebar Navigation -->
-    <aside style="width: 260px; background-color: var(--purple-900); color: white; padding: 1.5rem 1rem; flex-shrink: 0;">
+    <aside class="dash-sidebar" style="width: 260px; background-color: var(--purple-900); color: white; padding: 1.5rem 1rem; flex-shrink: 0;">
         <div style="padding: 0 0.5rem 1.5rem 0.5rem; border-bottom: 1px solid var(--purple-700); margin-bottom: 1.5rem;">
             <h2 style="color: white; font-size: 1.25rem; margin: 0;" data-i18n="admin.portal">Admin Dashboard</h2>
             <p style="color: var(--purple-200); font-size: 0.85rem; margin: 0.25rem 0 0 0;" data-i18n="admin.management">Gestión Integral LentSoft</p>
         </div>
 
-        <nav style="display: flex; flex-direction: column; gap: 0.5rem;">
+        <nav class="dash-sidebar-nav" style="display: flex; flex-direction: column; gap: 0.5rem;">
             <a href="?section=general" class="nav-item @(Model.ActiveSection == "general" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "general" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "general" ? "var(--purple-700)" : "transparent"); font-weight: 500;">
                 <icon name="bar-chart-3" class="icon-sm" /> <span data-i18n="admin.nav.general">General</span>
             </a>
@@ -39,7 +39,7 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main style="flex: 1; padding: 2rem; overflow-y: auto;">
+    <main class="dash-main" style="flex: 1; padding: 2rem; overflow-y: auto;">
         
         <!-- Barra Superior con Botón de Cerrar Sesión -->
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--purple-100); padding-bottom: 1rem;">
