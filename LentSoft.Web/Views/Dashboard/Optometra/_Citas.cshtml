@@ -94,7 +94,9 @@
                                             <div style="display: flex; gap: 0.4rem; justify-content: flex-end; align-items: center; flex-wrap: wrap;">
                                                 <button onclick="abrirModalVerCita(this)" 
                                                         data-id="@c.Id"
-                                                        data-paciente="@(c.User?.NombreCompleto ?? "Paciente")"
+                                                        data-userid="@c.UserId"
+                                                        data-fechahora="@c.FechaHora.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")"
+                                                        data-paciente="@(c.User?.NombreCompleto ?? "Paciente") (@(c.User?.Email ?? ""))"
                                                         data-servicio="@c.Servicio"
                                                         data-fechahorastr="@c.FechaHora.ToLocalTime().ToString("dd/MM/yyyy HH:mm")"
                                                         data-notas="@(c.Notas ?? "")"
@@ -105,6 +107,7 @@
                                                 <button onclick="abrirModalEditarCita(this)" 
                                                         data-id="@c.Id" 
                                                         data-userid="@c.UserId"
+                                                        data-paciente="@(c.User?.NombreCompleto ?? "Paciente") (@(c.User?.Email ?? ""))"
                                                         data-servicio="@c.Servicio"
                                                         data-fechahora="@c.FechaHora.ToLocalTime().ToString("yyyy-MM-ddTHH:mm")"
                                                         data-notas="@(c.Notas ?? "")"
@@ -226,15 +229,11 @@
 
                     <form asp-controller="Optometra" asp-action="EditAppointment" method="post" onsubmit="return validateCitaForm(this);" style="display:flex; flex-direction:column; gap:1rem;">
                         <input type="hidden" name="id" id="edit-cita-id" />
+                        <input type="hidden" name="UserId" id="edit-cita-userid" />
 
                         <div style="display: flex; flex-direction: column; gap: 0.25rem;">
-                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Seleccionar Paciente</label>
-                            <select name="UserId" id="edit-cita-userid" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
-                                @foreach (var cli in Model.Pacientes)
-                                {
-                                    <option value="@cli.Id">@cli.NombreCompleto (@cli.Email)</option>
-                                }
-                            </select>
+                            <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
+                            <input type="text" id="edit-cita-paciente-nombre" readonly style="padding: 0.55rem 0.75rem; border: 1px solid var(--purple-200); border-radius: 0.375rem; background-color: var(--purple-50); color: var(--purple-950); font-weight: 600; font-size: 0.9rem; outline: none; cursor: not-allowed;" />
                         </div>
 
                         <div style="display: flex; flex-direction: column; gap: 0.25rem;">

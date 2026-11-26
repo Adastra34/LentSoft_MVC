@@ -300,6 +300,8 @@
     function abrirModalEditarCita(btn) {
         document.getElementById('edit-cita-id').value = btn.getAttribute('data-id');
         document.getElementById('edit-cita-userid').value = btn.getAttribute('data-userid');
+        const elPacCita = document.getElementById('edit-cita-paciente-nombre');
+        if (elPacCita) elPacCita.value = btn.getAttribute('data-paciente') || '';
         const elSrvOpto = document.getElementById('edit-cita-servicio');
         const srvValOpto = btn.getAttribute('data-servicio') || '';
         if (elSrvOpto) {
@@ -320,6 +322,8 @@
     function abrirModalEditarHistorial(btn) {
         document.getElementById('edit-historial-id').value = btn.getAttribute('data-id');
         document.getElementById('edit-historial-userid').value = btn.getAttribute('data-userid');
+        const elPacHist = document.getElementById('edit-historial-paciente-nombre');
+        if (elPacHist) elPacHist.value = btn.getAttribute('data-paciente') || '';
         document.getElementById('edit-historial-fecha').value = btn.getAttribute('data-fecha');
         document.getElementById('edit-historial-diagnostico').value = btn.getAttribute('data-diagnostico');
         document.getElementById('edit-historial-tratamiento').value = btn.getAttribute('data-tratamiento');

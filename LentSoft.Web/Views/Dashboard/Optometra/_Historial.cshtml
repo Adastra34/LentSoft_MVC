@@ -232,6 +232,7 @@
                                                 <button onclick="abrirModalEditarHistorial(this)" 
                                                         data-id="@h.Id" 
                                                         data-userid="@h.UserId" 
+                                                        data-paciente="@(h.User?.NombreCompleto ?? "Paciente") (@(h.User?.Email ?? ""))"
                                                         data-fecha="@h.Fecha.ToString("yyyy-MM-dd")" 
                                                         data-diagnostico="@h.Diagnostico" 
                                                         data-tratamiento="@h.Tratamiento"
@@ -356,16 +357,12 @@
 
                     <form asp-controller="Optometra" asp-action="EditHistorial" method="post" style="display:flex; flex-direction:column; gap:1rem;">
                         <input type="hidden" name="Id" id="edit-historial-id" />
+                        <input type="hidden" name="UserId" id="edit-historial-userid" />
                         
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Paciente</label>
-                                <select name="UserId" id="edit-historial-userid" style="padding: 0.5rem; border: 1px solid var(--purple-200); border-radius: 0.375rem;" required>
-                                    @foreach (var cli in Model.Pacientes)
-                                    {
-                                        <option value="@cli.Id">@cli.NombreCompleto</option>
-                                    }
-                                </select>
+                                <input type="text" id="edit-historial-paciente-nombre" readonly style="padding: 0.55rem 0.75rem; border: 1px solid var(--purple-200); border-radius: 0.375rem; background-color: var(--purple-50); color: var(--purple-950); font-weight: 600; font-size: 0.9rem; outline: none; cursor: not-allowed;" />
                             </div>
                             <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                 <label style="font-size: 0.85rem; font-weight: 600; color: var(--gray-700);">Fecha de Consulta</label>
