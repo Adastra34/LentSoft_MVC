@@ -82,22 +82,90 @@
         </section>
     }
 
-    <!-- ==================== TECNOLOGÍA INNOVADORA ==================== -->
-    <section style="padding: 3.5rem 0; background: white;">
-        <div class="container" style="text-align: center; max-width: 800px;">
-            <span style="display: inline-block; background: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; margin-bottom: 1rem;" data-i18n="home.tech.badge">TECNOLOGÍA INNOVADORA</span>
-            <h2 style="color: var(--purple-900); margin-bottom: 1rem; font-size: 1.75rem;" data-i18n="home.tech.title">Previsualización de Marcos con Realidad Aumentada</h2>
-            <p style="color: var(--gray-500); font-size: 1rem; line-height: 1.7; margin-bottom: 1.5rem;" data-i18n="home.tech.desc">
-                Utiliza nuestra tecnología de realidad aumentada para probarte monturas desde la comodidad de tu hogar. 
-                Sube tu foto o activa tu cámara y visualiza cómo lucen nuestros marcos en tu rostro antes de comprar.
-            </p>
-            <div style="background: linear-gradient(135deg, var(--purple-50), var(--purple-100)); border-radius: 1rem; padding: 3rem; display: flex; align-items: center; justify-content: center; gap: 1rem; flex-direction: column;">
-                <span style="font-size: 4rem; color: var(--purple-600); display: inline-flex;"><icon name="camera" /></span>
-                <p style="color: var(--purple-700); font-weight: 600; margin: 0;" data-i18n="home.tech.soon">Prueba virtual disponible próximamente</p>
-                <span style="color: var(--gray-400); font-size: 0.85rem;" data-i18n="home.tech.camera">Activa tu cámara para probarte monturas al instante</span>
+    <!-- ==================== TECNOLOGÍA INNOVADORA (MINI PRUEBA AR EN VIVO) ==================== -->
+    @{
+        var demoFrame = ViewBag.HomeFeaturedFrame as LentSoft.Web.Models.Entities.Product;
+        var demoModel = ViewBag.HomeFeaturedModel as LentSoft.Web.Models.FrameModels.FrameModelEntry;
+        var demoSrc = !string.IsNullOrWhiteSpace(demoModel?.ModelPath)
+            ? demoModel.ModelPath
+            : (!string.IsNullOrWhiteSpace(demoFrame?.ImagenOverlayUrl) ? demoFrame.ImagenOverlayUrl : (demoFrame?.ImagenUrl ?? ""));
+        var demoType = !string.IsNullOrWhiteSpace(demoModel?.ModelPath) ? demoModel.ModelType : "png";
+        var demoFallback = !string.IsNullOrWhiteSpace(demoFrame?.ImagenOverlayUrl) ? demoFrame.ImagenOverlayUrl : (demoFrame?.ImagenUrl ?? "");
+    }
+    <section id="homeTryOnSection" style="padding: 3.5rem 0; background: white;">
+        <div class="container" style="max-width: 1120px;">
+            <div style="text-align: center; margin-bottom: 2rem;">
+                <span style="display: inline-block; background: var(--purple-100); color: var(--purple-700); padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.75rem;" data-i18n="home.tech.badge">TECNOLOGÍA INNOVADORA</span>
+                <h2 style="color: var(--purple-900); margin: 0; font-size: 1.85rem;" data-i18n="home.tech.title">Previsualización de Marcos con Realidad Aumentada</h2>
+            </div>
+
+            <div class="home-tryon-grid" style="display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 2.5rem; align-items: center;">
+                <!-- Columna izquierda: Mini visor en vivo -->
+                <div style="background: var(--purple-900); border-radius: 1.25rem; height: 340px; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: var(--shadow-lg); border: 2px solid var(--purple-700);">
+                    <div id="homeTryOnPlaceholder" style="text-align: center; color: white; padding: 2rem; display: flex; flex-direction: column; align-items: center; gap: 1rem; z-index: 2;">
+                        <span style="font-size: 3.5rem; color: var(--purple-200); display: inline-flex;"><icon name="camera" /></span>
+                        <div>
+                            <p style="font-weight: 700; font-size: 1.1rem; margin: 0 0 0.25rem 0;">Prueba en vivo ahora mismo</p>
+                            <p style="font-size: 0.85rem; color: var(--purple-200); max-width: 280px; margin: 0;">
+                                @(demoFrame != null ? $"Montura de muestra: {demoFrame.Nombre}" : "Activa tu cámara para probarte una montura al instante.")
+                            </p>
+                        </div>
+                        <button type="button" id="homeTryOnStartBtn"
+                                style="background: white; color: var(--purple-900); border: none; border-radius: 0.75rem; padding: 0.75rem 1.5rem; font-weight: 700; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                            Activar cámara
+                        </button>
+                    </div>
+
+                    <video id="homeTryOnVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; display: none; transform: scaleX(-1);"></video>
+                    <canvas id="homeTryOnCanvas" style="position: absolute; inset: 0; width: 100%; height: 100%; display: none; pointer-events: none; transform: scaleX(-1);"></canvas>
+
+                    <span id="homeTryOnStatus" role="status" aria-live="polite"
+                          style="position: absolute; top: 0.85rem; left: 0.85rem; color: white; padding: 0.35rem 0.85rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 700; display: none; z-index: 4;"></span>
+
+                    <button type="button" id="homeTryOnStopBtn"
+                            style="position: absolute; bottom: 0.85rem; right: 0.85rem; background: rgba(239, 68, 68, 0.9); color: white; border: none; border-radius: 0.5rem; padding: 0.45rem 0.9rem; font-size: 0.8rem; font-weight: 700; cursor: pointer; display: none; z-index: 4;">
+                        Apagar cámara
+                    </button>
+
+                    <div id="homeTryOnError" style="position: absolute; inset: 0; background: rgba(25, 10, 45, 0.96); display: none; align-items: center; justify-content: center; flex-direction: column; padding: 1.75rem; text-align: center; color: white; z-index: 5;">
+                        <p id="homeTryOnErrorMsg" style="font-size: 0.9rem; color: var(--purple-100); margin: 0 0 1rem 0; max-width: 300px; line-height: 1.5;"></p>
+                        <button type="button" id="homeTryOnRetryBtn" style="background: var(--purple-600); color: white; border: none; border-radius: 0.5rem; padding: 0.55rem 1.2rem; font-weight: 700; font-size: 0.85rem; cursor: pointer;">
+                            Reintentar
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Columna derecha: Texto explicativo + CTA hacia MuestraMontura -->
+                <div style="display: flex; flex-direction: column; gap: 1.25rem; text-align: left;">
+                    <h3 style="color: var(--purple-900); font-size: 1.4rem; font-weight: 800; margin: 0;">
+                        ¿Cómo luce esta montura en tu rostro?
+                    </h3>
+                    <p style="color: var(--gray-600); font-size: 1rem; line-height: 1.7; margin: 0;" data-i18n="home.tech.desc">
+                        Utiliza nuestra tecnología de realidad aumentada para probarte monturas desde la comodidad de tu hogar.
+                        Activa tu cámara con un clic, ajusta tu rostro frente al visor y descubre cómo se adaptan nuestros diseños antes de comprar.
+                    </p>
+                    <div style="display: flex; flex-wrap: wrap; gap: 0.85rem; margin-top: 0.25rem;">
+                        <a asp-controller="Product" asp-action="MuestraMontura" asp-route-id="@(demoFrame?.Id)"
+                           style="display: inline-flex; align-items: center; gap: 0.5rem; background: linear-gradient(135deg, var(--purple-600), var(--purple-800)); color: white; padding: 0.85rem 1.6rem; border-radius: 0.75rem; font-weight: 700; font-size: 0.95rem; text-decoration: none; box-shadow: 0 6px 16px rgba(124, 58, 237, 0.3);">
+                            <icon name="glasses" /> Probar con las demás gafas
+                        </a>
+                        <a asp-controller="Product" asp-action="Tienda"
+                           style="display: inline-flex; align-items: center; gap: 0.5rem; background: white; color: var(--purple-700); border: 1.5px solid var(--purple-300); padding: 0.85rem 1.35rem; border-radius: 0.75rem; font-weight: 700; font-size: 0.95rem; text-decoration: none;">
+                            Ver catálogo
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
+
+    <style>
+        @@media (max-width: 860px) {
+            .home-tryon-grid {
+                grid-template-columns: 1fr !important;
+            }
+        }
+    </style>
 
     <!-- ==================== CATEGORÍAS POPULARES ==================== -->
     <section style="padding: 3.5rem 0; background-color: var(--gray-50);">
@@ -277,3 +345,24 @@
     </section>
 
 </main>
+
+@section Scripts {
+    <script>
+        window.HOME_TRYON_DATA = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new {
+            frameSrc = demoSrc,
+            frameType = demoType,
+            fallbackSrc = demoFallback,
+            config = new {
+                escala = (double)(demoFrame?.EscalaOverlay ?? 2.30m),
+                offsetX = demoModel != null ? demoModel.OffsetX : (double)(demoFrame?.OffsetXOverlay ?? 0.00m),
+                offsetY = demoModel != null ? demoModel.OffsetY : (double)(demoFrame?.OffsetYOverlay ?? 0.12m),
+                offsetZ = demoModel?.OffsetZ ?? 0.0,
+                rotationX = demoModel?.RotationX ?? 0.0,
+                rotationY = demoModel?.RotationY ?? 0.0,
+                rotationZ = demoModel?.RotationZ ?? 0.0,
+                scale3d = demoModel?.Scale ?? 1.0
+            }
+        }));
+    </script>
+    <script src="~/js/ar/home-tryon.js" asp-append-version="true"></script>
+}

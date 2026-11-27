@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using LentSoft.Web.Data;
 using LentSoft.Web.Services;
+using LentSoft.Web.Services.FrameModels;
 using LentSoft.Web.Services.Reviews;
 using System.IO.Compression;
 using Microsoft.AspNetCore.ResponseCompression;
@@ -112,6 +113,7 @@ builder.Services.AddScoped<IMobileJwtService, MobileJwtService>();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<ILoginAttemptService, LoginAttemptService>();
 builder.Services.AddSingleton<IReviewStore, JsonReviewStore>();
+builder.Services.AddSingleton<IFrameModelStore, JsonFrameModelStore>();
 
 // ── Authentication (Cookie-based for Web, JWT Bearer for Mobile API) ──
 var mobileJwtSettings = builder.Configuration.GetSection("MobileJwt");
