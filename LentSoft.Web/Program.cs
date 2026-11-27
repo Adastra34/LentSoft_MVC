@@ -196,7 +196,11 @@ builder.Services.AddRateLimiter(options =>
 });
 
 // ── MVC ──
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+    });
 
 // â”€â”€ Response Compression â”€â”€
 builder.Services.AddResponseCompression(options =>
@@ -302,6 +306,8 @@ if (app.Environment.IsDevelopment() || app.Configuration.GetValue<bool>("AutoMig
             try { db.Database.ExecuteSqlRaw("ALTER TABLE SalesOrders ADD COLUMN ProductId INTEGER NULL;"); } catch { }
             try { db.Database.ExecuteSqlRaw("ALTER TABLE SalesOrders ADD COLUMN FormulaOpticaId INTEGER NULL;"); } catch { }
             try { db.Database.ExecuteSqlRaw("CREATE TABLE IF NOT EXISTS Pqrs (Id INTEGER PRIMARY KEY AUTOINCREMENT, Tipo TEXT NOT NULL, Asunto TEXT NOT NULL, Mensaje TEXT NOT NULL, Estado TEXT NOT NULL, FechaCreacion TEXT NOT NULL, RespuestaAdmin TEXT NULL, FechaRespuesta TEXT NULL, UserId INTEGER NOT NULL, Radicado TEXT NULL);"); } catch { }
+            try { db.Database.ExecuteSqlRaw("CREATE TABLE IF NOT EXISTS ProductImages (Id INTEGER PRIMARY KEY AUTOINCREMENT, ProductId INTEGER NOT NULL, ImagenUrl TEXT NOT NULL, Orden INTEGER NOT NULL DEFAULT 0, FechaCreacion TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP, CONSTRAINT FK_ProductImages_Products_ProductId FOREIGN KEY (ProductId) REFERENCES Products (Id) ON DELETE CASCADE);"); } catch { }
+            try { db.Database.ExecuteSqlRaw("CREATE INDEX IF NOT EXISTS IX_ProductImages_ProductId ON ProductImages (ProductId);"); } catch { }
         }
         else
         {

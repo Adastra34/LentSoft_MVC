@@ -3775,6 +3775,25 @@ BEGIN
     VALUES (N'20261106201151_AddFormulaOpticaToSalesOrder', N'9.0.7');
 END;
 
+IF NOT EXISTS (
+    SELECT * FROM [__EFMigrationsHistory]
+    WHERE [MigrationId] = N'20261127205315_AddProductImages'
+)
+BEGIN
+    CREATE TABLE [ProductImages] (
+        [Id] int NOT NULL IDENTITY,
+        [ProductId] int NOT NULL,
+        [ImagenUrl] nvarchar(500) NOT NULL,
+        [Orden] int NOT NULL DEFAULT 0,
+        [FechaCreacion] datetime2 NOT NULL DEFAULT (GETUTCDATE()),
+        CONSTRAINT [PK_ProductImages] PRIMARY KEY ([Id]),
+        CONSTRAINT [FK_ProductImages_Products_ProductId] FOREIGN KEY ([ProductId]) REFERENCES [Products] ([Id]) ON DELETE CASCADE
+    );
+    CREATE INDEX [IX_ProductImages_ProductId] ON [ProductImages] ([ProductId]);
+    INSERT INTO [__EFMigrationsHistory] ([MigrationId], [ProductVersion])
+    VALUES (N'20261127205315_AddProductImages', N'9.0.7');
+END;
+
 COMMIT;
 GO
 

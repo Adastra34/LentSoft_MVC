@@ -112,6 +112,7 @@ public class VentasService : IVentasService
 
         var todosLosProductos = await _context.Products
             .AsNoTracking()
+            .Include(p => p.Imagenes)
             .Where(p => p.Activo)
             .OrderBy(p => p.Nombre)
             .ToListAsync();

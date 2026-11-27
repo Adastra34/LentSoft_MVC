@@ -720,6 +720,122 @@ function exportKardexTableExcel() {
     showToast('Kardex exportado exitosamente', 'success');
 }
 
+// ==================== GESTIÓN DE PRODUCTOS Y FOTOS ====================
+let selectedAdditionalFilesCrearVentas = [];
+let selectedAdditionalFilesEditarVentas = [];
+
+function previewAdditionalImages(input, previewContainerId) {
+    const container = document.getElementById(previewContainerId);
+    if (!container) return;
+    const isEdit = previewContainerId.includes('edit');
+    let currentList = isEdit ? selectedAdditionalFilesEditarVentas : selectedAdditionalFilesCrearVentas;
+
+    const files = Array.from(input.files || []);
+    const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    const validExts = ['.jpg', '.jpeg', '.png', '.webp'];
+
+    for (const file of files) {
+        const fileExt = '.' + file.name.split('.').pop().toLowerCase();
+        if (!validTypes.includes(file.type.toLowerCase()) && !validExts.includes(fileExt)) {
+            showToast(`Archivo "${file.name}" no permitido. Solo se aceptan JPG, PNG o WEBP.`, 'error');
+            continue;
+        }
+        if (file.size > 5 * 1024 * 1024) {
+            showToast(`Archivo "${file.name}" supera el tamaño máximo permitido de 5 MB.`, 'error');
+            continue;
+        }
+        currentList.push(file);
+    }
+
+    syncFileInputVentas(input, currentList);
+    renderAdditionalPreviewsVentas(currentList, container, input, isEdit);
+}
+
+function syncFileInputVentas(input, fileList) {
+    const dt = new DataTransfer();
+    fileList.forEach(f => dt.items.add(f));
+    input.files = dt.files;
+}
+
+function renderAdditionalPreviewsVentas(fileList, container, input, isEdit) {
+    container.innerHTML = '';
+    fileList.forEach((file, index) => {
+        const itemDiv = document.createElement('div');
+        itemDiv.style.cssText = 'position: relative; width: 64px; height: 64px; border: 1px solid var(--purple-200); border-radius: 0.375rem; overflow: hidden; background: white;';
+        
+        const img = document.createElement('img');
+        img.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+        const reader = new FileReader();
+        reader.onload = e => { img.src = e.target.result; };
+        reader.readAsDataURL(file);
+
+        const removeBtn = document.createElement('button');
+        removeBtn.type = 'button';
+        removeBtn.innerHTML = '&times;';
+        removeBtn.title = 'Quitar foto';
+        removeBtn.style.cssText = 'position: absolute; top: 2px; right: 2px; background: rgba(220,38,38,0.85); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 12px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;';
+        removeBtn.onclick = function() {
+            fileList.splice(index, 1);
+            syncFileInputVentas(input, fileList);
+            renderAdditionalPreviewsVentas(fileList, container, input, isEdit);
+        };
+
+        itemDiv.appendChild(img);
+        itemDiv.appendChild(removeBtn);
+        container.appendChild(itemDiv);
+    });
+}
+
+function renderExistingImagesVentas(images) {
+    const container = document.getElementById('editProductExistingImagesContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    if (!images || images.length === 0) return;
+
+    images.forEach(img => {
+        const itemDiv = document.createElement('div');
+        itemDiv.id = `saved-image-item-v-${img.id}`;
+        itemDiv.style.cssText = 'position: relative; width: 64px; height: 64px; border: 1px solid var(--purple-300); border-radius: 0.375rem; overflow: hidden; background: white;';
+
+        const imgEl = document.createElement('img');
+        imgEl.src = img.imagenUrl;
+        imgEl.style.cssText = 'width: 100%; height: 100%; object-fit: cover;';
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.innerHTML = '&times;';
+        deleteBtn.title = 'Eliminar foto adicional';
+        deleteBtn.style.cssText = 'position: absolute; top: 2px; right: 2px; background: var(--error, #ef4444); color: white; border: none; border-radius: 50%; width: 18px; height: 18px; font-size: 12px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; padding: 0;';
+        deleteBtn.onclick = async function() {
+            if (!confirm('¿Estás seguro de que deseas eliminar esta foto adicional?')) return;
+            try {
+                const token = document.querySelector('#form-editar-producto input[name="__RequestVerificationToken"]')?.value || '';
+                const formData = new FormData();
+                formData.append('id', img.id);
+                formData.append('__RequestVerificationToken', token);
+
+                const res = await fetch('/Ventas/DeleteProductImage', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await res.json();
+                if (data.success) {
+                    showToast(data.message || 'Foto eliminada exitosamente.', 'success');
+                    itemDiv.remove();
+                } else {
+                    showToast(data.message || 'Error al eliminar la foto.', 'error');
+                }
+            } catch (err) {
+                showToast('Error de red al intentar eliminar la foto.', 'error');
+            }
+        };
+
+        itemDiv.appendChild(imgEl);
+        itemDiv.appendChild(deleteBtn);
+        container.appendChild(itemDiv);
+    });
+}
+
 function previewProductImage(input, previewImgId, containerId, infoId) {
     const file = input.files && input.files[0];
     const previewImg = document.getElementById(previewImgId);
@@ -773,7 +889,7 @@ function clearProductImagePreview(inputId, previewImgId, containerId, infoId, fa
     }
 }
 
-function openEditProductModal(id, nombre, descripcion, precio, precioDescuento, categoria, marca, stock, activo, imagenUrl, sku, costoCompra, stockMinimo, ubicacion, supplierId, rowVersion) {
+function openEditProductModal(id, nombre, descripcion, precio, precioDescuento, categoria, marca, stock, activo, imagenUrl, sku, costoCompra, stockMinimo, ubicacion, supplierId, rowVersion, material, color, proteccion, estilo, tamanio, imagenes) {
     document.getElementById('editProductId').value = id;
     document.getElementById('editProductNombre').value = nombre || '';
     document.getElementById('editProductDescripcion').value = descripcion || '';
@@ -792,8 +908,22 @@ function openEditProductModal(id, nombre, descripcion, precio, precioDescuento, 
     if (document.getElementById('editProductSupplierId')) document.getElementById('editProductSupplierId').value = supplierId || '';
     if (document.getElementById('editProductRowVersion')) document.getElementById('editProductRowVersion').value = rowVersion || '';
 
+    if (document.getElementById('editProductMaterial')) document.getElementById('editProductMaterial').value = material || '';
+    if (document.getElementById('editProductColor')) document.getElementById('editProductColor').value = color || '';
+    if (document.getElementById('editProductProteccion')) document.getElementById('editProductProteccion').value = proteccion || '';
+    if (document.getElementById('editProductEstilo')) document.getElementById('editProductEstilo').value = estilo || '';
+    if (document.getElementById('editProductTamanio')) document.getElementById('editProductTamanio').value = tamanio || '';
+
     const fileInput = document.getElementById('editProductImagenArchivo');
     if (fileInput) fileInput.value = '';
+
+    // Reset additional images input and list
+    selectedAdditionalFilesEditarVentas = [];
+    const addInput = document.getElementById('editProductImagenesAdicionales');
+    if (addInput) addInput.value = '';
+    const addPreviews = document.getElementById('editAdditionalPreviews');
+    if (addPreviews) addPreviews.innerHTML = '';
+    renderExistingImagesVentas(imagenes || []);
 
     const previewContainer = document.getElementById('editProductPreviewContainer');
     const previewImg = document.getElementById('preview-editar-producto');
@@ -1670,7 +1800,9 @@ document.addEventListener('click', function (e) {
             rec.precioDescuento, rec.categoria, rec.marca,
             rec.stock, rec.activo, rec.imagenUrl,
             rec.sku, rec.costoCompra, rec.stockMinimo,
-            rec.ubicacion, rec.supplierId, rec.rowVersion
+            rec.ubicacion, rec.supplierId, rec.rowVersion,
+            rec.material, rec.color, rec.proteccion, rec.estilo, rec.tamanio,
+            rec.imagenes
         );
     } else if (btn.classList.contains('btn-edit-sales-order')) {
         openEditSalesOrderModal(
