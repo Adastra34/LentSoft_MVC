@@ -7,4 +7,5 @@ public class ProductDetailsViewModel
     public Product Product { get; set; } = null!;
     public bool IsFavorite { get; set; }
     public bool IsAuthenticated { get; set; }
+    public ProductReviewsViewModel Reviews { get; set; } = new();
 }

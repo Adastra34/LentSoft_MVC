@@ -6,6 +6,7 @@ using LentSoft.Web.Data;
 using LentSoft.Web.Models.Entities;
 using LentSoft.Web.Models.ViewModels;
 using LentSoft.Web.Services;
+using LentSoft.Web.Services.Reviews;
 
 namespace LentSoft.Web.Controllers;
 
@@ -22,6 +23,7 @@ public class DashboardController : Controller
     private readonly ILogger<DashboardController> _logger;
     private readonly LentSoftDbContext _context;
     private readonly InventorySettings _inventorySettings;
+    private readonly IReviewStore? _reviewStore;
 
     public DashboardController(
         IDashboardService dashboardService,
@@ -33,7 +35,8 @@ public class DashboardController : Controller
         IInventoryService inventoryService,
         ILogger<DashboardController> logger,
         LentSoftDbContext context,
-        Microsoft.Extensions.Options.IOptions<InventorySettings> inventoryOptions)
+        Microsoft.Extensions.Options.IOptions<InventorySettings> inventoryOptions,
+        IReviewStore? reviewStore = null)
     {
         _dashboardService = dashboardService;
         _productService = productService;
@@ -45,6 +48,7 @@ public class DashboardController : Controller
         _logger = logger;
         _context = context;
         _inventorySettings = inventoryOptions?.Value ?? new InventorySettings();
+        _reviewStore = reviewStore;
     }
 
     /// <summary>
@@ -71,6 +75,15 @@ public class DashboardController : Controller
 
         // Ventas y Facturas: reutilizar exactamente el mismo modelo/vistas del Portal de Ventas
         var section = (filter.Section ?? "general").ToLowerInvariant();
+        if (section == "inventario" && _reviewStore != null)
+        {
+            ViewBag.AllReviews = await _reviewStore.GetAllAsync();
+            ViewBag.ReviewProducts = await _context.Products.AsNoTracking()
+                .OrderBy(p => p.Nombre)
+                .Select(p => new { p.Id, p.Nombre })
+                .ToListAsync();
+        }
+
         if (section == "ventas" || section == "facturas")
         {
             var ventasService = HttpContext.RequestServices.GetRequiredService<IVentasService>();

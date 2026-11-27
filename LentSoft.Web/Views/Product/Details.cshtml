@@ -4,9 +4,12 @@
     var isAuthenticated = Model.IsAuthenticated;
     var isFavorite = Model.IsFavorite;
 
-    // Rating calculations
-    var fullStars = (int)Math.Floor(Model.Product.Rating);
-    var hasHalf = (Model.Product.Rating - fullStars) >= 0.5m;
+    // Rating calculations (desde reseñas reales JSON con respaldo en propiedades del producto)
+    var totalReviews = Model.Reviews.Summary.TotalReviews;
+    var avgRating = totalReviews > 0 ? (decimal)Model.Reviews.Summary.AverageRating : Model.Product.Rating;
+    var displayCount = totalReviews > 0 ? totalReviews : Model.Product.ReviewCount;
+    var fullStars = (int)Math.Floor(avgRating);
+    var hasHalf = (avgRating - fullStars) >= 0.5m;
     var emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
 }
 
@@ -73,17 +76,18 @@
                 </div>
 
                 <!-- Rating -->
-                <div style="display: flex; align-items: center; gap: 0.5rem;">
-                    <div class="rating-stars" role="img" aria-label="@($"{Math.Round(Model.Product.Rating, 1)} de 5 estrellas")" style="font-size: 1.15rem;">
+                <div id="productRatingSummaryHeader" style="display: flex; align-items: center; gap: 0.5rem;">
+                    <div class="rating-stars" role="img" aria-label="@($"{Math.Round(avgRating, 1)} de 5 estrellas")" style="font-size: 1.15rem;">
                         @for (int i = 1; i <= 5; i++)
                         {
                             var isFilled = i <= fullStars || (i == fullStars + 1 && hasHalf);
                             <icon name="star" class="@(isFilled ? "icon-fill" : "")" />
                         }
                     </div>
-                    <span style="color: var(--gray-600); font-size: 0.9rem; font-weight: 500;">
-                        (@Model.Product.ReviewCount <span data-i18n="product.reviews">reseñas</span>)
-                    </span>
+                    <strong class="js-header-avg" style="color: var(--purple-900); font-size: 0.95rem;">@Math.Round(avgRating, 1).ToString("0.0")</strong>
+                    <a href="#reseñas" style="color: var(--gray-600); font-size: 0.9rem; font-weight: 500; text-decoration: none;">
+                        (<span class="js-header-count">@displayCount</span> <span data-i18n="product.reviews">reseñas</span>)
+                    </a>
                 </div>
 
                 <!-- Price Box -->
@@ -233,10 +237,16 @@
 
         </div>
 
+        <!-- Sección de Reseñas de Clientes -->
+        <div id="productReviewsContainer">
+            <partial name="_ProductReviews" model="Model.Reviews" />
+        </div>
+
     </div>
 </main>
 
 @section Scripts {
+    <script src="~/js/product-reviews.js" asp-append-version="true"></script>
     <script>
         // Change image in thumbnail carousel
         function changeImage(imgUrl, buttonEl) {

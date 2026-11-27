@@ -31,3 +31,7 @@ secrets.json
 !.env.example
 TestResults/
 publish/
+
+# App_Data (JSON stores)
+App_Data/
+LentSoft.Web/App_Data/
