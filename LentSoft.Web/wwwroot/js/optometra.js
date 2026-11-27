@@ -300,6 +300,8 @@
     function abrirModalEditarCita(btn) {
         document.getElementById('edit-cita-id').value = btn.getAttribute('data-id');
         document.getElementById('edit-cita-userid').value = btn.getAttribute('data-userid');
+        const elPacCita = document.getElementById('edit-cita-paciente-nombre');
+        if (elPacCita) elPacCita.value = btn.getAttribute('data-paciente') || '';
         const elSrvOpto = document.getElementById('edit-cita-servicio');
         const srvValOpto = btn.getAttribute('data-servicio') || '';
         if (elSrvOpto) {
@@ -320,6 +322,8 @@
     function abrirModalEditarHistorial(btn) {
         document.getElementById('edit-historial-id').value = btn.getAttribute('data-id');
         document.getElementById('edit-historial-userid').value = btn.getAttribute('data-userid');
+        const elPacHist = document.getElementById('edit-historial-paciente-nombre');
+        if (elPacHist) elPacHist.value = btn.getAttribute('data-paciente') || '';
         document.getElementById('edit-historial-fecha').value = btn.getAttribute('data-fecha');
         document.getElementById('edit-historial-diagnostico').value = btn.getAttribute('data-diagnostico');
         document.getElementById('edit-historial-tratamiento').value = btn.getAttribute('data-tratamiento');
@@ -371,7 +375,9 @@
         document.getElementById('edit-examen-id').value = btn.getAttribute('data-id');
         const userId = btn.getAttribute('data-userid');
         const pacienteNombre = btn.getAttribute('data-paciente') || '';
-        seleccionarPacienteModal('edit-examen', userId, pacienteNombre, '');
+        document.getElementById('edit-examen-userid').value = userId;
+        const elPacEx = document.getElementById('edit-examen-paciente-nombre');
+        if (elPacEx) elPacEx.value = pacienteNombre;
         document.getElementById('edit-examen-fecha').value = btn.getAttribute('data-fecha');
         document.getElementById('edit-examen-tipoexamen').value = btn.getAttribute('data-tipoexamen');
         document.getElementById('edit-examen-ojoderecho').value = btn.getAttribute('data-ojoderecho');
@@ -549,12 +555,10 @@
         const hiddenUserId = document.getElementById('edit-examen-userid');
         if (!hiddenUserId || !hiddenUserId.value) {
             if (typeof alertify !== 'undefined') {
-                alertify.error('Por favor busque y seleccione un paciente.');
+                alertify.error('Paciente no asignado.');
             } else {
-                alert('Por favor busque y seleccione un paciente.');
+                alert('Paciente no asignado.');
             }
-            const input = document.getElementById('search-edit-examen-paciente');
-            if (input) input.focus();
             return false;
         }
         const res = document.getElementById('edit-examen-resultado');
@@ -584,12 +588,10 @@
         const hiddenUserId = document.getElementById('edit-formula-userid');
         if (!hiddenUserId || !hiddenUserId.value) {
             if (typeof alertify !== 'undefined') {
-                alertify.error('Por favor busque y seleccione un paciente.');
+                alertify.error('Paciente no asignado.');
             } else {
-                alert('Por favor busque y seleccione un paciente.');
+                alert('Paciente no asignado.');
             }
-            const input = document.getElementById('search-edit-formula-paciente');
-            if (input) input.focus();
             return false;
         }
         return true;
@@ -671,8 +673,9 @@
         document.getElementById('edit-formula-id').value = btn.getAttribute('data-id');
         const userId = btn.getAttribute('data-userid');
         const pacienteNombre = btn.getAttribute('data-paciente') || '';
-        const pacienteDoc = btn.getAttribute('data-documento') || '';
-        seleccionarPacienteModal('edit-formula', userId, pacienteNombre, pacienteDoc);
+        document.getElementById('edit-formula-userid').value = userId;
+        const elPacFor = document.getElementById('edit-formula-paciente-nombre');
+        if (elPacFor) elPacFor.value = pacienteNombre;
         document.getElementById('edit-formula-fecha').value = btn.getAttribute('data-fecha');
         document.getElementById('edit-formula-esferaod').value = btn.getAttribute('data-esferaod');
         document.getElementById('edit-formula-cilindrood').value = btn.getAttribute('data-cilindrood');
