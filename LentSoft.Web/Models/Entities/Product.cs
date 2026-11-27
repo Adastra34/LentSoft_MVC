@@ -85,6 +85,8 @@ public class Product : IValidatableObject
     [StringLength(100)]
     public string? Tamanio { get; set; }
 
+    public ICollection<ProductImage> Imagenes { get; set; } = new List<ProductImage>();
+
     [StringLength(255)]
     public string? ImagenOverlayUrl { get; set; }
 

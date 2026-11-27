@@ -90,6 +90,35 @@
                 <textarea name="Descripcion" class="inv-form-input" rows="2" placeholder="Detalles o especificaciones del producto..."></textarea>
             </div>
 
+            <!-- Sección Detalles de la Montura -->
+            <div>
+                <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--purple-900); margin: 0.5rem 0 0.5rem 0;">Detalles de la Montura</h4>
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Material</label>
+                        <input name="Material" type="text" class="inv-form-input" placeholder="Ej: Acetato, Metal, Titanio" />
+                    </div>
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Color</label>
+                        <input name="Color" type="text" class="inv-form-input" placeholder="Ej: Negro, Caret, Dorado" />
+                    </div>
+                </div>
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Protección</label>
+                        <input name="Proteccion" type="text" class="inv-form-input" placeholder="Ej: UV400, Polarizado, Filtro Azul" />
+                    </div>
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Estilo</label>
+                        <input name="Estilo" type="text" class="inv-form-input" placeholder="Ej: Aviador, Wayfarer, Redondo" />
+                    </div>
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Tamaño (montura)</label>
+                    <input name="Tamanio" type="text" class="inv-form-input" placeholder="Ej: 58-14-135" />
+                </div>
+            </div>
+
             <!-- Campo de Subida de Imagen con Vista Previa -->
             <div style="background: var(--purple-50); border: 1.5px dashed var(--purple-300); border-radius: 0.5rem; padding: 1rem;">
                 <label class="inv-form-label" style="display: flex; align-items: center; gap: 0.4rem; color: var(--purple-900); margin-bottom: 0.25rem;">
@@ -108,6 +137,17 @@
                         <button type="button" onclick="clearProductImagePreview('crearProductImagenArchivo', 'preview-crear-producto', 'crearProductPreviewContainer', 'crearProductImageInfo')" style="background: none; border: none; color: var(--error); font-size: 0.75rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem;"><icon name="x" class="icon-sm" /> Quitar</button>
                     </div>
                     <img id="preview-crear-producto" src="" alt="Vista previa" style="max-height: 160px; max-width: 100%; object-fit: contain; border-radius: 0.375rem; border: 1px solid var(--gray-200);" />
+                </div>
+
+                <!-- Fotos adicionales -->
+                <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed var(--purple-200);">
+                    <label class="inv-form-label" style="display: flex; align-items: center; gap: 0.4rem; color: var(--purple-900); margin-bottom: 0.25rem;">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        Fotos adicionales
+                    </label>
+                    <p style="font-size: 0.75rem; color: var(--gray-500); margin: 0 0 0.5rem 0;">Formatos admitidos: .jpg, .jpeg, .png, .webp (máx. 5 MB c/u)</p>
+                    <input id="crearProductImagenesAdicionales" name="ImagenesAdicionales" type="file" multiple accept=".jpg,.jpeg,.png,.webp,image/png,image/jpeg,image/webp" class="inv-form-input" onchange="previewAdditionalImages(this, 'crearAdditionalPreviews')" />
+                    <div id="crearAdditionalPreviews" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;"></div>
                 </div>
             </div>
 
@@ -215,6 +255,35 @@
                 <textarea id="editProductDescripcion" name="Descripcion" class="inv-form-input" rows="2"></textarea>
             </div>
 
+            <!-- Sección Detalles de la Montura -->
+            <div>
+                <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--purple-900); margin: 0.5rem 0 0.5rem 0;">Detalles de la Montura</h4>
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Material</label>
+                        <input id="editProductMaterial" name="Material" type="text" class="inv-form-input" placeholder="Ej: Acetato, Metal, Titanio" />
+                    </div>
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Color</label>
+                        <input id="editProductColor" name="Color" type="text" class="inv-form-input" placeholder="Ej: Negro, Caret, Dorado" />
+                    </div>
+                </div>
+                <div class="inv-form-row">
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Protección</label>
+                        <input id="editProductProteccion" name="Proteccion" type="text" class="inv-form-input" placeholder="Ej: UV400, Polarizado, Filtro Azul" />
+                    </div>
+                    <div class="inv-form-group">
+                        <label class="inv-form-label">Estilo</label>
+                        <input id="editProductEstilo" name="Estilo" type="text" class="inv-form-input" placeholder="Ej: Aviador, Wayfarer, Redondo" />
+                    </div>
+                </div>
+                <div class="inv-form-group">
+                    <label class="inv-form-label">Tamaño (montura)</label>
+                    <input id="editProductTamanio" name="Tamanio" type="text" class="inv-form-input" placeholder="Ej: 58-14-135" />
+                </div>
+            </div>
+
             <!-- Campo de Edición/Reemplazo de Imagen con Vista Previa -->
             <div style="background: var(--purple-50); border: 1.5px dashed var(--purple-300); border-radius: 0.5rem; padding: 1rem;">
                 <label class="inv-form-label" style="display: flex; align-items: center; gap: 0.4rem; color: var(--purple-900); margin-bottom: 0.25rem;">
@@ -233,6 +302,21 @@
                         <button type="button" onclick="clearProductImagePreview('editProductImagenArchivo', 'preview-editar-producto', 'editProductPreviewContainer', 'editProductImageInfo', document.getElementById('editProductExistingImagenUrl').value)" style="background: none; border: none; color: var(--purple-700); font-size: 0.75rem; font-weight: 600; cursor: pointer;">↺ Restaurar actual</button>
                     </div>
                     <img id="preview-editar-producto" src="" alt="Vista previa" style="max-height: 160px; max-width: 100%; object-fit: contain; border-radius: 0.375rem; border: 1px solid var(--gray-200);" />
+                </div>
+
+                <!-- Fotos adicionales -->
+                <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dashed var(--purple-200);">
+                    <label class="inv-form-label" style="display: flex; align-items: center; gap: 0.4rem; color: var(--purple-900); margin-bottom: 0.25rem;">
+                        <svg class="inv-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        Fotos adicionales
+                    </label>
+                    <p style="font-size: 0.75rem; color: var(--gray-500); margin: 0 0 0.5rem 0;">Formatos admitidos: .jpg, .jpeg, .png, .webp (máx. 5 MB c/u)</p>
+                    
+                    <!-- Contenedor de fotos adicionales ya guardadas -->
+                    <div id="editProductExistingImagesContainer" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;"></div>
+
+                    <input id="editProductImagenesAdicionales" name="ImagenesAdicionales" type="file" multiple accept=".jpg,.jpeg,.png,.webp,image/png,image/jpeg,image/webp" class="inv-form-input" onchange="previewAdditionalImages(this, 'editAdditionalPreviews')" />
+                    <div id="editAdditionalPreviews" style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;"></div>
                 </div>
             </div>
 
