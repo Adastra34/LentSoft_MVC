@@ -1,0 +1,290 @@
+@model LentSoft.Web.Models.ViewModels.FramePreviewAdminViewModel
+@using System.Text.Json
+@{
+    Layout = "_LayoutDashboard";
+    ViewData["Title"] = "Previsualización Marcos";
+}
+
+<div style="display: flex; min-height: 100vh; background-color: var(--purple-50);">
+    <!-- Sidebar -->
+    <aside style="width: 260px; background-color: var(--purple-900); color: white; padding: 1.5rem 1rem; flex-shrink: 0;">
+        <div style="padding: 0 0.5rem 1.5rem 0.5rem; border-bottom: 1px solid var(--purple-700); margin-bottom: 1.5rem;">
+            <h2 style="color: white; font-size: 1.25rem; margin: 0;" data-i18n="admin.portal">Admin Dashboard</h2>
+            <p style="color: var(--purple-200); font-size: 0.85rem; margin: 0.25rem 0 0 0;" data-i18n="admin.management">Gestión Integral LentSoft</p>
+        </div>
+
+        <nav style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <a href="/Dashboard/Admin?section=general" class="nav-item" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: var(--purple-200); background-color: transparent; font-weight: 500;">
+                <icon name="bar-chart-3" class="icon-sm" /> <span data-i18n="admin.nav.general">General</span>
+            </a>
+            <a href="/Dashboard/Admin?section=inventario&subtab=productos" class="nav-item" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: var(--purple-200); background-color: transparent; font-weight: 500;">
+                <icon name="package" class="icon-sm" /> <span data-i18n="admin.nav.inventory">Inventario</span>
+            </a>
+            <a asp-controller="FramePreviewAdmin" asp-action="Index" class="nav-item active" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: white; background-color: var(--purple-700); font-weight: 600; text-decoration: none;">
+                <icon name="glasses" class="icon-sm" /> <span>Previsualización Marcos</span>
+            </a>
+            <a href="/Dashboard/Admin?section=ventas" class="nav-item" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: var(--purple-200); background-color: transparent; font-weight: 500;">
+                <icon name="credit-card" class="icon-sm" /> <span data-i18n="admin.nav.sales">Ventas</span>
+            </a>
+            <a href="/Dashboard/Admin?section=citas" class="nav-item" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: var(--purple-200); background-color: transparent; font-weight: 500;">
+                <icon name="calendar-days" class="icon-sm" /> <span data-i18n="admin.nav.appointments">Citas Médicas</span>
+            </a>
+            <a href="/Dashboard/Admin?section=usuarios&subtab=clientes" class="nav-item" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: var(--purple-200); background-color: transparent; font-weight: 500;">
+                <icon name="users" class="icon-sm" /> <span data-i18n="admin.nav.users">Usuarios</span>
+            </a>
+            <a href="/Dashboard/Admin?section=facturas" class="nav-item" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: var(--purple-200); background-color: transparent; font-weight: 500;">
+                <icon name="receipt" class="icon-sm" /> <span data-i18n="admin.nav.invoices">Facturas</span>
+            </a>
+            <a asp-controller="Pqrs" asp-action="AdminIndex" class="nav-item" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: var(--purple-200); background-color: transparent; font-weight: 500; text-decoration: none;">
+                <icon name="file-text" class="icon-sm" /> <span>Gestión PQRS</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main style="flex: 1; padding: 2rem; overflow-y: auto;">
+        <!-- Barra Superior -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; border-bottom: 1px solid var(--purple-100); padding-bottom: 1rem;">
+            <a asp-controller="Home" asp-action="Index" style="background-color: var(--purple-600); color: white; padding: 0.5rem 1rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 0.4rem; text-decoration: none;">
+                <icon name="glasses" class="icon-sm" /> <span>Ir a la Tienda</span>
+            </a>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <span style="font-size: 0.9rem; color: var(--gray-600); font-weight: 500;">Hola, @(User.Identity?.Name ?? "Administrador")</span>
+                <form asp-controller="Auth" asp-action="Logout" method="post" style="margin: 0;">
+                    <button type="submit" class="btn" style="background-color: white; border: 1px solid var(--purple-300); color: var(--purple-700); padding: 0.4rem 0.8rem; border-radius: 0.375rem; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 0.35rem;">
+                        <icon name="log-out" class="icon-sm" /> <span>Cerrar Sesión</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1.5rem;">
+            <div>
+                <h1 style="color: var(--purple-900); margin: 0; font-size: 1.75rem;">Previsualización Marcos (3D / 2D)</h1>
+                <p style="color: var(--gray-600); margin: 0.25rem 0 0 0; font-size: 0.92rem;">
+                    Sube modelos 3D (.glb) o imágenes transparentes (.png), calibra su ajuste y pruébalos en vivo antes de publicarlos.
+                </p>
+            </div>
+            <a asp-controller="Product" asp-action="MuestraMontura" target="_blank" class="btn btn-outline" style="padding: 0.55rem 1.1rem; font-size: 0.88rem; text-decoration: none;">
+                Abrir vista del cliente ↗
+            </a>
+        </div>
+
+        <!-- Token Antiforgery para solicitudes AJAX -->
+        <form id="adminFrameCsrfForm" style="display: none;">
+            @Html.AntiForgeryToken()
+        </form>
+
+        <div class="admin-ar-layout" style="display: grid; grid-template-columns: minmax(300px, 380px) 1fr; gap: 1.5rem; align-items: start;">
+            <!-- Columna izquierda: Listado de gafas -->
+            <div class="card" style="background: white; padding: 1.25rem; border-radius: 1rem; border: 1px solid var(--purple-100);">
+                <div style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1rem;">
+                    <input type="text" id="frameAdminSearch" placeholder="Buscar montura por nombre..." class="form-input"
+                           style="width: 100%; padding: 0.55rem 0.85rem; border-radius: 0.5rem; border: 1px solid var(--purple-200); box-sizing: border-box;" />
+                    <select id="frameAdminFilter" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-200);">
+                        <option value="all">Todas las monturas (@Model.Items.Count)</option>
+                        <option value="glb">Con modelo 3D (.glb)</option>
+                        <option value="png">Solo imagen 2D (.png)</option>
+                        <option value="none">Sin modelo</option>
+                    </select>
+                </div>
+
+                <div id="frameAdminList" style="display: flex; flex-direction: column; gap: 0.65rem; max-height: 68vh; overflow-y: auto; padding-right: 0.25rem;">
+                    @foreach (var item in Model.Items)
+                    {
+                        var isFeatured = Model.FeaturedProductId == item.Product.Id;
+                        <button type="button"
+                                class="js-frame-item-btn"
+                                data-product-id="@item.Product.Id"
+                                data-status="@item.StatusCode"
+                                data-name="@item.Product.Nombre.ToLowerInvariant()"
+                                style="text-align: left; width: 100%; background: var(--purple-50); border: 1.5px solid var(--purple-200); border-radius: 0.75rem; padding: 0.75rem; cursor: pointer; display: flex; gap: 0.75rem; align-items: center; transition: all 0.15s;">
+                            <div style="width: 52px; height: 52px; border-radius: 0.5rem; background: white; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; border: 1px solid var(--purple-100);">
+                                @if (!string.IsNullOrWhiteSpace(item.Product.ImagenUrl))
+                                {
+                                    <img src="@item.Product.ImagenUrl" alt="@item.Product.Nombre" loading="lazy" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+                                }
+                                else
+                                {
+                                    <icon name="glasses" style="color: var(--purple-500);" />
+                                }
+                            </div>
+                            <div style="flex: 1; min-width: 0;">
+                                <div style="font-weight: 700; color: var(--purple-900); font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    @item.Product.Nombre
+                                </div>
+                                <div style="display: flex; gap: 0.4rem; align-items: center; flex-wrap: wrap; margin-top: 0.25rem;">
+                                    <span class="js-item-status-badge" style="font-size: 0.72rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 9999px; background: @(item.StatusCode == "glb" ? "#dcfce7" : (item.StatusCode == "png" ? "var(--purple-100)" : "#f3f4f6")); color: @(item.StatusCode == "glb" ? "#166534" : (item.StatusCode == "png" ? "var(--purple-700)" : "#4b5563"));">
+                                        @item.StatusLabel
+                                    </span>
+                                    @if (isFeatured)
+                                    {
+                                        <span class="js-featured-badge" style="font-size: 0.7rem; font-weight: 700; padding: 0.15rem 0.5rem; border-radius: 9999px; background: #fef3c7; color: #92400e;">★ Destacada inicio</span>
+                                    }
+                                </div>
+                                @if (item.ModelEntry != null)
+                                {
+                                    <div style="font-size: 0.7rem; color: var(--gray-500); margin-top: 0.2rem;">
+                                        Act: @item.ModelEntry.UpdatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")
+                                    </div>
+                                }
+                            </div>
+                        </button>
+                    }
+                </div>
+            </div>
+
+            <!-- Columna derecha: Panel de edición y visor -->
+            <div class="card" id="frameEditorPanel" style="background: white; padding: 1.5rem; border-radius: 1rem; border: 1px solid var(--purple-100);">
+                <div id="frameEditorEmpty" style="text-align: center; padding: 4rem 1rem; color: var(--gray-500);">
+                    <icon name="glasses" style="font-size: 3rem; color: var(--purple-300);" />
+                    <p style="font-weight: 600; color: var(--purple-900); margin: 0.75rem 0 0.25rem 0;">Selecciona una montura de la lista</p>
+                    <p style="font-size: 0.9rem; margin: 0;">Podrás subir un modelo 3D (.glb) o imagen (.png), calibrar su posición y probarlo en vivo.</p>
+                </div>
+
+                <div id="frameEditorContent" style="display: none;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.75rem; border-bottom: 1px solid var(--purple-100); padding-bottom: 1rem; margin-bottom: 1.25rem;">
+                        <div>
+                            <h2 id="editorProductName" style="margin: 0; color: var(--purple-900); font-size: 1.35rem;"></h2>
+                            <span id="editorProductStatus" style="font-size: 0.82rem; color: var(--gray-500);"></span>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button type="button" id="btnMarkFeatured" class="inv-btn inv-btn-secondary" style="padding: 0.45rem 0.9rem; font-size: 0.82rem;">
+                                ★ Marcar como destacada del inicio
+                            </button>
+                            <button type="button" id="btnDeleteModel" style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 0.5rem; padding: 0.45rem 0.9rem; font-size: 0.82rem; font-weight: 600; cursor: pointer;">
+                                Eliminar modelo
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Subida de archivo -->
+                    <div style="background: var(--purple-50); border: 1.5px dashed var(--purple-300); border-radius: 0.85rem; padding: 1rem 1.25rem; margin-bottom: 1.25rem;">
+                        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 0.75rem;">
+                            <div>
+                                <label for="modelFileInput" style="font-weight: 700; color: var(--purple-900); font-size: 0.9rem; display: block;">Subir o reemplazar modelo (.glb recomendado o .png)</label>
+                                <span style="font-size: 0.78rem; color: var(--gray-600);">Máx. 15 MB para .glb | 5 MB para .png transparente.</span>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                                <input type="file" id="modelFileInput" accept=".glb,.png" style="font-size: 0.85rem;" />
+                                <button type="button" id="btnUploadModel" class="inv-btn inv-btn-primary" style="padding: 0.5rem 1rem;">
+                                    Subir y validar
+                                </button>
+                            </div>
+                        </div>
+                        <div id="modelValidationStatus" style="margin-top: 0.75rem; font-size: 0.84rem; display: none;"></div>
+                    </div>
+
+                    <!-- Visor de Prueba (2 modos) -->
+                    <div style="margin-bottom: 1.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button type="button" id="tabViewer3D" class="inv-btn inv-btn-primary" style="padding: 0.45rem 1rem; font-size: 0.85rem;">
+                                    Vista 3D
+                                </button>
+                                <button type="button" id="tabViewerFace" class="inv-btn inv-btn-secondary" style="padding: 0.45rem 1rem; font-size: 0.85rem;">
+                                    Probar en rostro
+                                </button>
+                            </div>
+                            <button type="button" id="btnToggle3DBackground" style="background: white; border: 1px solid var(--purple-200); color: var(--purple-700); border-radius: 0.5rem; padding: 0.4rem 0.8rem; font-size: 0.8rem; font-weight: 600; cursor: pointer;">
+                                Fondo: Neutro / Transparente
+                            </button>
+                        </div>
+
+                        <!-- Contenedor Vista 3D -->
+                        <div id="viewer3DContainer" style="height: 320px; border-radius: 1rem; border: 1px solid var(--purple-200); background: #f5f3ff; position: relative; overflow: hidden;">
+                            <canvas id="admin3DCanvas" style="width: 100%; height: 100%; display: block;"></canvas>
+                            <div id="viewer3DInfo" style="position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: var(--gray-500); font-size: 0.9rem; pointer-events: none;"></div>
+                        </div>
+
+                        <!-- Contenedor Probar en Rostro -->
+                        <div id="viewerFaceContainer" style="display: none; height: 320px; border-radius: 1rem; border: 2px solid var(--purple-700); background: var(--purple-900); position: relative; overflow: hidden;">
+                            <video id="adminFaceVideo" autoplay playsinline muted style="width: 100%; height: 100%; object-fit: cover; transform: scaleX(-1);"></video>
+                            <canvas id="adminFaceCanvas" style="position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; transform: scaleX(-1);"></canvas>
+                            <span id="adminFaceState" style="position: absolute; top: 0.75rem; left: 0.75rem; background: rgba(88,28,135,0.9); color: white; padding: 0.3rem 0.75rem; border-radius: 9999px; font-size: 0.78rem; font-weight: 700;"></span>
+                            <button type="button" id="btnStopAdminFace" style="position: absolute; bottom: 0.75rem; right: 0.75rem; background: rgba(239,68,68,0.9); color: white; border: none; border-radius: 0.5rem; padding: 0.4rem 0.85rem; font-size: 0.8rem; font-weight: 700; cursor: pointer;">
+                                Apagar cámara
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Controles de calibración en vivo -->
+                    <div style="background: var(--gray-50); border: 1px solid var(--gray-200); border-radius: 0.85rem; padding: 1.25rem;">
+                        <h3 style="margin: 0 0 1rem 0; font-size: 1rem; color: var(--purple-900);">Ajustes en vivo</h3>
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 1rem;">
+                            @foreach (var ctrl in new[] {
+                                ("adjScale", "Escala", 0.1, 3.5, 0.05, 1.0),
+                                ("adjOffsetX", "Desplazamiento X", -1.0, 1.0, 0.02, 0.0),
+                                ("adjOffsetY", "Desplazamiento Y", -1.0, 1.0, 0.02, 0.0),
+                                ("adjOffsetZ", "Profundidad Z", -1.0, 1.0, 0.02, 0.0),
+                                ("adjRotX", "Rotación X (°)", -45.0, 45.0, 1.0, 0.0),
+                                ("adjRotY", "Rotación Y (°)", -45.0, 45.0, 1.0, 0.0),
+                                ("adjRotZ", "Rotación Z (°)", -45.0, 45.0, 1.0, 0.0)
+                            })
+                            {
+                                <div>
+                                    <div style="display: flex; justify-content: space-between; font-size: 0.8rem; font-weight: 600; color: var(--purple-900); margin-bottom: 0.25rem;">
+                                        <label for="@ctrl.Item1">@ctrl.Item2</label>
+                                        <input type="number" id="@(ctrl.Item1)Num" min="@ctrl.Item3" max="@ctrl.Item4" step="@ctrl.Item5" value="@ctrl.Item6"
+                                               style="width: 68px; text-align: right; border: 1px solid var(--purple-200); border-radius: 0.35rem; padding: 0.1rem 0.3rem; font-size: 0.78rem;" />
+                                    </div>
+                                    <input type="range" id="@ctrl.Item1" min="@ctrl.Item3" max="@ctrl.Item4" step="@ctrl.Item5" value="@ctrl.Item6"
+                                           style="width: 100%; accent-color: var(--purple-700);" />
+                                </div>
+                            }
+                        </div>
+
+                        <div style="display: flex; gap: 0.75rem; margin-top: 1.25rem; flex-wrap: wrap;">
+                            <button type="button" id="btnSaveAdjustments" class="inv-btn inv-btn-primary" style="padding: 0.6rem 1.25rem;">
+                                Guardar ajustes
+                            </button>
+                            <button type="button" id="btnResetAdjustments" class="inv-btn inv-btn-secondary" style="padding: 0.6rem 1.1rem;">
+                                Restablecer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+
+<style>
+    @@media (max-width: 960px) {
+        .admin-ar-layout {
+            grid-template-columns: 1fr !important;
+        }
+    }
+    .checkerboard-bg {
+        background-image: linear-gradient(45deg, #e5e7eb 25%, transparent 25%), linear-gradient(-45deg, #e5e7eb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e5e7eb 75%), linear-gradient(-45deg, transparent 75%, #e5e7eb 75%) !important;
+        background-size: 20px 20px !important;
+        background-position: 0 0, 0 10px, 10px -10px, -10px 0 !important;
+        background-color: white !important;
+    }
+</style>
+
+@section Scripts {
+    <script>
+        window.ADMIN_FRAME_MODELS = @Html.Raw(JsonSerializer.Serialize(new {
+            featuredProductId = Model.FeaturedProductId,
+            items = Model.Items.Select(i => new {
+                productId = i.Product.Id,
+                nombre = i.Product.Nombre,
+                imagenUrl = i.Product.ImagenUrl ?? "",
+                imagenOverlayUrl = i.Product.ImagenOverlayUrl ?? "",
+                statusLabel = i.StatusLabel,
+                statusCode = i.StatusCode,
+                modelPath = i.ModelEntry?.ModelPath ?? "",
+                modelType = i.ModelEntry?.ModelType ?? (!string.IsNullOrWhiteSpace(i.Product.ImagenOverlayUrl) ? "png" : ""),
+                scale = i.ModelEntry?.Scale ?? 1.0,
+                offsetX = i.ModelEntry?.OffsetX ?? 0.0,
+                offsetY = i.ModelEntry?.OffsetY ?? 0.0,
+                offsetZ = i.ModelEntry?.OffsetZ ?? 0.0,
+                rotationX = i.ModelEntry?.RotationX ?? 0.0,
+                rotationY = i.ModelEntry?.RotationY ?? 0.0,
+                rotationZ = i.ModelEntry?.RotationZ ?? 0.0
+            })
+        }));
+    </script>
+    <script type="module" src="~/js/ar/admin-frame-preview.js" asp-append-version="true"></script>
+}

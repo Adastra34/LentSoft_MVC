@@ -182,7 +182,10 @@
                 </div>
 
                 <!-- Muestra de Montura -->
-                @if (!string.IsNullOrWhiteSpace(Model.Product.ImagenOverlayUrl))
+                @{
+                    var hasCustomModel = (bool)(ViewBag.HasCustomFrameModel ?? false);
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.Product.ImagenOverlayUrl) || hasCustomModel)
                 {
                     <a asp-action="MuestraMontura" asp-route-id="@Model.Product.Id"
                        style="width: 100%; background: var(--purple-700); color: white; border: none; border-radius: 0.75rem; padding: 0.9rem; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem; transition: all 0.2s; box-shadow: 0 4px 12px rgba(147,51,234,0.3); text-align: center; text-decoration: none;"

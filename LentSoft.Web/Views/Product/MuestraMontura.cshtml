@@ -1,7 +1,9 @@
 @model LentSoft.Web.Models.ViewModels.MuestraMonturaViewModel
 @using System.Text.Json
+@using LentSoft.Web.Models.FrameModels
 @{
     ViewData["Title"] = "Catálogo y Vista de Marcos";
+    var frameModels = ViewBag.FrameModels as Dictionary<int, FrameModelEntry> ?? new Dictionary<int, FrameModelEntry>();
     var defaultProduct = Model.PreselectedProduct ?? Model.Gafas.FirstOrDefault();
     var defaultId = defaultProduct?.Id ?? 0;
 
@@ -53,7 +55,7 @@
                             </div>
                             <button type="button" id="startCameraBtn" onclick="startCamera()" style="background: white; color: var(--purple-900); border: none; border-radius: 0.75rem; padding: 0.7rem 1.5rem; font-weight: 700; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 10px rgba(0,0,0,0.15);"
                                     onmouseover="this.style.transform='scale(1.05)'; this.style.boxShadow='0 6px 14px rgba(0,0,0,0.2)';"
-                                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.15)';" data-i18n="montura.camera.start">
+                                    onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='0 4px 10px rgba(0,0,0,0.15)';">
                                 Activar Cámara 📸
                             </button>
                         </div>
@@ -272,32 +274,44 @@
 @section Scripts {
     <script>
         window.MONTURA_DATA = {
-            products: @Html.Raw(JsonSerializer.Serialize(allProductsList.Select(p => new {
-                id = p.Id,
-                nombre = p.Nombre,
-                color = p.Color ?? "Estándar",
-                estilo = p.Estilo ?? "No especificado",
-                tamanio = p.Tamanio ?? "No especificado",
-                precio = p.Precio,
-                precioDescuento = p.PrecioDescuento,
-                precioStr = p.PrecioDescuento.HasValue && p.PrecioDescuento < p.Precio 
-                    ? p.PrecioDescuento.Value.ToString("C") 
-                    : p.Precio.ToString("C"),
-                precioRegularStr = p.Precio.ToString("C"),
-                descuentoPorcentaje = p.GetDiscountPercentage(),
-                hasDiscount = p.PrecioDescuento.HasValue && p.PrecioDescuento < p.Precio,
-                descripcion = p.Descripcion ?? "Excelente diseño y materiales de alta calidad, seleccionados para garantizar tu bienestar visual.",
-                imagenUrl = p.ImagenUrl ?? "",
-                imagenOverlayUrl = p.ImagenOverlayUrl ?? "",
-                hasStock = p.HasStock(1),
-                escalaOverlay = p.EscalaOverlay,
-                offsetXOverlay = p.OffsetXOverlay,
-                offsetYOverlay = p.OffsetYOverlay
+            products: @Html.Raw(JsonSerializer.Serialize(allProductsList.Select(p => {
+                frameModels.TryGetValue(p.Id, out var fm);
+                var effectivePath = !string.IsNullOrWhiteSpace(fm?.ModelPath) ? fm.ModelPath : (p.ImagenOverlayUrl ?? "");
+                var effectiveType = !string.IsNullOrWhiteSpace(fm?.ModelPath) ? fm.ModelType : "png";
+                return new {
+                    id = p.Id,
+                    nombre = p.Nombre,
+                    color = p.Color ?? "Estándar",
+                    estilo = p.Estilo ?? "No especificado",
+                    tamanio = p.Tamanio ?? "No especificado",
+                    precio = p.Precio,
+                    precioDescuento = p.PrecioDescuento,
+                    precioStr = p.PrecioDescuento.HasValue && p.PrecioDescuento < p.Precio 
+                        ? p.PrecioDescuento.Value.ToString("C") 
+                        : p.Precio.ToString("C"),
+                    precioRegularStr = p.Precio.ToString("C"),
+                    descuentoPorcentaje = p.GetDiscountPercentage(),
+                    hasDiscount = p.PrecioDescuento.HasValue && p.PrecioDescuento < p.Precio,
+                    descripcion = p.Descripcion ?? "Excelente diseño y materiales de alta calidad, seleccionados para garantizar tu bienestar visual.",
+                    imagenUrl = p.ImagenUrl ?? "",
+                    imagenOverlayUrl = p.ImagenOverlayUrl ?? "",
+                    modelPath = effectivePath,
+                    modelType = effectiveType,
+                    hasStock = p.HasStock(1),
+                    escalaOverlay = p.EscalaOverlay,
+                    offsetXOverlay = fm != null ? (decimal)fm.OffsetX : p.OffsetXOverlay,
+                    offsetYOverlay = fm != null ? (decimal)fm.OffsetY : p.OffsetYOverlay,
+                    offsetZ = fm?.OffsetZ ?? 0.0,
+                    rotationX = fm?.RotationX ?? 0.0,
+                    rotationY = fm?.RotationY ?? 0.0,
+                    rotationZ = fm?.RotationZ ?? 0.0,
+                    scale3d = fm?.Scale ?? 1.0
+                };
             }))),
             defaultId: @defaultId,
             spriteUrl: '@Url.Content("~/img/icons/sprite.svg")'
         };
     </script>
     <script src="~/js/muestra-montura.js" asp-append-version="true"></script>
-    <script type="module" src="~/js/face-tracking.js"></script>
+    <script type="module" src="~/js/face-tracking.js" asp-append-version="true"></script>
 }
