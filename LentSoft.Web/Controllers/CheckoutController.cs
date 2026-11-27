@@ -66,6 +66,36 @@ public class CheckoutController : Controller
             return RedirectToAction("Index", "Cart");
         }
 
+        if (!string.IsNullOrWhiteSpace(model.NumeroTarjeta))
+        {
+            var numeroLimpio = LimpiarNumeroTarjeta(model.NumeroTarjeta);
+            if (numeroLimpio.Length < 13 || numeroLimpio.Length > 19 || !numeroLimpio.All(char.IsDigit) || !_pasarelaPagoService.ValidarAlgoritmoLuhn(numeroLimpio))
+            {
+                ModelState.AddModelError(nameof(model.NumeroTarjeta), "El número de tarjeta no es válido. Revisa que esté completo y escrito correctamente.");
+            }
+        }
+
+        if (!string.IsNullOrWhiteSpace(model.Expiracion) && EstaTarjetaVencida(model.Expiracion))
+        {
+            ModelState.AddModelError(nameof(model.Expiracion), "La tarjeta está vencida. Usa una tarjeta con fecha vigente.");
+        }
+
+        if (!ModelState.IsValid)
+        {
+            model.Cart = cart;
+            return View("Index", model);
+        }
+
+        foreach (var item in cart.CartItems)
+        {
+            if (item.Product == null || !item.Product.HasStock(item.Cantidad))
+            {
+                var nombre = item.Product?.Nombre ?? $"Producto #{item.ProductId}";
+                var disponible = item.Product?.Stock ?? 0;
+                ModelState.AddModelError("", $"No hay stock suficiente de {nombre}. Disponible: {disponible}.");
+            }
+        }
+
         if (!ModelState.IsValid)
         {
             model.Cart = cart;
@@ -82,15 +112,14 @@ public class CheckoutController : Controller
             FechaExpiracion = model.Expiracion,
             Cvv = model.Cvv,
             Monto = total,
-            Responsable = "Cliente (Checkout Web)"
+            Responsable = $"Cliente #{userId} (Checkout Web)"
         };
 
         var resultadoPasarela = await _pasarelaPagoService.ProcesarPagoTarjetaAsync(dto);
 
         if (!resultadoPasarela.Exitoso)
         {
-            ModelState.AddModelError("", $"Error en la pasarela de pago: {resultadoPasarela.Mensaje}");
-            TempData["ErrorMessage"] = $"Pago rechazado por la pasarela: {resultadoPasarela.Mensaje}";
+            ModelState.AddModelError("", TraducirMensajePasarela(resultadoPasarela.Mensaje));
             model.Cart = cart;
             return View("Index", model);
         }
@@ -99,8 +128,9 @@ public class CheckoutController : Controller
         try
         {
             // 2. Crear Order y OrderItems tras aprobación
-            var marca = _pasarelaPagoService.DetectarMarcaTarjeta(model.NumeroTarjeta);
-            var ultimos4 = model.NumeroTarjeta.Substring(Math.Max(0, model.NumeroTarjeta.Length - 4));
+            var numeroLimpio = LimpiarNumeroTarjeta(model.NumeroTarjeta);
+            var marca = _pasarelaPagoService.DetectarMarcaTarjeta(numeroLimpio);
+            var ultimos4 = numeroLimpio.Substring(Math.Max(0, numeroLimpio.Length - 4));
 
             var order = new Order
             {
@@ -200,5 +230,53 @@ public class CheckoutController : Controller
         }
 
         return View(order);
+    }
+
+    private static string LimpiarNumeroTarjeta(string? numeroTarjeta)
+    {
+        return numeroTarjeta?.Replace(" ", "").Replace("-", "").Trim() ?? string.Empty;
+    }
+
+    private static bool EstaTarjetaVencida(string fechaExpiracion)
+    {
+        var parts = fechaExpiracion.Split('/');
+        if (parts.Length != 2) return false;
+        if (!int.TryParse(parts[0].Trim(), out int mes) || mes < 1 || mes > 12) return false;
+        if (!int.TryParse(parts[1].Trim(), out int anioShort) || anioShort < 0 || anioShort > 99) return false;
+
+        int anio = 2000 + anioShort;
+        var lastDayOfMonth = DateTime.DaysInMonth(anio, mes);
+        var expDate = new DateTime(anio, mes, lastDayOfMonth, 23, 59, 59, DateTimeKind.Utc);
+        return expDate < DateTime.UtcNow;
+    }
+
+    private static string TraducirMensajePasarela(string? mensaje)
+    {
+        if (string.IsNullOrWhiteSpace(mensaje))
+        {
+            return "No pudimos procesar el pago. Inténtalo nuevamente.";
+        }
+
+        if (mensaje.Contains("Luhn", StringComparison.OrdinalIgnoreCase))
+        {
+            return "No pudimos validar tu tarjeta. Revisa el número e inténtalo de nuevo.";
+        }
+
+        if (mensaje.Contains("vencida", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Tu tarjeta está vencida. Usa otra tarjeta.";
+        }
+
+        if (mensaje.Contains("rechazada por el banco", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Tu banco rechazó el pago. Intenta con otra tarjeta.";
+        }
+
+        if (mensaje.Contains("límite máximo", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Demasiados intentos fallidos. Espera unos minutos e inténtalo de nuevo.";
+        }
+
+        return "No pudimos procesar el pago. Inténtalo nuevamente.";
     }
 }
