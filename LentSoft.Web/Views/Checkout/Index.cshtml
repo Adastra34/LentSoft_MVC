@@ -177,5 +177,129 @@
                 }
             });
         }
+
+        const MSG_TARJETA_INVALIDA = 'El número de tarjeta no es válido. Revisa que esté completo y escrito correctamente.';
+        const MSG_TARJETA_VENCIDA = 'La tarjeta está vencida. Usa una tarjeta con fecha vigente.';
+
+        function limpiarTarjeta(valor) {
+            return (valor || '').replace(/[\s-]/g, '').trim();
+        }
+
+        function validarLuhnCliente(numero) {
+            const limpio = limpiarTarjeta(numero);
+            if (!/^\d{13,19}$/.test(limpio)) {
+                return false;
+            }
+            let sum = 0;
+            let alternate = false;
+            for (let i = limpio.length - 1; i >= 0; i--) {
+                let digit = parseInt(limpio.charAt(i), 10);
+                if (alternate) {
+                    digit *= 2;
+                    if (digit > 9) digit -= 9;
+                }
+                sum += digit;
+                alternate = !alternate;
+            }
+            return sum % 10 === 0;
+        }
+
+        function esExpiracionFormatoValido(valor) {
+            return /^(0[1-9]|1[0-2])\/\d{2}$/.test((valor || '').trim());
+        }
+
+        function validarExpiracionVigenteCliente(valor) {
+            if (!esExpiracionFormatoValido(valor)) {
+                return true;
+            }
+            const parts = valor.trim().split('/');
+            const mes = parseInt(parts[0], 10);
+            const anio = 2000 + parseInt(parts[1], 10);
+            const now = new Date();
+            const mesActual = now.getUTCMonth() + 1;
+            const anioActual = now.getUTCFullYear();
+            return anio > anioActual || (anio === anioActual && mes >= mesActual);
+        }
+
+        function mostrarErrorCampo(nombreCampo, mensaje) {
+            const span = document.querySelector(`[data-valmsg-for="${nombreCampo}"]`);
+            if (!span) return;
+            if (mensaje) {
+                span.textContent = mensaje;
+                span.classList.remove('field-validation-valid');
+                span.classList.add('field-validation-error');
+            } else {
+                span.textContent = '';
+                span.classList.remove('field-validation-error');
+                span.classList.add('field-validation-valid');
+            }
+        }
+
+        if (window.jQuery && $.validator) {
+            $.validator.addMethod('luhnTarjeta', function (value, element) {
+                if (this.optional(element)) return true;
+                return validarLuhnCliente(value);
+            }, MSG_TARJETA_INVALIDA);
+
+            $.validator.addMethod('tarjetaVigente', function (value, element) {
+                if (this.optional(element)) return true;
+                return validarExpiracionVigenteCliente(value);
+            }, MSG_TARJETA_VENCIDA);
+
+            $(function () {
+                if (cardInput) {
+                    $(cardInput).rules('add', { luhnTarjeta: true });
+                    $(cardInput).on('blur', function () {
+                        if (this.value.trim().length > 0) {
+                            $(this).valid();
+                        }
+                    });
+                }
+                if (expInput) {
+                    $(expInput).rules('add', { tarjetaVigente: true });
+                    $(expInput).on('blur', function () {
+                        if (this.value.trim().length > 0) {
+                            $(this).valid();
+                        }
+                    });
+                }
+            });
+        } else {
+            const checkoutForm = document.querySelector('form[action$="ConfirmarPago"]') || (cardInput ? cardInput.closest('form') : null);
+
+            function validarTarjetaFallback() {
+                if (!cardInput) return true;
+                const val = cardInput.value.trim();
+                if (val.length > 0 && !validarLuhnCliente(val)) {
+                    mostrarErrorCampo('NumeroTarjeta', MSG_TARJETA_INVALIDA);
+                    return false;
+                }
+                mostrarErrorCampo('NumeroTarjeta', '');
+                return true;
+            }
+
+            function validarExpiracionFallback() {
+                if (!expInput) return true;
+                const val = expInput.value.trim();
+                if (val.length > 0 && esExpiracionFormatoValido(val) && !validarExpiracionVigenteCliente(val)) {
+                    mostrarErrorCampo('Expiracion', MSG_TARJETA_VENCIDA);
+                    return false;
+                }
+                mostrarErrorCampo('Expiracion', '');
+                return true;
+            }
+
+            if (cardInput) cardInput.addEventListener('blur', validarTarjetaFallback);
+            if (expInput) expInput.addEventListener('blur', validarExpiracionFallback);
+            if (checkoutForm) {
+                checkoutForm.addEventListener('submit', (e) => {
+                    const okCard = validarTarjetaFallback();
+                    const okExp = validarExpiracionFallback();
+                    if (!okCard || !okExp) {
+                        e.preventDefault();
+                    }
+                });
+            }
+        }
     </script>
 }
