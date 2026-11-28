@@ -36,6 +36,7 @@ public class PqrsController : Controller
     /// Formulario para que el cliente radique una nueva PQRS.
     /// </summary>
     [HttpGet]
+    [Authorize(Roles = "usuario")]
     public IActionResult Crear()
     {
         return View(new Pqrs());
@@ -45,9 +46,15 @@ public class PqrsController : Controller
     /// Procesa el radicado de una nueva PQRS enviada por el cliente.
     /// </summary>
     [HttpPost]
+    [Authorize(Roles = "usuario")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Crear(Pqrs model)
     {
+        if (User.IsInRole("admin"))
+        {
+            return Forbid();
+        }
+
         var userIdString = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (!int.TryParse(userIdString, out var userId))
         {

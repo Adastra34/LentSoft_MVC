@@ -59,6 +59,16 @@
                             <span style="font-size: 2rem;"><icon name="glasses" /></span>
                         </button>
                     }
+                    @if (Model.Product.Imagenes != null && Model.Product.Imagenes.Any())
+                    {
+                        @foreach (var extraImg in Model.Product.Imagenes.OrderBy(i => i.Orden))
+                        {
+                            <button type="button" onclick="changeImage('@extraImg.ImagenUrl', this)" 
+                                    style="border: 2.5px solid transparent; background: white; border-radius: 0.75rem; width: 80px; height: 80px; padding: 0.25rem; cursor: pointer; display: flex; align-items: center; justify-content: center; outline: none; transition: border-color 0.2s; box-shadow: var(--shadow-sm);">
+                                <img src="@extraImg.ImagenUrl" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 0.35rem;" />
+                            </button>
+                        }
+                    }
                 </div>
             </div>
 

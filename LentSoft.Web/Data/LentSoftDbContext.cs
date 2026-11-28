@@ -31,6 +31,7 @@ public class LentSoftDbContext : DbContext
     public DbSet<PagoVenta> PagosVentas => Set<PagoVenta>();
     public DbSet<TransaccionPago> TransaccionesPagos => Set<TransaccionPago>();
     public DbSet<Pqrs> Pqrs => Set<Pqrs>();
+    public DbSet<ProductImage> ProductImages => Set<ProductImage>();
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
@@ -187,6 +188,19 @@ public class LentSoftDbContext : DbContext
                   .WithMany()
                   .HasForeignKey(e => e.SupplierId)
                   .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // ── ProductImages ──
+        modelBuilder.Entity<ProductImage>(entity =>
+        {
+            entity.HasIndex(e => e.ProductId);
+            entity.Property(e => e.Orden).HasDefaultValue(0);
+            entity.Property(e => e.FechaCreacion).HasDefaultValueSql(utcDateSql);
+
+            entity.HasOne(e => e.Product)
+                  .WithMany(p => p.Imagenes)
+                  .HasForeignKey(e => e.ProductId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         // ── Favorites ──

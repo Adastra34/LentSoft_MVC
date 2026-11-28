@@ -113,7 +113,7 @@ public class DashboardService : IDashboardService
         }
 
         // ── Productos (Paginados y Filtrados en BD) ──
-        var prodQuery = _context.Products.AsNoTracking().Include(p => p.Supplier).AsQueryable();
+        var prodQuery = _context.Products.AsNoTracking().Include(p => p.Supplier).Include(p => p.Imagenes).AsQueryable();
         if (!string.IsNullOrWhiteSpace(filter.ProdSearch))
         {
             var s = filter.ProdSearch.Trim().ToLower();

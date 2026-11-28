@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using LentSoft.Web.Data;
 using LentSoft.Web.Models.Entities;
 using LentSoft.Web.Models.ViewModels;
 using LentSoft.Web.Services;
@@ -125,7 +126,7 @@ public class ProductController : Controller
     [HttpPost]
     [Authorize(Roles = "admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(Product product, IFormFile? ImagenArchivo)
+    public async Task<IActionResult> Create(Product product, IFormFile? ImagenArchivo, List<IFormFile>? ImagenesAdicionales)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
 
@@ -164,6 +165,34 @@ public class ProductController : Controller
         try
         {
             var created = await _productService.CreateAsync(product);
+
+            if (ImagenesAdicionales != null && ImagenesAdicionales.Count > 0)
+            {
+                var dbContext = HttpContext.RequestServices.GetService<LentSoftDbContext>();
+                if (dbContext != null)
+                {
+                    int order = 1;
+                    foreach (var file in ImagenesAdicionales)
+                    {
+                        if (file != null && file.Length > 0)
+                        {
+                            var (saved, path, _) = await _fileStorageService.SaveImageAsync(file, "products", AllowedImageExtensions, MaxImageSizeBytes);
+                            if (saved && !string.IsNullOrEmpty(path))
+                            {
+                                dbContext.ProductImages.Add(new ProductImage
+                                {
+                                    ProductId = created.Id,
+                                    ImagenUrl = path,
+                                    Orden = order++,
+                                    FechaCreacion = DateTime.UtcNow
+                                });
+                            }
+                        }
+                    }
+                    await dbContext.SaveChangesAsync();
+                }
+            }
+
             if (isAjax) return Json(new { success = true, message = "Producto creado exitosamente.", data = created });
             TempData["SuccessMessage"] = "Producto creado exitosamente.";
         }
@@ -185,6 +214,37 @@ public class ProductController : Controller
     }
 
     /// <summary>
+    /// Elimina una foto adicional por Id (solo admin)
+    /// </summary>
+    [HttpPost]
+    [Authorize(Roles = "admin")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteImage(int id)
+    {
+        var dbContext = HttpContext.RequestServices.GetService<LentSoftDbContext>();
+        if (dbContext == null)
+        {
+            return Json(new { success = false, message = "Servicio de datos no disponible." });
+        }
+
+        var image = await dbContext.ProductImages.FindAsync(id);
+        if (image == null)
+        {
+            return Json(new { success = false, message = "Foto adicional no encontrada." });
+        }
+
+        if (!string.IsNullOrEmpty(image.ImagenUrl))
+        {
+            _fileStorageService.DeleteFile(image.ImagenUrl);
+        }
+
+        dbContext.ProductImages.Remove(image);
+        await dbContext.SaveChangesAsync();
+
+        return Json(new { success = true, message = "Foto adicional eliminada exitosamente." });
+    }
+
+    /// <summary>
     /// Admin: Delete product — migrated from ProductController.js delete()
     /// </summary>
     [HttpPost]
@@ -196,6 +256,19 @@ public class ProductController : Controller
 
         try
         {
+            var dbContext = HttpContext.RequestServices.GetService<LentSoftDbContext>();
+            if (dbContext != null)
+            {
+                var additionalImages = await dbContext.ProductImages.Where(pi => pi.ProductId == id).ToListAsync();
+                foreach (var img in additionalImages)
+                {
+                    if (!string.IsNullOrEmpty(img.ImagenUrl))
+                    {
+                        _fileStorageService.DeleteFile(img.ImagenUrl);
+                    }
+                }
+            }
+
             var deleted = await _productService.DeleteAsync(id);
             if (deleted)
             {
@@ -246,7 +319,7 @@ public class ProductController : Controller
     [HttpPost]
     [Authorize(Roles = "admin")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(Product product, IFormFile? ImagenArchivo)
+    public async Task<IActionResult> Edit(Product product, IFormFile? ImagenArchivo, List<IFormFile>? ImagenesAdicionales)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
 
@@ -315,6 +388,33 @@ public class ProductController : Controller
                 if (!string.IsNullOrEmpty(oldImageUrlToDelete))
                 {
                     _fileStorageService.DeleteFile(oldImageUrlToDelete);
+                }
+
+                if (ImagenesAdicionales != null && ImagenesAdicionales.Count > 0)
+                {
+                    var dbContext = HttpContext.RequestServices.GetService<LentSoftDbContext>();
+                    if (dbContext != null)
+                    {
+                        int maxOrder = await dbContext.ProductImages.Where(pi => pi.ProductId == product.Id).Select(pi => (int?)pi.Orden).MaxAsync() ?? 0;
+                        foreach (var file in ImagenesAdicionales)
+                        {
+                            if (file != null && file.Length > 0)
+                            {
+                                var (saved, path, _) = await _fileStorageService.SaveImageAsync(file, "products", AllowedImageExtensions, MaxImageSizeBytes);
+                                if (saved && !string.IsNullOrEmpty(path))
+                                {
+                                    dbContext.ProductImages.Add(new ProductImage
+                                    {
+                                        ProductId = product.Id,
+                                        ImagenUrl = path,
+                                        Orden = ++maxOrder,
+                                        FechaCreacion = DateTime.UtcNow
+                                    });
+                                }
+                            }
+                        }
+                        await dbContext.SaveChangesAsync();
+                    }
                 }
 
                 bool stockAgotado = updated.Stock == 0;

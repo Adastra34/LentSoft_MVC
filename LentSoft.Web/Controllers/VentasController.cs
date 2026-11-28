@@ -827,7 +827,7 @@ public class VentasController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> CreateProduct(Product product, IFormFile? ImagenArchivo)
+    public async Task<IActionResult> CreateProduct(Product product, IFormFile? ImagenArchivo, List<IFormFile>? ImagenesAdicionales)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
 
@@ -859,6 +859,30 @@ public class VentasController : Controller
         try
         {
             var created = await _productService.CreateAsync(product);
+
+            if (ImagenesAdicionales != null && ImagenesAdicionales.Count > 0)
+            {
+                int order = 1;
+                foreach (var file in ImagenesAdicionales)
+                {
+                    if (file != null && file.Length > 0)
+                    {
+                        var (saved, path, _) = await _fileStorageService.SaveImageAsync(file, "products", AllowedImageExtensions, MaxImageSizeBytes);
+                        if (saved && !string.IsNullOrEmpty(path))
+                        {
+                            _context.ProductImages.Add(new ProductImage
+                            {
+                                ProductId = created.Id,
+                                ImagenUrl = path,
+                                Orden = order++,
+                                FechaCreacion = DateTime.UtcNow
+                            });
+                        }
+                    }
+                }
+                await _context.SaveChangesAsync();
+            }
+
             if (isAjax) return Json(new { success = true, message = "Producto creado exitosamente.", data = created });
             TempData["SuccessMessage"] = "Producto creado exitosamente.";
         }
@@ -883,7 +907,7 @@ public class VentasController : Controller
     /// </summary>
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> EditProduct(Product product, IFormFile? ImagenArchivo)
+    public async Task<IActionResult> EditProduct(Product product, IFormFile? ImagenArchivo, List<IFormFile>? ImagenesAdicionales)
     {
         bool isAjax = Request.Headers["X-Requested-With"] == "XMLHttpRequest" || Request.Headers.Accept.ToString().Contains("application/json");
 
@@ -945,6 +969,29 @@ public class VentasController : Controller
                     _fileStorageService.DeleteFile(oldImageUrlToDelete);
                 }
 
+                if (ImagenesAdicionales != null && ImagenesAdicionales.Count > 0)
+                {
+                    int maxOrder = await _context.ProductImages.Where(pi => pi.ProductId == product.Id).Select(pi => (int?)pi.Orden).MaxAsync() ?? 0;
+                    foreach (var file in ImagenesAdicionales)
+                    {
+                        if (file != null && file.Length > 0)
+                        {
+                            var (saved, path, _) = await _fileStorageService.SaveImageAsync(file, "products", AllowedImageExtensions, MaxImageSizeBytes);
+                            if (saved && !string.IsNullOrEmpty(path))
+                            {
+                                _context.ProductImages.Add(new ProductImage
+                                {
+                                    ProductId = product.Id,
+                                    ImagenUrl = path,
+                                    Orden = ++maxOrder,
+                                    FechaCreacion = DateTime.UtcNow
+                                });
+                            }
+                        }
+                    }
+                    await _context.SaveChangesAsync();
+                }
+
                 bool stockAgotado = updated.Stock == 0;
                 string msg = stockAgotado
                     ? "Producto actualizado. El stock llegó a 0 y fue inactivado automáticamente."
@@ -986,6 +1033,30 @@ public class VentasController : Controller
     }
 
     /// <summary>
+    /// Elimina una foto adicional de un producto por su id.
+    /// </summary>
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteProductImage(int id)
+    {
+        var image = await _context.ProductImages.FindAsync(id);
+        if (image == null)
+        {
+            return Json(new { success = false, message = "Foto adicional no encontrada." });
+        }
+
+        if (!string.IsNullOrEmpty(image.ImagenUrl))
+        {
+            _fileStorageService.DeleteFile(image.ImagenUrl);
+        }
+
+        _context.ProductImages.Remove(image);
+        await _context.SaveChangesAsync();
+
+        return Json(new { success = true, message = "Foto adicional eliminada exitosamente." });
+    }
+
+    /// <summary>
     /// Elimina (inactiva) un producto desde la vista de Inventarios del módulo de Ventas.
     /// NOTA DE ARQUITECTURA (Sección 4.7): Duplicación documentada para futura unificación con el equipo de Inventario.
     /// </summary>
@@ -997,6 +1068,15 @@ public class VentasController : Controller
 
         try
         {
+            var additionalImages = await _context.ProductImages.Where(pi => pi.ProductId == id).ToListAsync();
+            foreach (var img in additionalImages)
+            {
+                if (!string.IsNullOrEmpty(img.ImagenUrl))
+                {
+                    _fileStorageService.DeleteFile(img.ImagenUrl);
+                }
+            }
+
             var deleted = await _productService.DeleteAsync(id);
             if (deleted)
             {

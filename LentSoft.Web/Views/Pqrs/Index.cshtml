@@ -19,9 +19,12 @@
                 <a asp-controller="Dashboard" asp-action="Usuario" style="background-color: white; border: 1px solid var(--purple-300); color: var(--purple-800); padding: 0.65rem 1rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; font-size: 0.9rem; display: inline-flex; align-items: center; gap: 0.35rem;">
                     <icon name="user" class="icon-sm" /> Volver a Mi Cuenta
                 </a>
-                <a asp-action="Crear" class="btn" style="background-color: var(--purple-700); color: white; padding: 0.65rem 1.25rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-                    <icon name="file-text" /> Radicar Nueva PQRS
-                </a>
+                @if (!User.IsInRole("admin"))
+                {
+                    <a asp-action="Crear" class="btn" style="background-color: var(--purple-700); color: white; padding: 0.65rem 1.25rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 0.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <icon name="file-text" /> Radicar Nueva PQRS
+                    </a>
+                }
             </div>
         </div>
 
@@ -43,9 +46,12 @@
                     <p style="color: var(--purple-600); margin: 0 0 1.5rem 0; font-size: 0.95rem;">
                         Si presenta alguna inquietud, reclamo o solicitud sobre nuestros servicios o productos, puede radicarla aquí.
                     </p>
-                    <a asp-action="Crear" class="btn" style="background-color: var(--purple-700); color: white; padding: 0.6rem 1.2rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; display: inline-block;">
-                        Radicar Primera Solicitud
-                    </a>
+                    @if (!User.IsInRole("admin"))
+                    {
+                        <a asp-action="Crear" class="btn" style="background-color: var(--purple-700); color: white; padding: 0.6rem 1.2rem; border-radius: 0.5rem; text-decoration: none; font-weight: 600; display: inline-block;">
+                            Radicar Primera Solicitud
+                        </a>
+                    }
                 </div>
             }
             else

@@ -46,7 +46,9 @@ public class ProductService : IProductService
 
     public async Task<Product?> GetByIdAsync(int id)
     {
-        return await _context.Products.FindAsync(id);
+        return await _context.Products
+            .Include(p => p.Imagenes)
+            .FirstOrDefaultAsync(p => p.Id == id);
     }
 
     /// <summary>
@@ -230,6 +232,11 @@ public class ProductService : IProductService
         product.StockLocal = updated.StockLocal;
         product.Stock = updated.Stock;
         product.ImagenUrl = updated.ImagenUrl;
+        product.Material = updated.Material;
+        product.Color = updated.Color;
+        product.Proteccion = updated.Proteccion;
+        product.Estilo = updated.Estilo;
+        product.Tamanio = updated.Tamanio;
         product.Activo = updated.Stock == 0 ? false : updated.Activo;
         product.EscalaOverlay = updated.EscalaOverlay;
         product.OffsetXOverlay = updated.OffsetXOverlay;
