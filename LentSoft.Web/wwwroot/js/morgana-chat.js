@@ -93,13 +93,13 @@
     svg.appendChild(head);
 
     var lines = [
-      ['50','34','50','68'],   // cuerpo
-      ['50','44','30','58'],   // brazo izq
-      ['50','44','70','58'],   // brazo der
-      ['50','68','34','90'],   // pierna izq
-      ['50','68','66','90'],   // pierna der
+      ['50', '34', '50', '68'],   // cuerpo
+      ['50', '44', '30', '58'],   // brazo izq
+      ['50', '44', '70', '58'],   // brazo der
+      ['50', '68', '34', '90'],   // pierna izq
+      ['50', '68', '66', '90'],   // pierna der
     ];
-    lines.forEach(function(pts) {
+    lines.forEach(function (pts) {
       var l = document.createElementNS(NS, 'line');
       l.setAttribute('x1', pts[0]); l.setAttribute('y1', pts[1]);
       l.setAttribute('x2', pts[2]); l.setAttribute('y2', pts[3]);
@@ -198,6 +198,26 @@
     return 'Lo siento, el módulo de respuestas no está disponible.';
   }
 
+  // ── Formatear respuesta de la IA (escape XSS + Markdown básico) ─────────────
+  function formatearRespuestaIA(texto) {
+    // (a) Escape HTML para prevenir XSS
+    var html = texto
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+    // (b) Viñetas "* " al inicio de línea → "- " (sin cruzar líneas)
+    html = html.replace(/^\* /gm, '- ');
+    // (c) **texto** → <strong>texto</strong> (sin cruzar líneas)
+    html = html.replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
+    // (d) *texto* → <em>texto</em> (sin cruzar líneas, solo asterisco simple restante)
+    html = html.replace(/\*([^*\n]+)\*/g, '<em>$1</em>');
+    // (e) Saltos de línea → <br>
+    html = html.replace(/\n/g, '<br>');
+    return html;
+  }
+
   // ── Procesar consulta del usuario (IA con fallback a FAQ) ───────────────────
   function procesarConsulta(textoPregunta, textoBurbuja) {
     // Mostrar pregunta del usuario
@@ -224,37 +244,41 @@
         historial: conversationHistory
       })
     })
-    .then(function (res) {
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    })
-    .then(function (data) {
-      ocultarTyping();
-      var respuesta = data.respuesta || obtenerRespuestaLocal(textoPregunta);
-      agregarMensaje(respuesta, 'bot');
+      .then(function (res) {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.json();
+      })
+      .then(function (data) {
+        ocultarTyping();
+        var respuestaTexto = data.respuesta || obtenerRespuestaLocal(textoPregunta);
+        // Formatear solo la respuesta de la IA; el fallback FAQ ya contiene HTML intencional
+        var respuestaHtml = data.respuesta
+          ? formatearRespuestaIA(respuestaTexto)
+          : respuestaTexto;
+        agregarMensaje(respuestaHtml, 'bot');
 
-      // Actualizar historial en memoria
-      conversationHistory.push({ role: 'user', content: textoPregunta });
-      conversationHistory.push({ role: 'assistant', content: respuesta });
+        // Actualizar historial en memoria (texto original, sin HTML)
+        conversationHistory.push({ role: 'user', content: textoPregunta });
+        conversationHistory.push({ role: 'assistant', content: respuestaTexto });
 
-      // Mantener máximo 20 mensajes (los más recientes)
-      if (conversationHistory.length > 20) {
-        conversationHistory = conversationHistory.slice(-20);
-      }
-    })
-    .catch(function () {
-      ocultarTyping();
-      // Fallback a FAQ local si la API falla
-      var respuestaLocal = obtenerRespuestaLocal(textoPregunta);
-      agregarMensaje(respuestaLocal, 'bot');
-    })
-    .finally(function () {
-      // Rehabilitar interacciones
-      if (chipsContainer) chipsContainer.classList.remove('morgana-chips--disabled');
-      if (inputEl) { inputEl.disabled = false; inputEl.focus(); }
-      if (faqBtn) faqBtn.disabled = false;
-      if (sendBtn) sendBtn.disabled = false;
-    });
+        // Mantener máximo 20 mensajes (los más recientes)
+        if (conversationHistory.length > 20) {
+          conversationHistory = conversationHistory.slice(-20);
+        }
+      })
+      .catch(function () {
+        ocultarTyping();
+        // Fallback a FAQ local si la API falla
+        var respuestaLocal = obtenerRespuestaLocal(textoPregunta);
+        agregarMensaje(respuestaLocal, 'bot');
+      })
+      .finally(function () {
+        // Rehabilitar interacciones
+        if (chipsContainer) chipsContainer.classList.remove('morgana-chips--disabled');
+        if (inputEl) { inputEl.disabled = false; inputEl.focus(); }
+        if (faqBtn) faqBtn.disabled = false;
+        if (sendBtn) sendBtn.disabled = false;
+      });
   }
 
   // ── Mostrar / Ocultar preguntas predeterminadas ──────────────────────────────
