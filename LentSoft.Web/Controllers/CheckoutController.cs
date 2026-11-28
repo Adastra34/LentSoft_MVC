@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using LentSoft.Web.Data;
 using LentSoft.Web.Models.Entities;
 using LentSoft.Web.Models.ViewModels;
@@ -16,17 +17,23 @@ public class CheckoutController : Controller
     private readonly LentSoftDbContext _context;
     private readonly IPasarelaPagoService _pasarelaPagoService;
     private readonly IInventoryService _inventoryService;
+    private readonly IInvoiceService _invoiceService;
+    private readonly ILogger<CheckoutController> _logger;
 
     public CheckoutController(
         ICartService cartService, 
         LentSoftDbContext context,
         IPasarelaPagoService pasarelaPagoService,
-        IInventoryService inventoryService)
+        IInventoryService inventoryService,
+        IInvoiceService invoiceService,
+        ILogger<CheckoutController> logger)
     {
         _cartService = cartService;
         _context = context;
         _pasarelaPagoService = pasarelaPagoService;
         _inventoryService = inventoryService;
+        _invoiceService = invoiceService;
+        _logger = logger;
     }
 
     private int GetCurrentUserId()
@@ -189,6 +196,16 @@ public class CheckoutController : Controller
 
             // Clear cart
             await _cartService.ClearCartAsync(userId);
+
+            // 3. Generar factura electrónica automáticamente (no bloquear la compra si falla)
+            try
+            {
+                await _invoiceService.CreateAsync(new Invoice { OrderId = order.Id });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "No se pudo generar automáticamente la factura para la orden {OrderId}", order.Id);
+            }
 
             TempData["SuccessMessage"] = $"¡Pago procesado exitosamente por pasarela! {resultadoPasarela.Mensaje}";
             return RedirectToAction("Confirmacion", new { orderId = order.Id });

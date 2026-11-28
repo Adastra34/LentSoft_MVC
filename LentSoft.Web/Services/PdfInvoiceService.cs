@@ -52,7 +52,11 @@ public class PdfInvoiceService : IPdfInvoiceService
                 row.RelativeItem().Column(column =>
                 {
                     column.Item().Text("LENTSOFT OPTOMETRÍA S.A.S.").FontSize(18).Bold().FontColor("#4C1D95");
-                    column.Item().Text("NIT: 900.123.456-7 | IVA Régimen Común").FontSize(9).Bold().FontColor("#374151");
+                    var nitConfig = _configuration["Facturacion:NitEmisor"];
+                    var nitDisplay = string.IsNullOrWhiteSpace(nitConfig) || nitConfig == "9001234567"
+                        ? "900.123.456-7"
+                        : nitConfig;
+                    column.Item().Text($"NIT: {nitDisplay} | IVA Régimen Común").FontSize(9).Bold().FontColor("#374151");
                     column.Item().Text("Actividad Económica 4774 - Comercio al por menor de artículos ópticos").FontSize(8).FontColor("#6B7280");
                     column.Item().Text("Dirección: Calle Principal # 12-34, Bogotá D.C. - Colombia").FontSize(8).FontColor("#6B7280");
                     column.Item().Text("PBX: +57 (601) 555-0199 | Correo: facturacion@lentsoft.com").FontSize(8).FontColor("#6B7280");
