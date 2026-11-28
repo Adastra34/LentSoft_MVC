@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using LentSoft.Web.Controllers;
 using LentSoft.Web.Data;
 using LentSoft.Web.Models.Entities;
@@ -99,6 +100,16 @@ public class CheckoutValidacionTests : IDisposable
         public Task RegistrarMovimientoAsync(int productId, string tipo, int cantidad, string? responsable = null, string? motivo = null, string? nota = null, string? referencia = null) => throw new NotImplementedException();
     }
 
+    private class FakeInvoiceService : IInvoiceService
+    {
+        public Task<(List<Invoice> Items, int TotalCount)> GetAllAsync(string? searchTerm, int page, int pageSize) => throw new NotImplementedException();
+        public Task<Invoice?> GetByIdAsync(int id) => throw new NotImplementedException();
+        public Task<Invoice> CreateAsync(Invoice invoice) => Task.FromResult(invoice);
+        public Task<Invoice?> UpdateAsync(Invoice invoice) => throw new NotImplementedException();
+        public Task<bool> DeleteAsync(int id) => throw new NotImplementedException();
+        public Task<List<Order>> GetOrdersAvailableForInvoicingAsync() => throw new NotImplementedException();
+    }
+
     private class FakeTempDataProvider : ITempDataProvider
     {
         public IDictionary<string, object> LoadTempData(HttpContext context) => new Dictionary<string, object>();
@@ -118,7 +129,13 @@ public class CheckoutValidacionTests : IDisposable
             }, "TestAuth"))
         };
 
-        var controller = new CheckoutController(cartService, _context, pasarelaService, new FakeInventoryService())
+        var controller = new CheckoutController(
+            cartService,
+            _context,
+            pasarelaService,
+            new FakeInventoryService(),
+            new FakeInvoiceService(),
+            NullLogger<CheckoutController>.Instance)
         {
             ControllerContext = new ControllerContext { HttpContext = httpContext },
             TempData = new TempDataDictionary(httpContext, new FakeTempDataProvider())

@@ -21,6 +21,9 @@
             <a href="?section=pedidos" class="nav-item @(Model.ActiveSection == "pedidos" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "pedidos" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "pedidos" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;">
                 <icon name="package" /> <span data-i18n="user.nav.orders">Mis Pedidos</span>
             </a>
+            <a href="?section=facturas" class="nav-item @(Model.ActiveSection == "facturas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "facturas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "facturas" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;">
+                <icon name="file-text" /> <span>Mis Facturas</span>
+            </a>
             <a href="?section=citas" class="nav-item @(Model.ActiveSection == "citas" ? "active" : "")" style="display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem 1rem; border-radius: 0.5rem; color: @(Model.ActiveSection == "citas" ? "white" : "var(--purple-200)"); background-color: @(Model.ActiveSection == "citas" ? "var(--purple-700)" : "transparent"); font-weight: 500; text-decoration: none;">
                 <icon name="calendar-days" /> <span data-i18n="user.nav.appointments">Mis Citas</span>
             </a>
@@ -603,6 +606,81 @@
                                 </button>
                             </form>
                         </div>
+                    }
+
+                    <!-- ── SECCIÓN 6: MIS FACTURAS ── -->
+                    @if (Model.ActiveSection == "facturas")
+                    {
+                        <div id="section-facturas">
+                            <h2 style="color: var(--purple-800); margin-bottom: 1.5rem; border-bottom: 2px solid var(--purple-100); padding-bottom: 0.5rem; font-size: 1.35rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem;">
+                                <icon name="file-text" /> <span>Mis Facturas Electrónicas</span>
+                            </h2>
+
+                            <div id="mis-facturas-container">
+                                <div style="text-align: center; padding: 2.5rem 1rem; color: var(--gray-600);">
+                                    Cargando tus facturas...
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal Detalle de Factura -->
+                        <div id="modal-detalle-factura" style="display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.55); align-items: center; justify-content: center; z-index: 1050; padding: 1rem;">
+                            <div id="modal-detalle-factura-body" style="width: 100%; max-width: 760px; background: white; border-radius: 0.75rem; box-shadow: 0 20px 40px rgba(0,0,0,0.25); overflow: hidden;">
+                            </div>
+                        </div>
+
+                        <script>
+                            async function cargarMisFacturas(page = 1, pageSize = 5) {
+                                const container = document.getElementById('mis-facturas-container');
+                                if (!container) return;
+
+                                try {
+                                    const resp = await fetch(`/MisFacturas/Lista?page=${page}&pageSize=${pageSize}`, {
+                                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                                    });
+                                    if (!resp.ok) {
+                                        container.innerHTML = '<div style="padding: 1.25rem; background: #fee2e2; color: #b91c1c; border-radius: 0.5rem;">No se pudieron cargar tus facturas. Intenta nuevamente.</div>';
+                                        return;
+                                    }
+                                    container.innerHTML = await resp.text();
+                                } catch (err) {
+                                    console.error('Error al cargar facturas:', err);
+                                    container.innerHTML = '<div style="padding: 1.25rem; background: #fee2e2; color: #b91c1c; border-radius: 0.5rem;">Error de conexión al cargar tus facturas.</div>';
+                                }
+                            }
+
+                            async function abrirDetalleFactura(id) {
+                                const modal = document.getElementById('modal-detalle-factura');
+                                const body = document.getElementById('modal-detalle-factura-body');
+                                if (!modal || !body) return;
+
+                                body.innerHTML = '<div style="padding: 2rem; text-align: center; color: var(--gray-600);">Cargando detalle de la factura...</div>';
+                                modal.style.display = 'flex';
+
+                                try {
+                                    const resp = await fetch(`/MisFacturas/Detalle/${id}`, {
+                                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                                    });
+                                    if (!resp.ok) {
+                                        body.innerHTML = '<div style="padding: 1.5rem; color: #b91c1c;">No se encontró la factura solicitada. <button type="button" onclick="cerrarDetalleFactura()" style="margin-left: 0.75rem;">Cerrar</button></div>';
+                                        return;
+                                    }
+                                    body.innerHTML = await resp.text();
+                                } catch (err) {
+                                    console.error('Error al abrir detalle de factura:', err);
+                                    body.innerHTML = '<div style="padding: 1.5rem; color: #b91c1c;">Error de conexión al cargar el detalle. <button type="button" onclick="cerrarDetalleFactura()" style="margin-left: 0.75rem;">Cerrar</button></div>';
+                                }
+                            }
+
+                            function cerrarDetalleFactura() {
+                                const modal = document.getElementById('modal-detalle-factura');
+                                if (modal) modal.style.display = 'none';
+                            }
+
+                            document.addEventListener('DOMContentLoaded', function () {
+                                cargarMisFacturas(1, 5);
+                            });
+                        </script>
                     }
 
     </main>
