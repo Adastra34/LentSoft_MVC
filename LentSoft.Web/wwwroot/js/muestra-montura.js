@@ -197,7 +197,8 @@ function selectProduct(id) {
 
     // Actualizar aviso de disponibilidad AR y estado del botón
     const arNotice = document.getElementById('arUnavailableNotice');
-    const hasOverlay = Boolean(product.imagenOverlayUrl && product.imagenOverlayUrl.trim() !== '');
+    const effectiveOverlay = product.modelPath || product.imagenOverlayUrl || '';
+    const hasOverlay = Boolean(effectiveOverlay && effectiveOverlay.trim() !== '');
 
     if (arNotice) {
         arNotice.style.display = hasOverlay ? 'none' : 'flex';
@@ -340,10 +341,17 @@ async function startCamera() {
                     ]);
                 }
 
-                tracking.cambiarMontura(product.imagenOverlayUrl, {
+                tracking.cambiarMontura(product.modelPath || product.imagenOverlayUrl, {
+                    modelType: product.modelType || 'png',
+                    fallbackUrl: product.imagenOverlayUrl || product.imagenUrl || '',
                     escala: product.escalaOverlay,
                     offsetX: product.offsetXOverlay,
-                    offsetY: product.offsetYOverlay
+                    offsetY: product.offsetYOverlay,
+                    offsetZ: product.offsetZ || 0,
+                    rotationX: product.rotationX || 0,
+                    rotationY: product.rotationY || 0,
+                    rotationZ: product.rotationZ || 0,
+                    scale3d: product.scale3d || 1.0
                 });
 
                 tracking.iniciarDeteccion(video, canvas);

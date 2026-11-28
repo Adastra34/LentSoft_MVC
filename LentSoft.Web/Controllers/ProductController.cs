@@ -10,6 +10,8 @@ using LentSoft.Web.Data;
 using LentSoft.Web.Models.Entities;
 using LentSoft.Web.Models.ViewModels;
 using LentSoft.Web.Services;
+using LentSoft.Web.Services.FrameModels;
+using LentSoft.Web.Services.Reviews;
 
 namespace LentSoft.Web.Controllers;
 
@@ -18,6 +20,8 @@ public class ProductController : Controller
     private readonly IProductService _productService;
     private readonly IFavoriteService _favoriteService;
     private readonly IFileStorageService _fileStorageService;
+    private readonly IReviewStore? _reviewStore;
+    private readonly IFrameModelStore? _frameModelStore;
     private readonly ILogger<ProductController>? _logger;
 
     private static readonly string[] AllowedImageExtensions = { ".jpg", ".jpeg", ".png", ".webp" };
@@ -28,11 +32,15 @@ public class ProductController : Controller
         IProductService productService,
         IFavoriteService favoriteService,
         IFileStorageService fileStorageService,
+        IReviewStore? reviewStore = null,
+        IFrameModelStore? frameModelStore = null,
         ILogger<ProductController>? logger = null)
     {
         _productService = productService;
         _favoriteService = favoriteService;
         _fileStorageService = fileStorageService;
+        _reviewStore = reviewStore;
+        _frameModelStore = frameModelStore;
         _logger = logger;
     }
 
@@ -41,7 +49,7 @@ public class ProductController : Controller
         IFavoriteService favoriteService,
         IWebHostEnvironment webHostEnvironment,
         ILogger<ProductController>? logger = null)
-        : this(productService, favoriteService, new LocalFileStorageService(webHostEnvironment, Microsoft.Extensions.Options.Options.Create(new FileStorageSettings())), logger)
+        : this(productService, favoriteService, new LocalFileStorageService(webHostEnvironment, Microsoft.Extensions.Options.Options.Create(new FileStorageSettings())), null, null, logger)
     {
     }
 
@@ -77,6 +85,12 @@ public class ProductController : Controller
             Marcas = marcas,
             FavoriteProductIds = favoriteIds
         };
+
+        if (_reviewStore != null)
+        {
+            var allIds = products.Select(p => p.Id).Concat(featured.Select(p => p.Id));
+            ViewBag.ReviewSummaries = await _reviewStore.GetSummariesAsync(allIds);
+        }
 
         return View(viewModel);
     }
@@ -496,21 +510,49 @@ public class ProductController : Controller
 
         var isFavorite = false;
         var isAuthenticated = User?.Identity?.IsAuthenticated == true;
+        string? currentUserId = null;
+        var isAdmin = false;
         if (isAuthenticated && User != null)
         {
-            var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (int.TryParse(userIdStr, out var userId))
+            currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            isAdmin = User.IsInRole("admin");
+            if (int.TryParse(currentUserId, out var userId))
             {
                 var favoriteIds = await _favoriteService.GetUserFavoriteProductIdsAsync(userId);
                 isFavorite = favoriteIds.Contains(id);
             }
         }
 
+        var reviewsVm = new ProductReviewsViewModel
+        {
+            ProductId = id,
+            IsAuthenticated = isAuthenticated,
+            IsAdmin = isAdmin,
+            CurrentUserId = currentUserId
+        };
+
+        if (_reviewStore != null)
+        {
+            reviewsVm.Summary = await _reviewStore.GetSummaryAsync(id);
+            reviewsVm.Reviews = await _reviewStore.GetByProductAsync(id);
+            if (isAuthenticated && !string.IsNullOrEmpty(currentUserId) && !isAdmin)
+            {
+                reviewsVm.CurrentUserReview = await _reviewStore.GetByUserAndProductAsync(currentUserId, id);
+            }
+        }
+
+        if (_frameModelStore != null)
+        {
+            var customModel = await _frameModelStore.GetByProductAsync(id);
+            ViewBag.HasCustomFrameModel = customModel != null && !string.IsNullOrWhiteSpace(customModel.ModelPath);
+        }
+
         var viewModel = new ProductDetailsViewModel
         {
             Product = product,
             IsFavorite = isFavorite,
-            IsAuthenticated = isAuthenticated
+            IsAuthenticated = isAuthenticated,
+            Reviews = reviewsVm
         };
 
         return View(viewModel);
@@ -538,6 +580,12 @@ public class ProductController : Controller
             Gafas = glasses,
             PreselectedProduct = preselected
         };
+
+        if (_frameModelStore != null)
+        {
+            var manifest = await _frameModelStore.GetManifestAsync();
+            ViewBag.FrameModels = manifest.Models.ToDictionary(m => m.ProductId, m => m);
+        }
 
         return View(viewModel);
     }

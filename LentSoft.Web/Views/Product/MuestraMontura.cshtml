@@ -1,7 +1,9 @@
 @model LentSoft.Web.Models.ViewModels.MuestraMonturaViewModel
 @using System.Text.Json
+@using LentSoft.Web.Models.FrameModels
 @{
     ViewData["Title"] = "Catálogo y Vista de Marcos";
+    var frameModels = ViewBag.FrameModels as Dictionary<int, FrameModelEntry> ?? new Dictionary<int, FrameModelEntry>();
     var defaultProduct = Model.PreselectedProduct ?? Model.Gafas.FirstOrDefault();
     var defaultId = defaultProduct?.Id ?? 0;
 
@@ -272,27 +274,39 @@
 @section Scripts {
     <script>
         window.MONTURA_DATA = {
-            products: @Html.Raw(JsonSerializer.Serialize(allProductsList.Select(p => new {
-                id = p.Id,
-                nombre = p.Nombre,
-                color = p.Color ?? "Estándar",
-                estilo = p.Estilo ?? "No especificado",
-                tamanio = p.Tamanio ?? "No especificado",
-                precio = p.Precio,
-                precioDescuento = p.PrecioDescuento,
-                precioStr = p.PrecioDescuento.HasValue && p.PrecioDescuento < p.Precio 
-                    ? p.PrecioDescuento.Value.ToString("C") 
-                    : p.Precio.ToString("C"),
-                precioRegularStr = p.Precio.ToString("C"),
-                descuentoPorcentaje = p.GetDiscountPercentage(),
-                hasDiscount = p.PrecioDescuento.HasValue && p.PrecioDescuento < p.Precio,
-                descripcion = p.Descripcion ?? "Excelente diseño y materiales de alta calidad, seleccionados para garantizar tu bienestar visual.",
-                imagenUrl = p.ImagenUrl ?? "",
-                imagenOverlayUrl = p.ImagenOverlayUrl ?? "",
-                hasStock = p.HasStock(1),
-                escalaOverlay = p.EscalaOverlay,
-                offsetXOverlay = p.OffsetXOverlay,
-                offsetYOverlay = p.OffsetYOverlay
+            products: @Html.Raw(JsonSerializer.Serialize(allProductsList.Select(p => {
+                frameModels.TryGetValue(p.Id, out var fm);
+                var effectivePath = !string.IsNullOrWhiteSpace(fm?.ModelPath) ? fm.ModelPath : (p.ImagenOverlayUrl ?? "");
+                var effectiveType = !string.IsNullOrWhiteSpace(fm?.ModelPath) ? fm.ModelType : "png";
+                return new {
+                    id = p.Id,
+                    nombre = p.Nombre,
+                    color = p.Color ?? "Estándar",
+                    estilo = p.Estilo ?? "No especificado",
+                    tamanio = p.Tamanio ?? "No especificado",
+                    precio = p.Precio,
+                    precioDescuento = p.PrecioDescuento,
+                    precioStr = p.PrecioDescuento.HasValue && p.PrecioDescuento < p.Precio 
+                        ? p.PrecioDescuento.Value.ToString("C") 
+                        : p.Precio.ToString("C"),
+                    precioRegularStr = p.Precio.ToString("C"),
+                    descuentoPorcentaje = p.GetDiscountPercentage(),
+                    hasDiscount = p.PrecioDescuento.HasValue && p.PrecioDescuento < p.Precio,
+                    descripcion = p.Descripcion ?? "Excelente diseño y materiales de alta calidad, seleccionados para garantizar tu bienestar visual.",
+                    imagenUrl = p.ImagenUrl ?? "",
+                    imagenOverlayUrl = p.ImagenOverlayUrl ?? "",
+                    modelPath = effectivePath,
+                    modelType = effectiveType,
+                    hasStock = p.HasStock(1),
+                    escalaOverlay = p.EscalaOverlay,
+                    offsetXOverlay = fm != null ? (decimal)fm.OffsetX : p.OffsetXOverlay,
+                    offsetYOverlay = fm != null ? (decimal)fm.OffsetY : p.OffsetYOverlay,
+                    offsetZ = fm?.OffsetZ ?? 0.0,
+                    rotationX = fm?.RotationX ?? 0.0,
+                    rotationY = fm?.RotationY ?? 0.0,
+                    rotationZ = fm?.RotationZ ?? 0.0,
+                    scale3d = fm?.Scale ?? 1.0
+                };
             }))),
             defaultId: @defaultId,
             spriteUrl: '@Url.Content("~/img/icons/sprite.svg")'

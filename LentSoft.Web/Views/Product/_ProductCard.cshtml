@@ -1,11 +1,22 @@
 @model LentSoft.Web.Models.Entities.Product
+@using LentSoft.Web.Models.Reviews
 @{
     var isFavorite = (bool)(ViewData["IsFavorite"] ?? false);
     var isAuthenticated = (bool)(ViewData["IsAuthenticated"] ?? false);
 
+    var summaries = ViewBag.ReviewSummaries as Dictionary<int, ReviewSummary>;
+    ReviewSummary? summary = null;
+    if (summaries != null && summaries.TryGetValue(Model.Id, out var foundSummary))
+    {
+        summary = foundSummary;
+    }
+
+    var effectiveRating = summary != null && summary.TotalReviews > 0 ? (decimal)summary.AverageRating : Model.Rating;
+    var effectiveCount = summary != null ? summary.TotalReviews : Model.ReviewCount;
+
     // Build star rating display
-    var fullStars = (int)Math.Floor(Model.Rating);
-    var hasHalf = (Model.Rating - fullStars) >= 0.5m;
+    var fullStars = (int)Math.Floor(effectiveRating);
+    var hasHalf = (effectiveRating - fullStars) >= 0.5m;
     var emptyStars = 5 - fullStars - (hasHalf ? 1 : 0);
 }
 
@@ -71,14 +82,14 @@
 
         <!-- Star Rating -->
         <div style="display: flex; align-items: center; gap: 0.25rem; margin-top: 0.25rem;">
-            <div class="rating-stars" role="img" aria-label="@($"{Math.Round(Model.Rating, 1)} de 5 estrellas")">
+            <div class="rating-stars" role="img" aria-label="@($"{Math.Round(effectiveRating, 1)} de 5 estrellas")">
                 @for (int i = 1; i <= 5; i++)
                 {
                     var isFilled = i <= fullStars || (i == fullStars + 1 && hasHalf);
                     <icon name="star" class="@(isFilled ? "icon-fill" : "")" />
                 }
             </div>
-            <span style="color: var(--gray-500); font-size: 0.75rem;">(@Model.ReviewCount)</span>
+            <span style="color: var(--gray-500); font-size: 0.75rem;">(@effectiveCount)</span>
         </div>
 
         <!-- Price -->

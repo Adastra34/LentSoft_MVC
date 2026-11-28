@@ -1,0 +1,149 @@
+@model DashboardAdminViewModel
+@using LentSoft.Web.Models.Reviews
+@{
+    var allReviews = ViewBag.AllReviews as IReadOnlyList<ProductReview> ?? Array.Empty<ProductReview>();
+    var productsObj = ViewBag.ReviewProducts as IEnumerable<dynamic> ?? Array.Empty<object>();
+    var productNames = new Dictionary<int, string>();
+    foreach (var p in productsObj)
+    {
+        productNames[(int)p.Id] = (string)p.Nombre;
+    }
+    var returnUrl = "/Dashboard/Admin?section=inventario&subtab=resenas";
+}
+
+<div id="subtab-content-resenas" style="display: @(Model.ActiveSubTab == "resenas" ? "block" : "none");">
+    <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem;">
+
+        <!-- Publicar reseña oficial como Equipo LentSoft -->
+        <div class="inv-card" style="margin-bottom: 0;">
+            <div class="inv-card-header" style="margin-bottom: 0.75rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--purple-900);">Publicar reseña oficial (Equipo LentSoft)</h3>
+                    <p style="margin: 0.2rem 0 0 0; font-size: 0.82rem; color: var(--gray-500);">Las reseñas publicadas desde aquí mostrarán la insignia "Equipo LentSoft".</p>
+                </div>
+            </div>
+
+            <form asp-controller="Reviews" asp-action="Create" method="post" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.85rem; align-items: end;">
+                @Html.AntiForgeryToken()
+                <div>
+                    <label for="adminReviewProduct" style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--purple-900); margin-bottom: 0.3rem;">Producto</label>
+                    <select id="adminReviewProduct" name="productId" required class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
+                        @foreach (var kv in productNames)
+                        {
+                            <option value="@kv.Key">@kv.Value (#@kv.Key)</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <label for="adminReviewRating" style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--purple-900); margin-bottom: 0.3rem;">Calificación</label>
+                    <select id="adminReviewRating" name="rating" class="form-input" style="width: 100%; padding: 0.5rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300);">
+                        <option value="5">5 estrellas</option>
+                        <option value="4">4 estrellas</option>
+                        <option value="3">3 estrellas</option>
+                        <option value="2">2 estrellas</option>
+                        <option value="1">1 estrella</option>
+                    </select>
+                </div>
+                <div style="grid-column: 1 / -1;">
+                    <label for="adminReviewComment" style="display: block; font-size: 0.8rem; font-weight: 600; color: var(--purple-900); margin-bottom: 0.3rem;">Comentario (10 a 1000 caracteres)</label>
+                    <textarea id="adminReviewComment" name="comment" rows="2" minlength="10" maxlength="1000" required
+                              placeholder="Escribe una recomendación oficial sobre esta montura..."
+                              style="width: 100%; padding: 0.55rem 0.75rem; border-radius: 0.5rem; border: 1px solid var(--purple-300); font-family: inherit; box-sizing: border-box;"></textarea>
+                </div>
+                <div>
+                    <button type="submit" class="inv-btn inv-btn-primary" style="padding: 0.55rem 1.25rem;">
+                        Publicar reseña oficial
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Moderación de reseñas -->
+        <div class="inv-card" style="margin-bottom: 0;">
+            <div class="inv-card-header" style="margin-bottom: 1rem; flex-wrap: wrap; gap: 0.75rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.05rem; font-weight: 700; color: var(--purple-900);">Moderación de Reseñas (@allReviews.Count)</h3>
+                </div>
+                <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+                    <select id="filterReviewsProduct" onchange="filterAdminReviewsTable()" class="form-input" style="padding: 0.45rem 0.75rem; border-radius: 0.45rem; border: 1px solid var(--purple-300); font-size: 0.85rem;">
+                        <option value="">Todos los productos</option>
+                        @foreach (var kv in productNames)
+                        {
+                            <option value="@kv.Key">@kv.Value</option>
+                        }
+                    </select>
+                    <input type="text" id="searchAdminReviews" onkeyup="filterAdminReviewsTable()" placeholder="Buscar por autor o comentario..."
+                           class="form-input" style="padding: 0.45rem 0.75rem; border-radius: 0.45rem; border: 1px solid var(--purple-300); font-size: 0.85rem; min-width: 220px;" />
+                </div>
+            </div>
+
+            @if (!allReviews.Any())
+            {
+                <div style="text-align: center; padding: 2rem; color: var(--gray-500); background: var(--purple-50); border-radius: 0.75rem;">
+                    No hay reseñas registradas todavía.
+                </div>
+            }
+            else
+            {
+                <div style="overflow-x: auto;">
+                    <table id="adminReviewsTable" style="width: 100%; border-collapse: collapse; text-align: left; font-size: 0.88rem;">
+                        <thead style="background: var(--purple-50); color: var(--purple-900);">
+                            <tr style="border-bottom: 2px solid var(--purple-200);">
+                                <th style="padding: 0.7rem;">Producto</th>
+                                <th style="padding: 0.7rem;">Autor</th>
+                                <th style="padding: 0.7rem;">Nota</th>
+                                <th style="padding: 0.7rem;">Comentario</th>
+                                <th style="padding: 0.7rem;">Fecha</th>
+                                <th style="padding: 0.7rem; text-align: right;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var r in allReviews)
+                            {
+                                var prodName = productNames.TryGetValue(r.ProductoId, out var pn) ? pn : $"Producto #{r.ProductoId}";
+                                <tr class="admin-review-row" data-product-id="@r.ProductoId" style="border-bottom: 1px solid var(--purple-100);">
+                                    <td style="padding: 0.7rem; font-weight: 600;">
+                                        <a href="/Product/Details/@r.ProductoId" target="_blank" style="color: var(--purple-700); text-decoration: none;">@prodName</a>
+                                    </td>
+                                    <td style="padding: 0.7rem;">
+                                        <span>@r.UserName</span>
+                                        @if (r.IsAdminReview)
+                                        {
+                                            <span style="display: inline-block; margin-left: 0.35rem; background: var(--purple-700); color: white; font-size: 0.68rem; font-weight: 700; padding: 0.1rem 0.45rem; border-radius: 9999px;">Equipo LentSoft</span>
+                                        }
+                                    </td>
+                                    <td style="padding: 0.7rem; color: #f59e0b; font-weight: 700; white-space: nowrap;">@r.Rating ★</td>
+                                    <td style="padding: 0.7rem; max-width: 360px; color: var(--gray-700);">@r.Comment</td>
+                                    <td style="padding: 0.7rem; color: var(--gray-500); white-space: nowrap;">@r.CreatedAtUtc.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td style="padding: 0.7rem; text-align: right;">
+                                        <form asp-controller="Reviews" asp-action="Delete" method="post" onsubmit="return confirm('¿Eliminar esta reseña permanentemente?');" style="margin: 0; display: inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@r.Id" />
+                                            <input type="hidden" name="productId" value="@r.ProductoId" />
+                                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                                            <button type="submit" style="background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; border-radius: 0.4rem; padding: 0.3rem 0.65rem; font-size: 0.78rem; font-weight: 600; cursor: pointer;">
+                                                Eliminar
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<script>
+    function filterAdminReviewsTable() {
+        const prodFilter = document.getElementById('filterReviewsProduct')?.value || '';
+        const textFilter = (document.getElementById('searchAdminReviews')?.value || '').toLowerCase();
+        document.querySelectorAll('#adminReviewsTable .admin-review-row').forEach(row => {
+            const matchesProd = !prodFilter || row.dataset.productId === prodFilter;
+            const matchesText = !textFilter || row.textContent.toLowerCase().includes(textFilter);
+            row.style.display = (matchesProd && matchesText) ? '' : 'none';
+        });
+    }
+</script>
